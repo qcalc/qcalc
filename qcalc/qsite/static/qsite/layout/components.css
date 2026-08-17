@@ -1,0 +1,278 @@
+/* SPDX-License-Identifier: MIT
+   Copyright (c) 2024-2026 Debasish C Saha */
+
+/* =============================================================================
+   qsite/layout/components.css
+   Requires: Bootstrap 4.3.1, IcoMoon (vendor/icomoon)
+   ============================================================================= */
+
+/* --- Sidebar navigation list --- */
+.nav-sidebar {
+  flex-direction: column;
+  flex-wrap: nowrap;
+}
+
+.nav-sidebar .nav-link {
+  display: flex;
+  align-items: center;
+  padding: .75rem 1.25rem;
+  /* text's default line-height is taller than the icon's, so without this the
+     row grows in expanded (icon+text) mode vs collapsed (icon-only) mode */
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  color: rgba(255, 255, 255, .75);
+  border-radius: 0;
+}
+.nav-sidebar .nav-link:hover,
+.nav-sidebar .nav-link:focus { color: #fff; background-color: rgba(255, 255, 255, .06); }
+
+.nav-sidebar .nav-link i {
+  font-size: 1rem;
+  margin-right: .875rem;
+  flex-shrink: 0;
+  min-width: 1rem;
+  text-align: center;
+}
+
+/* Secondary sidebar forms should stack label text above the control */
+.sidebar-secondary .nav-sidebar .nav-link {
+  align-items: flex-start;
+}
+.sidebar-secondary .nav-sidebar .nav-link > label,
+.sidebar-secondary .nav-sidebar .nav-link form > label {
+  display: flex;
+  flex-direction: column;
+  gap: .3125rem;
+  width: 100%;
+}
+.sidebar-secondary .nav-sidebar .nav-link .input-group {
+  width: 100%;
+}
+
+/* Light sidebar nav */
+.sidebar-light .nav-sidebar .nav-link { color: #555; }
+.sidebar-light .nav-sidebar .nav-link:hover { background-color: rgba(0,0,0,.04); color: #333; }
+
+/* In mini (xs) mode icons only — text hidden via layout.css (desktop only) */
+@media (min-width: 768px) {
+  body.sidebar-xs .sidebar-main .nav-sidebar .nav-link i { margin-right: 0; }
+}
+
+/* Card inside sidebar — transparent so dark/light sidebar bg shows through.
+   Scoped selector (not bare .card-sidebar-mobile) so it beats qcalc-*.css's
+   .card{background:#fff} rule regardless of stylesheet load order. */
+.sidebar .card.card-sidebar-mobile {
+  border: 0;
+  border-radius: 0;
+  margin-bottom: 0;
+  background-color: transparent;
+  box-shadow: none;
+}
+
+/* In sidebar-xs (56px) mode, center the icon and remove excess horizontal padding (desktop only) */
+@media (min-width: 768px) {
+  body.sidebar-xs .sidebar-main .nav-sidebar .nav-link {
+    padding: .75rem;
+    justify-content: center;
+  }
+}
+
+/* --- deb@2026.08.04 --- */
+/* --- Card (generic Bootstrap override, used on nearly every page) --- */
+.card {
+  margin-bottom: 1.25rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+.card-title { position: relative; }
+.card-header .card-title { margin-bottom: 0; }
+
+/* --- Buttons --- */
+.btn-light {
+	color: #333;
+	background-color: #fafafa;
+	border-color: #ddd;
+}
+.btn-light:hover {
+	background-color: #f5f5f5;
+}
+/* Subtle inset darkening on hover for solid buttons (btn-primary, btn-danger, etc.) */
+.btn:not([class*=btn-outline]):not(.btn-light):not(.btn-link):hover,
+.btn:not([class*=btn-outline]):not(.btn-light):not(.btn-link):focus {
+	box-shadow: 0 0 0 62.5rem rgba(0, 0, 0, .075) inset;
+}
+
+/* --- Navbar --- */
+@media (min-width: 768px) {
+  .navbar-expand-md .navbar-brand {
+    min-width: 15.625rem;
+  }
+}
+
+.navbar-toggler {
+	border: 0;
+	cursor: pointer;
+	line-height: 1.5385;
+}
+.navbar-toggler + .navbar-toggler {
+	margin-left: 1.25rem;
+}
+.navbar-dark .navbar-toggler:hover,
+.navbar-dark .navbar-toggler:focus { color: #fff; }
+
+/* --- Search box icon overlay (include-search-catalog*.html) --- */
+.form-group-feedback {
+  position: relative;
+}
+.form-group-feedback-left .form-control-feedback { left: 0; }
+.form-group-feedback-left .form-control { padding-left: 2.75rem; }
+.form-group-feedback-right .form-control-feedback { right: 0; }
+.form-group-feedback-right .form-control { padding-right: 2.75rem; }
+
+/* Restore the vertical gap between secondary sidebar labels and their controls */
+.sidebar-secondary .form-group > label,
+.sidebar-secondary .form-group .col-form-label {
+  margin-bottom: .3125rem;
+}
+
+.form-control-feedback {
+  position: absolute;
+  top: 0;
+  color: #333;
+  padding-left: .875rem;
+  padding-right: .875rem;
+  line-height: calc(1.5385em + .875rem + 2px);
+  min-width: 1rem;
+}
+
+/* --- Page header breadcrumb bar (insert-page-header-slim.html) --- */
+/* Zero out Bootstrap's default .75rem/1rem padding — vertical spacing comes
+   solely from .breadcrumb-item / .breadcrumb-elements-item's own padding below. */
+.breadcrumb { padding: 0; }
+
+.breadcrumb-line {
+  position: relative;
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+  border-top: 1px solid transparent;
+  border-bottom: 1px solid transparent;
+}
+.breadcrumb-line-light {
+  background-color: #fafafa;
+  border-color: #ddd;
+  color: #333;
+}
+/* Avoid a doubled edge: the page-header itself already draws this border
+   (see .page-header-light/.page-header-dark in layout.css). */
+.breadcrumb-line:not(.breadcrumb-line-component):first-child { border-top-width: 0; }
+.page-header-light .breadcrumb-line-light:not(.breadcrumb-line-component):last-child,
+.page-header-dark .breadcrumb-line-dark:not(.breadcrumb-line-component):last-child { border-bottom-width: 0; }
+.breadcrumb-elements-item { padding: .625rem 0; }
+.breadcrumb-elements-item + .breadcrumb-elements-item { margin-left: 1.25rem; }
+
+/* Push the mobile header-elements-toggle icon to the right of the .d-flex breadcrumb row */
+.header-elements-toggle { margin-left: auto; }
+/* .d-flex utility has no align-items, so icon-home2 (button, own padding) and
+   icon-menu2 (bare link) stretch/settle at different heights without this. */
+.breadcrumb-line .d-flex { align-items: center; }
+
+/* --- Card header with inline elements --- */
+.card-header.header-elements-inline {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  padding: .75rem 1.25rem;
+}
+.card-header.header-elements-inline .card-title {
+  flex-grow: 1;
+  margin-bottom: 0;
+}
+
+.header-elements {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* On mobile, the page-header's header-elements (search box) should be centered,
+   not pinned to the left edge (justify-content default is flex-start). A full-bleed
+   divider (edge-to-edge, cancelling .breadcrumb-line's own padding) separates it
+   from the icon row above when expanded. */
+@media (max-width: 767.98px) {
+  .breadcrumb-line .header-elements { justify-content: center; margin-top: .625rem; }
+
+  .breadcrumb-line .d-flex {
+    margin-left: -1.25rem;
+    margin-right: -1.25rem;
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+    padding-bottom: .625rem;
+    border-bottom: 1px solid rgba(0, 0, 0, .1);
+  }
+  .breadcrumb-line-dark .d-flex { border-bottom-color: rgba(255, 255, 255, .15); }
+}
+
+/* Force-show header-elements at md+ even though markup has it d-none (mobile-collapsed by default),
+   and lay .breadcrumb-line's children out in a row so header-elements sits at the right. */
+@media (min-width: 768px) {
+  .header-elements-md-inline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .header-elements-md-inline .header-elements { display: flex !important; }
+}
+
+.list-icons {
+  display: flex;
+  align-items: center;
+  gap: .125rem;
+}
+
+.card-menu,
+.card-help,
+.card-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  cursor: pointer;
+  color: inherit;
+  opacity: .5;
+  text-decoration: none;
+}
+.card-menu:hover, .card-help:hover, .card-close:hover {
+  opacity: 1;
+  color: inherit;
+  text-decoration: none;
+}
+
+/* card-menu / card-help / card-close icons defined in qcalc-*.css via ::after */
+
+/* --- Card background for header --- */
+.bg-card-header { background-color: rgba(0, 0, 0, .03); }
+
+/* --- Sidebar mobile toggler (hidden on desktop via layout.css) --- */
+.sidebar-mobile-toggler {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: .75rem 1.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, .1);
+}
+.sidebar-light .sidebar-mobile-toggler { border-bottom-color: rgba(0,0,0,.1); }
+
+/* --- Misc Bootstrap tweaks --- */
+.font-weight-semibold { font-weight: 600; }
+.rounded-round { border-radius: 50rem !important; }
+
+/* Dropdown user menu alignment */
+.dropdown-user .dropdown-menu { min-width: 11rem; }
+
+/* Make badges inline in nav */
+.navbar .badge { font-size: .65rem; vertical-align: middle; }
+
+/* inputfile — hidden file input, label acts as button */
+.inputfile { width: .1px; height: .1px; opacity: 0; overflow: hidden; position: absolute; z-index: -1; }
+.inputfile + label { cursor: pointer; }

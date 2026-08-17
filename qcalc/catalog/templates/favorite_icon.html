@@ -1,0 +1,9 @@
+<i hx-post="{% url 'toggle_favorite' %}" hx-trigger="click" hx-swap="outerHTML" hx-target="this"
+{% if fav_state %}
+   hx-vals='{"func_id": "{{ func_id }}", "input_id": {{ input_id }}, "fav_state": "1", "mode":"i"}'
+   class="icon-star-full2 clickable ml-2"
+{% else %}
+   hx-vals='{"func_id": "{{ func_id }}", "input_id": {{ input_id }}, "fav_state": "0", "mode":"i"}'
+   class="icon-star-empty3 clickable ml-2"
+{% endif %}>
+</i>

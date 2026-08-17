@@ -1,0 +1,11 @@
+{% extends base %}
+{% load qfilter %}
+{% block card %}{% endblock %}
+{% block page_profile %}
+{% concat '/catalog/calc/' category.name '/' as canonical %}
+{% add_head category.data.path category.data.path canonical %}
+{% endblock %}
+{% block _cardtitle %}{{ title }} - {{ category.data.path }}{% endblock %}
+{% block _content %}
+@@include('catalog-calc-categories.html')
+{% endblock %}

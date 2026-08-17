@@ -1,0 +1,8 @@
+{
+  "type": "choice",
+  "choices": {
+    "Australia": "Australia",
+    "Germany": "Germany",
+    "Canada": "Canada"
+  }
+}

@@ -1,0 +1,124 @@
+<!-- template:_gulp-calculator -->
+{% extends "gen-base.html" %}
+{% load qfilter %}
+{% block page_profile %}
+{% concat '/calc/' input.doc.info.name '/' as canonical %}
+{% parents input.doc.info.name 'c' as categories %}
+{% add_head input.doc.info.title input.doc.info.desc canonical categories=categories %}
+{% endblock %}
+<!-- begin:insert-calculator-form -->
+{% load static %}
+{% load qfilter %}
+{% block cardtitle %}{{ input.doc.info.title }} ({{ input.doc.name }}){% endblock %}
+{% block extra_header %}{% if input.doc.name|noindex %}<meta name="robots" content="noindex, nofollow">{% endif %}{% endblock %}
+{% block _card %}
+{% endblock %}
+{% block content %}
+<!-- begin:insert-calculator-section-help -->
+<button type="button" class="card-collapse collapsed btn btn-info btncmd mb-2" href="#help-space-{{ input.cid }}"
+        data-toggle="collapse" aria-label="help">Help&nbsp;</button>
+<div class="collapse section-help" id="help-space-{{ input.cid }}">
+  <p>{{ input.doc.info.desc | safe }}</p>
+  <!--p> input.doc.help | safe </p-->
+  {% if input.doc.help == 'y' %}
+  <p>Click on Help icon
+    <a class="card-help" href="/calc/help/{{ input.doc.name }}/"
+       hx-get="/calc/help/{{ input.doc.name }}/?part=1&token={{ request.token}}"
+       hx-target="closest .calc" hx-swap="afterend" hx-trigger="click[get_card_once('{{ input.doc.name }}_help__page')]">
+    </a>
+    to open the help page on a separate window.</p>
+  {% else %}
+  {% include 'nohelp.html' %}
+  {% endif %}
+</div>
+<!-- end:insert-calculator-section-help -->
+
+<!-- begin:insert-calculator-section-connect -->
+{% if input.doc.info.kins|length > 0 or input.doc.info.tags|length > 0 %}
+<button type="button" class="card-collapse collapsed btn btn-info btncmd mb-2" href="#related-{{ input.cid }}"
+        data-toggle="collapse" aria-label="related">Related&nbsp;</button>
+<div class="collapse section-connect" id="related-{{ input.cid }}">
+  {% for cal in input.doc.info.kins %}
+  <span><a class="btn" href="/calc/{{ cal.0 }}/" hx-get="/calc/add/?path={{ cal.0 }}"
+           hx-target="#card-space" hx-swap="beforebegin">
+    <i class="icon-plus-circle2 mr-2"></i>{{ cal.1 }} ({{ cal.0 }})</a></span>
+  {% endfor %}
+  {% for tag in input.doc.info.tags %}
+  <span><a class="btn" href="/calc/{{ cal.0 }}/" hx-get="/catalog/search_tag/?qt={{ tag }}"
+           hx-target="#tags_{{ input.cid }}" hx-swap="innerHTML">
+    <i class="icon-price-tag2 mr-2"></i>{{ tag }}</a></span>
+  {% endfor %}
+  <div id="tags_{{ input.cid }}" class="tags"></div>
+</div>
+{% endif %}
+<!-- end:insert-calculator-section-connect -->
+
+{% if request.user.is_authenticated and has_user_variants %}
+<!-- begin:insert-calculator-section-variants -->
+<button type="button" class="card-collapse collapsed btn btn-info btncmd mb-2" href="#variants-{{ input.cid }}"
+        data-toggle="collapse" aria-label="variants">Variants&nbsp;</button>
+<div class="collapse section-variants" id="variants-{{ input.cid }}">
+  <p>
+  <a class="btn" href="/calc/{{input.doc.info.name}}/"
+     hx-get="/calc/scroll_input/variants/{{input.doc.info.name}}/{{input.cid}}/"
+     hx-target="#variants-container-{{input.cid}}" hx-swap="innerHTML">
+  <i class="icon-sync mr-2"></i>Display variants</a>
+  <a class="btn" href="/calc/{{input.doc.info.name}}/"
+     hx-get="/calc/tabulate_input/update/{{input.doc.info.name}}/{{input.cid}}/"
+     hx-target="#variants-container-{{input.cid}}" hx-swap="innerHTML">
+  <i class="icon-sync mr-2"></i>Update variants</a>
+  </p>
+ <div id="variants-container-{{input.cid}}">
+ {% include 'input_scroller.html' with scope='variants' item_id=input.doc.info.name qryset=None cid=input.cid %}
+ </div>
+</div>
+<!-- end:insert-calculator-section-variants -->
+{% endif %}
+{% if has_owner_examples %}
+<!-- begin:insert-calculator-section-examples -->
+<button type="button" class="card-collapse collapsed btn btn-info btncmd mb-2" href="#examples-{{ input.cid }}"
+        data-toggle="collapse" aria-label="examples">Examples&nbsp;</button>
+<div class="collapse section-examples" id="examples-{{ input.cid }}">
+  <p>
+  <a class="btn" href="/calc/{{input.doc.info.name}}/"
+     hx-get="/calc/scroll_input/examples/{{input.doc.info.name}}/{{input.cid}}/"
+     hx-target="#examples-container-{{input.cid}}" hx-swap="innerHTML">
+  <i class="icon-sync mr-2"></i>Display examples</a>
+  </p>
+  <div id="examples-container-{{input.cid}}">
+  {% include 'input_scroller.html' with scope='examples' item_id=input.doc.info.name qryset=None cid=input.cid %}
+  <!--{ include 'input_lister.html' with scope='examples' item_id=input.doc.info.name qryset=None %}-->
+  <!--{ include 'input_tabulator.html' with scope='examples' item_id=input.doc.info.name %}-->
+  </div>
+</div>
+<!-- end:insert-calculator-section-examples -->
+{% endif %}
+<!-- begin:insert-calculator-section-top -->
+{% if 'card_top' in input.doc.info.inserts %}
+<br>{{ input.doc.info.inserts.card_top | safe }}
+{% endif %}
+{% for image in input.doc.info.images.top %}
+<p><img class="image" src="{% static image %}"></p>
+{% endfor %}
+<!-- end:insert-calculator-section-top -->
+
+<!--onsubmit="return submitting({{ input.cid }});"-->
+<hr>
+<form method=post hx-post="/calc/{{ input.doc.name }}/"
+      id="form-{{ input.cid }}" enctype="multipart/form-data"
+      class="validate {{ input.cid }}">
+{% load static %}
+{% load qfilter %}
+{% csrf_token %}
+{% if input.doc.info.template != '' %}
+  {% include "gen-calculator-content-"|add:input.doc.info.template|add:".html" with input=input output=output%}
+{% else %}
+  {% include "gen-calculator-content-v4.26.html" with input=input output=output%}
+{% endif %}
+{% include "insert-calculator-section-social.html" %}
+
+
+</form>
+{% endblock %}
+<!-- end:insert-calculator-form -->
+

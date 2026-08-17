@@ -1,0 +1,26 @@
+<!-- template:insert-page-header -->
+{% load qfilter %}
+<div class="page-header page-header-light">
+  <div class="breadcrumb-line breadcrumb-line-light header-elements-md-inline">
+    <div class="d-flex">
+      <div class="breadcrumb" id="head-home">
+        {% pagelink '/' '<span class="notxt">Home</span>' 'btn' 'icon-home2' %}
+        {% if request.user.is_authenticated %}
+            {% concat '/users/' request.user.username '/' as profile_url %}
+            {% pagelink profile_url '<span class="notxt">Profile</span>' 'btn' 'icon-user' %}
+        {% endif %}
+        <button type="button" class="btn" onclick="jumpBottom();" value="" aria-label="scroll_to_end">
+          <i class="icon-circle-down2 text-muted"></i></button>
+      </div>
+      <a href="#" class="header-elements-toggle text-default d-md-none"><i class="icon-menu2"></i></a>
+    </div>
+
+    <div class="header-elements d-none">
+      <div class="breadcrumb justify-content-center">
+        <!-- pageheader search -->
+        {% include 'include-search-catalog.html' with label='Search Catalog' %}
+        <!-- /pageheader search -->
+      </div>
+    </div>
+  </div>
+</div>

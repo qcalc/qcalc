@@ -1,0 +1,83 @@
+<!-- template:_gulp-calculator-content-v4.26 -->
+{% load static %}
+{% load qfilter %}
+<!-- top, connect, variants -->
+{% if 'form_top' in input.doc.info.inserts %}
+{{ input.doc.info.inserts.form_top | safe }}
+{% endif %}
+{% if input.doc.info.outcol|length > 0 %}
+<div class="row input">
+  <div class="col">{% endif %}
+    <!--table-->
+      <div class="row">
+        {% if 'left' in input.doc.info.images %}
+        <div class="col section-left">
+          {% for image in input.doc.info.images.left %}
+          <p><img class="image" src="{% static image %}"></p>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        @@include('insert-calculator-section-input-layout.html')
+
+      </div>
+
+      {% if 'right' in input.doc.info.images %}
+      <div class="col section-right">
+        {% for image in input.doc.info.images.right %}
+        <p><img class="image" src="{% static image %}"></p>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% if 'bottom' in input.doc.info.images %}
+      <div class="section-bottom">
+      {% for image in input.doc.info.images.bottom %}
+      <p><img class="image" src="{% static image %}"></p>
+      {% endfor %}
+      </div>
+      {% endif %}
+      <input type="hidden" name="cid" value="{{ input.cid }}">
+      <input type="hidden" name="extra" value="{{ input.extra }}" id="extra_{{ input.cid }}">
+      <input type="hidden" name="input_id" value="{{ request.input_id }}">
+      @@include('insert-calculator-section-inpbtns.html')
+    <!--/table-->
+    {% if 'result' in input.doc.info.outcol %}
+  </div>
+  <div class="col">{% endif %}
+    <!-- hr -->
+  {% if 'out_top' in input.doc.info.inserts %}
+  <br>
+  {{ input.doc.info.inserts.out_top | safe }}
+  {% endif %}
+
+    <!--table-->
+  <div class="section-output1">
+    {% for field in output.form %}
+    {% if field.name not in input.doc.info.outcol %}
+    @@include('insert-calculator-section-output.html')
+    {% endif %}
+    {% endfor %}
+  </div>
+  <br>
+  @@include('insert-calculator-section-outbtns.html')
+  <div id="status-{{ input.cid }}" class="status"></div>
+    <!--/table-->
+    {% if input.doc.info.outcol|length > 0 %}
+  </div>
+  <div class="col">{% endif %}
+  <div class="section-output2">
+    {% for field in output.form %}
+    {% if field.name in input.doc.info.outcol %}
+    @@include('insert-calculator-section-output.html')
+    {% endif %}
+    {% endfor %}
+  </div>
+    {% if input.doc.info.outcol|length > 0 %}
+  </div>
+</div>{% endif %}
+<br>
+{% isdebug as dbg %}
+{% if user.is_staff or dbg %}@@include('insert-calculator-section-ioinfo.html'){% endif %}
+@@include('insert-calculator-section-scripts.html')
+<!-- social -->

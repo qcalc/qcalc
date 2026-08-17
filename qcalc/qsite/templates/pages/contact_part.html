@@ -1,0 +1,53 @@
+  <h2>Contact Us at <a href="mailto:{{ contact }}">{{ contact }}</a></h2>
+  <p>We'd love to hear from you! Whether you have questions about our features,
+    need a new calculator, have some ideas, want a demo, or have any other queries,
+    our team is here to assist you. For any inquiries, please fill out the form below or
+    email us at <a href="mailto:{{ contact }}">
+      <i class="icon-envelope"></i> {{ contact }}</a></p>
+
+  <form method="post" hx-post="/page/contact/"
+        hx-target="closest .contact"
+        hx-swap="innerHTML" id="contact" enctype="multipart/form-data">
+    {% csrf_token %}
+    <p>
+        {{ form.name.label_tag }}<br>
+        {{ form.name }}
+    </p>
+    <p>
+        {{ form.email.label_tag }}<br>
+        {{ form.email }}
+    </p>
+    <p>
+        {{ form.subject.label_tag }}<br>
+        {{ form.subject }}
+    </p>
+    <p>
+        {{ form.message.label_tag }}<br>
+        {{ form.message }}
+    </p>
+    <p>{{ form.captcha_question }}</p>
+    <p>
+        {{ form.captcha_answer.label_tag }}<br>
+        {{ form.captcha_answer }}
+    </p>
+    {% if form.captcha_answer.errors %}
+    <p>{{ form.captcha_answer.errors }}</p>
+    {% endif %}
+    <p>{{ form.captcha_correct_answer }}</p>
+    <p>{{ form.honeypot }}</p>
+    <p>{{ form.timestamp }}</p>
+    {% if form.non_field_errors %}
+    <ul class="errorlist">
+        {% for error in form.non_field_errors %}
+            <li>Error: {{ error }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    <p>
+      <button type="submit" class="btn btn-primary btncal mr-2" style="width:150px;" aria-label="send">Submit
+        <div class="htmx-indicator">
+          <div class="spinner"></div>
+        </div>
+      </button>
+    </p>
+  </form>

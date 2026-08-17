@@ -1,0 +1,15 @@
+<!--div id="page-holder" class="row" hx-swap-oob="true"-->
+{% extends base %}
+{% load qfilter %}
+{% block card %}{% endblock %}
+{% block page_profile %}
+{% add_head 'Catalog Search' 'Catalog Search' '/catalog/search/' %}
+{% endblock %}
+{% block _cardtitle %}Catalog Search{% endblock %}
+{% block _content %}
+{% include 'include-search-catalog-onpage.html' with label='Search catalog' %}
+<div id="search-result-{{ input.cid }}">
+@@include('catalog-search-results.html')
+</div>
+{% endblock %}
+</div>

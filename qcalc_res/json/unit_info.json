@@ -1,0 +1,2225 @@
+{
+    "m": {
+        "desc": "The physical unit \"m\" is a meter, a base unit of length in the International System of Units (SI). It is commonly used to measure distances and sizes in various fields of science and everyday life."
+    },
+    "g": {
+        "desc": "The unit \"g\" is a metric unit of mass, also known as gram. It is the base unit for measuring mass and is commonly used in scientific and everyday applications."
+    },
+    "s": {
+        "desc": "The physical unit \"s\" is a time measurement known as a second. It is a base unit of time. It is commonly used in various fields for measuring durations and intervals."
+    },
+    "a": {
+        "desc": "\"A\" is the unit of electric current, symbolized as ampere and is a base unit. It measures the flow of electric charge in a circuit."
+    },
+    "k": {
+        "desc": "The Kelvin (K) is the base unit of temperature in the International System of Units (SI). It is commonly used in scientific and engineering applications, where 0K represents absolute zero."
+    },
+    "mol": {
+        "desc": "The mole (mol) is the base unit for amount of substance in the International System of Units (SI). It represents a specific number of entities, such as atoms or molecules, in a sample."
+    },
+    "cd": {
+        "desc": "The candela (cd) is the SI unit for luminous intensity, measuring the amount of light emitted by a source in a particular direction."
+    },
+    "rad": {
+        "desc": "The radian (rad) is a unit of measurement for plane angles, equivalent to the angle subtended at the center of a circle by an arc equal in length to the radius."
+    },
+    "sr": {
+        "desc": "The steradian (sr) is the SI unit for measuring solid angles."
+    },
+    "usd": {
+        "desc": "\"USD\" is a currency unit known as the US dollar. It is the base unit for monetary transactions in the United States and is widely used internationally."
+    },
+    "abcoulomb": {
+        "desc": "The abcoulomb is a unit of electric charge, equivalent to 10^6 coulombs. It is used to measure large amounts of charge in electrical systems."
+    },
+    "coulomb": {
+        "desc": "The coulomb is the SI unit of electric charge, representing the amount of charge passing a point in a circuit per second when a current of one ampere is flowing."
+    },
+    "fdy": {
+        "desc": "\"fdy\" is a unit of electric charge and represents a specific amount of charge."
+    },
+    "fr": {
+        "desc": "The physical unit \"fr\" is a unit of electric charge. It is used to measure the amount of charge present in a system."
+    },
+    "abfarad": {
+        "desc": "The abfarad is a unit of capacitance in the CGS system, equal to 10^9 farads. It is rarely used in modern scientific contexts due to its large value."
+    },
+    "statfarad": {
+        "desc": "The statfarad is a unit of capacitance in the electrostatic cgs system, equivalent to 1.11265 x 10^-12 farads. It is used to measure small capacitance values."
+    },
+    "abhenry": {
+        "desc": "The abhenry is a unit of inductance in the CGS system, equivalent to 10^-9 henries. It is used to measure the ability of a circuit to store energy in a magnetic field."
+    },
+    "hy": {
+        "desc": "The unit \"hy\" is a measure of inductance in the International System of Units. It represents the amount of inductance in a circuit."
+    },
+    "stathenry": {
+        "desc": "The stathenry is a unit of inductance in the electrostatic cgs system, equal to 1 statvolt per ampere. It is rarely used in modern applications."
+    },
+    "abmho": {
+        "desc": "The abmho is a unit of electrical conductance, representing the reciprocal of an ohm in the CGS electromagnetic unit system. It is denoted by the symbol abmho."
+    },
+    "mho": {
+        "desc": "The \"mho\" is a unit of electrical conductance, equal to one reciprocal ohm. It is also known as the siemens in the International System of Units (SI)."
+    },
+    "statmho": {
+        "desc": "The statmho is a unit of electrical conductance in the CGS system, equivalent to 1/(8.9875 x 10^11) siemens. It is commonly used in electrostatics and related fields."
+    },
+    "abohm": {
+        "desc": "The abohm is a unit of electrical impedance, equivalent to 10^-9 ohms. It is used to measure the resistance to the flow of alternating current in a circuit."
+    },
+    "statohm": {
+        "desc": "The statohm is a unit of electrical resistance in the electrostatic cgs system. It is equivalent to 8.9875 x 10^11 ohms and is used to measure impedance in high-frequency circuits."
+    },
+    "abvolt": {
+        "desc": "The abvolt is a unit of electric potential in the CGS system, equal to 10^-8 volts. It is used to measure small electrical potentials in scientific research and engineering."
+    },
+    "statvolt": {
+        "desc": "Statvolt is a unit of electric potential in the cgs electrostatic system of units. It is equivalent to 299.8 volts in the SI system."
+    },
+    "ci": {
+        "desc": "The \"ci\" unit is used to measure frequency or heart rate."
+    },
+    "rpm": {
+        "desc": "\"RPM\" stands for rotations per minute, a unit of angular velocity measuring the number of complete rotations an object makes in one minute. It is commonly used in machinery and automotive industries."
+    },
+    "clo": {
+        "desc": "The \"clo\" is a unit of thermal resistance coefficient used to measure the insulation level of clothing. It indicates the amount of insulation provided by a garment."
+    },
+    "cp": {
+        "desc": "The unit \"cp\" is used to measure dynamic fluid viscosity. It is commonly known as centipoise. It quantifies a fluid's resistance to flow."
+    },
+    "p": {
+        "desc": "The physical unit \"p\" represents dynamic fluid viscosity. It is used to measure the resistance of a fluid to flow."
+    },
+    "cst": {
+        "desc": "The unit \"cst\" is a measure of viscosity, specifically centistokes, representing the rate of flow of a fluid."
+    },
+    "stk": {
+        "desc": "\"stk\" is a unit of measurement of viscosity. It is commonly used to quantify viscosity in various substances."
+    },
+    "fc": {
+        "desc": "The unit \"fc\" is used to measure illuminance, representing the amount of light falling on a surface."
+    },
+    "ph": {
+        "desc": "The \"ph\" unit is a measurement of illuminance, representing the quantity of light per unit area."
+    },
+    "flam": {
+        "desc": "The flam is a unit of luminance, representing the amount of light emitted or reflected from a surface."
+    },
+    "gama": {
+        "desc": "\"Gama\" is a unit of measurement for magnetic flux density, denoted as \u03b3. It is equivalent to one nanotesla (1 nT) and is commonly used in the field of magnetism and electromagnetism.\""
+    },
+    "gs": {
+        "desc": "The unit \"gs\" is a measurement of magnetic flux density, representing gauss. It is defined as 1 gram per second squared per ampere."
+    },
+    "ky": {
+        "desc": "The unit \"ky\" is a wavenumber unit used in optics to represent the spatial frequency along the y-axis. It is dimensionally reciprocal to length (L-1)."
+    },
+    "lambert": {
+        "desc": "A lambert is a unit of luminance, representing brightness emitted or reflected by a surface. It is equivalent to one candela per square centimeter."
+    },
+    "langley": {
+        "desc": "A langley is a unit used to measure solar radiation or energy received on a unit area over a certain time period. It is commonly used in the study of surface tension and spectral irradiance in physics."
+    },
+    "mpg": {
+        "desc": "\"MPG\", or miles per gallon, is a unit of measurement used to determine the fuel efficiency of a vehicle. It represents the distance in miles a vehicle can travel on one gallon of fuel."
+    },
+    "mx": {
+        "desc": "The \"mx\" is a unit used to measure magnetic flux. It is typically used in the field of magnetism and electromagnetism."
+    },
+    "oe": {
+        "desc": "The physical unit \"oe\" is used to measure magnetic field strength or magnetization. It is commonly known as oersted (oe)."
+    },
+    "r": {
+        "desc": "\"r\" is a unit of measurement. (review pending)"
+    },
+    "radu": {
+        "desc": "The \"radu\" is a unit of measurement for specific energy and radioactive dose. It is commonly used in the field of radiation and represents a measure of radiation exposure."
+    },
+    "rem": {
+        "desc": "\"Rem\" is a unit of measurement for absorbed dose of ionizing radiation, taking into account the biological effects of different types of radiation on human tissue."
+    },
+    "sb": {
+        "desc": "The unit \"sb\" is a measure of luminance, representing the amount of light emitted or reflected from a surface. It is commonly known as steradian per square meter."
+    },
+    "sphere": {
+        "desc": "A sphere is a three-dimensional geometric shape that is perfectly round and symmetrical, with all points equidistant from the center. It is a unit of measurement in solid angle"
+    },
+    "st": {
+        "desc": "The \"st\" (steradian) is the SI unit of solid angle, representing the extent of a cone's surface that intersects a sphere at its center. It measures spatial coverage in 3D space."
+    },
+    "te": {
+        "desc": "The physical unit \"te\" is a unit of magnetic flux density. It is commonly used to measure the strength of magnetic fields in various applications."
+    },
+    "unc": {
+        "desc": "\"unc\" is a virtual unit of currency used in qCalc to represent User's National Currency (UNC). Can be used in calculations where actual currency and exchange rate is irrelevant."
+    },
+    "upole": {
+        "desc": "The upole is a unit of magnetic flux. It is known as upole and is used to measure magnetic field strength in certain applications."
+    },
+    "unit": {
+        "desc": "A \"unit\" is a dimensionless quantity representing a single entity or item. It is a standard reference for comparison or measurement in various fields."
+    },
+    "beat": {
+        "desc": "A beat is a unitless measure of a single contraction and relaxation of the heart muscle, known as a heartbeat. It is a common way to measure heart rate and rhythm."
+    },
+    "bag": {
+        "desc": "A bag is a unitless physical quantity used to measure the amount of something that can fit inside a bag. It is often used to measure bulk items such as grains, produce, cement or other goods."
+    },
+    "bale": {
+        "desc": "A bale is a unitless measure used to describe a compressed bundle of material, typically used for packaging or shipping goods such as hay, cotton, or paper products."
+    },
+    "bundle": {
+        "desc": "A bundle is a unitless physical quantity typically used to group items together for sale or transport."
+    },
+    "dozen": {
+        "desc": "A dozen is a unit of quantity that represents 12 items. It is commonly used to refer to a group of twelve things, such as eggs, donuts, or roses."
+    },
+    "ea": {
+        "desc": "\"ea\" is a unitless quantity used to represent individual items or objects. It stands for \"each\". It is commonly used in retail and inventory management."
+    },
+    "gross": {
+        "desc": "\"Gross is a unitless measure. (review pending)"
+    },
+    "hali": {
+        "desc": "\"Hali\" is a unitless physical quantity. It is known as a \"four piece\" and is used in various contexts to represent a set or group of four items or components."
+    },
+    "hd": {
+        "desc": "The unit \"hd\" stands for hundred and is a unitless measure. It is commonly used to represent a quantity of one hundred items or units."
+    },
+    "myria": {
+        "desc": "A myria is a unitless quantity. (review pending)"
+    },
+    "person": {
+        "desc": "A person is a unitless entity representing an individual human being. It is used as a reference for measurements and calculations in various fields such as demographics and statistics."
+    },
+    "nos": {
+        "desc": "\"Nos\" is a unitless quantity used to represent numbers or countable items. It is commonly referred to as \"numbers.\""
+    },
+    "pair": {
+        "desc": "A \"pair\" is a unitless quantity representing a set of two items or objects. It is used to denote a quantity of two items that are often considered together as a single entity."
+    },
+    "pct": {
+        "desc": "The physical unit \"pct\" is a unitless measurement representing a percentage, denoting a proportion out of 100. It is commonly used to express relative quantities or values."
+    },
+    "ppm": {
+        "desc": "\"ppm\" stands for parts per million, a unitless measurement used to express the concentration of a substance in a mixture. It signifies one part in a million parts."
+    },
+    "quire": {
+        "desc": "A quire is a unitless measure traditionally used in bookbinding and papermaking, consisting of 24 sheets of paper or parchment folded to create 48 pages."
+    },
+    "ream": {
+        "desc": "A ream is a unit of paper quantity equal to 500 sheets. It is commonly used in the paper industry for measuring and packaging paper products."
+    },
+    "kg": {
+        "desc": "The kilogram (kg) is the base unit of mass in the International System of Units (SI). It is equal to the mass of the international prototype of the kilogram, a platinum-iridium cylinder stored at the International Bureau of Weights and Measures in France."
+    },
+    "hz": {
+        "desc": "\"Hertz\" (Hz) is a unit of frequency measuring cycles per second. Commonly used to describe the frequency of waves, it is a key unit in physics and engineering."
+    },
+    "bpm": {
+        "desc": "\"BPM\" stands for beats per minute, a unit used to measure the frequency of events, particularly heart rate. It signifies the number of beats in a one-minute time frame."
+    },
+    "bph": {
+        "desc": "\"BPH\" stands for beats per hour, a unit used to measure frequency or heart rate. It represents the number of beats occurring in one hour."
+    },
+    "n": {
+        "desc": "The newton (symbol: N) is a unit of force in the International System of Units (SI). It is defined as the force required to accelerate a mass of one kilogram at a rate of one meter per second squared."
+    },
+    "pa": {
+        "desc": "The pascal (Pa) is the SI unit of pressure, stress, energy density, and spectral exposure. It is defined as one newton per square meter."
+    },
+    "j": {
+        "desc": "The physical unit \"j\" is a unit of energy. It is also known as the joule."
+    },
+    "w": {
+        "desc": "The physical unit \"w\" is a measurement of power. It is commonly known as a watt and represents the rate at which energy is transferred or converted."
+    },
+    "kw": {
+        "desc": "A kilowatt (kW) is a unit of power measuring 1000 watts. It is commonly used to quantify the rate at which energy is transferred or work is done in various applications."
+    },
+    "mw": {
+        "desc": "A megawatt (MW) is a unit of power equal to one million watts. It is commonly used to measure the power output of large electrical generation plants or industrial equipment."
+    },
+    "clm": {
+        "desc": "The \"clm\" is a unit of electric charge, also known as coulomb. It represents the amount of charge passing a point in one second."
+    },
+    "v": {
+        "desc": "The unit \"v\" is the volt, a measure of electric potential. It represents the amount of potential energy required to move one coulomb of charge between two points in an electric circuit."
+    },
+    "f": {
+        "desc": "The physical unit \"f\" is a unit of capacitance, representing the ability of a system to store electrical charge. It is commonly known as the farad."
+    },
+    "ohm": {
+        "desc": "The ohm is a unit of electrical resistance in the International System of Units, represented by the symbol \u03a9. It is the amount of resistance that impedes the flow of current in a circuit."
+    },
+    "si": {
+        "desc": "\"Si\" is the unit of electrical conductance in the International System of Units (SI), symbolized as \"S\". It is named after Ernst Werner von Siemens."
+    },
+    "wb": {
+        "desc": "The weber (Wb) is the SI derived unit of magnetic flux. It measures the amount of magnetic flux that passes through a surface. It is equivalent to one volt-second."
+    },
+    "ts": {
+        "desc": "The \"ts\" is a unit of measurement for magnetic flux density, also known as tesla. It is commonly used in the field of electromagnetism."
+    },
+    "tesla": {
+        "desc": "The tesla is the unit of measurement for magnetic flux density. It is equivalent to one weber per square meter and is named after inventor Nikola Tesla."
+    },
+    "hn": {
+        "desc": "The \"hn\" is a unit of inductance, also known as henry. It measures the amount of opposition to changes in current flow in a circuit."
+    },
+    "lm": {
+        "desc": "The unit \"lm\" represents luminous flux or luminous power, measuring the total amount of visible light emitted by a source. It is commonly known as the lumen."
+    },
+    "lx": {
+        "desc": "The unit \"lx\" is a measurement of illuminance, representing the amount of light that strikes a surface. It is equivalent to one lumen per square meter and is commonly known as lux."
+    },
+    "bq": {
+        "desc": "The \"bq\" or becquerel is a unit of frequency measuring radioactive decay. It represents one decay per second. It is commonly used in nuclear physics and radiochemistry."
+    },
+    "gy": {
+        "desc": "The gray (Gy) is a unit of ionizing radiation dose, measuring absorbed energy per unit mass. It is used in radiation therapy and radiation protection."
+    },
+    "sv": {
+        "desc": "The sievert (sv) is a unit of radiation dose equivalent to one joule of energy deposited per kilogram of tissue. It measures the biological impact of ionizing radiation on living organisms."
+    },
+    "hfcs": {
+        "desc": "\"hfcs\" is a unit of frequency representing the caesium hyperfine frequency, commonly used in measuring heart rate. It is a defining constant in the SI system."
+    },
+    "c": {
+        "desc": "The physical unit \"c\" is a velocity unit. It represents the speed of light in a vacuum, a fundamental constant in physics."
+    },
+    "hplanck": {
+        "desc": "The hplanck is a physical unit representing the Planck constant, denoted as h, used in quantum mechanics to quantify angular momentum and action. It is one of the seven SI defining constants."
+    },
+    "hbar": {
+        "desc": "\"hbar\" is a physical unit representing the reduced Planck constant. It is used in quantum mechanics to quantify angular momentum, action, and spin."
+    },
+    "ec": {
+        "desc": "The \"ec\" unit, known as electron charge, is a fundamental unit of electric charge in the SI system. It is the charge of a single electron and is the 4th of 7 defining constants in the SI system."
+    },
+    "k_b": {
+        "desc": "The physical unit \"k_b\" is the Boltzmann constant, a fundamental constant in physics related to entropy and heat capacity. It is one of the seven SI defining constants."
+    },
+    "nav": {
+        "desc": "The unit \"nav\" is a physical unit, representing the Avogadro constant. It is one of the 7 SI defining constants. (review pending)"
+    },
+    "kcd": {
+        "desc": "The \"kcd\" is a unit of luminous efficacy measuring the efficiency of visible radiation. It is the 7th of 7 SI defining constants."
+    },
+    "mu0": {
+        "desc": "\"mu0\" is the permeability of vacuum, denoted as 4\u03c0 x 10^-7 H/m. It measures the ability of vacuum to support magnetic fields."
+    },
+    "eps0": {
+        "desc": "\"eps0\" is a physical unit representing the permittivity of vacuum. It is a fundamental constant in electromagnetism."
+    },
+    "gv": {
+        "desc": "The physical unit \"gv\" is a unit of measurement, representing the gravitational constant. It is used to quantify the strength of the gravitational force between objects."
+    },
+    "k_e": {
+        "desc": "The physical unit \"k_e\" is a constant in electromagnetism known as the coulomb constant. It is used in calculations involving electric fields."
+    },
+    "cosmo": {
+        "desc": "The \"cosmo\" represents the cosmological constant. It is a dimensionless quantity denoting the energy density of empty space. (review pending)"
+    },
+    "sigma_sb": {
+        "desc": "The physical unit \"sigma_sb\" is the Stefan-Boltzmann constant, denoted as \u03c3, with units of W/(m^2*K^4). It represents the energy radiated by a black body per unit surface area per unit time."
+    },
+    "c1": {
+        "desc": "The physical unit \"c1\" is a constant known as the first radiation constant. It is used in various equations related to radiation and is a fundamental constant in physics. (review pending)"
+    },
+    "c1l": {
+        "desc": "The physical unit \"c1l\" is a constant used in the calculation of spectral radiance. It is known as the first radiation constant. (review pending)"
+    },
+    "c2": {
+        "desc": "The physical unit \"c2\" is a constant related to radiation. It is known as the second radiation constant. (review pending)"
+    },
+    "bw_wien": {
+        "desc": "The physical unit \"bw_wien\" is a constant related to Wien's displacement law, representing the peak wavelength of blackbody radiation. (review pending)"
+    },
+    "bf_wien": {
+        "desc": "The physical unit \"bf_wien\" is a constant used in Wien's frequency displacement law, representing the ratio of temperature to wavelength in the electromagnetic spectrum. (review pending)"
+    },
+    "be_wien": {
+        "desc": "The \"be_wien\" is a unit (review pending), representing the Wien entropy displacement law constant. It is used to quantify entropy displacement in terms of wavelength and temperature."
+    },
+    "lplanck": {
+        "desc": "The Planck length, known as lplanck, is a theoretical unit of length in quantum mechanics, approximately equal to 1.61625518e-35 meters. It is the smallest possible length in the universe."
+    },
+    "mplanck": {
+        "desc": "The \"mplanck\" is a unit of mass, known as the Planck mass. It is approximately 2.17643424e-8 kg, representing a tiny but fundamental mass scale in physics."
+    },
+    "tplanck": {
+        "desc": "The \"tplanck\" is a unit of time known as the Planck time, approximately equal to 5.39124760e-44 seconds. It is used in physics for very short time intervals."
+    },
+    "kplanck": {
+        "desc": "The kplanck is a unit of temperature, also known as the Planck temperature, representing the theoretical maximum temperature in the universe."
+    },
+    "m_e": {
+        "desc": "The physical unit \"m_e\" represents the mass of an electron and is typically measured in kilograms. It is a fundamental constant in physics with a value of approximately 9.11 x 10^-31 kg."
+    },
+    "m_mu": {
+        "desc": "The physical unit \"m_mu\" refers to the mass of a muon, a subatomic particle with a mass of approximately 105.7 mega-electronvolts/c^2. It is commonly used in particle physics research."
+    },
+    "m_tau": {
+        "desc": "m_tau is a unit of mass, denoting the mass of the tau particle. It is commonly referred to as the tau mass."
+    },
+    "m_p": {
+        "desc": "The physical unit \"m_p\" represents the mass of a proton, with a value of approximately 1.67 x 10^-27 kilograms. It is a fundamental constant in particle physics."
+    },
+    "m_n": {
+        "desc": "The physical unit \"m_n\" is a unit of mass, representing the mass of a neutron. It is commonly referred to as the neutron mass."
+    },
+    "m_tq": {
+        "desc": "The physical unit \"m_tq\" is a unit of mass, representing the top quark mass. It is commonly used in particle physics research."
+    },
+    "mr_pe": {
+        "desc": "The physical unit \"mr_pe\" is a unitless quantity representing the proton to electron mass ratio, approximately equal to 1836.15267342. (review pending)"
+    },
+    "mu_b": {
+        "desc": "\"mu_b\" is a unit of magnetic moment, specifically magnetic dipole moment. It is also known as the Bohr magneton."
+    },
+    "ryd": {
+        "desc": "The \"ryd\" is a unit of wavenumber or wavevector in the field of optical power. It is commonly known as the Rydberg constant in physics."
+    },
+    "rg": {
+        "desc": "The physical unit \"rg\" is a molar gas constant. It is commonly used in thermodynamic calculations and has a value of approximately 8.314 J/(mol\u00b7K)."
+    },
+    "m_a": {
+        "desc": "The \"m_a\" physical unit is a measurement of mass in the field of atomic physics, specifically known as the atomic mass constant. It is denoted by the symbol \"m_a\". (review pending)"
+    },
+    "m_m": {
+        "desc": "The physical unit \"m_m\" is a unit used to represent molar mass constant."
+    },
+    "fd": {
+        "desc": "The \"fd\" unit, also known as the Faraday constant, is a physical unit. It is commonly used in electrochemistry to represent the charge of one mole of electrons."
+    },
+    "l_sun": {
+        "desc": "The physical unit \"l_sun\" is a measure of radiant flux or power, specifically the nominal solar luminosity. It represents the total power emitted by the Sun."
+    },
+    "sigma_t": {
+        "desc": "Sigma_t is the total cross-sectional area for thomson scattering, representing the probability of interaction between a particle and incident radiation. (review pending)"
+    },
+    "l_bol0": {
+        "desc": "\"l_bol0\" is a unit of measurement of Power, representing the luminosity for absolute bolometric magnitude."
+    },
+    "min": {
+        "desc": "The \"min\" is a unit of time commonly used to measure short durations. It is equal to 60 seconds or 1/60th of an hour. It is abbreviated as \"min\" and is known as a minute."
+    },
+    "minute": {
+        "desc": "A minute is a unit of time equal to 60 seconds. It is commonly used for measuring short durations or intervals. Symbolized as min."
+    },
+    "h": {
+        "desc": "The unit \"h\" is a time measurement equal to one hour. It is commonly used in various fields such as physics, astronomy, and everyday life for scheduling and timekeeping purposes."
+    },
+    "hr": {
+        "desc": "\"hr\" is a unit of time, commonly known as hour. It is used to measure a period of 60 minutes or 1/24 of a day. It is commonly used in various fields such as scheduling, labor, and scientific measurements."
+    },
+    "d": {
+        "desc": "The physical unit \"d\" represents a day, a unit of time equal to 24 hours. It is commonly used in various fields such as astronomy, economics, and scheduling."
+    },
+    "day": {
+        "desc": "A day is a unit of time equal to 24 hours, typically used to measure the time it takes for the Earth to complete a full rotation on its axis. It is commonly divided into 24 hours, each hour consisting of 60 minutes."
+    },
+    "sec": {
+        "desc": "The \"sec\" is a unit of time, symbolized as \"s\", commonly known as a second. It is used to measure durations or intervals in various contexts such as physics, chemistry, and everyday life."
+    },
+    "ss2": {
+        "desc": "\"ss2\" is a unit of time measurement equal to half of a second. It is commonly used in measuring short durations, especially in sports and photography."
+    },
+    "ss4": {
+        "desc": "\"ss4\" is a time unit representing one-fourth of a second. It is commonly used in measuring short durations, especially in sports and photography."
+    },
+    "ss8": {
+        "desc": "\"ss8\" is a unit of time measurement, denoting one-eighth of a second. It is commonly used in measuring short durations, especially in sports and photography."
+    },
+    "ss15": {
+        "desc": "\"ss15\" is a measure of time equal to one-fifteenth of a second. It is commonly used in measuring short durations, especially in sports and photography."
+    },
+    "ss30": {
+        "desc": "\"ss30\" is a time unit equivalent to one-thirtieth of a second. It is commonly used in measuring short durations, especially in sports and photography."
+    },
+    "ss60": {
+        "desc": "\"ss60\" is a time unit equivalent to one-sixtieth of a second. It is commonly used in measuring short durations, such as in photography to measure shutter speed."
+    },
+    "ss125": {
+        "desc": "The physical unit \"ss125\" is a measure of time. It represents 0.008 seconds. It is commonly used in photography to measure shutter speed."
+    },
+    "ss250": {
+        "desc": "The physical unit \"ss250\" is a measure of time. It represents 0.004 seconds. It is commonly used in photography to measure shutter speed."
+    },
+    "ss500": {
+        "desc": "The \"ss500\" is a unit of time measuring 0.002 seconds.."
+    },
+    "ss1000": {
+        "desc": "The \"ss1000\" is a time unit equivalent to 0.001 seconds, commonly used in measuring short durations."
+    },
+    "ms": {
+        "desc": "\"ms\" stands for millisecond, a unit of time equal to one thousandth of a second. It is commonly used in measuring short intervals, such as in computing or scientific experiments."
+    },
+    "mics": {
+        "desc": "\"Mics\" is a unit of time measurement equal to one millionth of a second, also known as a microsecond. It is commonly used in technical and scientific fields for precise timing."
+    },
+    "ns": {
+        "desc": "A nanosecond (ns) is a unit of time equal to one billionth of a second. It is commonly used in various scientific and technological applications due to its extremely short duration."
+    },
+    "wk": {
+        "desc": "The physical unit \"wk\" stands for week and is commonly used to measure time, particularly in work schedules or project timelines. It is equivalent to 7 days and is a common unit in the field of labor and scheduling."
+    },
+    "fortnight": {
+        "desc": "A fortnight is a unit of time equal to two weeks or 14 days. It is commonly used in labor scheduling and project timelines."
+    },
+    "yr": {
+        "desc": "\"yr\" is a unit of time used to measure periods of approximately 365 days or the time it takes for the Earth to orbit the Sun. It is commonly known as a year in everyday language."
+    },
+    "mo": {
+        "desc": "The unit \"mo\" is a commonly used abbreviation for month. It is used to measure time, typically consisting of 30 or 31 days in a calendar month."
+    },
+    "bimo": {
+        "desc": "A \"bimo\" is a unit of time equivalent to two months, often used in business or project planning. It is also known as bi-month."
+    },
+    "qrtr": {
+        "desc": "A \"qrtr\" is a shorthand term for a quarter, typically used in the context of time. It represents 1/4 of an year, often associated with dividing tasks or schedules into smaller increments."
+    },
+    "halfyr": {
+        "desc": "A \"halfyr\" is a time unit equivalent to half of a year, typically used in financial reporting or project timelines. It represents a duration of six months."
+    },
+    "dsr": {
+        "desc": "The \"dsr\" is a unit of time used in the context of half-life or labor, representing a sidereal day. It is commonly denoted as \"dsr\"."
+    },
+    "hsr": {
+        "desc": "The \"hsr\" is a unit of time, equivalent to a sidereal hour. (review pending)"
+    },
+    "minsr": {
+        "desc": "\"Minsr\" is a unit of time used in astronomy, representing a sidereal minute. It is commonly used to measure half-lives of celestial bodies or duration of labor tasks."
+    },
+    "prahar": {
+        "desc": "\"Prahar\" is a time unit used in Indian culture, equivalent to three hours. It is commonly used to divide the day into segments for various activities and routines."
+    },
+    "shake": {
+        "desc": "A shake is a unit of time equal to ten nanoseconds. It is commonly used in scientific fields such as nuclear physics to measure extremely short time intervals."
+    },
+    "ssr": {
+        "desc": "The \"ssr\" is a unit of time used in astronomy, known as the sidereal second. It is a measure of time based on the rotation of the Earth relative to distant stars."
+    },
+    "yrsr": {
+        "desc": "The physical unit \"yrsr\" is a measurement of time, specifically a sidereal year. It is used to track the orbital period of a celestial body relative to the fixed stars."
+    },
+    "yrtp": {
+        "desc": "The \"yrtp\" is a unit of time representing the tropical year, the time it takes for the Earth to complete one orbit around the Sun relative to the vernal equinox."
+    },
+    "thyr": {
+        "desc": "A \"thyr\" is a time unit equivalent to a thousand years. It is commonly used in the fields of geology, archaeology, and astronomy to describe long periods of time."
+    },
+    "lcyr": {
+        "desc": "The physical unit \"lcyr\" or \"lac year\" is a time measurement used in the context of half-life calculations in nuclear physics. It represents the decay of a radioactive substance over a period equivalent to 1.25 years."
+    },
+    "mnyr": {
+        "desc": "The \"mnyr\" is a unit of time equal to one million years. It is commonly used in geology and astronomy to describe long periods of time in a more manageable scale."
+    },
+    "cryr": {
+        "desc": "The physical unit \"cryr\" is a measurement of time equivalent to one hundred million years and is commonly used in the field of geology and astronomy for long-term calculations."
+    },
+    "bnyr": {
+        "desc": "A \"bnyr\" is a unit of time equal to one billion years. It is commonly used in scientific contexts to measure long durations, such as geological processes or astronomical events."
+    },
+    "quectosec": {
+        "desc": "A quectosec, short for quectosecond, is a unit of time equivalent to one thousandth of a second. It is commonly used in scientific and technical fields for precise measurements and calculations."
+    },
+    "rontosec": {
+        "desc": "A rontosec, also known as a rontosecond, is a unit of time used to measure half-life. (review pending)"
+    },
+    "yottasec": {
+        "desc": "A yottasecond (yottasec) is a unit of time equal to 10^24 seconds. It is an extremely large measurement used in scientific calculations involving vast amounts of time such as the age of the universe or the lifespan of stars."
+    },
+    "zettasec": {
+        "desc": "A zettasecond (zettasec) is a unit of time equal to 10^21 seconds. It is used in scientific calculations and is an extremely large unit of time."
+    },
+    "exasec": {
+        "desc": "Exasec, short for exasecond, is a unit of time, representing one quintillion seconds. It is commonly used in scientific research and high-performance computing."
+    },
+    "petasec": {
+        "desc": "A petasec, also known as a petasecond, is a unit of time equal to 10^15 seconds. It is used to measure extremely long periods of time, often in scientific and astronomical contexts."
+    },
+    "terasec": {
+        "desc": "A terasec, also known as a terasecond, is a unit of time equal to one trillion seconds. It is commonly used in scientific and technological contexts for measuring long durations."
+    },
+    "gigasec": {
+        "desc": "A gigasec, also known as a gigasecond, is a unit of time equal to one billion seconds. It is commonly used in scientific and technological applications for measuring long durations."
+    },
+    "megasec": {
+        "desc": "A megasec is a unit of time equal to one million seconds, commonly used in scientific and technical fields for measuring long durations."
+    },
+    "kilosec": {
+        "desc": "A kilosec is a unit of time equivalent to 1,000 seconds. It is commonly used in scientific and technical contexts to measure short periods of time."
+    },
+    "hectosec": {
+        "desc": "A hectosec, also known as a hectosecond, is a unit of time equal to 100 seconds. It is commonly used in scientific and technical contexts for precise measurements of time intervals."
+    },
+    "decasec": {
+        "desc": "A decasec, also known as a decasecond, is a unit of time equal to 10 seconds. It is commonly used in scientific measurements and calculations."
+    },
+    "decisec": {
+        "desc": "A decisec, also known as a decisecond, is a unit of time equal to one-tenth of a second. It is commonly used in scientific and technical contexts for precise measurements."
+    },
+    "centisec": {
+        "desc": "A centisec is a unit of time equal to one hundredth of a second. It is commonly used in scientific measurements and calculations involving short durations."
+    },
+    "millisec": {
+        "desc": "A millisec is a unit of time equal to one thousandth of a second. It is commonly used in scientific and engineering applications to measure short time intervals."
+    },
+    "microsec": {
+        "desc": "A microsecond (\u00b5s) is a unit of time equal to one millionth of a second. It is commonly used in electronics, telecommunications, and scientific research."
+    },
+    "nanosec": {
+        "desc": "A nanosecond, abbreviated as \"nanosec\", is a unit of time equal to one billionth of a second. It is commonly used in scientific and technological fields for precise measurements and calculations."
+    },
+    "picosec": {
+        "desc": "A picosecond (picosec) is a unit of time equal to one trillionth of a second, commonly used in scientific and technological fields for precise measurements and calculations."
+    },
+    "femtosec": {
+        "desc": "A femtosecond (femtosec) is a unit of time equal to one quadrillionth of a second. It is commonly used in the study of ultrafast processes in physics and chemistry."
+    },
+    "attosec": {
+        "desc": "An attosecond is a unit of time equal to one quintillionth of a second, used in scientific research to measure extremely short time intervals in the realm of atomic and molecular interactions."
+    },
+    "zeptosec": {
+        "desc": "A zeptosecond (zeptosec) is a unit of time equal to 10^-21 seconds. It is used in the study of extremely short time intervals, such as nuclear processes."
+    },
+    "yoctosec": {
+        "desc": "A yoctosecond (yoctosec) is a unit of time equal to one septillionth of a second. It is used in scientific calculations, particularly in the study of particle decay and nuclear reactions."
+    },
+    "ronaatosec": {
+        "desc": "The \"ronaatosec\" is a unit of time. (review pending)"
+    },
+    "quettasec": {
+        "desc": "The quettasecond (quettasec) is a unit of time. It is equivalent to 10^15 seconds."
+    },
+    "manhr": {
+        "desc": "A manhr, also known as a man hour, is a unit of time representing the amount of work that can be accomplished by one person in one hour. It is commonly used in labor-intensive industries to measure productivity."
+    },
+    "manday": {
+        "desc": "A manday is a unit of time representing one day's work by one person. It is commonly used in project management to estimate labor requirements and productivity."
+    },
+    "manmo": {
+        "desc": "\"Manmo\" is a unit of time representing the effort of one person working for one month. It is commonly used in project management to estimate labor hours needed."
+    },
+    "manyr": {
+        "desc": "A manyr is a unit of time equivalent to the work of one person for a year. It is commonly used in labor-intensive projects to estimate the amount of work required."
+    },
+    "cm": {
+        "desc": "The centimeter (cm) is a unit of length in the metric system equal to one hundredth of a meter. It is commonly used for measuring small distances or dimensions."
+    },
+    "inch": {
+        "desc": "The inch is a unit of length commonly used in the United States and United Kingdom, equal to 1/12 of a foot. It is often used to measure smaller lengths in everyday situations."
+    },
+    "ft": {
+        "desc": "The physical unit \"ft\" is a unit of length commonly used in the imperial system, equivalent to 12 inches or 0.3048 meters. It is known as a foot and is used to measure distances or heights."
+    },
+    "yd": {
+        "desc": "The yard (yd) is a unit of length equal to 3 feet or 36 inches. It is commonly used in the United States and United Kingdom for measuring distances in everyday situations."
+    },
+    "mi": {
+        "desc": "The physical unit \"mi\" is a unit of length commonly used in the United Kingdom and the United States, known as the British mile. It is equivalent to 1,760 yards or 5,280 feet."
+    },
+    "mile": {
+        "desc": "A mile is a unit of length equal to 5,280 feet or 1,760 yards. It is commonly used in the United States and United Kingdom for measuring long distances on land."
+    },
+    "nmi": {
+        "desc": "A nautical mile (nmi) is a unit of length used in navigation, equal to one minute of latitude. It is commonly used to measure distances at sea."
+    },
+    "angs": {
+        "desc": "\"Angs\" is a unit of length used in scientific fields, equivalent to 0.1 nanometers or 10^-10 meters. It is commonly used to measure atomic distances."
+    },
+    "lyr": {
+        "desc": "A light year (lyr) is a unit of length used to measure astronomical distances. It is the distance that light travels in one year, approximately 9.461 trillion kilometers."
+    },
+    "lhr": {
+        "desc": "The unit \"lhr\" is a measurement of length specifically used to denote the distance light travels in one hour."
+    },
+    "lmin": {
+        "desc": "The physical unit \"lmin\" stands for light minute, which is a unit of length or distance equal to the distance that light travels in one minute. It is commonly used in astronomy and telecommunications."
+    },
+    "lsec": {
+        "desc": "A light second (lsec) is a unit of length used to measure the distance that light travels in one second, approximately 299,792,458 meters. It is commonly used in astronomy and telecommunications."
+    },
+    "a0": {
+        "desc": "The physical unit \"a0\" is a unit of length known as the Bohr radius. It is commonly used in quantum mechanics to represent the average distance between the nucleus and the electron in a hydrogen atom. It is a fundamental constant in atomic physics."
+    },
+    "chain": {
+        "desc": "A chain is a unit of length equal to 66 feet or 22 yards. It is commonly used in land surveying and is part of the imperial system of measurement."
+    },
+    "ch": {
+        "desc": "The unit \"ch\" is a measurement of length in the Imperial system, equivalent to 66 feet or 20.1168 meters. It is commonly used in land surveying and mapping."
+    },
+    "link": {
+        "desc": "A link is a unit of length used in surveying, equal to 66 feet or 20.1168 meters. It is commonly used in land measurement and boundary marking."
+    },
+    "fur": {
+        "desc": "\"Fur\" is a unit of length in the Imperial system, equivalent to 220 yards or 1/8 of a mile. It is commonly used in horse racing and land surveying."
+    },
+    "angstrom": {
+        "desc": "An angstrom is a unit of length equal to one ten-billionth of a meter, commonly used to measure atomic distances and wavelengths in the nanometer scale."
+    },
+    "au": {
+        "desc": "An astronomical unit (au) is a unit of length used in astronomy, equal to the average distance between the Earth and the Sun, approximately 93 million miles or 150 million kilometers."
+    },
+    "che": {
+        "desc": "The physical unit \"che\" is a traditional Chinese unit of length equivalent to one hundred feet. It is commonly used in China for measuring distances in a cultural context."
+    },
+    "chg": {
+        "desc": "The unit \"chg\" is a measurement of length commonly known as a chain. It is used in surveying and land measurement, equal to 66 feet or 20.1168 meters."
+    },
+    "em": {
+        "desc": "An \"em\" is a unit of measurement typically used in typography to represent the width of the letter \"M\". It is also known as the earth radius in some contexts. (review pending)"
+    },
+    "fath": {
+        "desc": "A fath, also known as a fathom, is a unit of length used to measure the depth of water or the length of nautical ropes. It is equal to six feet or 1.8288 meters."
+    },
+    "fm": {
+        "desc": "A femtometer (fm) is a unit of length in the metric system equal to one quadrillionth of a meter. It is commonly used to measure atomic and subatomic distances."
+    },
+    "hat": {
+        "desc": "A \"hat\" is an old unit of length typically used in India. (review pending)"
+    },
+    "km": {
+        "desc": "A kilometer (km) is a unit of length equal to 1000 meters. It is commonly used to measure distances on land and is known for its simplicity and ease of conversion."
+    },
+    "lie": {
+        "desc": "A lie is a unit of measurement for length, with the symbol \"lie\". It is commonly used in various fields such as physics and engineering to measure distances."
+    },
+    "lig": {
+        "desc": "A lig is a unit of length commonly used in astronomy to measure the distance between celestial bodies. It is equivalent to 3.262 light-years or approximately 9.461 trillion kilometers."
+    },
+    "microinch": {
+        "desc": "A microinch is a unit of length equal to one millionth of an inch, commonly used in precision engineering and manufacturing for extremely small measurements."
+    },
+    "micron": {
+        "desc": "A micron, also known as a micrometer, is a unit of length equal to one millionth of a meter. It is commonly used to measure small distances and thicknesses in various scientific and industrial applications."
+    },
+    "mil": {
+        "desc": "A mil is a unit of length equal to one thousandth of an inch, commonly used in manufacturing and engineering for precise measurements in small dimensions."
+    },
+    "us_mi": {
+        "desc": "us_mi is a unit of length used in the field of ultrasonics, equivalent to one millionth of a US survey mile. It is denoted as us_mi and is commonly used for measuring small distances."
+    },
+    "mm": {
+        "desc": "\"mm\" stands for millimeter, a unit of length equal to one thousandth of a meter. It is commonly used for precise measurements in various fields such as engineering and manufacturing."
+    },
+    "pc": {
+        "desc": "The unit \"pc\" stands for parsec, used in astronomy as a measure of distance equal to about 3.26 light-years or approximately 30.857 trillion kilometers. It is commonly used to describe distances between stars and galaxies."
+    },
+    "kpc": {
+        "desc": "A kiloparsec (kpc) is a unit of length used in astronomy to measure distances on a cosmic scale. It is equal to 1,000 parsecs or approximately 3,261 light-years."
+    },
+    "pica": {
+        "desc": "A pica is a unit of measurement commonly used in typography, equal to 1/6 of an inch or 12 points. It is typically used to measure the width of columns in printed material."
+    },
+    "picaprn": {
+        "desc": "A \"picaprn\" is a unit of length, typically used to measure very small distances or wavelengths. It is known for its precision in scientific and technical applications."
+    },
+    "pt": {
+        "desc": "The \"pt\" is a unit of length, commonly known as a point of meter. It is used in typography to measure font size and spacing. 1 pt is equal to 1/72 of an inch or approximately 0.3528 mm."
+    },
+    "ptprn": {
+        "desc": "A \"ptprn\" is a unit of length typically used in graphic design and typography to measure the size of fonts or spacing. It is equivalent to 1/12 of a pica or approximately 0.0139 inches."
+    },
+    "rod": {
+        "desc": "A rod is a unit of length equal to 5.5 yards or 16.5 feet. It is commonly used in land surveying and agriculture for measuring distances."
+    },
+    "sm": {
+        "desc": "The physical unit \"sm\" is a measurement of length typically used in reference to small distances or dimensions."
+    },
+    "sut": {
+        "desc": "\"Sut\" is a unit of length. (review pending)"
+    },
+    "xu": {
+        "desc": "The \"xu\" is a unit of length typically used in ancient China, equivalent to approximately 3.03 millimeters. It is commonly referenced in historical texts and archaeological measurements."
+    },
+    "nam": {
+        "desc": "The \"nam\" is a unit of length. It is commonly known as a nanometer and is used to measure very small distances or wavelengths."
+    },
+    "quettam": {
+        "desc": "The quettam is a unit of length, also known as quettameter. It is used to measure distances on a large scale."
+    },
+    "ronaatom": {
+        "desc": "A ronaatom, also known as a roanatometer, is a unit of length used in the field of nanotechnology. It is a subatomic length measurement equal to 10^-10 meters."
+    },
+    "yottam": {
+        "desc": "A yottameter (Ym) is a unit of length in the metric system equal to one septillion meters. It is used in astrophysics to measure vast distances in space."
+    },
+    "zettam": {
+        "desc": "A zettam is a unit of length in the metric system, equivalent to one sextillion meters. It is commonly used in astronomical measurements due to its immense scale."
+    },
+    "exam": {
+        "desc": "An exam is a unit of length in the metric system equivalent to one quintillion meters (1,000,000,000,000,000,000 meters), typically used in astronomical measurements. (review pending)"
+    },
+    "petam": {
+        "desc": "Petam is a unit of length in the metric system, equivalent to one quadrillion meters. It is commonly referred to as a petameter and is used to measure very large distances."
+    },
+    "teram": {
+        "desc": "The terameter (teram) is a unit of length in the metric system equal to one trillion meters. It is commonly used in astronomy to measure vast distances in space."
+    },
+    "gigam": {
+        "desc": "A gigameter (gigam) is a unit of length equal to one billion meters. It is used to measure large distances such as interstellar space or the diameter of planets."
+    },
+    "megam": {
+        "desc": "Megam, also known as megameter, is a unit of length in the metric system equal to one million meters. It is commonly used in astronomical and geophysical measurements."
+    },
+    "kilom": {
+        "desc": "A kilom (km) is a unit of length equivalent to one kilometer. It is commonly used in measuring long distances, such as in road signs and maps."
+    },
+    "hectom": {
+        "desc": "The hectom, also known as a hectometer, is a unit of length equal to 100 meters. It is commonly used to measure large distances such as land plots or roadways."
+    },
+    "decam": {
+        "desc": "The decameter (decam) is a unit of length equal to 10 meters. It is commonly used in scientific and engineering applications for measuring large distances."
+    },
+    "decim": {
+        "desc": "The decim is a unit of length in the metric system, also known as a decimeter. It is equal to one-tenth of a meter and is commonly used for measuring shorter distances."
+    },
+    "centim": {
+        "desc": "The centim is a unit of length in the metric system, equivalent to one hundredth of a meter. It is commonly known as the centimeter (cm) and is often used for measuring small distances."
+    },
+    "millim": {
+        "desc": "A millim is a unit of length in the metric system, equal to one thousandth of a meter or 0.001 meters. It is commonly known as a millimeter (mm)."
+    },
+    "microm": {
+        "desc": "The microm, also known as micrometer, is a unit of length equal to one millionth of a meter. It is commonly used in scientific and engineering applications for precise measurements."
+    },
+    "nanom": {
+        "desc": "\"Nanom\" is a unit of length in the metric system, equivalent to one billionth of a meter. It is commonly known as a nanometer and is used to measure very small distances."
+    },
+    "picom": {
+        "desc": "A picom is a unit of length in the metric system, symbolized as pm. It is equivalent to one trillionth of a meter and is commonly used in measuring atomic and molecular scales."
+    },
+    "femtom": {
+        "desc": "\"Femtom\" is a unit of measurement used in the metric system to represent one quadrillionth of a meter. It is commonly known as a femtometer and is used in the measurement of extremely small distances in the fields of physics and chemistry."
+    },
+    "attom": {
+        "desc": "The attom is a unit of length in the metric system, also known as an attometer. It is equal to one quintillionth of a meter (10^-18 meters) and is used to measure very small distances in fields such as nanotechnology and particle physics."
+    },
+    "zeptom": {
+        "desc": "A zeptom is a unit of length in the metric system, equal to one sextillionth of a meter. It is commonly used in physics and nanotechnology."
+    },
+    "yoctom": {
+        "desc": "A yoctometer, also known as a yoctom, is a unit of length in the metric system equal to one septillionth of a meter. It is used to measure extremely small distances in the realm of subatomic particles."
+    },
+    "rontom": {
+        "desc": "A rontom, also known as a rontometer, is a unit of length used to measure distances."
+    },
+    "quectom": {
+        "desc": "A quectom, also known as a quectometer, is a unit of length used to measure very small distances. It is typically used in nanotechnology and atomic scale measurements."
+    },
+    "fermi": {
+        "desc": "A fermi, also known as a femtometer, is a unit of length equal to 10^-15 meters. It is commonly used in nuclear physics to measure atomic nuclei and subatomic particles."
+    },
+    "ha": {
+        "desc": "A hectare (ha) is a unit of area measurement equal to 10,000 square meters. It is commonly used in agriculture and land management for larger plots of land."
+    },
+    "b": {
+        "desc": "The unit \"b\" or barn is a measure of area commonly used in nuclear physics to describe the cross-sectional area of atomic nuclei. It is equivalent to 10^-28 square meters. (review pending)"
+    },
+    "acreus": {
+        "desc": "An acreus, also known as a US acre, is a unit of area measurement equal to 4,840 square yards or 43,560 square feet. It is commonly used in the United States for land measurement."
+    },
+    "are": {
+        "desc": "The \"are\" is a unit of area measurement equivalent to 100 square meters. It is commonly used in land measurement and real estate transactions."
+    },
+    "cunit": {
+        "desc": "A cunit is a unit of measurement used for wood volume, specifically for firewood. (review pending)"
+    },
+    "darcy": {
+        "desc": "The darcy is a unit of permeability used in geology and hydrogeology to measure the ability of a material to allow fluid flow. It is equivalent to 1 square centimeter."
+    },
+    "sqm": {
+        "desc": "A square meter (sqm) is a unit of measurement for area equal to the area of a square with sides of one meter in length. It is commonly used in real estate and construction."
+    },
+    "sft": {
+        "desc": "\"Sft\" is a unit of area measurement in the Imperial system, equivalent to the area of a square with sides of one foot in length. It is commonly used in real estate and construction."
+    },
+    "sqft": {
+        "desc": "\"sqft\" is a unit of area measurement, equal to the area of a square with sides of one foot in length. It is commonly used in real estate to measure property size."
+    },
+    "sqyd": {
+        "desc": "The \"sqyd\" is a unit of measurement for area equal to one square yard, commonly used in real estate and construction for measuring land or floor space."
+    },
+    "sqlink": {
+        "desc": "The \"sqlink\" is a unit of area measurement, known as a square link."
+    },
+    "chhotak": {
+        "desc": "A \"chhotak\" is an old land area unit used in India. 16 chhotak = 1 katha."
+    },
+    "katha": {
+        "desc": "A katha is a unit of land area used in India. It is a traditional unit and is commonly used in real estate transactions. 1 katha is equivalent to approximately 1361 square feet."
+    },
+    "bigha": {
+        "desc": "A bigha is a traditional unit of land measurement in India, typically used for agricultural purposes. It varies in size depending on the region, but is commonly around 1/3 to 1 acre."
+    },
+    "acre": {
+        "desc": "An acre is a unit of land measurement equal to 43,560 square feet or about 4,047 square meters. It is commonly used in India to measure large plots of land."
+    },
+    "decimal": {
+        "desc": "A decimal is a unit of land area measurement. It is commonly used to measure the size of plots or parcels of land."
+    },
+    "shotok": {
+        "desc": "A \"shotok\" or \"shotangsho\" is a land area unit used in India, equivalent to 100 square feet. It is commonly used to measure smaller areas of land."
+    },
+    "til": {
+        "desc": "A \"til\" is an old land area unit in India, used to measure the size of plots of land."
+    },
+    "kranti": {
+        "desc": "A \"kranti\" is an old land area unit used in India, equivalent to 435.6 square feet. It is also known as \"kontho\"."
+    },
+    "donto": {
+        "desc": "The \"donto\" is an old land area unit used in India."
+    },
+    "renu": {
+        "desc": "The \"renu\" is an old unit of land area measurement in India."
+    },
+    "dhul": {
+        "desc": "A \"dhul\" is an old unit of land area measurement in India. It is used to measure the size of plots of land."
+    },
+    "kora": {
+        "desc": "A \"kora\" is an old unit of land area measurement in India. It is used to measure the area of a piece of land."
+    },
+    "gonda": {
+        "desc": "A gonda is an old unit of land area measurement in India. It is used to measure the size of plots or fields. 1 gonda is equal to 192.25 square meters."
+    },
+    "kani": {
+        "desc": "The \"kani\" is an old unit of land area measurement in India."
+    },
+    "milc": {
+        "desc": "The milc is a unit of measurement used for area. (review pending)"
+    },
+    "rood": {
+        "desc": "A rood is an old unit of area measurement equal to a quarter of an acre or 1,210 square yards. It is commonly used in agriculture and land surveying."
+    },
+    "sqkm": {
+        "desc": "A square kilometer (sqkm) is a unit of measurement for area equal to the area of a square with sides of 1 kilometer in length, commonly used to measure large land areas."
+    },
+    "sqmi": {
+        "desc": "A square mile (sqmi) is a unit of area equal to the area of a square with sides of one mile in length. It is commonly used to measure land areas, especially in the United States."
+    },
+    "m2": {
+        "desc": "The \"m2\" is a unit of measurement for area, representing the square meter."
+    },
+    "ft2": {
+        "desc": "\"ft2\" is a unit of measurement for area, equivalent to the area of a square with sides measuring 1 foot each. It is commonly known as a square foot."
+    },
+    "yd2": {
+        "desc": "A square yard (yd2) is a unit of area measurement equal to the area of a square with sides of one yard in length. It is commonly used in real estate and landscaping."
+    },
+    "link2": {
+        "desc": "The physical unit \"link2\" is a measurement of area, known as a square link."
+    },
+    "km2": {
+        "desc": "The unit \"km2\" represents a measurement of area equal to one square kilometer, or 1,000,000 square meters. It is commonly used to quantify large land areas."
+    },
+    "mi2": {
+        "desc": "The physical unit \"mi2\" is a unit of area measurement, also known as a square mile. It represents the area of a square with sides that are each one mile in length."
+    },
+    "l": {
+        "desc": "The physical unit \"l\" is a unit of volume, equivalent to one liter. It represents the amount of space occupied by a cubic decimeter."
+    },
+    "dl": {
+        "desc": "The deciliter (dl) is a unit of volume equal to one-tenth of a liter. It is commonly used to measure liquids, such as in cooking recipes or pharmaceuticals."
+    },
+    "cl": {
+        "desc": "The centiliter (cl) is a unit of volume equal to one hundredth of a liter. It is commonly used to measure liquids in recipes and beverages."
+    },
+    "ml": {
+        "desc": "A milliliter (ml) is a unit of volume equivalent to one thousandth of a liter. It is commonly used to measure small quantities of liquids in various settings."
+    },
+    "teasp": {
+        "desc": "A teasp, also known as a teaspoon, is a unit of volume. Commonly represented as \"t\" or \"tsp,\" it is used for measuring small amounts of liquid or powder."
+    },
+    "tblsp": {
+        "desc": "A \"tblsp\" is a unit of volume used for measuring liquids or powders, equivalent to 1/2 fluid ounce or 3 teaspoons. It is commonly known as a tablespoon and has aliases such as T, TB, or tbsp."
+    },
+    "floz": {
+        "desc": "The \"floz\" is a unit of volume measurement in the imperial and US customary systems, representing a fluid ounce. It is used to measure the volume of liquids."
+    },
+    "cup": {
+        "desc": "A cup is a unit of volume measurement, commonly denoted as C or c. It is used for liquids and dry ingredients in recipes, equal to 8 fluid ounces or about 240 milliliters."
+    },
+    "pint": {
+        "desc": "A pint is a unit of volume equal to 1/8 of a gallon or 16 fluid ounces. It is commonly used in the United States and United Kingdom for measuring liquids such as milk, beer, and water."
+    },
+    "qt": {
+        "desc": "A quart (qt) is a unit of volume equal to a quarter of a gallon or two pints. It is commonly used for measuring liquids such as milk, water, or oil."
+    },
+    "us_gal": {
+        "desc": "The \"us_gal\" is a unit of volume used in the United States, equivalent to one US gallon. It is commonly used to measure liquid volumes in various industries."
+    },
+    "gal": {
+        "desc": "The \"gal\" is a unit of volume in the US customary system, equivalent to 3.785 liters. It is commonly used to measure liquid capacity in everyday life."
+    },
+    "uk_gal": {
+        "desc": "The \"uk_gal\" is a unit of volume in the British Imperial system, equivalent to 4.54609 liters. It is commonly used for measuring liquids in the UK."
+    },
+    "cft": {
+        "desc": "A cubic foot (cft) is a unit of volume equal to the volume of a cube with sides measuring one foot in length. It is commonly used to measure large volumes of space, such as in construction or shipping."
+    },
+    "cum": {
+        "desc": "The physical unit \"cum\" is a volume measurement, equivalent to a cubic meter (m3 or m^3)."
+    },
+    "cucm": {
+        "desc": "A cucm, is a unit of volume, also known as a cubic centimeter."
+    },
+    "cm3": {
+        "desc": "A cm3 is a unit of volume equal to the volume of a cube with sides measuring 1 centimeter. It is commonly used to measure small volumes in various fields."
+    },
+    "m3": {
+        "desc": "The \"m3\" is a unit of volume, representing the cubic meter."
+    },
+    "ft3": {
+        "desc": "A cubic foot, denoted as ft3, is a unit of volume used to measure the amount of space an object occupies. It represents the volume of a cube with sides measuring one foot in length."
+    },
+    "bbl": {
+        "desc": "A \"bbl\" is a unit of volume used in the oil and gas industry, equal to 42 US gallons or approximately 159 liters. It is commonly used to measure the volume of crude oil or other petroleum products."
+    },
+    "bbl_oil": {
+        "desc": "A bbl_oil is a unit of volume equal to one billion barrels of oil. It is commonly used in the oil and gas industry to measure large quantities of crude oil."
+    },
+    "bu": {
+        "desc": "The physical unit \"bu\" is a measure of volume typically used for dry goods such as grain. It is equivalent to around 35.24 liters or 1.244 cubic feet."
+    },
+    "cc": {
+        "desc": "A cubic centimeter (cc) is a unit of volume equal to the volume of a cube with sides that are 1 centimeter in length. It is commonly used to measure small volumes of liquids or solids."
+    },
+    "cord": {
+        "desc": "A cord is a unit of volume typically used for firewood, equal to 128 cubic feet. It is a common measurement for buying and selling firewood in the US."
+    },
+    "cu": {
+        "desc": "The physical unit \"cu\" is a unit of volume. It is commonly used to measure the volume of solids or containers. (review pending)"
+    },
+    "drypt": {
+        "desc": "A drypt is a unit of volume measurement in three-dimensional space. It is known as a drypt and is used to quantify the amount of space occupied by an object or substance."
+    },
+    "dryqt": {
+        "desc": "The dry quart (dryqt) is a unit of volume used to measure dry goods such as grains or produce. It is equivalent to 1/4 of a dry gallon or approximately 1.101 liters."
+    },
+    "fbm": {
+        "desc": "\"fbm\" stands for board feet measurement and is a unit of volume commonly used in the lumber industry to measure the volume of wood in a board. It represents the volume of a board that measures 1 foot by 1 foot by 1 inch."
+    },
+    "flozv": {
+        "desc": "The physical unit \"flozv\" is a unit of volume, representing a measurement in three-dimensional space. It is known as \"flozv\" and typically used to measure liquids or fluids."
+    },
+    "gil": {
+        "desc": "A gil is a unit of volume measurement equal to 4 US fluid ounces or about 118 milliliters. It is typically used in cooking and recipe measurements."
+    },
+    "us_gil": {
+        "desc": "The \"us_gil\" is a unit of volume equal to 1 cubic inch. It is commonly used in culinary measurements and for small-scale volume calculations."
+    },
+    "lamv": {
+        "desc": "The \"lamv\" is a unit of volume. It is used to measure the amount of space occupied by an object or substance."
+    },
+    "liqpt": {
+        "desc": "The liqpt is a unit of volume used to measure liquids. It represents the amount of space occupied by a liquid in a three-dimensional space."
+    },
+    "liqqt": {
+        "desc": "A \"liqqt\" is a unit of volume, used to measure liquids. It is known specifically as a liqqt and is commonly used in scientific and engineering contexts."
+    },
+    "pk": {
+        "desc": "The physical unit \"pk\" is a measurement of volume. It is commonly known as a peck and is used to quantify dry goods such as fruits or vegetables."
+    },
+    "stere": {
+        "desc": "A stere is a unit of volume equal to one cubic meter, often used to measure quantities of firewood or timber. It is equivalent to 1 cubic meter in volume."
+    },
+    "tr": {
+        "desc": "The physical unit \"tr\" is a volume measurement. It is commonly used to represent a specific volume or quantity of a substance."
+    },
+    "amu": {
+        "desc": "An atomic mass unit (amu) is a unit of mass used to express the mass of atoms and molecules. It is defined as 1/12 of the mass of a carbon-12 atom."
+    },
+    "oz": {
+        "desc": "The \"oz\" is a unit of mass in the Imperial and US customary systems, equivalent to 1/16 of a pound. It is commonly used to measure the weight of food and liquids."
+    },
+    "lb": {
+        "desc": "The physical unit \"lb\" is a unit of mass, known as a pound. It is commonly used to measure the weight of objects. 1 lb is equivalent to 0.453592 kg."
+    },
+    "us_ton": {
+        "desc": "us_ton, also known as US ton, is a unit of mass equal to 2000 pounds. It is commonly used in the United States to measure large quantities of weight."
+    },
+    "ton": {
+        "desc": "A ton is a unit of mass equal to 2240 pounds, commonly used in the UK. It is a measure of weight and is abbreviated as \"t\" in calculations and conversions."
+    },
+    "uk_ton": {
+        "desc": "A uk_ton is a unit of mass equal to 2240 pounds. It is commonly known as the UK ton and is used to measure heavy objects or quantities of materials."
+    },
+    "tonne": {
+        "desc": "A tonne is a metric unit of mass equal to 1000 kilograms. It is commonly used to measure heavy objects or quantities of materials such as metals, grains, or construction materials."
+    },
+    "t": {
+        "desc": "The physical unit \"t\" is a metric tonne used to measure mass, equivalent to 1000kg. It is commonly used in industries and trade for heavy goods and materials."
+    },
+    "pdl": {
+        "desc": "The physical unit \"pdl\" is a unit of force, equivalent to the force required to accelerate a mass of one pound at a rate of one foot per second squared. It is also known as the poundal."
+    },
+    "us_bale_cotton": {
+        "desc": "The \"us_bale_cotton\" is a unit of mass used specifically for measuring cotton in the United States. It represents the weight of a bale of cotton and is commonly used in the textile industry."
+    },
+    "bale_jute": {
+        "desc": "A bale_jute is a unit of mass used to measure the weight of jute fiber in bales. It is commonly used in the jute industry for trading and transportation purposes."
+    },
+    "ct": {
+        "desc": "The physical unit \"ct\" is a unit of mass in the International System of Units (SI) and is known as the carat (ct) in the United States. It is commonly used to measure the weight of gemstones."
+    },
+    "ctus": {
+        "desc": "\"ctus\" is a unit of mass in the Metric system, also known as carat us. It is commonly used to measure the weight of gemstones and is equivalent to 0.2 grams."
+    },
+    "cwt": {
+        "desc": "A \"cwt\" is a unit of mass equal to 100 pounds. It is commonly used in the agricultural and industrial sectors for measuring heavy items such as livestock or bulk goods."
+    },
+    "us_cwt": {
+        "desc": "\"us_cwt\" is a unit of mass in the US system, equal to 100 pounds. It is commonly used in agricultural and industrial settings for measuring heavy loads."
+    },
+    "dram": {
+        "desc": "A dram is a unit of mass in the avoirdupois system, equal to 1/16 of an ounce or approximately 1.77 grams. It is commonly used in pharmacy and for measuring small amounts of liquids."
+    },
+    "dwt": {
+        "desc": "A \"dwt\" or pennyweight is a unit of mass used in the precious metals industry, equal to 1/20th of a troy ounce or approximately 1.555 grams."
+    },
+    "gmass": {
+        "desc": "\"Gmass is a unit of mass in the Metric system, equivalent to one gram. It is commonly used to measure the mass of small objects or substances.\""
+    },
+    "grain": {
+        "desc": "The grain is a unit of mass commonly used in the measurement of gunpowder and ammunition. It is equal to 1/7000th of a pound or approximately 64.8 milligrams."
+    },
+    "gm": {
+        "desc": "The physical unit \"gm\" is a unit of mass in the metric system, equivalent to one thousandth of a kilogram. It is commonly known as a gram and is denoted by the symbol \"g\"."
+    },
+    "lbt": {
+        "desc": "The physical unit \"lbt\" is a unit of mass, commonly used in the United States. It is equivalent to 1 pound (lb) which is a measure of weight. (review pending)"
+    },
+    "mg": {
+        "desc": "The milligram (mg) is a unit of mass in the metric system, equal to 1/1000 of a gram. It is commonly used to measure small amounts of substances."
+    },
+    "us_ozfl": {
+        "desc": "\"us_ozfl\" is a unit of mass in the US customary system, equivalent to ounces. It is commonly used in measuring the weight of objects in the United States."
+    },
+    "oz_troy": {
+        "desc": "The oz_troy is a unit of mass primarily used in the precious metals industry. It is equal to 31.1035 grams and is commonly used to measure the weight of gold, silver, and other precious metals."
+    },
+    "oz_imp": {
+        "desc": "The \"oz_imp\" is a unit of mass within the imperial system, equivalent to 1/16 of a pound. It is commonly used in the UK and other Commonwealth countries."
+    },
+    "pood": {
+        "desc": "A pood is a unit of mass used in Russia and some other countries in Eastern Europe, equal to approximately 16.38 kilograms or 36.11 pounds. It is commonly used to measure the weight of goods and produce."
+    },
+    "qter": {
+        "desc": "A qter is a unit of mass, known as a quarter. It is commonly used to measure small quantities of weight or mass. (review pending)"
+    },
+    "slug": {
+        "desc": "The slug is a unit of mass in the Imperial system, equivalent to 14.5939 kilograms. It is commonly used in engineering and physics for calculations involving mass and force."
+    },
+    "stone": {
+        "desc": "The stone is a unit of mass commonly used in the UK, equivalent to 14 pounds or approximately 6.35 kilograms. It is often used to measure body weight."
+    },
+    "tas": {
+        "desc": "The physical unit \"tas\" is a unit of mass, denoted by the symbol \"tas\". (review pending)"
+    },
+    "vori": {
+        "desc": "A vori is a unit of mass used in India, specifically for measuring gold. It is also known as a \"bhori\"."
+    },
+    "bhori": {
+        "desc": "A bhori is a unit of mass used in India, particularly for measuring gold. It is also known as a gold vori and is used for trading precious metals."
+    },
+    "anna": {
+        "desc": "The \"anna\" is a unit of mass known as the gold anna. It is a traditional unit of weight in India, also referred to as ana."
+    },
+    "ana": {
+        "desc": "The \"ana\" is a unit of mass in India, commonly known as the gold anna. It is used to measure the weight of precious metals."
+    },
+    "roti": {
+        "desc": "A \"roti\" is a unit of mass used in India to measure the weight of gold, also known as \"gold roti\"."
+    },
+    "point": {
+        "desc": "A point is a unit of mass known as a gold point in India. It is equal to 1/10th of a roti, used for measuring small quantities of mass."
+    },
+    "tola": {
+        "desc": "A tola was a unit of mass commonly used in India, equivalent to 11.66 grams. It was primarily used to measure the weight of precious metals like gold and silver."
+    },
+    "seer": {
+        "desc": "A seer was a traditional unit of mass used in India in the past, equivalent to about 933.1 grams. It was commonly used for measuring grain and other agricultural products."
+    },
+    "poa": {
+        "desc": "\"Poa\" was a unit of mass used in India in the past. It was commonly used to measure weight and is equivalent to approximately 3.6 kilograms."
+    },
+    "chtk": {
+        "desc": "The \"chtk\" was a unit of mass used in India in the past, also known as \"chhotak\". It was commonly used in Indian culture for measuring small quantities of mass."
+    },
+    "maund": {
+        "desc": "A \"maund\" was a unit of mass used in India in the past, equivalent to around 37.32 kilograms. It was commonly used in trade and agricultural practices in the region."
+    },
+    "quettagm": {
+        "desc": "Quettagm is a unit of mass in the Metric system, equivalent to one quadrillion grams. It is commonly known as quettagram and is used to measure very large masses."
+    },
+    "ronaatogm": {
+        "desc": "The \"ronaatogm\" is a unit of mass. (review pending)"
+    },
+    "yottagm": {
+        "desc": "A yottagm is a unit of mass equal to one septillion grams. It is commonly known as a yottagram and is used to measure extremely large masses in the metric system."
+    },
+    "zettagm": {
+        "desc": "Zettagm is a unit of mass in the metric system equal to one sextillion grams. It is commonly known as a zettagram and is used to measure very large masses."
+    },
+    "exagm": {
+        "desc": "The exagm is a unit of mass in the metric system equal to 10^18 grams. It is commonly known as the exagram and is used for measuring very large masses, such as astronomical bodies."
+    },
+    "petagm": {
+        "desc": "The petagram (Pg) is a unit of mass in the metric system equal to one quadrillion grams. It is used to measure large amounts of mass, for example in geology and environmental science."
+    },
+    "teragm": {
+        "desc": "The teragram (Tg) is a unit of mass in the metric system, equivalent to one trillion grams. It is commonly used in scientific and environmental contexts to measure large quantities of mass."
+    },
+    "gigagm": {
+        "desc": "Gigagm, also known as gigagram, is a unit of mass in the metric system. It is equal to one billion grams and is commonly used to measure very large quantities of mass."
+    },
+    "megagm": {
+        "desc": "A megagm is a unit of mass equivalent to one million grams, also known as a megagram. It is commonly used in scientific and industrial settings for measuring large quantities of mass."
+    },
+    "kilogm": {
+        "desc": "A kilogm is a unit of mass equivalent to one kilogram. It is commonly used in scientific and engineering contexts to measure the weight or mass of objects."
+    },
+    "hectogm": {
+        "desc": "Hectogm, also known as hectogram, is a unit of mass in the metric system equal to 100 grams. It is commonly used to measure the weight of food items and small objects."
+    },
+    "decagm": {
+        "desc": "A decagram (decagm) is a unit of mass in the metric system equal to 10 grams. It is commonly used to measure the weight of small objects or ingredients in recipes."
+    },
+    "decigm": {
+        "desc": "The decigm is a unit of mass in the metric system, equivalent to one-tenth of a gram. It is commonly known as the decigram and is denoted as dg."
+    },
+    "centigm": {
+        "desc": "A centigram is a unit of mass in the metric system, equal to one hundredth of a gram. It is commonly used for measuring small quantities of substances."
+    },
+    "milligm": {
+        "desc": "Milligm is a unit of mass in the metric system, equivalent to one thousandth of a gram. It is commonly known as a milligram (mg) and is used for measuring very small amounts of mass."
+    },
+    "microgm": {
+        "desc": "A microgram (microgm) is a unit of mass in the metric system, equal to one millionth of a gram. It is denoted by the symbol \u03bcg and is commonly used in scientific and medical contexts."
+    },
+    "mcg": {
+        "desc": "The \"mcg\" is a unit of mass in the metric system, equal to one millionth of a gram. It is commonly known as a microgram and is denoted as \u00b5g."
+    },
+    "nanogm": {
+        "desc": "A nanogram (nanogm) is a unit of mass in the metric system, equal to one billionth of a gram. It is commonly used in scientific and biological contexts for measuring very small quantities of substances."
+    },
+    "picogm": {
+        "desc": "A picogm is a unit of mass in the metric system, equivalent to one trillionth of a gram. It is commonly used in scientific measurements for very small quantities of matter."
+    },
+    "femtogm": {
+        "desc": "A femtogram (femtogm) is a unit of mass in the metric system equal to one quadrillionth of a gram. It is commonly used in scientific research and measurements."
+    },
+    "attogm": {
+        "desc": "The attogm is a unit of mass in the metric system, equivalent to 10^-18 grams. It is commonly used in scientific research and nanotechnology."
+    },
+    "zeptogm": {
+        "desc": "The zeptogm, also known as the zeptogram, is a unit of mass in the metric system equal to 10^-21 grams. It is used for measuring extremely small masses in scientific research."
+    },
+    "yoctogm": {
+        "desc": "Yoctogm is a unit of mass in the metric system, representing one septillionth of a gram. It is commonly referred to as yoctogram and is used for measuring very small masses."
+    },
+    "rontogm": {
+        "desc": "The rontogm is a unit of mass. It is also known as a rontogram. (review pending)"
+    },
+    "quectogm": {
+        "desc": "A quectogm, also known as a quectogram, is a unit of mass in the metric system. It is equivalent to 10^-18 grams and is used for very small measurements in scientific and technological applications."
+    },
+    "gpl": {
+        "desc": "\"gpl\" stands for gram per deciliter, a unit of mass density commonly used in chemistry and medicine to measure the concentration of a substance in a solution."
+    },
+    "mgpdl": {
+        "desc": "\"mgpdl\" stands for milligrams per deciliter, a unit used to measure concentration in solutions. It represents the mass of a substance per unit volume of 1/10th of a liter."
+    },
+    "mmol_GCpL": {
+        "desc": "mmol_GCpL is a unit of concentration representing millimoles of glucose per liter. It measures the amount of glucose in a given volume of a solution."
+    },
+    "mmol": {
+        "desc": "\"mmol\" is a unit of measurement used to quantify the amount of substance, equivalent to one thousandth of a mole. It is commonly known as millimole in scientific calculations."
+    },
+    "cumec": {
+        "desc": "\"Cumec\" is a unit of volume flow rate, representing cubic meters per second. It measures the rate at which a fluid flows through a given point in a system."
+    },
+    "cusec": {
+        "desc": "A cusec, short for cubic foot per second, is a unit of volume flow rate, specifically measuring the volume of water flowing per second. It is often used in hydrology and water management."
+    },
+    "cfs": {
+        "desc": "\"CFS\" stands for cubic foot per second, a unit used to measure the volume flow rate of a fluid. It represents the volume of one cubic foot passing a point in one second."
+    },
+    "cfm": {
+        "desc": "CFM is a unit of volume flow rate, measuring the amount of cubic feet of a substance that passes through a specific point in one minute. It is commonly used in ventilation and air conditioning systems."
+    },
+    "gpm": {
+        "desc": "\"GPM\", or gallons per minute, is a unit of measurement for volume flow rate. It represents the amount of liquid passing through a system in one minute."
+    },
+    "lpm": {
+        "desc": "\"Lpm\" stands for liters per minute, a unit used to measure volume flow rate. It represents the amount of liquid passing through a point in a system in one minute."
+    },
+    "mlpm": {
+        "desc": "\"mlpm\" is a unit of volume flow rate, measuring milliliters per minute. It is used to quantify the amount of liquid passing through a system in a given minute."
+    },
+    "knot": {
+        "desc": "A knot is a unit of speed equal to one nautical mile per hour. It is commonly used in marine and aviation contexts to measure the speed of a vessel or aircraft."
+    },
+    "kph": {
+        "desc": "Kph is a unit of velocity measuring the distance traveled in kilometers per hour. It is commonly used in speed limits and vehicle speed measurements."
+    },
+    "mph": {
+        "desc": "\"Mph\" stands for miles per hour, a unit of speed measuring the distance traveled in miles per hour. It is commonly used in the United States for vehicle speed."
+    },
+    "g0": {
+        "desc": "\"g0\" is a unit of acceleration representing the nominal earth gravity, equal to 9.80665 m/s^2. It is commonly used in physics and engineering calculations."
+    },
+    "ga": {
+        "desc": "The unit \"ga\" is a measure of acceleration, equal to 1 centimeter per second squared. It is also known as a galileo."
+    },
+    "fps2": {
+        "desc": "\"fps2\" stands for foot per square second and is a unit of acceleration. It measures how quickly the velocity of an object changes over time in terms of feet per second squared."
+    },
+    "mps2": {
+        "desc": "\"Mps2\" is a unit of acceleration, measured in meters per square second. It represents the rate of change of velocity over time in a given area."
+    },
+    "kn": {
+        "desc": "The kilonewton (kN) is a unit of force equal to 1,000 Newtons. It is commonly used in engineering and construction to measure heavy loads and forces."
+    },
+    "dyn": {
+        "desc": "The \"dyn\" or dyne is a CGS unit of force, equivalent to 10^-5 newtons. It is used to measure small forces in the fields of physics and engineering."
+    },
+    "gf": {
+        "desc": "The physical unit \"gf\" is a measure of force or weight. It is equivalent to the force exerted by one gram of mass under standard gravity."
+    },
+    "kgf": {
+        "desc": "The kilogram force (kgf) is a unit of force or weight commonly used in engineering and physics. It is equivalent to the force exerted by 1 kilogram of mass under standard gravity (9.81 m/s^2)."
+    },
+    "kp": {
+        "desc": "The physical unit \"kp\" is a unit of force or weight. It is also known as kilopond and 1 kilopond is equal to 1000 gram force."
+    },
+    "lbf": {
+        "desc": "The \"lbf\" is a unit of force in the Imperial system, equivalent to the force needed to accelerate a mass of one pound at a rate of one foot per second squared."
+    },
+    "kip": {
+        "desc": "A kip is a unit of force or weight equivalent to 1000 pounds force. It is commonly used in engineering and construction to measure large loads and stresses."
+    },
+    "ozf": {
+        "desc": "The \"ozf\" is a unit of force in the Imperial system, equivalent to the force exerted by one ounce of mass under standard gravity. It is commonly used in engineering and physics."
+    },
+    "pdlf": {
+        "desc": "The pdlf is a unit of force, equivalent to a poundal force. It is used to measure force in physics."
+    },
+    "tf": {
+        "desc": "The physical unit \"tf\" is a force measurement equivalent to one tonne, commonly used in engineering and construction for heavy loads. It is also known as tonne force, with dimensions of mass multiplied by length divided by time squared."
+    },
+    "erg": {
+        "desc": "The erg is a CGS unit of energy equal to 10^-7 joules, commonly used in physics for measuring work, torque, heat, and spectral flux."
+    },
+    "ev": {
+        "desc": "The electron volt (eV) is a unit of energy equivalent to the energy gained by a single electron moving across an electric potential difference of one volt. It is commonly used in particle physics and atomic physics."
+    },
+    "hartree": {
+        "desc": "The hartree is a unit of energy used in quantum mechanics, equivalent to 2 times the Rydberg constant. It is commonly used in atomic and molecular physics."
+    },
+    "ken": {
+        "desc": "The \"ken\" is a unit of energy and work, equivalent to the Kelvin as energy. It is used in the measurement of spectral flux."
+    },
+    "cal": {
+        "desc": "The \"cal\" is a unit of energy and heat, also known as the thermochemical calorie. It is defined as the amount of energy needed to raise the temperature of 1 gram of water by 1 degree Celsius."
+    },
+    "kcal": {
+        "desc": "A kilocalorie (kcal) is a unit of energy equal to 1000 calories. It is commonly used to measure the energy content of food and is equivalent to 4184 joules."
+    },
+    "kj": {
+        "desc": "A kilojoule (kJ) is a unit of energy. It is equivalent to 1000 joules and is commonly used in nutrition to measure food energy content."
+    },
+    "calorie": {
+        "desc": "A calorie is a unit of energy commonly used in nutrition and exercise, equivalent to 1000 small calories. It represents the amount of energy needed to raise the temperature of 1 gram of water by 1 degree Celsius."
+    },
+    "calint": {
+        "desc": "The \"calint\" is a unit of energy and heat, equivalent to the international calorie. It is used to measure work, torque, and spectral flux."
+    },
+    "kcalint": {
+        "desc": "The \"kcalint\" is a unit of energy and heat in the international system, equivalent to one kilocalorie. It is commonly used in nutrition and chemistry."
+    },
+    "btu": {
+        "desc": "A BTU (British Thermal Unit) is a unit of measurement for heat energy. It is defined as the amount of energy needed to raise the temperature of one pound of water by one degree Fahrenheit."
+    },
+    "btu39f": {
+        "desc": "The \"btu39f\" is a unit of energy. (review pending)"
+    },
+    "btu59f": {
+        "desc": "The \"btu59f\" is a unit of energy. (review pending)"
+    },
+    "btu60f": {
+        "desc": "The physical unit \"btu60f\" is a measure of heat energy in the British Thermal Unit (BTU) system at a temperature of 60 degrees Fahrenheit. It is commonly used in the field of energy and heat transfer calculations."
+    },
+    "btuth": {
+        "desc": "The btuth is a unit of energy commonly used in the heating and cooling industry. It is equivalent to one British thermal unit (Btu) per hour, denoted as BtuTH."
+    },
+    "cal15c": {
+        "desc": "The physical unit \"cal15c\" is a unit of energy. (review pending)"
+    },
+    "cal20c": {
+        "desc": "The physical unit \"cal20c\" is a unit of energy. (review pending)"
+    },
+    "calmean": {
+        "desc": "The \"calmean\" is a unit of Energy. (review pending)"
+    },
+    "kcalmean": {
+        "desc": "A kcalmean is a unit of energy equivalent to the average amount of kilocalories needed to maintain a certain level of activity or metabolic rate. It is commonly used in nutrition and exercise science."
+    },
+    "kwh": {
+        "desc": "A kilowatt hour (kWh) is a unit of energy equivalent to one kilowatt (1 kW) of power expended for one hour. It is commonly used to measure electricity consumption."
+    },
+    "unitpower": {
+        "desc": "Unitpower is a unit of energy. (review pending)"
+    },
+    "wh": {
+        "desc": "The unit \"wh\" (watt hour) is a measure of energy equal to one watt of power consumed for one hour. It is commonly used to measure electricity consumption in households and businesses."
+    },
+    "mwh": {
+        "desc": "A megawatt hour (MWh) is a unit of energy equivalent to one million watts of power used for one hour. It is commonly used to measure electricity consumption and production."
+    },
+    "gwh": {
+        "desc": "\"GWh is a unit of energy equal to one billion watt-hours, commonly used to measure electricity production or consumption on a large scale. It is equivalent to 3.6 terajoules.\""
+    },
+    "mj": {
+        "desc": "The megajoule (MJ) is a unit of energy equivalent to one million joules. It is commonly used in the fields of physics, engineering, and thermodynamics to measure large amounts of energy or work."
+    },
+    "quad": {
+        "desc": "A quad is a unit of energy. It is denoted as \"quad\" and is commonly used in scientific calculations. (review pending)"
+    },
+    "therm": {
+        "desc": "A therm is a unit of energy equal to 100,000 British thermal units (BTU), commonly used to measure natural gas consumption for heating purposes."
+    },
+    "us_therm": {
+        "desc": "A us_therm is a unit of energy. It is known as us_therm and is used in the field of physics. (review pending)"
+    },
+    "tontnt": {
+        "desc": "The \"tontnt\" is a unit of energy equivalent to the explosive power of one ton of TNT. It is commonly used to measure the energy released in explosions."
+    },
+    "kilotontnt": {
+        "desc": "A kiloton of TNT is a unit of energy equal to the energy released by detonating one thousand metric tons of TNT. It is commonly used to measure the energy output of explosions."
+    },
+    "megatontnt": {
+        "desc": "A megaton of TNT is a unit of energy equal to the explosive force of one million tons of TNT. It is often used to measure the power of nuclear weapons and other large explosions."
+    },
+    "ws": {
+        "desc": "The physical unit \"ws\" is a unit of energy. (review pending)"
+    },
+    "hp": {
+        "desc": "The unit \"hp\" stands for horsepower and is a measurement of power or the rate at which work is done. It is equivalent to 746 watts and is commonly used to measure the power output of engines and motors."
+    },
+    "hpb": {
+        "desc": "The unit \"hpb\" is a measure of power and radiant flux. It is commonly used in scientific and engineering contexts."
+    },
+    "hpe": {
+        "desc": "The unit \"hpe\" is a measurement of power or radiant flux. It is commonly used in the field of physics and engineering."
+    },
+    "hph2o": {
+        "desc": "The unit \"hph2o\" is a measurement of power in the context of radiant flux. It is commonly known as hpH2O and is used to quantify the power output in water-related systems."
+    },
+    "uk_hp": {
+        "desc": "The \"uk_hp\" is a unit of power and radiant flux. It is known as uk_hp and represents the power output in horsepower in the United Kingdom."
+    },
+    "us_hp": {
+        "desc": "The unit \"us_hp\" is a measurement of power or radiant flux. It is known as us_hp and is commonly used in the field of power engineering."
+    },
+    "sw": {
+        "desc": "The physical unit \"sw\" is a measure of radiant flux, representing power per unit solid angle. It is commonly used in the field of optics and radiometry."
+    },
+    "gsm": {
+        "desc": "GSM, or grams per square meter, is a unit of measurement for the area density of a material. It represents the weight of a square meter of the material."
+    },
+    "kpa": {
+        "desc": "The kilopascal (kPa) is a unit of pressure commonly used in scientific and engineering applications. It is equivalent to 1,000 pascals and represents a measure of force distributed over a given area."
+    },
+    "mpa": {
+        "desc": "MPa is a unit of pressure or stress equal to one million pascals. It is commonly used in engineering and materials science to measure high levels of pressure or stress."
+    },
+    "bar": {
+        "desc": "The bar is a unit of pressure equal to 100,000 pascals, commonly used in meteorology and engineering. It is equivalent to approximately atmospheric pressure at sea level."
+    },
+    "atm": {
+        "desc": "\"atm\" is a unit of pressure equal to the average atmospheric pressure at sea level. It is commonly used in meteorology and engineering."
+    },
+    "torr": {
+        "desc": "\"Torr is a unit of pressure equal to 1/760th of an atmosphere. It is commonly used in vacuum measurements and is equivalent to the pressure exerted by a column of mercury 1 mm high.\""
+    },
+    "mmhg": {
+        "desc": "\"mmHg is a unit of pressure equal to the height of a column of mercury. It is commonly used in medicine to measure blood pressure and is equivalent to 1 millimeter of mercury.\""
+    },
+    "psi": {
+        "desc": "\"psi\" is a unit of pressure in the Imperial system, equal to one pound of force applied to one square inch. It is used to measure stress in materials and energy density in systems."
+    },
+    "psf": {
+        "desc": "\"psf\" is a unit of pressure or stress that measures force per unit area in pounds-force per square foot. It is used in various engineering and construction applications."
+    },
+    "atmtech": {
+        "desc": "\"atmtech\" is a unit used to measure pressure, stress, energy density, and spectral exposure."
+    },
+    "cmh2o": {
+        "desc": "Cmh2o, also known as centimeters of water, is a unit used to measure pressure. It represents the height of a column of water that would produce the same pressure as the given measurement."
+    },
+    "cmh2o4c": {
+        "desc": "\"cmh2o4c\" is a unit of pressure commonly used in medical settings to measure the pressure of gases in the respiratory system. It is equivalent to centimeters of water at 4 degrees Celsius."
+    },
+    "cmhg": {
+        "desc": "Cmhg is a unit of pressure equal to centimeters of mercury, commonly used in atmospheric pressure measurements. It represents the height of a mercury column in a barometer."
+    },
+    "cmhg0c": {
+        "desc": "CmHg0c is a unit of pressure equal to the pressure exerted by a column of mercury 1 centimeter high at 0 degrees Celsius. It is commonly used in scientific and medical applications."
+    },
+    "fth2o": {
+        "desc": "\"Fth2o\" is a unit of pressure or stress, representing the pressure exerted by a column of water one foot high. It is commonly known as \"feet water\"."
+    },
+    "fth2o39f": {
+        "desc": "The physical unit \"fth2o39f\" is a unit of pressure or stress measuring feet of water at 39 degrees Fahrenheit. It is commonly used in hydrology and engineering applications."
+    },
+    "fthg": {
+        "desc": "\"Fthg\" is a unit of pressure or stress, representing the energy density or spectral exposure in logarithmic scale. It is known as \"feet mercury.\""
+    },
+    "inh2o": {
+        "desc": "The unit \"inh2o\" is a measurement of pressure or stress, representing the pressure exerted by a column of water one inch high. It is commonly used in engineering and fluid dynamics."
+    },
+    "inh2o39f": {
+        "desc": "The physical unit \"inh2o39f\" is a measurement of pressure or stress, specifically inch water at 39 degrees Fahrenheit. It represents the amount of pressure exerted by a column of water at that temperature."
+    },
+    "inh2o60f": {
+        "desc": "The physical unit \"inh2o60f\" is a measurement of pressure or stress, specifically inch water at 60 degrees Fahrenheit. It is used to quantify pressure in various applications."
+    },
+    "inhg": {
+        "desc": "\"InHg, or inch of mercury, is a unit of pressure commonly used in meteorology and aviation. It represents the height of a column of mercury in inches.\""
+    },
+    "inhg32f": {
+        "desc": "\"Inhg32f\" is a unit of pressure commonly used in meteorology and aviation, representing inches of mercury at a temperature of 32 degrees Fahrenheit."
+    },
+    "inhg60f": {
+        "desc": "\"Inhg60f\" is a unit of pressure measuring inches of mercury at 60 degrees Fahrenheit. It is used to quantify atmospheric pressure at specific temperature conditions."
+    },
+    "ksi": {
+        "desc": "\"ksi\" stands for \"thousands of pounds per square inch\" and is a unit of measurement used to quantify pressure or stress in materials. It is commonly used in engineering and construction industries."
+    },
+    "mbar": {
+        "desc": "The millibar (mbar) is a unit of pressure equal to one thousandth of a bar. It is commonly used in meteorology and is equivalent to 100 pascals."
+    },
+    "mmh2o": {
+        "desc": "\"mmH2O\" is a unit of pressure measuring the height of a column of water in millimeters. It is commonly used in medical and engineering applications."
+    },
+    "amp": {
+        "desc": "The amp, short for ampere, is the unit of electric current in the International System of Units (SI). It measures the flow of electrical charge in a circuit."
+    },
+    "abampere": {
+        "desc": "The abampere is a unit of electric current in the CGS system, equivalent to 10 amperes. It is used to measure the current flowing in a circuit."
+    },
+    "bi": {
+        "desc": "The bi is a unit of electric current, equivalent to 10 amperes. It is known as the biot and is used in the measurement of electrical currents."
+    },
+    "gi": {
+        "desc": "The physical unit \"gi\" is a unit of electric current, also known as gillbert. It is used to measure the flow of electric charge in a circuit."
+    },
+    "statampere": {
+        "desc": "A statampere is a unit of electric current in the electrostatic cgs system. It is equivalent to 3.3356 x 10^-10 amperes."
+    },
+    "deg": {
+        "desc": "\"deg\" is a unit of measurement for plane angles, also known as angle degrees. It is commonly used to measure rotations and angles in various fields such as mathematics and physics."
+    },
+    "gon": {
+        "desc": "The gon is a unit of plane angle measurement, also known as a gradian. It is equivalent to 1/400th of a full circle, or 9/10 of a degree."
+    },
+    "grade": {
+        "desc": "A grade, also known as a gradian, is a unit of plane angle measurement equal to one hundredth of a right angle. It is commonly used in surveying and engineering."
+    },
+    "mila": {
+        "desc": "A \"mila\" is a unit of plane angle, equivalent to one-thousandth of a radian. It is commonly known as a milliradian and is denoted by the symbol mrad."
+    },
+    "mina": {
+        "desc": "A mina is a unit of plane angle measurement equal to 1/60th of a degree. It is commonly used in navigation and astronomy to measure small angles with precision."
+    },
+    "rev": {
+        "desc": "A \"rev\" is a unit of plane angle measurement, representing one complete revolution around a circle, equal to 360 degrees. It is commonly used in geometry and trigonometry."
+    },
+    "seca": {
+        "desc": "A seca is a unit of plane angle, also known as an angle second. It is commonly used in trigonometry and navigation calculations."
+    },
+    "degk": {
+        "desc": "\"degK\" is a unit of temperature measurement in the Kelvin scale. It is equivalent to one degree difference on the Kelvin scale, used in scientific calculations and thermodynamics."
+    },
+    "degr": {
+        "desc": "The \"degr\" is a unit of temperature measurement in the Rankine scale, equivalent to one degree Rankine. It is used to measure changes in temperature."
+    },
+    "degc": {
+        "desc": "\"degC\" is a unit of measurement for temperature in the Celsius scale. It is commonly used to indicate the degree of hotness or coldness of an object or environment."
+    },
+    "degf": {
+        "desc": "\"DegF\" is a unit of temperature measurement in the Fahrenheit scale, representing degrees Fahrenheit. It is commonly used in weather forecasts and for measuring body temperature."
+    },
+    "quetta": {
+        "desc": "A \"quetta\" is a unitless physical quantity. (review pending)"
+    },
+    "ronna": {
+        "desc": "A \"ronna\" is a unitless physical quantity. (review pending)"
+    },
+    "yotta": {
+        "desc": "The yotta is a unitless measurement representing 10^24, making it one of the largest prefixes in the International System of Units (SI)."
+    },
+    "zetta": {
+        "desc": "\"Zetta\" is a unitless physical quantity representing 10^21, commonly used in computing and data storage to denote extremely large amounts of data or information."
+    },
+    "exa": {
+        "desc": "The physical unit \"exa\" is a prefix in the International System of Units (SI) denoting a factor of 10^18. It is used to represent extremely large quantities in various fields of science and engineering."
+    },
+    "peta": {
+        "desc": "\"Peta\" is a unitless physical unit representing a factor of 10^15. It is commonly used in computing and data storage to denote large quantities."
+    },
+    "tera": {
+        "desc": "\"Tera\" is a unitless term representing a factor of 10^12, commonly used in computing and data storage to denote a trillion of something."
+    },
+    "giga": {
+        "desc": "\"Giga\" is a unitless physical unit representing a factor of 10^9. It is commonly used to describe quantities in the billions, such as bytes in computer storage."
+    },
+    "mega": {
+        "desc": "\"Mega\" is a unitless prefix in the International System of Units denoting a factor of one million, symbolized as M. It is commonly used to indicate large quantities or measurements, such as megabytes or megawatts."
+    },
+    "kilo": {
+        "desc": "The unit \"kilo\" is a prefix in the metric system representing a factor of 1000. It is used to denote a thousand of a given unit, such as kilogram or kilometer."
+    },
+    "hecto": {
+        "desc": "Hecto is a unitless prefix in the metric system, denoting a factor of 100. It is commonly used to convert units into hundreds, such as hectograms or hectoliters."
+    },
+    "deca": {
+        "desc": "The physical unit \"deca\" is a unitless quantity. It is known as \"deca\" and is typically used as a prefix meaning a factor of 10."
+    },
+    "deci": {
+        "desc": "The unit \"deci\" is a prefix in the metric system representing 1/10th of a base unit. It is commonly used to express quantities in tenths."
+    },
+    "centi": {
+        "desc": "\"Centi\" is a unitless prefix representing one hundredth of a base unit. It is commonly used in measurements such as centimeters, centiliters, and centigrams."
+    },
+    "milli": {
+        "desc": "The physical unit \"milli\" is a metric prefix meaning one thousandth (1/1000) of a base unit. It is commonly used in measurements such as millimeters (mm) or milligrams (mg)."
+    },
+    "micro": {
+        "desc": "The physical unit \"micro\" is a unitless measure representing one millionth (1/1,000,000) of a whole. It is denoted by the symbol \u00b5 and is commonly used in science and technology."
+    },
+    "nano": {
+        "desc": "\"Nano\" is a unitless prefix in the metric system denoting one billionth. It is commonly used in nanotechnology to measure extremely small particles or structures."
+    },
+    "pico": {
+        "desc": "\"Pico is a unitless physical unit. It is commonly known as pico and represents a factor of 10^-12 in the International System of Units (SI).\""
+    },
+    "femto": {
+        "desc": "\"Femto\" is a unitless measurement denoting a factor of 10^-15. It is used to express extremely small quantities, such as in physics and chemistry."
+    },
+    "atto": {
+        "desc": "An atto is a unitless measurement representing a factor of 10^-18. It is commonly used in scientific notation to denote extremely small quantities."
+    },
+    "zepto": {
+        "desc": "The unit \"zepto\" is a prefix in the metric system denoting a factor of 10^-21. It is used in scientific notation to represent extremely small quantities."
+    },
+    "yocto": {
+        "desc": "\"Yocto\" is a unitless measurement, representing one septillionth, or 10^-24. It is known as the smallest SI unit prefix. (review pending)"
+    },
+    "ronto": {
+        "desc": "A \"ronto\" is a unitless physical quantity. (review pending)"
+    },
+    "quecto": {
+        "desc": "A quecto is a unitless quantity. (review pending)"
+    },
+    "th": {
+        "desc": "The unit \"th\" stands for thousand and is a unitless measure used to represent a quantity that is a thousand times greater than the base unit."
+    },
+    "lac": {
+        "desc": "\"Lac\" is a unitless physical unit used in the Indian numbering system to represent one hundred thousand (100,000). It is commonly used in financial and population contexts."
+    },
+    "mn": {
+        "desc": "The unit \"mn\" is a unitless measurement representing million. It is used to denote quantities in the millions, such as population or currency values."
+    },
+    "cr": {
+        "desc": "The unit \"cr\" is a unitless measurement equivalent to ten million (10,000,000). It is commonly known as \"crore\" and is used in financial contexts in some countries including Bangladesh and India."
+    },
+    "bn": {
+        "desc": "The unit \"bn\" is a unitless measure representing a billion, commonly used to denote a quantity of one billion."
+    },
+    "tn": {
+        "desc": "A \"tn\" is a unitless physical term representing a trillion, often used in financial or statistical contexts to denote a very large quantity or amount."
+    },
+    "bit": {
+        "desc": "A bit is the smallest unit of data in computing and digital communications, representing a binary digit of 0 or 1. It has no physical dimensions and is used to measure information."
+    },
+    "byte": {
+        "desc": "A byte is a unit of digital information that consists of 8 bits, commonly used to represent a single character of text."
+    },
+    "px": {
+        "desc": "\"px\" is a unitless measurement used in digital imaging to represent the smallest controllable element of a picture on a screen. It stands for pixel."
+    },
+    "pixel": {
+        "desc": "A pixel is a unitless measurement used in digital imaging to represent the smallest unit of a picture element on a screen or display."
+    },
+    "rem16": {
+        "desc": "The \"rem16\" is a unitless physical unit, also known as \"rootem\". It is commonly used in computational science and engineering for various calculations and simulations."
+    },
+    "kb": {
+        "desc": "A kilobyte (kb) is a unit of digital information equal to 1,024 bytes. It is commonly used to measure the size of digital files and storage capacity."
+    },
+    "mb": {
+        "desc": "\"MB\" stands for megabyte, a unit of digital information storage equivalent to 1,000,000 bytes. It is commonly used to measure file sizes and data transfer rates in computing."
+    },
+    "gb": {
+        "desc": "\"GB\" stands for gigabyte, a unit of digital information storage equal to 1,073,741,824 bytes. It is commonly used to measure storage capacity in computers and other digital devices."
+    },
+    "tb": {
+        "desc": "\"TB\" stands for Terabyte, a unit of digital information storage capacity equal to 1 trillion bytes. It is commonly used to measure the size of large files or data storage devices."
+    },
+    "pb": {
+        "desc": "A petabyte (PB) is a unit of digital information storage equal to 1,000 terabytes or 1,000,000 gigabytes. It is commonly used to measure data capacity in computing and storage systems."
+    },
+    "eb": {
+        "desc": "An exabyte (EB) is a unit of digital information equal to one quintillion bytes, commonly used to measure large amounts of data storage capacity. It is a unitless measurement."
+    },
+    "zb": {
+        "desc": "The \"zb\" is a unitless physical unit representing a zettabyte, which is equal to 10^21 bytes. It is used to measure data storage capacity in computing and digital systems."
+    },
+    "yb": {
+        "desc": "The physical unit \"yb\" is a unitless measurement representing a yottabyte, which is equal to 10^24 bytes. It is used to quantify large amounts of digital information storage."
+    },
+    "kbit": {
+        "desc": "A kbit, or kilobit, is a unit of digital information equal to 1,000 bits. It is commonly used to measure data transfer rates or storage capacity in computing and telecommunications."
+    },
+    "mbit": {
+        "desc": "The \"mbit\" is a unitless measurement representing a megabit, commonly used in telecommunications and data transfer to quantify information storage or transmission speed."
+    },
+    "gbit": {
+        "desc": "Gbit, short for gigabit, is a unitless measure of digital information equal to 1 billion bits. Commonly used in data transmission speeds and network bandwidth capacity."
+    },
+    "tbit": {
+        "desc": "A terabit (tbit) is a unit of data storage capacity equal to 1 trillion bits. It is commonly used to measure the amount of data transferred over a network or stored on a device."
+    },
+    "pbit": {
+        "desc": "A petabit (pbit) is a unit of digital information storage equal to 10^15 bits. It is commonly used to measure data transfer rates and storage capacity in computing and telecommunications."
+    },
+    "ebit": {
+        "desc": "\"Ebit\" is a unitless measure of data equal to one billion bits. It is also known as an exabit."
+    },
+    "zbit": {
+        "desc": "A zbit, also known as a zettabit, is a unitless measure of digital information equal to 10^21 bits. It is commonly used in data storage and communication."
+    },
+    "ybit": {
+        "desc": "A ybit, or yottabit, is a unitless measure of digital information equivalent to 1 trillion gigabits. It is commonly used in data storage and communication technologies."
+    },
+    "aed": {
+        "desc": "\"AED\" is the official currency of the United Arab Emirates, abbreviated as Dirham. It is symbolized as \u062f.\u0625."
+    },
+    "afn": {
+        "desc": "The \"afn\" is the currency unit of Afghanistan, known as the Afghan Afghani."
+    },
+    "lek": {
+        "desc": "The lek is the currency of Albania, symbolized as L. It is subdivided into 100 qindarka. The lek has been the official currency since 1926."
+    },
+    "amd": {
+        "desc": "The \"amd\" is the symbol for the Armenian Dram, the official currency of Armenia."
+    },
+    "ang": {
+        "desc": "The \"ang\" is the currency unit of the Netherlands Antilles, also known as the Netherlands Antillean Guilder."
+    },
+    "aoa": {
+        "desc": "\"aoa\" is the currency code for the Angolan Kwanza. It is the official currency of Angola and is abbreviated as AOA. 1 AOA is subdivided into 100 centimos."
+    },
+    "ars": {
+        "desc": "\"ars\" is the currency unit of Argentina, known as the Argentine Peso. It is denoted by the symbol $."
+    },
+    "aud": {
+        "desc": "The \"aud\" is the currency unit of Australia, known as the Australian Dollar.."
+    },
+    "awg": {
+        "desc": "AWG is the currency code for the Aruban Florin, used in Aruba."
+    },
+    "azn": {
+        "desc": "\"Azn\" is the currency of Azerbaijan, known as Azerbaijani Manat."
+    },
+    "bam": {
+        "desc": "The \"bam\" is the currency of Bosnia and Herzegovina, known as the Convertible Mark. It is denoted by the symbol KM."
+    },
+    "bbd": {
+        "desc": "The \"bbd\" is the abbreviation for the Barbadian Dollar, the official currency of Barbados. It is used for transactions within the country and has a fixed exchange rate with the US dollar. (review pending)"
+    },
+    "bdt": {
+        "desc": "\"bdt\" is the currency unit of Bangladesh, known as Bangladeshi Taka."
+    },
+    "bgn": {
+        "desc": "The \"bgn\" is the currency unit of Bulgaria, known as the Bulgarian Lev. It is symbolized by the abbreviation BGN."
+    },
+    "bhd": {
+        "desc": "The \"bhd\" is the currency unit of Bahrain, known as the Bahraini Dinar."
+    },
+    "bif": {
+        "desc": "The \"bif\" is the currency unit of Burundi, known as the Burundian Franc. It is denoted by the symbol \"FBu\"."
+    },
+    "bmd": {
+        "desc": "\"BMD\" is the currency code for the Bermudian Dollar. It is the official currency of Bermuda."
+    },
+    "bnd": {
+        "desc": "The \"bnd\" is the currency unit for Brunei Dollar. It is used in Brunei and has the symbol B$."
+    },
+    "bob": {
+        "desc": "A \"bob\" is a unit of currency in Bolivia, known as the Bolivian Boliviano. It is denoted by the symbol \"Bs.\"."
+    },
+    "brl": {
+        "desc": "The \"brl\" is the currency code for the Brazilian Real, the official currency of Brazil."
+    },
+    "bsd": {
+        "desc": "The Bahamian Dollar (BSD) is the official currency of the Bahamas. It is used for all monetary transactions within the country and is pegged to the US Dollar at a 1:1 ratio."
+    },
+    "btc": {
+        "desc": "BTC is a digital currency unit used in the world of cryptocurrency, known as Bitcoin. It is a decentralized form of currency that is stored and transferred electronically."
+    },
+    "btn": {
+        "desc": "The \"btn\" is the currency unit of Bhutan, known as the Bhutanese Ngultrum"
+    },
+    "bwp": {
+        "desc": "The \"bwp\" is the currency unit of Botswana, known as the Botswana Pula. It has the symbol P."
+    },
+    "byn": {
+        "desc": "The \"byn\" is the official currency of Belarus, known as the Belarusian Ruble. It is denoted by the symbol Br."
+    },
+    "byr": {
+        "desc": "\"byr\" is the official currency of Belarus, known as the Belarusian Ruble."
+    },
+    "bzd": {
+        "desc": "The \"bzd\" is the currency unit for Belize, known as the Belize Dollar."
+    },
+    "cad": {
+        "desc": "The \"cad\" is the currency unit for Canada, known as the Canadian Dollar."
+    },
+    "cdf": {
+        "desc": "The \"cdf\" is the currency unit for the Democratic Republic of Congo, known as the Congolese Franc."
+    },
+    "chf": {
+        "desc": "\"chf\" is the currency unit for the Swiss Franc, the official currency of Switzerland.."
+    },
+    "clf": {
+        "desc": "\"clf\" is a currency unit used in Chile. It is known as Unidad de Fomento (UF)."
+    },
+    "clp": {
+        "desc": "The \"clp\" is the currency unit of Chile, known as the Chilean Peso. It is denoted by the symbol $."
+    },
+    "cny": {
+        "desc": "\"CNY\" is the currency code for the Chinese Yuan, the official currency of China. It is denoted by the symbol \u00a5."
+    },
+    "cnh": {
+        "desc": "CNH is the offshore version of the Chinese yuan, traded outside of mainland China."
+    },
+    "cop": {
+        "desc": "The \"cop\" is the abbreviation for the Colombian Peso, the official currency of Colombia."
+    },
+    "crc": {
+        "desc": "The \"crc\" is the currency code for the Costa Rican Col\u00f3n, the official currency of Costa Rica. It is denoted by the symbol \u20a1."
+    },
+    "cuc": {
+        "desc": "The \"cuc\" is a currency unit used in Cuba, officially known as the Cuban Convertible Peso. It is equivalent in value to the US dollar. (review pending)"
+    },
+    "cps": {
+        "desc": "\"Cps\" is the symbol for the Cuban Peso, the official currency of Cuba."
+    },
+    "cve": {
+        "desc": "\"CVE is the currency unit of Cape Verde, symbolized as $. It is subdivided into 100 centavos.\""
+    },
+    "czk": {
+        "desc": "\"CZK\" is the official currency of the Czech Republic, known as the Czech Koruna."
+    },
+    "djf": {
+        "desc": "The \"djf\" is the symbol for the Djiboutian Franc, the official currency of Djibouti. It is subdivided into 100 centimes."
+    },
+    "dkk": {
+        "desc": "\"DKK\" is the currency code for the Danish Krone, the official currency of Denmark."
+    },
+    "dop": {
+        "desc": "The \"dop\" is the currency of the Dominican Republic, known as the Dominican Peso."
+    },
+    "dzd": {
+        "desc": "\"DZD is the currency code for the Algerian Dinar, the official currency of Algeria. It is denoted by the symbol \u062f.\u062c and is subdivided into 100 centimes.\""
+    },
+    "egp": {
+        "desc": "\"Egyptian Pound (EGP) is the official currency of Egypt. It is denoted by the symbol \"\u00a3\"."
+    },
+    "ern": {
+        "desc": "The \"ern\" is the currency unit of Eritrea, known as the Eritrean Nakfa."
+    },
+    "etb": {
+        "desc": "The \"etb\" is the currency unit of Ethiopia known as the Ethiopian Birr."
+    },
+    "eur": {
+        "desc": "The \"eur\" is a currency unit used in the European Union, known as the Euro. It is denoted by the symbol \u20ac."
+    },
+    "fjd": {
+        "desc": "The \"fjd\" is the symbol for the Fijian Dollar, the official currency of Fiji. It is denoted by the symbol $."
+    },
+    "fkp": {
+        "desc": "The \"fkp\" is the currency unit of the Falkland Islands. It is known as the Falkland Islands Pound."
+    },
+    "gbp": {
+        "desc": "\"GBP\" is the currency code for the British Pound Sterling, used in the United Kingdom."
+    },
+    "gel": {
+        "desc": "A gel is the currency unit of Georgia, known as the Georgian Lari. It is denoted by the symbol \"\u20be\"."
+    },
+    "ggp": {
+        "desc": "The \"ggp\" is the currency unit of Guernsey, known as the Guernsey Pound."
+    },
+    "ghs": {
+        "desc": "\"GHS\" is the official currency of Ghana, known as the Ghanaian Cedi. It is used for transactions and as a unit of measure in the country's economy."
+    },
+    "gip": {
+        "desc": "The \"gip\" is the currency unit of Gibraltar, known as the Gibraltar Pound. It has a fixed exchange rate with the British Pound. (review pending)"
+    },
+    "gmd": {
+        "desc": "\"GMD\" is the currency code for the Gambian Dalasi. It is the official currency of The Gambia and is denoted by the symbol D. 1 GMD is equal to 100 bututs."
+    },
+    "gnf": {
+        "desc": "The Guinean Franc (GNF) is the currency of Guinea. It is denoted by the symbol \"FG\" and is subdivided into 100 centimes."
+    },
+    "gtq": {
+        "desc": "The Guatemalan Quetzal (GTQ) is the official currency of Guatemala. It is denoted by the symbol Q and is subdivided into 100 centavos."
+    },
+    "gyd": {
+        "desc": "The \"gyd\" is the currency of Guyana, known as the Guyanaese Dollar. It is denoted by the symbol $."
+    },
+    "hkd": {
+        "desc": "\"HKD\" is the currency code for the Hong Kong Dollar, the official currency of Hong Kong."
+    },
+    "hnl": {
+        "desc": "The \"hnl\" is the currency code for the Honduran Lempira, the official currency of Honduras."
+    },
+    "hrk": {
+        "desc": "The \"hrk\" is the currency unit of Croatia known as the Croatian Kuna. It is designated by the symbol \"kn\"."
+    },
+    "htg": {
+        "desc": "The \"htg\" is the currency unit of Haiti known as the Haitian Gourde. It is denoted by the symbol \"G\"."
+    },
+    "huf": {
+        "desc": "\"HUF\" is the currency code for the Hungarian Forint, the official currency of Hungary."
+    },
+    "idr": {
+        "desc": "The \"IDR\" is the currency code for the Indonesian Rupiah. It is the official currency of Indonesia and is denoted by the symbol \"Rp\"."
+    },
+    "ils": {
+        "desc": "\"Ils\" is the currency unit of Israel known as the Israeli New Shekel. It is denoted by the symbol \u20aa."
+    },
+    "imp": {
+        "desc": "The \"imp\" is a currency unit used in the Isle of Man, equivalent to the British Pound. It is denoted as IMP."
+    },
+    "inr": {
+        "desc": "The \"INR\" is the currency code for the Indian Rupee, the official currency of India."
+    },
+    "iqd": {
+        "desc": "\"IQD\" is the currency code for the Iraqi Dinar, the official currency of Iraq."
+    },
+    "irr": {
+        "desc": "\"Irr\" is the currency unit of Iran, known as the Iranian Rial. It is denoted by the symbol \"\u0631\u06cc\u0627\u0644\" in Persian."
+    },
+    "isk": {
+        "desc": "\"Isk\" is the currency unit of Iceland, known as the Icelandic Kr\u00f3na. It is denoted by the symbol \"kr\"."
+    },
+    "jep": {
+        "desc": "The \"jep\" is a unit of currency used in Jersey, known as the Jersey Pound."
+    },
+    "jmd": {
+        "desc": "The \"jmd\" is the symbol used to represent the Jamaican Dollar, the official currency of Jamaica."
+    },
+    "jod": {
+        "desc": "The \"jod\" is the currency unit of Jordan, known as the Jordanian Dinar. It is divided into 1000 fils."
+    },
+    "jpy": {
+        "desc": "JPY is the currency code for the Japanese Yen, the official currency of Japan."
+    },
+    "kes": {
+        "desc": "The \"kes\" is the currency unit of Kenya, known as the Kenyan Shilling."
+    },
+    "kgs": {
+        "desc": "\"kgs\" is an abbreviation for Kyrgyzstani Som, the official currency of Kyrgyzstan."
+    },
+    "khr": {
+        "desc": "The \"khr\" is the currency unit of Cambodia, known as the Cambodian Riel."
+    },
+    "kmf": {
+        "desc": "The \"kmf\" is the currency unit for the Comorian Franc, used in the Comoros Islands. It is denoted by the symbol KMF."
+    },
+    "kpw": {
+        "desc": "The \"kpw\" is the currency unit for North Korea, known as the North Korean Won."
+    },
+    "krw": {
+        "desc": "\"KRW\" is the currency unit of South Korea, known as the South Korean Won. It is denoted by the symbol \u20a9."
+    },
+    "kwd": {
+        "desc": "The Kuwaiti Dinar (KWD) is the official currency of Kuwait. It is the highest-valued currency unit in the world. 1 KWD is divided into 1000 fils."
+    },
+    "kyd": {
+        "desc": "The \"kyd\" is the currency unit of the Cayman Islands, known as the Cayman Islands Dollar."
+    },
+    "kzt": {
+        "desc": "\"KZT\" is the official currency of Kazakhstan, known as the Kazakhstani Tenge."
+    },
+    "lak": {
+        "desc": "The \"lak\" is the currency unit of Laos, known as the Laotian Kip. It is denoted by the symbol \"\u20ad\"."
+    },
+    "lbp": {
+        "desc": "The \"lbp\" is the currency code for the Lebanese Pound. It is the official currency of Lebanon."
+    },
+    "lkr": {
+        "desc": "\"LKR\" is the currency code for the Sri Lankan Rupee. It is the official currency of Sri Lanka and is represented by the symbol \"\u0dbb\u0dd4\" or \"Rs\"."
+    },
+    "lrd": {
+        "desc": "The \"lrd\" is the symbol for the Liberian Dollar, the official currency of Liberia."
+    },
+    "lsl": {
+        "desc": "The \"lsl\" is the currency unit of Lesotho, known as the Lesotho Loti. It is is denoted by the symbol L."
+    },
+    "ltl": {
+        "desc": "\"LTL\" is the currency code for the Lithuanian Litas, which was the official currency of Lithuania until it was replaced by the Euro in 2015. It is no longer in use."
+    },
+    "lvl": {
+        "desc": "\"LVL\" is the currency unit of Latvia, officially known as the Latvian lats. It was used before Latvia adopted the Euro in 2014."
+    },
+    "lyd": {
+        "desc": "\"lyd\" is the abbreviation for Libyan Dinar, the official currency of Libya."
+    },
+    "mad": {
+        "desc": "The \"mad\" is the currency unit of Morocco, known as the Moroccan Dirham. It is subdivided into 100 centimes."
+    },
+    "mdl": {
+        "desc": "The \"mdl\" is the currency unit of Moldova, known as the Moldovan Leu. It is denoted by the symbol \"MDL\"."
+    },
+    "mga": {
+        "desc": "\"MGA\" is the currency unit of Madagascar, known as Malagasy Ariary."
+    },
+    "mkd": {
+        "desc": "The \"mkd\" is the currency unit of Macedonia, known as the Macedonian Denar."
+    },
+    "mmk": {
+        "desc": "\"mmk\" is the currency code for the Myanma Kyat, the official currency of Myanmar."
+    },
+    "mnt": {
+        "desc": "The physical unit \"mnt\" is a currency used in Mongolia, known as the Mongolian Tugrik."
+    },
+    "mop": {
+        "desc": "A mop is a currency unit used in Macau, known as the Macanese Pataca. It is the official currency of Macau."
+    },
+    "mru": {
+        "desc": "The \"mru\" is the currency unit of Mauritania, known as the Mauritanian Ouguiya. It has a symbol of UM."
+    },
+    "mur": {
+        "desc": "The \"mur\" is the currency of Mauritius, known as the Mauritian Rupee. It is denoted by the symbol Rs."
+    },
+    "mvr": {
+        "desc": "The \"MVR\" is the currency unit of the Maldives, known as the Maldivian Rufiyaa. It has a symbol of Rf."
+    },
+    "mwk": {
+        "desc": "\"mwk\" is the currency code for Malawian Kwacha, the official currency of Malawi. It is denoted by the symbol MK"
+    },
+    "mxn": {
+        "desc": "\"mxn\" is the symbol for the Mexican Peso, the official currency of Mexico."
+    },
+    "myr": {
+        "desc": "\"MYR\" is the currency code for the Malaysian Ringgit, the official currency of Malaysia. It is denoted by the symbol RM and is subdivided into 100 sen."
+    },
+    "mzn": {
+        "desc": "The \"mzn\" is the symbol for the Mozambican Metical, the official currency of Mozambique."
+    },
+    "nad": {
+        "desc": "\"Nad\" is the official currency of Namibia, known as the Namibian Dollar. It is denoted by the symbol $."
+    },
+    "ngn": {
+        "desc": "\"ngn\" is the currency code for the Nigerian Naira, the official currency of Nigeria."
+    },
+    "nio": {
+        "desc": "\"Nio\" is the official currency of Nicaragua, known as the Nicaraguan C\u00f3rdoba. It has a symbol of C$."
+    },
+    "nok": {
+        "desc": "The \"nok\" is the currency unit of Norway, known as the Norwegian Krone. It is denoted by the symbol kr."
+    },
+    "npr": {
+        "desc": "\"NPR\" is the currency unit of Nepal, known as the Nepalese Rupee. It has the currency code NPR."
+    },
+    "nzd": {
+        "desc": "\"NZD\" is the symbol for the New Zealand Dollar, the official currency of New Zealand."
+    },
+    "omr": {
+        "desc": "The Omani Rial (OMR) is the currency of Oman. It is divided into 1000 baisa. The OMR is known for its high value compared to other currencies."
+    },
+    "pab": {
+        "desc": "The \"pab\" is the currency unit of Panama, known as the Panamanian Balboa."
+    },
+    "pen": {
+        "desc": "A pen is used as currency in Peru, known as the Peruvian Nuevo Sol."
+    },
+    "pgk": {
+        "desc": "\"PGK\" is the currency code for the Papua New Guinean Kina. It is the official currency of Papua New Guinea and is denoted by the symbol \"K\"."
+    },
+    "php": {
+        "desc": "\"Php\" is the currency code for the Philippine Peso, used in the Philippines."
+    },
+    "pkr": {
+        "desc": "The physical unit \"pkr\" is a currency unit representing the Pakistani Rupee."
+    },
+    "pln": {
+        "desc": "\"PLN\" is the currency code for the Polish Zloty, the official currency of Poland."
+    },
+    "pyg": {
+        "desc": "The \"pyg\" is the currency unit of Paraguay known as the Paraguayan Guarani. It has a symbol of \u20b2."
+    },
+    "qar": {
+        "desc": "The Qatari rial (QAR) is the official currency of Qatar. It is divided into 100 dirhams."
+    },
+    "ron": {
+        "desc": "\"Ron\" is the official currency of Romania, known as the Romanian Leu."
+    },
+    "rsd": {
+        "desc": "The \"rsd\" is the currency unit for Serbia known as the Serbian Dinar."
+    },
+    "rub": {
+        "desc": "The rub is the official currency of Russia, known as the Russian Ruble. It is denoted by the symbol \u20bd."
+    },
+    "rwf": {
+        "desc": "\"rwf\" is the currency unit of Rwanda, known as Rwandan Franc."
+    },
+    "sar": {
+        "desc": "\"SAR\" is the currency unit used in Saudi Arabia, known as the Saudi Riyal. It is equivalent to 100 halalas."
+    },
+    "sbd": {
+        "desc": "\"SBD\" is the currency code for the Solomon Islands Dollar. It is used as the official currency in the Solomon Islands, denoted by the symbol $."
+    },
+    "scr": {
+        "desc": "The \"scr\" is the currency code for the Seychellois Rupee, the official currency of Seychelles. It is divided into 100 cents."
+    },
+    "sdg": {
+        "desc": "The \"sdg\" is the currency unit for Sudan, known as the Sudanese Pound. It is denoted by the symbol SDG."
+    },
+    "sek": {
+        "desc": "The \"sek\" is the currency unit of Sweden known as the Swedish Krona."
+    },
+    "sgd": {
+        "desc": "The SGD is the currency unit of Singapore, symbolized by $."
+    },
+    "shp": {
+        "desc": "The \"shp\" is the currency of Saint Helena, a British Overseas Territory in the South Atlantic Ocean. It is abbreviated as \"\u00a3\"."
+    },
+    "sle": {
+        "desc": "\"SLE\" is a unit of currency used in Sierra Leone. It is denoted by the symbol SLE and is the official currency of the country. 1 SLE is equal to 100 cents."
+    },
+    "sll": {
+        "desc": "The \"sll\" is the currency unit of Sierra Leone, known as the Sierra Leonean Leone. (review pending)"
+    },
+    "sos": {
+        "desc": "The \"sos\" is the currency unit for Somalia known as the Somali Shilling."
+    },
+    "srd": {
+        "desc": "The \"srd\" is the currency of Suriname, known as the Surinamese Dollar. It is used as a unit of currency in Suriname."
+    },
+    "std": {
+        "desc": "\"std\" is a standard unit of currency, denoted as STD. (review pending)"
+    },
+    "svc": {
+        "desc": "\"SVC is the currency code for the Salvadoran col\u00f3n, the former currency of El Salvador. It was replaced by the US dollar in 2001."
+    },
+    "syp": {
+        "desc": "The \"syp\" is the official currency of Syria, known as the Syrian Pound. It is subdivided into 100 piastres."
+    },
+    "szl": {
+        "desc": "The \"szl\" is the official currency of Eswatini, known as the Lilangeni. It is denoted by the symbol E."
+    },
+    "thb": {
+        "desc": "\"THB\" is the currency code for the Thai Baht, the official currency of Thailand."
+    },
+    "tjs": {
+        "desc": "\"TJS\" is the currency code for the Tajikistani Somoni, the official currency of Tajikistan. It is subdivided into 100 diram and is represented by the symbol \u0405\u041c."
+    },
+    "tmt": {
+        "desc": "The \"tmt\" is the currency unit of Turkmenistan, known as the Turkmenistani Manat."
+    },
+    "tnd": {
+        "desc": "The Tunisian Dinar (TND) is the official currency of Tunisia. It is abbreviated as TND."
+    },
+    "top": {
+        "desc": "The \"top\" is the currency unit of Tonga, known as the Tongan Paanga."
+    },
+    "trl": {
+        "desc": "The \"trl\" is the abbreviation for the Turkish Lira, the official currency of Turkey. It is symbolized as \u20ba."
+    },
+    "ttd": {
+        "desc": "The \"ttd\" is the currency unit of Trinidad and Tobago, known as the Trinidad and Tobago Dollar."
+    },
+    "twd": {
+        "desc": "\"TWD\" is the currency code for the New Taiwan Dollar. It is the official currency of Taiwan."
+    },
+    "tzs": {
+        "desc": "\"Tzs\" is the abbreviation for Tanzanian Shilling, the official currency of Tanzania."
+    },
+    "uah": {
+        "desc": "\"UAH\" is the currency code for the Ukrainian Hryvnia, the official currency of Ukraine."
+    },
+    "ugx": {
+        "desc": "\"ugx\" is the symbol for the Ugandan Shilling, the official currency of Uganda."
+    },
+    "uyu": {
+        "desc": "The \"uyu\" is the currency unit of Uruguay, known as the Uruguayan Peso."
+    },
+    "uzs": {
+        "desc": "\"UZS\" is the currency unit of Uzbekistan known as the Uzbekistan Som. It is denoted by the symbol \"\u0441\u045e\u043c\"."
+    },
+    "vef": {
+        "desc": "\"VEF\" is the symbol for the Venezuelan Bol\u00edvar, the official currency of Venezuela. (review pending)"
+    },
+    "ves": {
+        "desc": "\"Ves\" is the symbol for the Venezuelan Bol\u00edvar, the official currency of Venezuela. (review pending)"
+    },
+    "vnd": {
+        "desc": "\"vnd\" is the currency unit of Vietnam known as Vietnamese Dong. It is denoted by the symbol \"\u20ab\"."
+    },
+    "vuv": {
+        "desc": "\"VUV\" is the currency of Vanuatu, known as Vanuatu Vatu. It is denoted by the symbol VT."
+    },
+    "wst": {
+        "desc": "The \"wst\" is the currency unit of Samoa, known as the Samoan Tala. It is used for financial transactions in Samoa and has the symbol WS$."
+    },
+    "xaf": {
+        "desc": "The \"xaf\" is the Central African CFA Franc, a currency used in Central African countries. It is a unit of currency in the CEMAC region and is pegged to the euro."
+    },
+    "xag": {
+        "desc": "XAG is the symbol for the currency unit of silver, used for trading and investment purposes. It is a precious metal with various industrial applications."
+    },
+    "xau": {
+        "desc": "\"xau\" is the currency code for gold, denominated in troy ounces. It is a commonly used unit in the financial world to represent the value of gold."
+    },
+    "xcd": {
+        "desc": "The \"xcd\" is the symbol for the East Caribbean Dollar, used in the Eastern Caribbean region."
+    },
+    "xdr": {
+        "desc": "The \"xdr\" is a currency unit used by the International Monetary Fund (IMF) as a form of reserve asset, known as Special Drawing Rights (SDR)."
+    },
+    "xof": {
+        "desc": "The \"xof\" is a currency unit used in West Africa, specifically known as the West African CFA Franc."
+    },
+    "xpf": {
+        "desc": "XPF is the official currency of French Polynesia and other French territories in the Pacific Ocean. It is known as the CFP Franc."
+    },
+    "yer": {
+        "desc": "The \"yer\" is the symbol for the Yemeni Rial, the official currency of Yemen. It is abbreviated as YER."
+    },
+    "zar": {
+        "desc": "The \"zar\" is the currency of South Africa, known as the South African Rand."
+    },
+    "zmk": {
+        "desc": "The Zambian Kwacha (ZMK) is the former currency of Zambia. It was replaced by the Zambian kwacha (ZMW) in 2013. ZMK was used for transactions in Zambia."
+    },
+    "zmw": {
+        "desc": "The \"zmw\" is the currency unit of Zambia, known as the Zambian Kwacha. It is used for financial transactions in Zambia and is denoted by the symbol ZMW."
+    },
+    "zwl": {
+        "desc": "The physical unit \"zwl\" is a currency used in Zimbabwe. It stands for Zimbabwean dollar and is denoted as ZWL."
+    },
+    "rot": {
+        "desc": "A \"rot\" is a unit of measurement for plane angles, equivalent to one complete rotation around a circle. It is commonly used in geometry and trigonometry to measure angles."
+    }
+}

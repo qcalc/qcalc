@@ -1,0 +1,11 @@
+<a href="/" hx-get="/?part=1" hx-target="closest .calc"
+   hx-swap="outerHTML" class="btn">
+  <i class="icon-home2 mr-2"></i>Home</a>
+<a href="/catalog/calc/" hx-get="/catalog/calc/?part=1" hx-target="closest .calc"
+   hx-swap="outerHTML" class="btn">
+  {% if cat == 'calc' %}<i class="icon-sync mr-2"></i>Refresh</a>{% endif %}
+  {% if cat == 'user' %}<i class="icon-tree6 mr-2"></i>Calculator</a>{% endif %}
+<a href="/catalog/user/" hx-get="/catalog/user/?part=1" hx-target="closest .calc"
+   hx-swap="outerHTML" class="btn">
+  {% if cat == 'calc' %}<i class="icon-tree5 mr-2"></i>Personal</a>{% endif %}
+  {% if cat == 'user' %}<i class="icon-sync mr-2"></i>Refresh</a>{% endif %}

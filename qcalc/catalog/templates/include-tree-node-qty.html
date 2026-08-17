@@ -1,0 +1,32 @@
+{% load qfilter %}
+{% for node in qty_data %}
+    <li>
+        {% if node.name and node.is_active %}
+          {% if node.is_leaf %}
+      {% if node.node_type == 'u' %}
+            <a href="/calc/conv/"
+               hx-get="/calc/add/?path=conv/value/1/from_unit/{{ node.name|deslash }}/convert_to_units/{{ node.name|deslash:1 }}/unit_cost/-/---/"
+               hx-target="#content-holder" hx-swap="afterbegin">
+            <i class="icon-balance"></i>&nbsp;&nbsp;{{ node.title }}</a>
+      {% elif node.node_type == 'q' %}
+            <a href="/calc/conv2/"
+               hx-get="/calc/add/?path=conv2/quantity/{{ node.data }}/mode/q2u/value/1/from_qty/{{ node.name|deslash }}/unit_cost/-/__info/{{ node.data }}/---/"
+               hx-target="#content-holder" hx-swap="afterbegin">
+            <i class="icon-balance"></i>&nbsp;&nbsp;{{ node.title }}</a>
+      {% endif %}
+            <span class="mark2">{{ node.name }}</span>
+            <p class="tdesc">{{ node.desc }}</p>
+          {% else %}
+            <a class="categ">{{ node.title }}, {{node.name}} ({{node.leafcount}})</a>
+            <p class="tdesc">
+            {{ node.desc }} {% if node.name == 'currency' %}Currency rates are as of: {% cur_asof %}{% endif %}
+            </p>
+            {% if node.children %}
+                <ul>
+                {% include 'include-tree-node-qty.html' with qty_data=node.children %}
+                </ul>
+            {% endif %}
+          {% endif %}
+        {% endif %}
+    </li>
+{% endfor %}

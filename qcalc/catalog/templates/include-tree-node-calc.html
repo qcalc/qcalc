@@ -1,0 +1,30 @@
+{% load qfilter %}
+{% for node in calc_data %}
+  {% if node|is_visible:request %}
+  {% if node.is_active %}
+  <li>
+    {% if node.is_leaf %}
+      <a href="/calc/{{ node.name }}/" hx-get="/calc/add/?fname={{ node.name }}"
+         hx-target="#content-holder" hx-swap="afterbegin">
+      <i class="icon-calculator4"></i>&nbsp;&nbsp;{{ node.title }}</a> <span class="mark2">{{ node.name }}</span>
+      {% get_fav_state node.name favorite_dict as fav_state %}
+      {% include 'favorite_icon.html' with func_id=node.name input_id=0 fav_state=fav_state %}
+      {% include 'edit_cal_icon.html' with func_id=node.name|ucal_name cat=cat sub_type=node.sub_type %}
+      <p class="tdesc">{{ node.desc }}</p>
+      {% if show_fav_variants %}
+        {% access_by_key fav_var_data node.name as fav_var_list %}
+        {% include 'favorite_variants.html' with fav_var_list=fav_var_list %}
+      {% endif %}
+    {% else %}
+      <a class="categ">{{ node.title }} ({{ node|uleafcount:user }})</a>
+      <p class="tdesc">{{ node.desc }}</p>
+      {% if node.children %}
+          <ul>
+          {% include 'include-tree-node-calc.html' with calc_data=node.children %}
+          </ul>
+      {% endif %}
+    {% endif %}
+  </li>
+  {% endif %}
+  {% endif %}
+{% endfor %}

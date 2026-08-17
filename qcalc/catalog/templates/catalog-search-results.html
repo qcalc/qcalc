@@ -1,0 +1,21 @@
+<br>
+<a href="/" hx-get="/?part=1" hx-target="closest .calc" hx-swap="outerHTML" class="mr-4">
+  <i class="icon-home2 mr-2"></i>Home</a>
+<br><br>
+{% if calc_data|length > 0 %}
+<h3>Standard Calculator Search Results</h3>
+{% include 'catalog-calc-categories.html' with calc_data=calc_data %}
+<br>
+{% endif %}
+{% if pcalc_data|length > 0 %}
+<h3>Public Calculator Search Results</h3>
+{% include 'catalog-calc-categories.html' with calc_data=pcalc_data %}
+<br>
+{% endif %}
+{% if qty_data|length > 0 %}
+<h3>Quantity Search Results</h3>
+{% include 'catalog-qty-categories.html' %}
+{% endif %}
+<br>
+<a href="/" hx-get="/?part=1" hx-target="closest .calc" hx-swap="outerHTML" class="mr-4">
+  <i class="icon-home2 mr-2"></i>Home</a>

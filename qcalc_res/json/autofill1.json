@@ -1,0 +1,11 @@
+{
+  "type": "choice",
+  "initial": "C2",
+  "choices": {
+    "C1": "Choice 1",
+    "C2": "Choice 2",
+    "C3": "Choice 3",
+    "C4": "Choice 4",
+    "C5": "Choice 5"
+  }
+}

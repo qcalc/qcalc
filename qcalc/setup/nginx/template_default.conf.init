@@ -1,0 +1,14 @@
+server {
+    listen 80;
+    server_name <replace_with_your_domain> www.<replace_with_your_domain>;
+
+    location / {
+        root /usr/share/nginx/html;
+        index index.html index.htm;
+    }
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+}
+

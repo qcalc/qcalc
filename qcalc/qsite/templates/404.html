@@ -1,0 +1,10 @@
+{% extends "gen-base.html" %}
+{% load qfilter %}
+{% block card %}{% endblock %}
+{% block page_profile %}{% add_head 'Page not found' '' %}{% endblock %}
+{% block _cardtitle %}Error{% endblock %}
+{% block _content %}
+<h1>Page not found</h1>
+
+<p>This is not the page you were looking for.</p>
+{% endblock %}

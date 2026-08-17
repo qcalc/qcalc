@@ -1,0 +1,9 @@
+<!-- template:_gulp-calculator -->
+{% extends "gen-base.html" %}
+{% load qfilter %}
+{% block page_profile %}
+{% concat '/calc/' input.doc.info.name '/' as canonical %}
+{% parents input.doc.info.name 'c' as categories %}
+{% add_head input.doc.info.title input.doc.info.desc canonical categories=categories %}
+{% endblock %}
+@@include('insert-calculator-form.html')

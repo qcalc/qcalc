@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="description" content="Pure javascript wysiwyg web editor" />
+    <title>SunEditor</title>
+    <!-- sample css -->
+    <link rel="stylesheet" href="{% static 'qedit/bootstrap.css' %}" media="all">
+    <link rel="stylesheet" href="{% static 'qedit/sample.css' %}" media="all">
+    <!-- suneditor -->
+    <!--link href="https://cdn.jsdelivr.net/npm/suneditor@2.45.1/dist/css/suneditor.min.css" rel="stylesheet"-->
+    <link rel="stylesheet" href="{% static 'vendor/suneditor/2.45.1/suneditor.min.css' %}">
+    <!-- codeMirror -->
+    <!--link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5.49.0/lib/codemirror.min.css"-->
+    <link rel="stylesheet" href="{% static 'vendor/codemirror/5.65.5/codemirror.min.css' %}">
+    <!-- KaTeX -->
+    <!--link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/katex.min.css"-->
+    <link rel="stylesheet" href="{% static 'vendor/katex/0.11.1/katex.min.css' %}">
+    <style>
+
+        /* inline editor */
+        .inline-margin {
+            margin-top: 4px;
+        }
+
+        @media (max-width: 560px) {
+            .tab button {
+                padding: 12px 24px;
+            }
+        }
+        @media (max-width: 475px) {
+            .tab button {
+                padding: 12px 16px;
+            }
+        }
+        @media (max-width: 407px) {
+            .tab button {
+                padding: 12px 10px;
+            }
+        }
+        @media (max-width: 380px) {
+            .tab button {
+                padding: 12px 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="content">
+    <form method="post" id="editor_form">
+        {% csrf_token %}
+        <textarea id="editor_classic" style="display:none;"
+                  name="content">{{ content|safe }}</textarea>
+        <div style="background-color:white;">
+            <p>
+            <input type="button" value="Save" onclick="save();" style="margin-right:20px;">
+            <input type="button" value="Save As..." onclick="saveToFile();" style="margin-right:20px;">
+            <a href="https://github.com/JiHong88/SunEditor" target="_blank">SunEditor </a>
+                Distributed under the MIT license.
+            </p>
+        </div>
+    </form>
+</div>
+
+<script src="{% static 'qedit/common.js' %}"></script>
+<!-- suneditor -->
+<!--script src="https://cdn.jsdelivr.net/npm/suneditor@2.45.1/dist/suneditor.min.js"></script-->
+<script src="{% static 'vendor/suneditor/2.45.1/suneditor.min.js' %}"></script>
+<!-- codeMirror -->
+<!--script src="https://cdn.jsdelivr.net/npm/codemirror@5.49.0/lib/codemirror.min.js"></script-->
+<script src="{% static 'vendor/codemirror/5.65.5/codemirror.min.js' %}"></script>
+<!--script src="https://cdn.jsdelivr.net/npm/codemirror@5.49.0/mode/htmlmixed/htmlmixed.js"></script-->
+<script src="{% static 'vendor/codemirror/5.65.5/mode/htmlmixed.js' %}"></script>
+<!--script src="https://cdn.jsdelivr.net/npm/codemirror@5.49.0/mode/xml/xml.js"></script-->
+<script src="{% static 'vendor/codemirror/5.65.5/mode/xml.js' %}"></script>
+<!--script src="https://cdn.jsdelivr.net/npm/codemirror@5.49.0/mode/css/css.js"></script-->
+<script src="{% static 'vendor/codemirror/5.65.5/mode/css.js' %}"></script>
+<!-- KaTeX -->
+<!--script src="https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/katex.min.js"></script-->
+<script src="{% static 'vendor/katex/0.11.1/katex.min.js' %}"></script>
+
+<script>
+    const editorTarget = document.querySelector('#editor_classic');
+    if (!editorTarget) {
+        throw new Error('SunEditor target #editor_classic was not found in the document.');
+    }
+
+    const editorInstance = SUNEDITOR.create(editorTarget, {
+        display: 'block',
+        width: '100%',
+        height: 'auto',
+        popupDisplay: 'full',
+        charCounter: true,
+        charCounterLabel: 'Characters :',
+        imageGalleryUrl: 'https://etyswjpn79.execute-api.ap-northeast-1.amazonaws.com/suneditor-demo',
+        buttonList: [
+            // default
+            ['undo', 'redo'],
+            ['font', 'fontSize', 'formatBlock'],
+            ['paragraphStyle', 'blockquote'],
+            ['bold', 'underline', 'italic', 'strike', 'subscript', 'superscript'],
+            ['fontColor', 'hiliteColor', 'textStyle'],
+            ['removeFormat'],
+            ['outdent', 'indent'],
+            ['align', 'horizontalRule', 'list', 'lineHeight'],
+            ['table', 'link', 'image', 'video', 'audio', 'math'],
+            ['imageGallery'],
+            ['fullScreen', 'showBlocks', 'codeView'],
+            ['preview', 'print'],
+            ['save', 'template'],
+            // (min-width: 1546)
+            ['%1546', [
+                ['undo', 'redo'],
+                ['font', 'fontSize', 'formatBlock'],
+                ['paragraphStyle', 'blockquote'],
+                ['bold', 'underline', 'italic', 'strike', 'subscript', 'superscript'],
+                ['fontColor', 'hiliteColor', 'textStyle'],
+                ['removeFormat'],
+                ['outdent', 'indent'],
+                ['align', 'horizontalRule', 'list', 'lineHeight'],
+                ['table', 'link', 'image', 'video', 'audio', 'math'],
+                ['imageGallery'],
+                ['fullScreen', 'showBlocks', 'codeView'],
+                ['-right', ':i-More Misc-default.more_vertical', 'preview', 'print', 'save', 'template']
+            ]],
+            // (min-width: 1455)
+            ['%1455', [
+                ['undo', 'redo'],
+                ['font', 'fontSize', 'formatBlock'],
+                ['paragraphStyle', 'blockquote'],
+                ['bold', 'underline', 'italic', 'strike', 'subscript', 'superscript'],
+                ['fontColor', 'hiliteColor', 'textStyle'],
+                ['removeFormat'],
+                ['outdent', 'indent'],
+                ['align', 'horizontalRule', 'list', 'lineHeight'],
+                ['table', 'link', 'image', 'video', 'audio', 'math'],
+                ['imageGallery'],
+                ['-right', ':i-More Misc-default.more_vertical', 'fullScreen', 'showBlocks', 'codeView', 'preview', 'print', 'save', 'template']
+            ]],
+            // (min-width: 1326)
+            ['%1326', [
+                ['undo', 'redo'],
+                ['font', 'fontSize', 'formatBlock'],
+                ['paragraphStyle', 'blockquote'],
+                ['bold', 'underline', 'italic', 'strike', 'subscript', 'superscript'],
+                ['fontColor', 'hiliteColor', 'textStyle'],
+                ['removeFormat'],
+                ['outdent', 'indent'],
+                ['align', 'horizontalRule', 'list', 'lineHeight'],
+                ['-right', ':i-More Misc-default.more_vertical', 'fullScreen', 'showBlocks', 'codeView', 'preview', 'print', 'save', 'template'],
+                ['-right', ':r-More Rich-default.more_plus', 'table', 'link', 'image', 'video', 'audio', 'math', 'imageGallery']
+            ]],
+            // (min-width: 1123)
+            ['%1123', [
+                ['undo', 'redo'],
+                [':p-More Paragraph-default.more_paragraph', 'font', 'fontSize', 'formatBlock', 'paragraphStyle', 'blockquote'],
+                ['bold', 'underline', 'italic', 'strike', 'subscript', 'superscript'],
+                ['fontColor', 'hiliteColor', 'textStyle'],
+                ['removeFormat'],
+                ['outdent', 'indent'],
+                ['align', 'horizontalRule', 'list', 'lineHeight'],
+                ['-right', ':i-More Misc-default.more_vertical', 'fullScreen', 'showBlocks', 'codeView', 'preview', 'print', 'save', 'template'],
+                ['-right', ':r-More Rich-default.more_plus', 'table', 'link', 'image', 'video', 'audio', 'math', 'imageGallery']
+            ]],
+            // (min-width: 817)
+            ['%817', [
+                ['undo', 'redo'],
+                [':p-More Paragraph-default.more_paragraph', 'font', 'fontSize', 'formatBlock', 'paragraphStyle', 'blockquote'],
+                ['bold', 'underline', 'italic', 'strike'],
+                [':t-More Text-default.more_text', 'subscript', 'superscript', 'fontColor', 'hiliteColor', 'textStyle'],
+                ['removeFormat'],
+                ['outdent', 'indent'],
+                ['align', 'horizontalRule', 'list', 'lineHeight'],
+                ['-right', ':i-More Misc-default.more_vertical', 'fullScreen', 'showBlocks', 'codeView', 'preview', 'print', 'save', 'template'],
+                ['-right', ':r-More Rich-default.more_plus', 'table', 'link', 'image', 'video', 'audio', 'math', 'imageGallery']
+            ]],
+            // (min-width: 673)
+            ['%673', [
+                ['undo', 'redo'],
+                [':p-More Paragraph-default.more_paragraph', 'font', 'fontSize', 'formatBlock', 'paragraphStyle', 'blockquote'],
+                [':t-More Text-default.more_text', 'bold', 'underline', 'italic', 'strike', 'subscript', 'superscript', 'fontColor', 'hiliteColor', 'textStyle'],
+                ['removeFormat'],
+                ['outdent', 'indent'],
+                ['align', 'horizontalRule', 'list', 'lineHeight'],
+                [':r-More Rich-default.more_plus', 'table', 'link', 'image', 'video', 'audio', 'math', 'imageGallery'],
+                ['-right', ':i-More Misc-default.more_vertical', 'fullScreen', 'showBlocks', 'codeView', 'preview', 'print', 'save', 'template']
+            ]],
+            // (min-width: 525)
+            ['%525', [
+                ['undo', 'redo'],
+                [':p-More Paragraph-default.more_paragraph', 'font', 'fontSize', 'formatBlock', 'paragraphStyle', 'blockquote'],
+                [':t-More Text-default.more_text', 'bold', 'underline', 'italic', 'strike', 'subscript', 'superscript', 'fontColor', 'hiliteColor', 'textStyle'],
+                ['removeFormat'],
+                ['outdent', 'indent'],
+                [':e-More Line-default.more_horizontal', 'align', 'horizontalRule', 'list', 'lineHeight'],
+                [':r-More Rich-default.more_plus', 'table', 'link', 'image', 'video', 'audio', 'math', 'imageGallery'],
+                ['-right', ':i-More Misc-default.more_vertical', 'fullScreen', 'showBlocks', 'codeView', 'preview', 'print', 'save', 'template']
+            ]],
+            // (min-width: 420)
+            ['%420', [
+                ['undo', 'redo'],
+                [':p-More Paragraph-default.more_paragraph', 'font', 'fontSize', 'formatBlock', 'paragraphStyle', 'blockquote'],
+                [':t-More Text-default.more_text', 'bold', 'underline', 'italic', 'strike', 'subscript', 'superscript', 'fontColor', 'hiliteColor', 'textStyle', 'removeFormat'],
+                [':e-More Line-default.more_horizontal', 'outdent', 'indent', 'align', 'horizontalRule', 'list', 'lineHeight'],
+                [':r-More Rich-default.more_plus', 'table', 'link', 'image', 'video', 'audio', 'math', 'imageGallery'],
+                ['-right', ':i-More Misc-default.more_vertical', 'fullScreen', 'showBlocks', 'codeView', 'preview', 'print', 'save', 'template']
+            ]]
+        ],
+        placeholder: 'Start typing something...',
+        templates: [
+            {
+                name: 'Template-1',
+                html: '<p>HTML source1</p>'
+            },
+            {
+                name: 'Template-2',
+                html: '<p>HTML source2</p>'
+            }
+        ],
+        codeMirror: CodeMirror,
+        katex: katex
+    });
+</script>
+<script>
+function save() {
+    editorInstance.save();
+    var form = document.getElementById("editor_form");
+    form.submit();
+}
+
+function saveToFile() {
+    editorInstance.save();
+  // Get the content of the textbox
+  const textboxContent = document.getElementsByClassName("sun-editor-editable")[0].innerHTML;
+
+  // Create a blob with the content
+  const blob = new Blob([textboxContent], { type: 'text/html' });
+
+  // Create a temporary URL for the blob
+  const url = window.URL.createObjectURL(blob);
+
+  // Create a link element
+  const a = document.createElement('a');
+  a.href = url;
+
+  // Set the filename for the download
+  a.download = 'file.html';
+
+  // Append the link to the body
+  document.body.appendChild(a);
+
+  // Trigger the download
+  a.click();
+
+  // Clean up
+  window.URL.revokeObjectURL(url);
+  document.body.removeChild(a);
+}
+</script>
+
+</body>
+</html>

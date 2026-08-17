@@ -1,0 +1,149 @@
+{% load static %}
+<!-- template:include-sidebar-main -->
+<!-- Main sidebar -->
+<div class="sidebar sidebar-dark sidebar-main sidebar-expand-md" id="sidebar-main">
+
+  <!-- Sidebar mobile toggler -->
+  <div class="sidebar-mobile-toggler text-center">
+    <a href="#" class="sidebar-mobile-main-toggle">
+      <i class="icon-arrow-left8"></i>
+    </a>
+    Navigation
+    <a href="#" class="sidebar-mobile-expand">
+      <i class="icon-screen-full"></i>
+      <i class="icon-screen-normal"></i>
+    </a>
+  </div>
+  <!-- /sidebar mobile toggler -->
+
+
+  <!-- Sidebar content -->
+  <div class="sidebar-content">
+
+    <!-- Main navigation -->
+    <div class="card card-sidebar-mobile">
+      <ul class="nav nav-sidebar" data-nav-type="accordion">
+
+        <!-- Main -->
+
+        <li class="nav-item" id="nav-home">
+          <a href="/" hx-get="/?part=1"
+             hx-target="#page-holder" hx-swap="innerHTML" class="nav-link">
+            <i class="icon-home2"></i>
+            <span>Home</span>
+          </a>
+        </li>
+
+        <li class="nav-item" id="nav-calc-tree">
+          <a href="/catalog/calc/" hx-get="/catalog/calc/?part=1"
+             hx-target="#page-holder" hx-swap="innerHTML"
+             hx-trigger="click[get_card_once('calc_tree__page')]" class="nav-link">
+            <i class="icon-tree6"></i>
+            <span>Calculator Catalog</span>
+          </a>
+        </li>
+
+        <li class="nav-item" id="nav-qty-tree">
+          <a href="/catalog/qty/" hx-get="/catalog/qty/?part=1"
+             hx-target="#page-holder" hx-swap="innerHTML"
+             hx-trigger="click[get_card_once('qty_tree__page')]" class="nav-link">
+            <i class="icon-tree7"></i>
+            <span>Quantity Catalog</span>
+          </a>
+        </li>
+
+        <li class="nav-item" id="nav-mycal">
+          <a href="/calc/mycal/" hx-get="/calc/add/?fname=mycal" {% target_swap_first %}
+             class="nav-link">
+            <i class="icon-design"></i>
+            <span>Create My Calculator</span>
+          </a>
+        </li>
+
+        <li class="nav-item" id="nav-ucalc-tree">
+          <a href="/catalog/user/" hx-get="/catalog/user/?part=1"
+             hx-target="#page-holder" hx-swap="innerHTML"
+             hx-trigger="click[get_card_once('ucalc_tree__page')]" class="nav-link">
+            <i class="icon-tree5"></i>
+            <span>Personal Catalog</span>
+          </a>
+        </li>
+
+        <li class="nav-item" id="nav-pcalc-tree">
+          <a href="/catalog/pcalc/" hx-get="/catalog/pcalc/?part=1"
+             hx-target="#page-holder" hx-swap="innerHTML"
+             hx-trigger="click[get_card_once('pcalc_tree__page')]" class="nav-link">
+            <i class="icon-snowflake"></i>
+            <span>Public Catalog</span>
+          </a>
+        </li>
+
+        <li class="nav-item" id="nav-clear">
+          <a href="/calc/" class="nav-link">
+            <i class="icon-bin"></i>
+            <span>Clear Screen</span>
+          </a>
+        </li>
+
+        <li class="nav-item" id="nav-conv">
+          <a href="/calc/conv2/" hx-get="/calc/add/?fname=conv2" {% target_swap_first %} class="nav-link">
+            <i class="icon-balance"></i>
+            <span>Unit Converter</span>
+          </a>
+        </li>
+
+        <li class="nav-item" id="nav-cal">
+          <a
+            href="/page/cal/" hx-get="/page/cal/?part=1" {% target_swap_first %} class="nav-link"
+            hx-trigger="click[get_card_once('cal__page')]">
+            <i class="icon-calculator2"></i>
+            <span>Quick Calculator</span>
+          </a>
+        </li>
+
+        <li class="nav-item" id="nav-cur">
+          <a href="/calc/cur/" hx-get="/calc/add/?fname=cur" {% target_swap_first %} class="nav-link">
+            <i class="icon-coin-dollar"></i>
+            <span>Currency Converter</span>
+          </a>
+        </li>
+
+        <li class="nav-item" id="nav-eva">
+          <a href="/calc/eva/" hx-get="/calc/add/?fname=eva" {% target_swap_first %} class="nav-link">
+            <i class="icon-circle-code"></i>
+            <span>Expression Evaluator</span>
+          </a>
+        </li>
+
+        <li class="nav-item" id="nav-console">
+          <a href="/page/console/" hx-get="/page/console/?part=1" {% target_swap_first %}
+             hx-trigger="click[get_card_once('console__page')]" class="nav-link">
+            <i class="icon-terminal"></i>
+            <span>Command Line</span>
+          </a>
+        </li>
+
+        <li class="nav-item" id="nav-pref">
+          <a href="/calc/pref/" hx-get="/calc/add/?fname=pref" {% target_swap_first %} class="nav-link">
+            <i class="icon-cog3"></i>
+            <span>Settings</span>
+          </a>
+        </li>
+
+        <li class="nav-item" id="nav-help">
+          <a href="/help/" hx-get="/help/?part=1"
+            hx-target="#page-holder" hx-swap="innerHTML"
+            hx-trigger="click[get_card_once('guide__page')]" class="nav-link">
+            <i class="icon-help"></i>
+            <span>User Guide</span>
+          </a>
+        </li>
+        <!-- /main -->
+      </ul>
+    </div>
+    <!-- /main navigation -->
+
+  </div>
+  <!-- /sidebar content -->
+
+</div>

@@ -1,0 +1,17 @@
+<!-- begin:insert-calculator-section-examples -->
+<button type="button" class="card-collapse collapsed btn btn-info btncmd mb-2" href="#examples-{{ input.cid }}"
+        data-toggle="collapse" aria-label="examples">Examples&nbsp;</button>
+<div class="collapse section-examples" id="examples-{{ input.cid }}">
+  <p>
+  <a class="btn" href="/calc/{{input.doc.info.name}}/"
+     hx-get="/calc/scroll_input/examples/{{input.doc.info.name}}/{{input.cid}}/"
+     hx-target="#examples-container-{{input.cid}}" hx-swap="innerHTML">
+  <i class="icon-sync mr-2"></i>Display examples</a>
+  </p>
+  <div id="examples-container-{{input.cid}}">
+  {% include 'input_scroller.html' with scope='examples' item_id=input.doc.info.name qryset=None cid=input.cid %}
+  <!--{ include 'input_lister.html' with scope='examples' item_id=input.doc.info.name qryset=None %}-->
+  <!--{ include 'input_tabulator.html' with scope='examples' item_id=input.doc.info.name %}-->
+  </div>
+</div>
+<!-- end:insert-calculator-section-examples -->

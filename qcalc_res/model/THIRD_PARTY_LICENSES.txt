@@ -1,0 +1,51 @@
+========================================================================
+OpenCV DNN Super-Resolution Binary Models (.pb) Notice
+========================================================================
+
+This application distributes pre-trained, frozen TensorFlow (.pb) binary 
+weights for image super-resolution, natively compatible with OpenCV's 
+'dnn_superres' module. These files are not part of the app core but used as options and for demonstration only.
+
+These files were generated during the 2019 Google Summer of Code (GSoC) 
+program for the OpenCV organization.
+
+------------------------------------------------------------------------
+1. FSRCNN Binary Weights (FSRCNN_x2.pb, etc.)
+------------------------------------------------------------------------
+Source Code & Models: https://github.com/Saafke/FSRCNN_Tensorflow
+Copyright (c) 2019 Chris (Saafke) / OpenCV GSoC Developer
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+------------------------------------------------------------------------
+2. ESPCN & LapSRN Binary Weights (ESPCN_x2.pb, LapSRN_x4.pb, etc.)
+------------------------------------------------------------------------
+Source Code & Models: https://github.com
+Copyright (c) 2019 Fanny Monori / OpenCV GSoC Developer
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://apache.org
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+------------------------------------------------------------------------
+3. OpenCV Framework Reference
+------------------------------------------------------------------------
+The integration framework parsing these binaries belongs to the OpenCV Project.
+URL: https://github.com/opencv/opencv_contrib
+License: Apache License 2.0 / 3-Clause BSD License

@@ -1,0 +1,40 @@
+{% extends base %}
+{% load static %}
+{% load qfilter %}
+{% block card %}{% endblock %}
+{% block page_profile %}
+{% get_text 'home_title' as home_title %}
+{% get_text 'home_desc' as home_desc %}
+{% add_head home_title home_desc '/' %}
+{% endblock %}
+{% block _cardtitle %}Calculator Home{% endblock %}
+{% block searchlabel %}Search Catalog{% endblock %}
+{% block _content %}
+<!-- homepage search -->
+{% include 'include-search-catalog-onpage.html' with label='Search Catalog'%}
+<!-- /homepage search -->
+<style>
+.page-grid .col { min-width: 200px; }
+</style>
+<div class="container mt-4 page-grid">
+  <div class="row">
+    {% for item in items %}
+    <div class="col mb-4">
+      <a href="{{ item.url }}"
+         hx-get="{{ item.hx_get }}"
+         hx-target="closest .calc"
+         hx-swap="outerHTML"
+         hx-trigger="{{ item.hx_trigger }}">
+        <div class="card h-100 text-center shadow-sm">
+          <div class="card-body">
+            <i class="{{ item.icon_class }} mb-3" style="font-size: 2em;"></i>
+            <h6 class="card-text">{{ item.title }}</h6>
+            <!--p class="card-text">{ item.description }</p-->
+          </div>
+        </div>
+      </a>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

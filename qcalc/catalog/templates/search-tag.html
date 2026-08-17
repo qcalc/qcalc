@@ -1,0 +1,7 @@
+{% for node in calc_data %}
+<span><a class="btn" href="/calc/{{ node.name }}/"
+    hx-get="/calc/add/?path={{ node.name }}"
+    hx-target="#card-space" hx-swap="beforebegin">
+    <i class="icon-plus-circle2 mr-2"></i>{{ node.title }} ({{ node.name }})</a></span>
+<!-- - {{ node.desc }}-->
+{% endfor %}

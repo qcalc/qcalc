@@ -1,0 +1,121 @@
+/* Modern Elegance Theme */
+/* qCalc Vibe Theme */
+/* 0.82rem, 0.906 */
+/* 500 */
+/* Background Colors */
+/* Soft off-white for a clean, modern backdrop */
+/* Light gray for subtle differentiation */
+/* Darker semi-opaque white for input areas */
+/* Very light gray for output areas, enhancing readability */
+/* Soft white for secondary outputs */
+/* Borders */
+/* Light gray for refined, subtle borders */
+/* Darker gray for strong, visible outlines */
+/* Soft blue-gray for smooth hover effects */
+/* Light shadow effect for collapsible sections */
+/* Medium gray for table borders, maintaining a clean look */
+/* Light gray for alternating table rows, improving readability */
+/* Gentle gray for highlighting text in a minimalistic way */
+/* Medium gray for spinner borders */
+/* Text and Icon Colors */
+/* Standard checkmark */
+/* Darker slate gray for strong contrast on headers */
+/* Darker gray for marked text, providing clear visibility */
+/* Button and Link Colors */
+/* Bright blue for buttons, inviting yet professional */
+/* Dark blue for links, ensuring visibility and style */
+/* Deep navy for hover, providing strong contrast */
+/* Very dark blue for active links, reinforcing interaction */
+/* Consistent dark blue for visited links */
+/* Background Colors for Emphasis */
+/* Darker soft light blue-gray for headers */
+/* Soft lavender gray for emphasis, providing a gentle contrast */
+/* Other Interactive Elements */
+/* Light blue for spinner borders, ensuring a smooth loading experience */
+.categ {
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.tree, .tree ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tree ul {
+  margin-left: 1rem;
+  position: relative;
+}
+
+.tree ul ul {
+  margin-left: 0.5rem;
+}
+
+.tree ul:before {
+  content: "";
+  display: block;
+  width: 0;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  border-left: 1px solid;
+}
+
+.tree li {
+  margin: 0;
+  padding: 0 1rem;
+  line-height: 2rem;
+  color: #0056b3;
+  position: relative;
+}
+
+.tree li .tdesc {
+  color: #333;
+}
+
+.tree ul li:before {
+  content: "";
+  display: block;
+  width: 10px;
+  height: 0;
+  border-top: 1px solid;
+  margin-top: -1px;
+  position: absolute;
+  top: 1rem;
+  left: 0;
+}
+
+.tree ul li:last-child:before {
+  background: #fff;
+  height: auto;
+  top: 1rem;
+  bottom: 0;
+}
+
+.indicator {
+  margin-right: 5px;
+}
+
+.tree li a {
+  text-decoration: none;
+  color: #0056b3;
+}
+
+.tree li button, .tree li button:active, .tree li button:focus {
+  text-decoration: none;
+  color: #0056b3;
+  border: none;
+  background: transparent;
+  margin: 0px 0px 0px 0px;
+  padding: 0px 0px 0px 0px;
+  outline: 0;
+}
+
+.tree li span.mark1 {
+  color: firebrick;
+  background-color: #e0e5ec;
+}
+
+/*# sourceMappingURL=tree-elegance.css.map */

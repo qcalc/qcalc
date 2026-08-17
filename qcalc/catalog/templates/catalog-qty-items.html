@@ -1,0 +1,11 @@
+{% block _content %}
+{{ qty_data|safe }}
+<br>
+<a href="/" hx-get="/?part=1" hx-target="closest .calc" hx-swap="outerHTML"
+   hx-trigger="click[get_card_once('home__page')]" class="mr-4">
+  <i class="icon-home2 mr-2"></i>Home</a>
+<a href="/catalog/qty/units/" hx-get="/catalog/qty/units/?part=1"
+   hx-target="closest .calc" hx-swap="outerHTML"
+   hx-trigger="click[get_card_once('qty__page')]">
+  <i class="icon-notebook m-2"></i>Quantity Directory</a>
+{% endblock %}

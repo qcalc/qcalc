@@ -1,0 +1,14 @@
+<div class="breadcrumb-elements-item">
+  <form method="post" hx-get="/catalog/search/?part=1" hx-vals='{"cid":"{{ input.cid }}"}'
+        hx-target="#page-holder" hx-swap="innerHTML">
+        <!--hx-target="#content-holder" hx-swap="afterbegin"-->
+    <div class="form-group-feedback form-group-feedback-right" id="search-catalog">
+      <input type="search" class="form-control"
+             placeholder="{{ label }}"
+             name="q">
+      <div class="form-control-feedback">
+        <button type="submit" class="btn" aria-label="search"><i class="icon-search4 text-muted"></i></button>
+      </div>
+    </div>
+  </form>
+</div>

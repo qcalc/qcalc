@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+{% include 'insert-head.html' %}
+<body>
+<!-- template:insert-card-core -->
+{% load static %}
+{% load qfilter %}
+{% lineless_ex %}
+<div class="content" hx-ext="response-targets">
+  <div id="card-holder-{{ input.cid }}" class="calc show">
+    <script>setCid('{{ input.cid }}');</script>
+    <!-- Basic card -->
+    <div class="card">
+      <div class="card-header bg-card-header">
+        <h5 class="card-title">{% block cardtitle %}Basic card{% endblock %}</h5>
+      </div>
+
+      <div class="card-body" id="card-body-{{ input.cid }}">
+        {% block content %}{% endblock %}
+      </div>
+    </div>
+    <script>
+      $(document).ready(function() {
+        jumpTo( '{{ input.cid }}' );
+        //formReady('{{ input.cid }}');
+      });
+    </script>
+  </div>
+</div>
+{% endlineless_ex %}
+</body>
+</html>

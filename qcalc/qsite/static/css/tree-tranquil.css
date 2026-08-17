@@ -1,0 +1,121 @@
+/* Tranquil Bloom Theme */
+/* qCalc Vibe Theme */
+/* 0.82rem, 0.906 */
+/* 500 */
+/* Background Colors */
+/* Light mist blue for a calming fullscreen backdrop */
+/* Soft sage green, serene and understated */
+/* Subtle pale blue for input sections */
+/* Light beige for output areas, enhancing readability */
+/* Warm ivory for secondary output sections */
+/* Borders */
+/* Soft gray-blue for a neutral and professional border */
+/* Muted sage green for harmony with the background */
+/* Softened green-gray for hover effect */
+/* Pale wheat for a light, elegant look */
+/* Soft olive green for subtle accents in tables */
+/* Very light mint for contrast between table rows */
+/* Muted sienna for polished warmth in highlighted areas */
+/* Soft gold, subtle yet refined for loading spinners */
+/* Text and Icon Colors */
+/* Standard checkmark for consistency */
+/* Light misty blue for better contrast and readability */
+/* Deep teal-gray, balanced and sophisticated */
+/* Button and Link Colors */
+/* Champagne gold for a subtle, premium button feel */
+/* Muted teal green for a tranquil, sophisticated link color */
+/* Deepened teal for hover, providing smooth contrast */
+/* Forest green for active links, professional and clear */
+/* Warm taupe to indicate visited links subtly */
+/* Background Colors for Emphasis */
+/* Deep slate for headers, projecting stability */
+/* Light peach-gold for a gentle highlight without being bold */
+/* Other Interactive Elements */
+/* Very light gold for unobtrusive loading */
+.categ {
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.tree, .tree ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tree ul {
+  margin-left: 1rem;
+  position: relative;
+}
+
+.tree ul ul {
+  margin-left: 0.5rem;
+}
+
+.tree ul:before {
+  content: "";
+  display: block;
+  width: 0;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  border-left: 1px solid;
+}
+
+.tree li {
+  margin: 0;
+  padding: 0 1rem;
+  line-height: 2rem;
+  color: #5a8d7e;
+  position: relative;
+}
+
+.tree li .tdesc {
+  color: #333;
+}
+
+.tree ul li:before {
+  content: "";
+  display: block;
+  width: 10px;
+  height: 0;
+  border-top: 1px solid;
+  margin-top: -1px;
+  position: absolute;
+  top: 1rem;
+  left: 0;
+}
+
+.tree ul li:last-child:before {
+  background: #fff;
+  height: auto;
+  top: 1rem;
+  bottom: 0;
+}
+
+.indicator {
+  margin-right: 5px;
+}
+
+.tree li a {
+  text-decoration: none;
+  color: #5a8d7e;
+}
+
+.tree li button, .tree li button:active, .tree li button:focus {
+  text-decoration: none;
+  color: #5a8d7e;
+  border: none;
+  background: transparent;
+  margin: 0px 0px 0px 0px;
+  padding: 0px 0px 0px 0px;
+  outline: 0;
+}
+
+.tree li span.mark1 {
+  color: firebrick;
+  background-color: #f3d19c;
+}
+
+/*# sourceMappingURL=tree-tranquil.css.map */

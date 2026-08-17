@@ -1,0 +1,37 @@
+/* Tranquil Bloom Theme */
+@import 'variables-common';
+/* Background Colors */
+$background-fullscreen: #f7f9fc; /* Light mist blue for a calming fullscreen backdrop */
+$background-fullscreen-square: #edf4f1; /* Soft sage green, serene and understated */
+$background-section-input: #e0e8f0; /* Subtle pale blue for input sections */
+$background-section-output1: #f5f3e7; /* Light beige for output areas, enhancing readability */
+$background-section-output2: #fdfaf4; /* Warm ivory for secondary output sections */
+
+/* Borders */
+$border-default: #ddd; /* Soft gray-blue for a neutral and professional border */
+$border-fullscreen-square: #c4d7c6; /* Muted sage green for harmony with the background */
+$border-hover-fullscreen-square: #d1e0d2; /* Softened green-gray for hover effect */
+$border-card-collapse: #e5d7b8; /* Pale wheat for a light, elegant look */
+$border-table: #9cb5a1; /* Soft olive green for subtle accents in tables */
+$border-table-rows: #f1f8f5; /* Very light mint for contrast between table rows */
+$border-qhtml: #d4a373; /* Muted sienna for polished warmth in highlighted areas */
+$border-spinner: #c9b37d; /* Soft gold, subtle yet refined for loading spinners */
+
+/* Text and Icon Colors */
+$icon-checkmark: '✓'; /* Standard checkmark for consistency */
+$card-title-font-color: #f0f4f8; /* Light misty blue for better contrast and readability */
+$color-mark-text: #556b6f; /* Deep teal-gray, balanced and sophisticated */
+
+/* Button and Link Colors */
+$background-button-cmd: #d4af7a; /* Champagne gold for a subtle, premium button feel */
+$link-color: #5a8d7e; /* Muted teal green for a tranquil, sophisticated link color */
+$link-color-hover: #3c5c54; /* Deepened teal for hover, providing smooth contrast */
+$link-color-active: #2f4842; /* Forest green for active links, professional and clear */
+$link-color-visited: #8c6d5a; /* Warm taupe to indicate visited links subtly */
+
+/* Background Colors for Emphasis */
+$background-card-header: #2e4052; /* Deep slate for headers, projecting stability */
+$background-mark2: #f3d19c; /* Light peach-gold for a gentle highlight without being bold */
+
+/* Other Interactive Elements */
+$background-spinner-border: rgba(212, 175, 122, 0.15); /* Very light gold for unobtrusive loading */

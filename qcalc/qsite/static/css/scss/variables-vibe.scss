@@ -1,0 +1,29 @@
+/* qCalc Vibe Theme */
+@import 'variables-common';
+$background-fullscreen: #fefaf6; /* Very light peach for a fresh background */
+$border-default: #ddd;
+$background-fullscreen-square: #e6ffe6; /* Light pastel mint for a refreshing feel */
+$border-fullscreen-square: #ffa5a0; /* Blush pink with a bit more depth */
+$border-hover-fullscreen-square: #ffccbc; /* Muted coral with warmth */
+$border-card-collapse: #ffae75; /* Peachy orange for a modern accent */
+$border-table: #48b27c; /* Vibrant jade green for a fresh look */
+$border-table-rows: #e0fff8; /* Soft pastel mint */
+$icon-checkmark: '✓';
+/* Refined Section Background Colors */
+$background-section-input: #e9f2e1; /* Soft sage green, calmer and more sophisticated */
+$background-section-output1: #fdf3d1; /* Gentle cream for warmth and readability */
+$background-section-output2: #faf6ef; /* Light ivory for a subtle, neutral tone */
+
+$background-button-cmd: #ffdb73; /* Bright sunshine yellow */
+$background-spinner-border: rgba(255, 203, 112, 0.1); /* Light sunshine yellow */
+$border-spinner: #ffcc00; /* Soft gold */
+$background-card-header: #0f4c2f; /* Deep forest green for sophistication */
+$card-title-font-color: #ffffff; /* Crisp white */
+$border-qhtml: #ff6b57; /* Bright coral */
+$background-mark2: #ffd166; /* Warm sunflower yellow */
+$color-mark-text: #004f59; /* Deep teal for contrast */
+/* Refined Link Colors for a Professional Look */
+$link-color: #cc6666; /* Muted rose for a softer, elegant link color */
+$link-color-hover: #b23b3b; /* Subtle wine red for hover to avoid overpowering */
+$link-color-active: #8f2d2d; /* Deep muted red for active, adding a clear indication without being harsh */
+$link-color-visited: #6e4b4b; /* Warm, earthy brown for visited links to subtly differentiate */

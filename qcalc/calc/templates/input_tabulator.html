@@ -1,0 +1,139 @@
+<!-- start templates/input_tabulator.html -->
+<div id="table-{{scope}}-{{item_id}}-{{cid}}"></div>
+<div><p>{{message}}</p></div>
+<script>
+  var table = new Tabulator(`#table-{{scope}}-{{item_id}}-{{cid}}`, {
+    ajaxURL: "{% url 'get_input_data' scope item_id %}",  // URL for data
+    ajaxParams: {
+      page: 1, // Request page 1 initially
+      t: Date.now() // Timestamp to prevent caching
+    },
+    pagination: "remote",  // Enable remote pagination
+    paginationSize: 10,  // Records per page
+    paginationSizeSelector: [5, 10, 20, 50],  // Allow user to select page size
+    columns: input_columns('{{scope}}'),
+    dataLoader: false,
+    ajaxResponse: function(url, params, response) {
+      return response.items;  // Return the data to Tabulator
+    }
+  });
+
+  table.on("cellEdited", function(cell){
+    var data = cell.getData();  // Get the updated row data
+    updateRow(data);  // Call function to update the row on the server
+  });
+
+  function updateRow(data) {
+    var url = "{% url 'update_input' 0 %}".replace('0', data.id);
+    fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken'),  // Get CSRF token for security
+      },
+      body: JSON.stringify(data),
+    })
+    .then(response => {
+      if (!response.ok) throw new Error('Network response was not ok');
+      return response.json();
+    })
+    .then(data => {
+      console.log('Row updated:', data);
+    })
+    .catch(error => {
+      console.error('There was a problem with the fetch operation:', error);
+    });
+    console.log('updated');
+  }
+
+  function deleteRow(id) {
+    if (confirm("Are you sure you want to delete this row?")) {
+      var url = "{% url 'delete_input' 0 %}".replace('0', id)
+      fetch(url, {
+        method: 'DELETE',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),  // Get CSRF token for security
+        },
+      })
+      .then(response => {
+        if (!response.ok) throw new Error('Network response was not ok');
+        table.deleteRow(id);  // Remove row from the table
+        //table.setData("{% url 'get_input_data' scope item_id %}"); // Refresh
+        console.log('Input Row deleted successfully');
+      })
+      .catch(error => {
+        console.error('There was a problem with the fetch operation:', error);
+      });
+    }
+  }
+
+  function input_columns(scope){
+    if (scope == 'variants' || scope == 'update'){
+      return [
+        {
+          title: "Actions",
+          formatter: function(cell, formatterParams) {
+            var row = cell.getData();
+            return `
+                <button class='btn btnimg btn-danger' type='button' href=''
+                  onclick='deleteRow(${row.id})'>
+                  <i class='icon-cross2 mr-2'></i></button>
+            `;
+          }
+        },
+        {% if item_id == '-all-' %}
+        { title: "Func ID", field: "item_id", editable: false },
+        {% endif %}
+        { title: "Variant", field: "variant_id", editable: false },
+        { title: "Description", field: "description", editor: "input", width:200,
+          formatter: function(cell, formatterParams){
+              cell.getElement().style.whiteSpace = 'normal'; // Apply word-wrap
+              return cell.getValue();
+          }
+        },
+        { title: "Shared?", field: "is_shared", editor: "tickCross" },
+        {% if is_owner %}
+        { title: "Example?", field: "is_example", editor: "tickCross" },
+        {% endif %}
+        {% if item_id == '-all-' %}
+        { title: "Data", field: "item", width:300, editor:"textarea",
+          editable: false,
+          formatter: function(cell, formatterParams) {
+            var jsonData = cell.getValue();
+            return JSON.stringify(jsonData);
+          }
+        },
+        { title: "Changed On", field: "changed_on", editable: false },
+        {% endif %}
+      ];
+    } else if(scope == 'examples') {
+      return [
+        {
+          title: "Actions",
+          formatter: function(cell, formatterParams) {
+            var row = cell.getData();
+            return `
+            <button class="btn btnimg btn-info" href="/calc/${row.item_id}/"
+        hx-get="/calc/manage_input/${scope}/${row.item_id}/${row.variant_id}/display/"
+        hx-target="next form" hx-swap="outerHtml"
+        hx-trigger="click[setCidFrom($(this),'section-{{scope}}','{{scope}}-')]">
+    <i class="icon-plus-circle2 mr-2"></i>{{var.variant_id}}. {{ var.description }}</button>
+            `;
+          }
+        },
+        {% if item_id == '-all-' %}
+        { title: "Func ID", field: "item_id", editable: false },
+        {% endif %}
+        { title: "Example", field: "variant_id", editable: false },
+        { title: "Description", field: "description", editable: false, width:200,
+          formatter: function(cell, formatterParams){
+              cell.getElement().style.whiteSpace = 'normal'; // Apply word-wrap
+              return cell.getValue();
+          }
+        }
+      ];
+    }
+  }
+
+</script>
+<!-- end templates/input_tabulator.html -->

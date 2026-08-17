@@ -1,0 +1,14 @@
+{% if request.user.is_authenticated and request.user.username != request.var_owner %}
+{% if request.token_state or request.token %}
+<a hx-post="{% url 'toggle_share' %}" hx-trigger="click" hx-swap="outerHTML" hx-target="this"
+   class="btn" href="/calc/{{func_id}}/"
+{% if request.token_state %}
+   hx-vals='{"func_id": "{{ func_id }}", "input_id": "{{ input_id }}", "action": "delete"}'>
+  <i class="icon-minus3"></i>
+{% elif request.token %}
+   hx-vals='{"func_id": "{{ func_id }}", "input_id": "{{ input_id }}", "action": "add"}'>
+  <i class="icon-plus3"></i>
+{% endif %}
+</a>
+{% endif %}
+{% endif %}

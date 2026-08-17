@@ -1,0 +1,35 @@
+{% load qfilter %}
+{% cal_var_url input.doc.info.name input_id True True True request.is_public as url %}
+<p></p>
+<div class="social-share-buttons">
+  {% if url %}
+    <!-- Facebook -->
+    <a href="https://www.facebook.com/sharer/sharer.php?u={{ url }}"
+       target="_blank" class="btn"><i class="icon-facebook"></i>
+    </a>
+
+    <!-- Twitter -->
+    <a href="https://twitter.com/intent/tweet?url={{ url }}"
+       target="_blank" class="btn"><i class="icon-twitter"></i>
+    </a>
+
+    <!-- LinkedIn -->
+    <a href="https://www.linkedin.com/shareArticle?url={{ url }}"
+       target="_blank" class="btn"><i class="icon-linkedin"></i>
+    </a>
+    <!-- Email -->
+    <a href="/calc/share_by_email/"
+       hx-get="/calc/add/?path=share_by_email/func_id/{{ input.doc.info.name }}/url/{{ url|deslash }}/---/"
+       hx-target="#card-space" hx-swap="beforebegin" class="btn"><i class="icon-envelop"></i>
+    </a>
+  {% endif %}
+    <!-- Favorites -->
+    {% include 'favorite_icon_social.html' %}
+    {% include 'share_icon_social.html' %}
+</div>
+<hr>
+{% cal_var_desc input.doc.info.name input_id as desc %}
+{% cal_var_url input.doc.info.name input_id False True False request.is_public as url_noencode %}
+{% cal_var_url input.doc.info.name input_id False False False request.is_public True as url_core %}
+<p style="font-size: 0.8rem;"><i>{{desc|safe}}<a href="{{url_noencode}}" target="_blank">Link</a>,&nbsp;
+<a href="{{url_core}}" target="_blank">Core</a></i></p>

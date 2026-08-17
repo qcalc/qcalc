@@ -1,0 +1,167 @@
+/* SPDX-License-Identifier: MIT
+   Copyright (c) 2024-2026 Debasish C Saha */
+
+/* =============================================================================
+   qsite/layout/layout.css
+   Requires: Bootstrap 4.3.1, IcoMoon (vendor/icomoon)
+   ============================================================================= */
+
+/* --- Page skeleton (flex column body) --- */
+html { display: flex; flex-direction: column; }
+body { min-height: 100vh; display: flex; flex-direction: column; flex: 1; }
+
+.page-content {
+  display: flex;
+  flex-grow: 1;
+  /* overflow hidden so sidebars don't cause a horizontal scrollbar */
+  overflow: hidden;
+}
+
+.content-wrapper {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: auto;
+  min-width: 0; /* prevent flex blowout */
+}
+
+.content {
+  padding: 1.25rem;
+  flex-grow: 1;
+}
+.content::after { display: block; clear: both; content: ""; }
+
+/* --- Navbar --- */
+.navbar {
+  flex-shrink: 0;
+  min-height: 3rem;      /* 48px — matches default */
+  padding: 0 1.25rem;
+}
+.navbar-brand { padding-top: 0; padding-bottom: 0; }
+
+/* Dark navbar colour (matches sidebar-xs default theme) */
+.navbar.navbar-dark { background-color: #273246; }
+
+.navbar-nav-link {
+  display: flex;
+  align-items: center;
+  padding: .875rem .75rem;
+  color: rgba(255, 255, 255, .9);
+  line-height: 1;
+  border-radius: .1875rem;
+}
+.navbar-nav-link:hover,
+.navbar-nav-link:focus,
+.navbar-nav-link.active,
+.show > .navbar-nav-link {
+  color: #fff;
+  text-decoration: none;
+  background-color: rgba(255, 255, 255, .1);
+}
+.navbar.navbar-light .navbar-nav-link {
+  color: rgba(51, 51, 51, .85);
+}
+.navbar.navbar-light .navbar-nav-link:hover,
+.navbar.navbar-light .navbar-nav-link:focus,
+.navbar.navbar-light .navbar-nav-link.active,
+.navbar.navbar-light .show > .navbar-nav-link {
+  color: #333;
+  background-color: rgba(0, 0, 0, .04);
+}
+
+/* --- Sidebar base --- */
+.sidebar {
+  flex-shrink: 0;
+  width: 16.25rem;          /* 260px */
+  overflow-y: auto;
+  overflow-x: hidden;
+  transition: transform .10s ease-in-out;
+}
+
+.sidebar-dark  { background-color: #273246; color: rgba(255, 255, 255, .9); }
+.sidebar-light { background-color: #fafafa; border-right: 1px solid #ddd;  color: #333; }
+
+.sidebar-content {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+/* --- Sidebar mini (xs) mode — icon-only (desktop only, see mobile override below) --- */
+@media (min-width: 768px) {
+  body.sidebar-xs .sidebar-main { width: 3.5rem; }   /* 56px */
+
+  body.sidebar-xs .sidebar-main .nav-link > span,
+  body.sidebar-xs .sidebar-main .sidebar-user-name,
+  body.sidebar-xs .sidebar-main .sidebar-mobile-toggler > span { display: none; }
+
+  body.sidebar-xs .sidebar-main .nav-link i { margin-right: 0 !important; }
+}
+
+/* --- Sidebar main hidden --- */
+body.sidebar-main-hidden .sidebar-main {
+  width: 0;
+  overflow: hidden;
+}
+
+/* --- Secondary sidebar hidden --- */
+body.sidebar-secondary-hidden .sidebar-secondary {
+  width: 0;
+  overflow: hidden;
+}
+
+/* --- Transitions kill on load (prevents flash) --- */
+body.no-transitions,
+body.no-transitions * { transition: none !important; }
+
+/* =============================================================================
+   Mobile (< 768px) — sidebars become fixed overlays
+   ============================================================================= */
+@media (max-width: 767.98px) {
+  /* Navbar becomes sticky so it stays at top when sidebars slide in */
+  .navbar {
+    position: sticky;
+    top: 0;
+    z-index: 1030;
+  }
+
+  /* Both sidebars: fixed, off-screen left by default (transform, not left,
+     so it uses the .sidebar transition and slides smoothly) */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    transform: translateX(-100%);
+    z-index: 1025;
+  }
+
+  /* Show main sidebar */
+  body.sidebar-mobile-main .sidebar-main { transform: translateX(0); }
+
+  /* Show secondary sidebar (stacks to the right of main when both visible) */
+  body.sidebar-mobile-secondary .sidebar-secondary { transform: translateX(0); }
+
+  /* Sidebar fullscreen on mobile expand button */
+  .sidebar.sidebar-fullscreen { transform: translateX(0); width: 100vw !important; }
+
+  /* Mobile overlay backdrop (added dynamically by app.js) */
+  .sidebar-mobile-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, .4);
+    z-index: 1024;
+  }
+}
+
+@media (min-width: 768px) {
+  .sidebar-mobile-toggler { display: none !important; }
+}
+
+/* --- Page header helpers --- */
+.page-header-light { background-color: #fff; border-bottom: 1px solid #ddd; }
+.page-header-dark  { background-color: #273246; color: #fff; margin-bottom: 1.25rem; }
+.page-header-content { padding: 0 1.25rem; position: relative; }
+.page-title { padding: 2rem 0; }
+.page-title h1, .page-title h2, .page-title h3,
+.page-title h4, .page-title h5, .page-title h6 { margin: 0; }

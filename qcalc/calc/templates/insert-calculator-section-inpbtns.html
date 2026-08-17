@@ -1,0 +1,47 @@
+<!-- begin:insert-calculator-section-inpbtns -->
+{% load qfilter %}
+{% if 'form_bottom' in input.doc.info.inserts %}
+{{ input.doc.info.inserts.form_bottom | safe }}
+<br>
+{% endif %}
+<div class="btn-group mt-2 section-inpbtns">
+  <p>
+    <button type="submit" class="btn btn-primary btncal mr-2" id="calculate_{{ input.cid }}" aria-label="calculate">
+      <i class="icon-enter5 calimg"></i><span class="notxt">{{ input.doc.info.calculate }}</span>
+      <div class="htmx-indicator">
+        <div class="spinner"></div>
+      </div>
+    </button>
+  </p>
+  <p>
+    <button type="reset" class="btn btn-success btnimg mr-2" aria-label="undo"><i class="icon-undo2 mr-2"></i></button>
+  </p>
+  <p>
+    <button type="button" class="btn btn-danger btnimg mr-2" onclick="clearForm(this.form)" aria-label="clear_form"><i
+      class="icon-file-empty2"></i></button>
+  </p>
+  <p>
+    <button type="button" class="btn btn-success btnimg mr-2"
+            hx-get="/calc/add/?path={{ input.doc.name }}&part=1&cid={{input.cid}}"
+            hx-target="closest .calc" hx-swap="outerHTML" aria-label="default_data"><i class="icon-sync"></i></button>
+  </p><!-- important, path ensures not to recall -->
+  <p>
+    <button type="button" id="dec-{{ input.cid }}" onclick='v = toggleIcon(this, "icon-eye2", "icon-eye-blocked2");
+    updateExtra("{{ input.cid }}", {"ignoredec":v==1?"1":"0"});' class="btn btn-info btnimg mr-2" aria-label="precision">
+    <i class="{% ctf request.pref.ignore_decimal_format 'icon-eye2' 'icon-eye-blocked2' %}"></i></button>
+  </p>
+  <div class="btn-group">
+    <button type="button" class="btn btn-info btnimg mr-2 dropdown-toggle" data-toggle="dropdown"
+            aria-haspopup="true" aria-expanded="false" aria-label="calc_menu"><i class="icon-menu"></i>
+    </button>
+    <div class="dropdown-menu">
+      <a class="dropdown-item" href="javascript:;"
+         onclick="clearForm(document.getElementById('form-{{ input.cid }}'))">Clear Input</a>
+      <a class="dropdown-item" href=""
+         hx-get="/calc/add/?path={{ input.doc.name }}&part=1&cid={{input.cid}}"
+         hx-target="closest .calc" hx-swap="outerHTML">Refresh Input</a>
+      <a class="dropdown-item" href="/calc/{{input.doc.name}}/" target="_blank">Open in New Tab</a>
+    </div><!-- important, path ensures not to recall -->
+  </div>
+</div>
+<!-- end:insert-calculator-section-inpbtns -->

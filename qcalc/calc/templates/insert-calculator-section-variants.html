@@ -1,0 +1,19 @@
+<!-- begin:insert-calculator-section-variants -->
+<button type="button" class="card-collapse collapsed btn btn-info btncmd mb-2" href="#variants-{{ input.cid }}"
+        data-toggle="collapse" aria-label="variants">Variants&nbsp;</button>
+<div class="collapse section-variants" id="variants-{{ input.cid }}">
+  <p>
+  <a class="btn" href="/calc/{{input.doc.info.name}}/"
+     hx-get="/calc/scroll_input/variants/{{input.doc.info.name}}/{{input.cid}}/"
+     hx-target="#variants-container-{{input.cid}}" hx-swap="innerHTML">
+  <i class="icon-sync mr-2"></i>Display variants</a>
+  <a class="btn" href="/calc/{{input.doc.info.name}}/"
+     hx-get="/calc/tabulate_input/update/{{input.doc.info.name}}/{{input.cid}}/"
+     hx-target="#variants-container-{{input.cid}}" hx-swap="innerHTML">
+  <i class="icon-sync mr-2"></i>Update variants</a>
+  </p>
+ <div id="variants-container-{{input.cid}}">
+ {% include 'input_scroller.html' with scope='variants' item_id=input.doc.info.name qryset=None cid=input.cid %}
+ </div>
+</div>
+<!-- end:insert-calculator-section-variants -->

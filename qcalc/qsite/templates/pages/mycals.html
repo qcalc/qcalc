@@ -1,0 +1,18 @@
+{% extends base %}
+{% load static %}
+{% load qfilter %}
+{% block card %}{% endblock %}
+{% block page_profile %}
+{% add_head 'My Calculators' 'My Calculators' '/page/pubcals/' %}
+{% endblock %}
+{% block _cardtitle %}My Calculators{% endblock %}
+{% block _content %}
+<p>
+<a class="btn" href="/calc/{{input.doc.info.name}}/"
+   hx-get="/calc/tabulate_stuff/mycal/-all-/{{input.cid}}/"
+   hx-target="#all-mycal-container-{{input.cid}}" hx-swap="innerHTML">
+<i class="icon-sync mr-2"></i><span class="notxt">Display my calculators</span></a>
+</p>
+<div id="all-mycal-container-{{input.cid}}">
+</div>
+{% endblock %}

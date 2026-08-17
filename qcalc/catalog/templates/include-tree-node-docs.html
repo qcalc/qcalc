@@ -1,0 +1,19 @@
+{% for node in docs_data %}
+  <li>
+    {% if node.is_leaf %}
+      <a href="/docs/{{ node.name }}" hx-get="/docs/{{ node.name }}?part=1"
+         hx-target="#content-holder" hx-swap="afterbegin"
+         hx-trigger="click[get_card_once('{{ node.id }}__page')]">
+      <i class="icon-file-text"></i>&nbsp;&nbsp;{{ node.title }}</a>
+      <p class="tdesc">{{ node.desc }}</p>
+    {% else %}
+      <a class="categ">{{ node.title }} ({{ node.leafcount }})</a>
+      <p class="tdesc">{{ node.desc }}</p>
+      {% if node.children %}
+          <ul>
+          {% include 'include-tree-node-docs.html' with docs_data=node.children %}
+          </ul>
+      {% endif %}
+    {% endif %}
+  </li>
+{% endfor %}

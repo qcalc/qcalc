@@ -1,0 +1,25 @@
+{% load qfilter %}
+{% if fav_var_list %}
+{% for var in fav_var_list %}
+  {% if var.is_shared %}
+    {% concat "/calc/" var.item_id "/?token=" var.access_token "&run" as cal_url %}
+    {% concat cal_url "&part=1" as get_url %}
+    <i>&emsp;<a href="{{cal_url}}" hx-get="{{get_url}}"
+       hx-target="#content-holder" hx-swap="afterbegin">
+      <i class="icon-share4"></i>&ensp;{{var.variant_id}}. {{var.description}}</a></i>
+  {% elif var.owner == 'super' %}
+    {% concat "/calc/" var.item_id "/?example=" var.variant_id "&run" as cal_url %}
+    {% concat cal_url "&part=1" as get_url %}
+    <i>&emsp;<a href="{{cal_url}}" hx-get="{{get_url}}"
+       hx-target="#content-holder" hx-swap="afterbegin">
+      <i class="icon-share4"></i>&ensp;{{var.description}}</a></i>
+  {% else %}
+    {% concat "/calc/" var.item_id "/?variant=" var.variant_id "&var_owner=" request.user.username  "&run" as cal_url %}
+    {% concat cal_url "&part=1" as get_url %}
+    <i>&emsp;<a href="{{cal_url}}" hx-get="{{get_url}}"
+       hx-target="#content-holder" hx-swap="afterbegin">
+      <i class="icon-plus-circle2"></i>&ensp;{{var.description}}</a></i>
+  {% endif %}
+  {% include 'favorite_icon.html' with func_id=var.item_id input_id=var.id fav_state=True %}<br>
+{% endfor %}
+{% endif %}

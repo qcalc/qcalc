@@ -1,0 +1,99 @@
+<!-- start templates/input_tabulator.html -->
+<div id="table-{{scope}}-{{item_id}}-{{cid}}"></div>
+<div><p>{{message}}</p></div>
+<script>
+  var table = new Tabulator(`#table-{{scope}}-{{item_id}}-{{cid}}`, {
+    ajaxURL: "{% url 'get_stuff_data' scope item_id %}",  // URL for data
+    ajaxParams: {
+      page: 1, // Request page 1 initially
+      t: Date.now() // Timestamp to prevent caching
+    },
+    pagination: "remote",  // Enable remote pagination
+    paginationSize: 10,  // Records per page
+    paginationSizeSelector: [5, 10, 20, 50],  // Allow user to select page size
+    columns: stuff_columns('{{scope}}'),
+    dataLoader: false,
+    ajaxResponse: function(url, params, response) {
+      return response.items;  // Return the data to Tabulator
+    }
+  });
+
+  table.on("cellEdited", function(cell){
+    var data = cell.getData();  // Get the updated row data
+    updateRow(data);  // Call function to update the row on the server
+  });
+
+  function updateRow(data) {
+    var url = "{% url 'update_stuff' 0 %}".replace('0', data.id);
+    fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken'),  // Get CSRF token for security
+      },
+      body: JSON.stringify(data),
+    })
+    .then(response => {
+      if (!response.ok) throw new Error('Network response was not ok');
+      return response.json();
+    })
+    .then(data => {
+      console.log('Row updated:', data);
+    })
+    .catch(error => {
+      console.error('There was a problem with the fetch operation:', error);
+    });
+    console.log('updated');
+  }
+
+  function deleteRow(id) {
+    if (confirm("Are you sure you want to delete this row?")) {
+      var url = "{% url 'delete_stuff' 0 %}".replace('0', id)
+      fetch(url, {
+        method: 'DELETE',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),  // Get CSRF token for security
+        },
+      })
+      .then(response => {
+        if (!response.ok) throw new Error('Network response was not ok');
+        table.deleteRow(id);  // Remove row from the table
+        //table.setData("{% url 'get_stuff_data' scope item_id %}"); // Refresh
+        console.log('Stuff Row deleted successfully');
+      })
+      .catch(error => {
+        console.error('There was a problem with the fetch operation:', error);
+      });
+    }
+  }
+
+  function stuff_columns(scope){
+    if (scope == 'mycal'){
+      return [
+        {
+          title: "Actions",
+          formatter: function(cell, formatterParams) {
+            var row = cell.getData();
+            return `
+                <button class='btn btnimg btn-danger' type='button' href=''
+                  onclick='deleteRow(${row.id})'>
+                  <i class='icon-cross2 mr-2'></i></button>
+            `;
+          }
+        },
+        {% if item_id == '-all-' %}
+        { title: "Func ID", field: "item_id", editor: false },
+        {% endif %}
+        {% if is_staff == 'y' %}
+        { title: "Public?", field: "is_public", editor: "tickCross" },
+        {% else %}
+        { title: "Public?", field: "is_public", editor: false },
+        {% endif %}
+        {% if item_id == '-all-' %}
+        { title: "Changed On", field: "changed_on", editor: false },
+        {% endif %}
+      ];
+    }
+  }
+</script>
+<!-- end templates/input_tabulator.html -->

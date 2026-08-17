@@ -1,0 +1,224 @@
+{% extends base %}
+{% load static %}
+{% load qfilter %}
+{% block card %}{% endblock %}
+{% block page_profile %}
+{% add_head "A Simple and Quick Calculator to aid number entry" "Easily calculate numbers with this simple calculator tool. Use it as a handy resource to quickly input values into other qCalc calculators." "/page/cal/" %}
+{% endblock %}
+{% block _cardtitle %}Quick Calculator{% endblock %}
+{% block _content %}
+<style>
+  .calculator { justify-content: left; align-items: center; height: auto; background-color: #f0f0f0; padding:20px;}
+  .display {
+    background-color: #000;
+    color: #0f0;
+    padding: 5px;
+    padding-right: 10px;
+    text-align: right;
+    margin-bottom: 10px;
+    height: auto;
+    font-family: 'Digital-7', monospace;
+    font-size: 24px;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .buttons { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px 7px; }
+  .button {
+    padding: 10px;
+    background-color: #f2f2f2;
+    border: 1px solid #ccc;
+    cursor: pointer;
+    font-size: 18px;
+    color: #333;
+    transition: background-color 0.3s, transform 0.1s;
+    border-radius:6px;
+    box-shadow:inset 0 -2px 1px rgba(0,0,0,0.5),inset 0 1px 1px rgba(255,255,255,0.5),inset 0 8px 8px rgba(255,255,255,0.5);
+  }
+  .button:hover {
+    color:#777;
+    background-color: #e0e0e0;
+  }
+  .button:active {
+    transform: scale(0.98);
+    background-color: #d0d0d0;
+  }
+</style>
+
+<div class="calculator col" tabindex="0">
+  <div class="display" id="display" contenteditable="true">0</div>
+  <div class="buttons">
+    <!-- Number Buttons -->
+    <button class="button" data-action="add" data-value="7">7</button>
+    <button class="button" data-action="add" data-value="8">8</button>
+    <button class="button" data-action="add" data-value="9">9</button>
+    <button class="button" data-action="operate" data-value="/">/</button>
+    <button class="button" data-action="del">Bksp</button>
+
+    <button class="button" data-action="add" data-value="4">4</button>
+    <button class="button" data-action="add" data-value="5">5</button>
+    <button class="button" data-action="add" data-value="6">6</button>
+    <button class="button" data-action="operate" data-value="*">*</button>
+    <button class="button" data-action="clear">Clear</button>
+
+    <button class="button" data-action="add" data-value="1">1</button>
+    <button class="button" data-action="add" data-value="2">2</button>
+    <button class="button" data-action="add" data-value="3">3</button>
+    <button class="button" data-action="operate" data-value="-">-</button>
+    <button class="button" data-action="reverse"><sup>1</sup>⁄<sub>x</sub></button>
+
+    <button class="button" data-action="add" data-value="0">0</button>
+    <button class="button" data-action="add" data-value=".">.</button>
+    <button class="button" data-action="add" data-value="e">exp</button>
+    <button class="button" data-action="operate" data-value="+">+</button>
+    <button class="button bg-primary" data-action="compute">=</button>
+
+    <button class="button" data-action="operate" data-value="(">(</button>
+    <button class="button" data-action="operate" data-value=")">)</button>
+    <button class="button" data-action="add" data-value="-">±</button>
+    <button class="button" data-action="operate" data-value="^">x<sup>y</sup></button>
+    <button class="button" data-action="copy">Copy</button>
+
+    <a class="button btn" href="/calc/fincal/" hx-get="/calc/add/?fname=fincal"
+       hx-target="closest .calc" hx-swap="afterend"><i class="icon-cash3"></i></a>
+    <button class="button" data-action="add" data-value="^0.5">√x</button>
+    <button class="button" data-action="add" data-value="3.1415926535897932384626433832795">π</button>
+    <button class="button" data-action="add" data-value="2.7182818284590452353602874713527">e</button>
+    <button class="button" data-action="add" data-value=""></button>
+
+    <a class="button btn" href="/calc/conv2/" hx-get="/calc/add/?fname=conv2"
+       hx-target="closest .calc" hx-swap="afterend"><i class="icon-balance"></i></a>
+    <a class="button btn" href="/calc/cur/" hx-get="/calc/add/?fname=cur"
+       hx-target="closest .calc" hx-swap="afterend"><i class="icon-coin-dollar"></i></a>
+    <a class="button btn" href="/calc/eva/" hx-get="/calc/add/?fname=eva"
+       hx-target="closest .calc" hx-swap="afterend"><i class="icon-circle-code"></i></a>
+    <a class="button btn" href="/page/console/" hx-get="/page/console/?part=1"
+       hx-target="closest .calc" hx-swap="afterend"><i class="icon-terminal"></i></a>
+    <button class="button" data-action="prev">Recall</button>
+  </div>
+</div>
+
+<script>
+$(document).ready(function() {
+  //console.log(getCid());
+  let currentOperand = '';
+  let decimalAllowed = true;
+  let computed = false;
+  let maxlen = 255;
+  prevOperand = '';
+
+  function clearDisplay() {
+    currentOperand = '';
+    decimalAllowed = true;
+    updateDisplay();
+  }
+
+  function appendNumber(number) {
+    if (computed) { clearDisplay();  }
+    if (currentOperand === '0' || currentOperand === 'Error') currentOperand = '';
+    if (!(decimalAllowed === false && number === '.')) {
+      currentOperand += number;
+      if (number === '.') decimalAllowed = false;
+    }
+    updateDisplay();
+  }
+
+  function chooseOp(op) {
+    if (op === '+' || op === '-'){
+      currentOperand += ` ${op} `;
+    } else {
+      currentOperand += op;
+    }
+    updateDisplay();
+    decimalAllowed = true;
+  }
+
+  function preprocess_xpr(xpr) {
+    xpr = xpr.replace(/\^/g, '**');
+    xpr = xpr.replace(/\*\*\*\*/g, '^');
+    return xpr.replace(/\|/g,''); //.replace(/\!/g,'/')
+  }
+
+  function compute() {
+    try {
+      prevOperand = currentOperand;
+      const result = eval(preprocess_xpr(currentOperand)); // Replace with a safe evaluation method
+      currentOperand = result.toString();
+    } catch (error) {
+      currentOperand = "Error";
+    }
+    updateDisplay();
+    computed = true;
+  }
+
+  function reverse() {
+    currentOperand = '1/('+currentOperand+')';
+    compute();
+  }
+
+  function copyClip() {
+    const result = currentOperand.toString();
+    if (navigator.clipboard && result) {
+      // Check if clipboard API is available and there is a result to copy
+      navigator.clipboard.writeText(result).then(() => {
+        console.log('Result copied to clipboard');
+      }).catch(err => {
+        console.error('Failed to copy: ', err);
+      });
+    } else {
+      console.error('Clipboard API not available or invalid result');
+    }
+  }
+
+  function deleteEntry() {
+    currentOperand = currentOperand.slice(0, -1);
+    updateDisplay();
+  }
+
+  function updateDisplay() {
+    const display = document.getElementById('display');
+    text = currentOperand || '0';
+    if(text.length <= maxlen){
+      display.innerText = text;
+    } else {
+      display.innerText = text.substring(0, maxlen)+'|';
+    }
+    computed = false;
+  }
+
+  function prevEntry(){
+     temp = currentOperand;
+     currentOperand = prevOperand;
+     prevOperand = temp;
+     updateDisplay();
+  }
+
+  document.querySelectorAll('.button').forEach(button => {
+    button.addEventListener('click', () => {
+      const { action, value } = button.dataset;
+      if (action === 'add') appendNumber(value);
+      else if (action === 'operate') chooseOp(value);
+      else if (action === 'compute') compute();
+      else if (action === 'reverse') reverse();
+      else if (action === 'clear') clearDisplay();
+      else if (action === 'del') deleteEntry();
+      else if (action === 'copy') copyClip();
+      else if (action === 'prev') prevEntry();
+    });
+  });
+
+  const calculator = document.querySelector('.calculator');
+  calculator.focus();
+  calculator.addEventListener('keydown', (e) => {
+    if ((e.key >= '0' && e.key <= '9') || e.key === '.' || e.key === '+/-') appendNumber(e.key);
+    else if (['/', '*', '-', '+', '(', ')', '^'].includes(e.key)) chooseOp(e.key);
+    if (e.key === 'Enter') compute();
+    else if (e.key === 'Escape') clearDisplay();
+    else if (e.key === 'Backspace') deleteEntry();
+    e.preventDefault(); // Prevent default to avoid any unwanted behavior
+  });
+
+  clearDisplay(); // Initialize display
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,26 @@
+<!-- template:_gulp-calculator-partial -->
+{% extends base %}
+{% load qfilter %}
+{% block cardtitle %}{{ info.title }}{% endblock %}
+{% block extra_header %}<meta name="robots" content="noindex, nofollow">{% endblock %}
+{% block page_profile %}
+{% concat '/page/' info.name '/' as canonical %}
+{% add_head info.title info.desc canonical %}
+{% endblock %}
+<!-- /page/help/pname content is same as /page/pname, so no need for robots to visit -->
+{% block _card %}{% endblock %}
+{% block content %}
+<p>{{ info.desc|safe }}</p>
+<!--p> help|safe </p-->
+{% if help_html %}
+{% include help_html %}
+{% endif %}
+{{dyn_html | safe }}
+<br>
+{% if editable %}
+<a href="/qedit/{{ help_path }}" target="_blank">Edit</a>
+{% endif %}
+{% if createable %}
+<a href="/doc_create/{{ help_path }}" target="_blank">Create</a>
+{% endif %}
+{% endblock %}

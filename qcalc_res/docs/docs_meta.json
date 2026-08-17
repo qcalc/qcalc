@@ -1,0 +1,28 @@
+{
+  "create-calculators-user-guide.md": {
+    "title": "qCalc End User Guide",
+    "desc": "Detailed guide to using qCalc's calculators and features.",
+    "order": 1
+  },
+  "create-calculators-examples.md": {
+    "title": "Calculator Examples",
+    "desc": "Worked examples for building calculators.",
+    "order": 2
+  },
+  "create-qcalc-dev-system.md": {
+    "title": "Development System Setup",
+    "desc": "Setting up a qCalc development environment.",
+    "order": 10
+  },
+  "create-qcalc-prod-server-on-docker.md": {
+    "title": "Production Server on Docker",
+    "desc": "Deploying qCalc to production using Docker.",
+    "order": 11
+  },
+  "create-qcalc-prod-server-on-linux.md": {
+    "title": "Production Server on Linux",
+    "desc": "Deploying qCalc to production directly on Linux.",
+    "order": 12
+  },
+  "nodoc.html": {"hidden": true}
+}

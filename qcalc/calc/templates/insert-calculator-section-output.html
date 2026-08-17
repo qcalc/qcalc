@@ -1,0 +1,15 @@
+<!-- begin:insert-calculator-section-output -->
+{% load qfilter %}
+{% if field|showlabel %}
+<div class="mt-1">{{ field.label_tag }}</div>
+{% endif %}
+{{ field | safe }}
+{% if '_uom' in field.name %}
+<a href="/calc/conv/"
+   hx-get="/calc/add/?path=conv/value/{{field.name|qtyval:output.form}}/from_unit/{{field.value|deslash}}/unit_cost/-/---/"
+   hx-target="#card-space" hx-swap="beforebegin">
+  <i class="icon-balance qty-s"></i>
+</a>
+{% endif %}
+<span class="helptext">{{ field.help_text }}</span>
+<!-- end:insert-calculator-section-output -->

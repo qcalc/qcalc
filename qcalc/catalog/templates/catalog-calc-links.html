@@ -1,0 +1,24 @@
+<a href="/" hx-get="/?part=1" hx-target="closest .calc"
+   hx-swap="outerHTML" class="btn">
+  <i class="icon-home2 mr-2"></i><span class="notxt">Home</span></a>
+<a href="/catalog/calc/cals/" hx-get="/catalog/calc/cals/?part=1" hx-target="closest .calc"
+   hx-swap="outerHTML" class="btn">
+  {% if cat == 'calc' %}<i class="icon-sync mr-2"></i><span class="notxt">Standard (Refresh)</span>{% endif %}
+  {% if cat != 'calc' %}<i class="icon-grid mr-2"></i><span class="notxt">Standard</span>{% endif %}
+</a>
+<a href="/catalog/user/personal/" hx-get="/catalog/user/personal/?part=1" hx-target="closest .calc"
+   hx-swap="outerHTML" class="btn">
+  {% if cat == 'user' %}<i class="icon-sync mr-2"></i><span class="notxt">Personal (Refresh)</span>{% endif %}
+  {% if cat != 'user' %}<i class="icon-list mr-2"></i><span class="notxt">Personal</span>{% endif %}
+</a>
+<a href="/catalog/pcalc/pcals/" hx-get="/catalog/pcalc/pcals/?part=1" hx-target="closest .calc"
+   hx-swap="outerHTML" class="btn">
+  {% if cat == 'pcalc' %}<i class="icon-sync mr-2"></i><span class="notxt">Public (Refresh)</span>{% endif %}
+  {% if cat != 'pcalc' %}<i class="icon-sphere mr-2"></i><span class="notxt">Public</span>{% endif %}
+</a>
+<span class="btn">
+{% if cat == 'calc' %}<i class="icon-grid mr-2"></i>{% endif %}
+{% if cat == 'user' %}<i class="icon-list mr-2"></i>{% endif %}
+{% if cat == 'pcalc' %}<i class="icon-sphere mr-2"></i>{% endif %}
+{{ calc_navigation }}
+</span>

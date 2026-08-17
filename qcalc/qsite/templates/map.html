@@ -1,0 +1,108 @@
+<style>
+  #{{ map_id }} {
+      height: 500px; /* or any height you want */
+      width: 100%; /* to take the full width of its container */
+  }
+
+  .leaflet-container:fullscreen {
+      width: 100% !important;
+      height: 100% !important;
+  }
+</style>
+
+<div id="{{ map_id }}"></div>
+<script>
+  function loadLeafletResources(callback) {
+      if (!window.L) { // Check if Leaflet is already loaded
+          // Load Leaflet CSS
+          var leafletCSS = document.createElement('link');
+          leafletCSS.rel = 'stylesheet';
+          leafletCSS.href = 'https://unpkg.com/leaflet/dist/leaflet.css';
+          document.head.appendChild(leafletCSS);
+
+          // Load Fullscreen CSS
+          var fullscreenCSS = document.createElement('link');
+          fullscreenCSS.rel = 'stylesheet';
+          fullscreenCSS.href = 'https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/leaflet.fullscreen.css';
+          document.head.appendChild(fullscreenCSS);
+
+          // Load Leaflet JS
+          var leafletJS = document.createElement('script');
+          leafletJS.src = 'https://unpkg.com/leaflet/dist/leaflet.js';
+          // Load Fullscreen JS only after Leaflet JS is loaded
+          leafletJS.onload = function() {
+              var fullscreenJS = document.createElement('script');
+              fullscreenJS.src = 'https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/Leaflet.fullscreen.min.js';
+              document.body.appendChild(fullscreenJS);
+              // Load EasyPrint JS
+              var easyPrintJS = document.createElement('script');
+              easyPrintJS.src = 'https://unpkg.com/leaflet-easyprint/dist/bundle.js';
+              easyPrintJS.onload = callback;  // Once EasyPrint is loaded, call the callback
+              document.body.appendChild(easyPrintJS);
+          };
+          document.body.appendChild(leafletJS);
+      } else {
+          callback(); // Leaflet is already loaded
+      }
+  }
+
+  function initializeMap() {
+      var mapData = JSON.parse('{{ map_data|escapejs }}');
+
+      var map = L.map('{{ map_id }}', {
+          fullscreenControl: true  // Enable fullscreen control
+      }).setView(mapData.center, mapData.zoom);
+
+      lang = '{{ language }}';
+      if(lang == 'English'){
+          L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+              attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+              subdomains: 'abcd',
+              maxZoom: 19
+          }).addTo(map);
+      } else {
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+              attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          }).addTo(map);
+      }
+
+      // Define custom marker icon
+      var customIcon = L.icon({
+          iconUrl: 'https://unpkg.com/leaflet/dist/images/marker-icon.png',  // Default marker icon path
+          shadowUrl: 'https://unpkg.com/leaflet/dist/images/marker-shadow.png',
+          iconSize: [25, 41],  // Size of the icon
+          iconAnchor: [12, 41],  // Point of the icon which will correspond to marker's location
+          popupAnchor: [1, -34],  // Point from which the popup should open relative to the iconAnchor
+          shadowSize: [41, 41]   // Size of the shadow
+      });
+
+      mapData.markers.forEach(function(marker) {
+          L.marker(marker.location, { icon: customIcon }).addTo(map)
+              .bindPopup(marker.popup || "No info");
+      });
+
+      // Add EasyPrint control to export the map as an image
+      L.easyPrint({
+          title: 'Save as image',
+          position: 'topright',
+          exportOnly: true  // To show only export option
+      }).addTo(map);
+
+      // Handle window resize
+      window.addEventListener('resize', function() {
+          map.invalidateSize();
+      });
+  }
+
+  // Handle HTMX swaps
+  document.body.addEventListener('htmx:afterSwap', function(evt) {
+      if (evt.target.id === '{{ map_id }}') {
+          loadLeafletResources(initializeMap);
+      }
+  });
+
+  // Initial load
+  $(document).ready(function() {
+      loadLeafletResources(initializeMap);
+  });
+</script>

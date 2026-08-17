@@ -1,0 +1,27 @@
+{% load static %}
+<p>Subject: {{title}}</p>
+<p>Sender: {{sender}}</p>
+<p><img src="{% static 'qsite/images/logo-qa-240x96.png' %}" alt="{{title}}" style="width:240px;height:96px;"></p>
+
+<p>Hello,</p>
+
+<p>Hope this message finds you well. Here is a calculator tool that I believe you’ll find helpful.
+It’s designed to make calculations easier and faster.</p>
+
+<p>You can check it out here:<br>
+<a href="{{url}}" target="_blank">{{title}}</a></p>
+
+<p><strong>Description:</strong><br>
+{{desc}}</p>
+
+<p>If the above link doesn’t work, you can copy and paste the following URL into your browser:<br>
+<a href="{{url}}" target="_blank">{{url}}</a></p>
+
+<p>Thank you for taking the time to explore this tool. Hope it proves useful for your needs!</p>
+
+<p>Best regards,</p><br>
+<p>Shared via</p>
+<p>{{domain}}</p>
+
+<p>&copy; 2024 | Measure, Calculate, Improve!</p>
+

@@ -1,0 +1,29 @@
+{% extends page_base %}
+{% load static %}
+{% load qfilter %}
+{% block card %}{% endblock %}
+{% block page_profile %}{% add_head object.username "" %}{% endblock %}
+{% block _cardtitle %}
+{% if object.name %}{{ object.name }} ({{ object.username }}){% else %}User: {{ object.username }}{% endif %}
+{% endblock %}
+{% block _content %}
+<div class="container mt-2 page-grid ">
+  {% if object == request.user %}
+  <!-- Action buttons -->
+  <div class="row">
+      {% url 'users:update' as update_url %}
+      {% url 'account_email' as account_url %}
+      {% with as_card=True %}
+      {% pagelink update_url 'My Info' 'mb-2' 'icon-profile' as_card %}
+      {% pagelink account_url 'E-Mail' 'mb-2' 'icon-envelop' as_card %}
+      <!-- Your Stuff: Custom user template urls -->
+      {% callink 'mycal' 'Create Calculator' 'mb-2' 'icon-design' 'f' '' as_card %}
+      {% pagelink '/catalog/user/' 'My Catalog' 'mb-2' 'icon-tree5' as_card %}
+      {% pagelink '/page/variants/' 'My Variants' 'mb-2' 'icon-clipboard3' as_card %}
+      {% pagelink '/page/mycals/' 'My Calculators' 'mb-2' 'icon-calculator4' as_card %}
+      {% endwith %}
+  </div>
+  <!-- End Action buttons -->
+  {% endif %}
+</div>
+{% endblock %}

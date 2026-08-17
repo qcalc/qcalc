@@ -1,0 +1,91 @@
+<!-- template:include-sidebar-secondary -->
+<!-- Secondary sidebar -->
+<div class="sidebar sidebar-light sidebar-secondary sidebar-expand-md"  id="sidebar-secondary">
+
+  <!-- Sidebar mobile toggler -->
+  <div class="sidebar-mobile-toggler text-center">
+    <a href="#" class="sidebar-mobile-secondary-toggle">
+      <i class="icon-arrow-left8"></i>
+    </a>
+    <span class="font-weight-semibold">Secondary sidebar</span>
+    <a href="#" class="sidebar-mobile-expand">
+      <i class="icon-screen-full"></i>
+      <i class="icon-screen-normal"></i>
+    </a>
+  </div>
+  <!-- /sidebar mobile toggler -->
+
+
+  <!-- Sidebar content -->
+  <div class="sidebar-content">
+
+    <!-- Sub navigation -->
+    <div class="card mb-2">
+      <div class="card-body p-0">
+        <ul class="nav nav-sidebar" data-nav-type="accordion">
+          <li class="nav-item">
+            <form id="open-input-form" hx-post="/calc/open/" hx-encoding="multipart/form-data"
+            hx-target="#card-space" hx-swap="beforebegin">
+            <div class="nav-link" id="open-io-file">
+              <input name="io" type="file" id="open-io" accept=".json,*" class="inputfile"
+                     onchange="toggleLoadButton()" hidden>
+              <label for="open-io">Saved Input&hellip; : <span style="font-weight: normal">Click to select</span></label>
+            </div>
+            <div class="nav-link">
+              <button type="submit" id="load-io" class="btn" aria-label="load_io" disabled>
+                <i class="icon-file-text mr-2"></i>Open</button>
+              {% callink 'temp' 'Temp' 'btn' 'icon-footprint' %}
+            </div>
+            </form>
+          </li>
+          <li class="nav-item" id="nav-search-unit">
+            <div class="nav-link">
+              <label>Search Unit:
+                <div class="input-group">
+                  <input
+                    type="text" class="form-control"
+                    placeholder="Search Unit"
+                    hx-get="/catalog/search_unit/"
+                    hx-target="#search-container"
+                    name="qu"
+                    hx-trigger="keyup delay:500ms"
+                  ></div>
+              </label>
+            </div>
+          </li>
+
+          <li class="nav-item">
+            <div class="nav-link">
+              <p id="search-container" class="border" style="height:200px; width:230px; overflow-y:scroll">
+                Search results appear here</p>
+            </div>
+          </li>
+
+          <li class="nav-item" id="nav-add-calc">
+            <div class="nav-link">
+          {% block addcal_sidebar %}
+              <form method="post" hx-get="/calc/add/" hx-target="#content-holder" hx-swap="afterbegin"
+                    hx-vals='js:{dummy: sm2toggle()}'> <!--hx-on::after-request='jumpLast();'-->
+                <label>Add Calculator:
+                  <div class="input-group">
+                    <input type="text" class="form-control" placeholder="Calculator name" name="fname" id="fname_sb">
+                    <div class="input-group-addon">
+                      <button type="submit" class="btn" aria-label="add_cal" id="btn_fname_sb"><i class="icon-plus-circle2 text-muted"></i></button>
+                    </div>
+                  </div>
+                </label>
+              </form>
+          {% endblock %}
+            </div>
+          </li>
+
+        </ul>
+      </div>
+
+    </div>
+    <!-- /sub navigation -->
+
+  </div>
+  <!-- /sidebar content -->
+
+</div>

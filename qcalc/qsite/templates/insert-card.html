@@ -1,0 +1,56 @@
+<!-- template:insert-card -->
+{% load qfilter %}
+{% block card %}
+{% lineless_ex %}
+<div id="card-holder-{{ input.cid }}" class="calc col-sm collapse show"> <!-- hidden-->
+  <script>setCid('{{ input.cid }}');</script>
+  <!-- Basic card -->
+  <div class="card">
+    <div class="card-header bg-card-header header-elements-inline">
+      <h5 class="card-title mr-2">{% block cardtitle %}Basic card{% endblock %}</h5>
+      <div class="header-elements">
+        <div class="list-icons">
+          {% if '__page' not in input.cid %}
+          <a class="card-menu" href="/calc/{{input.doc.name}}/" id="dropdownMenuButton" data-toggle="dropdown"
+                  aria-haspopup="true" aria-expanded="false">
+          </a>
+          <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+            {% if request.user.is_authenticated %}
+            <a class="dropdown-item" href="javascript:;"
+            onclick="calWithCmd('{{ input.cid }}', '{{ input.doc.name }}', 'save_var');">Save Current Variant</a>
+            <a class="dropdown-item" href="javascript:;"
+            onclick="calWithCmd('{{ input.cid }}', '{{ input.doc.name }}', 'create_var');">Create New Variant</a>
+            {% concat 'func_id/' input.doc.name '/&run' as parameters %}
+            {% callink 'code' 'Show Code' 'dropdown-item' '' 'a'  parameters as show_code %}
+            {{ show_code }}
+            {% endif %}
+            <a class="dropdown-item" href="javascript:;"
+            onclick="calWithCmd('{{ input.cid }}', '{{ input.doc.name }}', 'save_input');">Check before Saving Input</a>
+            <a class="dropdown-item" href="javascript:;"
+            onclick="saveInput('{{ input.cid }}', '{{ input.doc.name }}', 'save_io');">Save Input to File...</a>
+          </div>
+          <a class="card-help" href="/calc/help/{{ input.doc.name }}/"
+             hx-get="/calc/help/{{ input.doc.name }}/?part=1&token={{request.token}}"
+             hx-target="closest .calc" hx-swap="afterend"
+             hx-trigger="click[get_card_once('{{ input.doc.name }}_help__page')]">
+          </a>
+          {% endif %}
+          <a class="card-close"
+             href="javascript:;" onclick="closeCard('{{ input.cid }}')">
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="card-body" id="card-body-{{ input.cid }}">
+      {% block content %}{% endblock %}
+    </div>
+  </div>
+  <script>
+    $(document).ready(function() {
+      jumpTo( '{{ input.cid }}' );
+      //formReady('{{ input.cid }}');
+    });
+  </script>
+</div>
+{% endlineless_ex %}
+{% endblock %}

@@ -1,0 +1,155 @@
+name: qcalc
+services:
+  certbot:
+    image: certbot/certbot
+    container_name: certbot
+    restart: no
+    # manual run to generate certificate
+    # certbot certonly --webroot --webroot-path=/var/www/certbot --email dcsaha@yahoo.com --agree-tos --no-eff-email --cert-name qcalc.org -d qcalc.org -d www.qcalc.org
+    # bash does not exist in certbot container
+    entrypoint: /bin/sh -c "trap 'exit' TERM && while :; do certbot renew --non-interactive; sleep 12h & wait $${!}; done;"
+    volumes:
+      - ~/qcalc_dock/.local/certbot/conf:/etc/letsencrypt
+      - ~/qcalc_dock/.local/certbot/www:/var/www/certbot
+      - ~/qcalc_dock/.local/log/certbot/:/var/log/letsencrypt
+    networks:
+      - qcnet
+    depends_on:
+      - nginx
+
+  nginx:
+    image: nginx
+    container_name: nginx
+    restart: no
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - NGINX_HOST=qcalc.org
+    volumes:
+      - ~/qcalc_dock/.local/nginx/templates:/etc/nginx/templates
+      - ~/qcalc_dock/.local/nginx/conf:/etc/nginx/conf.d
+      - ~/qcalc_dock/.local/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ~/qcalc_dock/.local/certbot/conf:/etc/letsencrypt
+      - ~/qcalc_dock/.local/certbot/www:/var/www/certbot
+      - ~/qcalc_dock/.local/log/nginx:/var/log/nginx
+      # check nginx location /static/, the path should be consistent
+      - static:/usr/src/qcalc_dock/qcalc/staticfiles/
+    networks:
+      - qcnet
+    depends_on:
+      - qcalc
+
+  qcalc:
+    image: qcalc
+    build:
+      context: ../_docker
+      dockerfile: template_docker_file
+    container_name: qcalc
+    restart: no
+    #gunicorn config.wsgi:application -b 0.0.0.0:8001 -w 2 --log-file ../qcalc.log
+    environment:
+      - GUNICORN_INSTANCE_ID=instance
+    command: >
+      bash -c '
+        python manage.py collectstatic --noinput &&
+        python manage.py makemigrations &&
+        python manage.py migrate &&
+        export GUNICORN_INSTANCE_ID="instance_1";
+        gunicorn config.wsgi:application --bind 0.0.0.0:8001 --workers 4 --timeout 900 --access-logfile /var/log/gunicorn/access_1.log --error-logfile /var/log/gunicorn/error_1.log --log-file /var/log/gunicorn/qcalc_1.log &
+        export GUNICORN_INSTANCE_ID="instance_2";
+        gunicorn config.wsgi:application --bind 0.0.0.0:8002 --workers 4 --timeout 900 --access-logfile /var/log/gunicorn/access_2.log --error-logfile /var/log/gunicorn/error_2.log --log-file /var/log/gunicorn/qcalc_2.log &
+        export GUNICORN_INSTANCE_ID="instance_3";
+        gunicorn config.wsgi:application --bind 0.0.0.0:8003 --workers 4 --timeout 900 --access-logfile /var/log/gunicorn/access_3.log --error-logfile /var/log/gunicorn/error_3.log --log-file /var/log/gunicorn/qcalc_3.log &
+        wait
+      '
+    # gunicorn timeout 15 minutes or 900 seconds
+    volumes:
+      - ~/qcalc_dock/qcalc:/usr/src/qcalc_dock/qcalc
+      - ~/qcalc_dock/qcalc_res:/usr/src/qcalc_dock/qcalc_res
+      - ~/qcalc_dock/.cache:/usr/src/qcalc_dock.cache
+      - ~/qcalc_dock/.local/log/gunicorn:/var/log/gunicorn
+      - ~/qcalc_dock/.temp:/usr/src/qcalc_dock/.temp
+      # check nginx location /static/, the path should be consistent
+      - static:/usr/src/qcalc_dock/qcalc/staticfiles/
+    ports:
+      - "8001:8001"
+      - "8002:8002"
+      - "8003:8003"
+      # - "8004:8004"
+      # - "8005:8005"
+    networks:
+      - qcnet
+    depends_on:
+      - cache
+      - db
+
+
+  cache:
+    image: memcached
+    container_name: memcached
+    restart: always
+    ports:
+      - "11211:11211"
+    # memcached cache size 256 MB RAM
+    command: memcached -m 256
+    networks:
+      - qcnet
+
+#  cache:
+#    image: redis
+#    container_name: redis
+#    restart: always
+#    ports:
+#      - "6379:6379"
+#    networks:
+#      - qcnet
+#    healthcheck:
+#      test: ["CMD", "redis-cli", "ping"]
+#      interval: 5s
+#      timeout: 3s
+#      retries: 5
+
+  db:
+    image: postgres
+    container_name: postgres
+    restart: no
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=qcalc
+    networks:
+      - qcnet
+
+#  db:
+#    image: mysql:8.4
+#    container_name: mysql
+#    restart: "no"
+#    volumes:
+#      - mysqldata:/var/lib/mysql
+#    ports:
+#      - "3306:3306"
+#    environment:
+#      MYSQL_ROOT_PASSWORD: root
+#      MYSQL_DATABASE: qcalc
+#      MYSQL_USER: admin
+#      MYSQL_PASSWORD: admin
+#    networks:
+#      - qcnet
+
+networks:
+  qcnet:
+    driver: bridge
+    name: qcnet
+
+volumes:
+  pgdata:
+    external: true
+    name: pgdata
+  static:
+    external: true
+    name: static

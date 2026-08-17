@@ -1,0 +1,8 @@
+<!-- begin:insert-calculator-section-top -->
+{% if 'card_top' in input.doc.info.inserts %}
+<br>{{ input.doc.info.inserts.card_top | safe }}
+{% endif %}
+{% for image in input.doc.info.images.top %}
+<p><img class="image" src="{% static image %}"></p>
+{% endfor %}
+<!-- end:insert-calculator-section-top -->

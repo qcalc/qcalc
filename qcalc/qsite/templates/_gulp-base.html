@@ -1,0 +1,57 @@
+<!-- template:_gulp-base -->
+<!DOCTYPE html>
+<html lang="en">
+@@include('insert-head.html')
+<body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' class="sidebar-xs" onclick="bodyFunc()">
+
+<!-- include "include-navbar-main.html" -->
+@@include("include-navbar-main.html")
+
+<!-- Page content -->
+<div class="page-content">
+
+  <!-- include "include-sidebar-main.html" -->
+  @@include("include-sidebar-main.html")
+
+  @@include("include-sidebar-secondary.html")
+
+  <!-- Main content -->
+  <div class="content-wrapper">
+
+    <!-- Page header -->
+    @@include('insert-page-header-slim.html')
+    <!-- /page header -->
+
+    <!-- Content area -->
+    <div class="content" hx-ext="response-targets">
+      <div class="container-fluid">
+        <div id="page-holder" class="row">
+          @@include('insert-page.html')
+        </div>
+        <div id="content-holder" class="row">
+          @@include('insert-card.html')
+          @@include('insert-card-space.html')
+        </div>
+      </div>
+    </div>
+    <!-- /content area -->
+  </div>
+  <!-- /main content -->
+</div>
+<!-- /page content -->
+<input type="file" id="file_input" style="display: none">
+<script>
+$('#file_input').on('change', function() {
+    if (!this.files || this.files.length === 0) {
+        //alert('empty');
+        return;
+    } else {
+        var file = this.files[0].name;
+        //alert(file);
+    }
+});
+</script>
+<!-- include "include-footer.html" -->
+@@include("include-footer.html")
+</body>
+</html>

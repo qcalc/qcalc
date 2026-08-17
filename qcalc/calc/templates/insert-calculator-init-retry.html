@@ -1,0 +1,18 @@
+<script>
+  (function() {
+    var tries = 0;
+    var maxTries = 20;
+    function tryInit() {
+      var initFn = window['{{ init_fn }}'];
+      if (typeof initFn === 'function') {
+        initFn(document.getElementById('form-{{ cid }}'));
+        return;
+      }
+      tries += 1;
+      if (tries < maxTries) {
+        setTimeout(tryInit, 50);
+      }
+    }
+    tryInit();
+  })();
+</script>

@@ -1,0 +1,290 @@
+{
+    "absement": {
+        "desc": "Absement measures the accumulated distance covered by an object over time, taking into account both speed and direction of motion."
+    },
+    "absorbed-dose-rate": {
+        "desc": "Absorbed dose rate is the amount of energy deposited in a given material per unit of mass over a specific time period."
+    },
+    "acceleration": {
+        "desc": "Acceleration is the rate of change of velocity of an object with respect to time."
+    },
+    "amount-of-substance": {
+        "desc": "Amount of substance is a measure of the number of entities (atoms, molecules, ions) in a sample, expressed in moles."
+    },
+    "angular-acceleration": {
+        "desc": "Angular acceleration is the rate of change of angular velocity over time, measured in radians per second squared."
+    },
+    "angular-momentum": {
+        "desc": "Angular momentum is a measure of rotational motion, action is a physical quantity related to energy, and spin is an intrinsic property of particles."
+    },
+    "angular-velocity": {
+        "desc": "Angular velocity refers to the rate of change of angular displacement of an object. Radioactive activity is the rate of decay of radioactive material."
+    },
+    "area": {
+        "desc": "Area is a measure of the amount of space enclosed by a two-dimensional shape, such as a square or circle. It is expressed in square units."
+    },
+    "area-density": {
+        "desc": "Area density is the measure of mass per unit area of a surface, expressed in units like kg/m^2 or g/cm^2."
+    },
+    "capacitance": {
+        "desc": "Capacitance is the ability of a system to store electric charge, measured in farads. It determines the amount of charge a capacitor can hold."
+    },
+    "catalytic-activity-concentration": {
+        "desc": "Catalytic activity concentration refers to the amount of catalyst present in a reaction, influencing the reaction rate."
+    },
+    "centrifugal-force": {
+        "desc": "Centrifugal force is a fictitious force that acts outward on an object moving in a curved path, caused by inertia."
+    },
+    "chemical-potential": {
+        "desc": "Chemical potential is the energy required to add one mole of a substance to a system at constant temperature and pressure."
+    },
+    "crackle": {
+        "desc": "Crackle is a measure of the sound produced when something is crushed or broken, often indicating the presence of moisture or impurities."
+    },
+    "currency": {
+        "desc": "Currency is a medium of exchange for goods and services, typically in the form of paper or coins issued by a government and used within a specific country."
+    },
+    "current-density": {
+        "desc": "Current density is the amount of electric current flowing through a unit area, typically measured in amperes per square meter (A/m^2)."
+    },
+    "dynamic-fluid-viscosity": {
+        "desc": "Dynamic fluid viscosity is a measure of a fluid's resistance to flow under dynamic conditions, such as when it is being pumped or stirred."
+    },
+    "electric-charge": {
+        "desc": "Electric charge is a fundamental property of matter, representing the amount of electricity in an object. It can be positive or negative."
+    },
+    "electric-charge-density": {
+        "desc": "Electric charge density is the measure of electric charge per unit volume or area. It is denoted by the symbol \u03c1 and is measured in coulombs per cubic meter or coulombs per square meter."
+    },
+    "electric-current": {
+        "desc": "Electric current is the flow of electric charge through a conductor, measured in amperes (A). It is essential for powering electrical devices."
+    },
+    "electric-dipole-moment": {
+        "desc": "Electric dipole moment is a measure of the separation of positive and negative charges in a system, representing a vector quantity."
+    },
+    "electric-displacement-field": {
+        "desc": "Electric displacement field represents the electric flux density in a material medium, accounting for free and bound charge distributions."
+    },
+    "electric-field-strength": {
+        "desc": "Electric field strength is a measure of the force exerted on a charged particle within an electric field."
+    },
+    "electric-potential": {
+        "desc": "Electric potential is the amount of work needed to move a unit positive charge from a reference point to a specific point in an electric field."
+    },
+    "electrical-conductance": {
+        "desc": "Electrical conductance is a measure of a material's ability to conduct electric current, typically measured in siemens (S)."
+    },
+    "electrical-conductivity": {
+        "desc": "\"Electrical conductivity is a measure of a material's ability to conduct electric current.\""
+    },
+    "electrical-resistivity": {
+        "desc": "Electrical resistivity is a measure of a material's ability to resist the flow of electric current."
+    },
+    "energy": {
+        "desc": "Energy is the capacity to do work; Work is the transfer of energy; Torque is a measure of rotational force; Heat is a form of energy transfer; Spectral flux is the amount of radiant energy emitted per unit time."
+    },
+    "entropy": {
+        "desc": "Entropy is a measure of disorder or randomness in a system, while heat capacity is the amount of heat energy required to change the temperature of a substance."
+    },
+    "force": {
+        "desc": "Force is a physical quantity that measures the interaction between objects, while weight is the force of gravity acting on an object's mass."
+    },
+    "frequency": {
+        "desc": "Frequency, Heart Rate measures how many times the heart beats per minute, indicating overall cardiovascular health and fitness level."
+    },
+    "fuel-economy": {
+        "desc": "Fuel economy measures how efficiently a vehicle uses fuel to travel a certain distance, typically expressed in miles per gallon (mpg) or liters per 100 km."
+    },
+    "gravitational-parameter": {
+        "desc": "Gravitational parameter is the product of the gravitational constant and the mass of a celestial body, often used in orbital mechanics calculations."
+    },
+    "illuminance": {
+        "desc": "Illuminance is the measure of the amount of light falling on a surface, expressed in lux (lx)."
+    },
+    "impedance": {
+        "desc": "Impedance is the opposition to the flow of electrical current in a circuit, similar to electrical resistance."
+    },
+    "inductance": {
+        "desc": "Inductance is the property of an electrical conductor that opposes changes in current flow, measured in henries."
+    },
+    "irradiance": {
+        "desc": "Irradiance is the power of electromagnetic radiation per unit area, heat flux density is the rate of heat transfer per unit area, and radiosity is the total power radiated by a surface per unit area."
+    },
+    "jerk": {
+        "desc": "Jerk is the rate of change of acceleration with respect to time, indicating how quickly an object's acceleration is changing."
+    },
+    "jounce": {
+        "desc": "Jounce (jerk) is the rate of change of acceleration, while snap (jounce) is the rate of change of jounce."
+    },
+    "length": {
+        "desc": "Length is a measurement of distance between two points, while wavelength is the distance between corresponding points on a wave."
+    },
+    "linear-density": {
+        "desc": "Linear density is the measure of mass per unit length of a one-dimensional object such as a wire or string."
+    },
+    "luminance": {
+        "desc": "Luminance is the measure of brightness of a light source or surface, perceived by the human eye."
+    },
+    "luminous-efficacy": {
+        "desc": "Luminous efficacy measures how efficiently a light source produces visible light, expressed in lumens per watt."
+    },
+    "luminous-efficacy-sr": {
+        "desc": "Luminous efficacy (sr) measures how efficiently a light source produces visible light, measured in lumens per watt within a solid angle."
+    },
+    "luminous-energy": {
+        "desc": "Luminous energy is the measure of the total quantity of visible light emitted by a source over time."
+    },
+    "luminous-energy-density": {
+        "desc": "Luminous energy density is the amount of light energy per unit volume, measured in lumens per cubic meter."
+    },
+    "luminous-exposure": {
+        "desc": "\"Luminous exposure measures the total amount of light received by a surface over a period of time, expressed in lux seconds.\""
+    },
+    "luminous-flux": {
+        "desc": "Luminous flux, also known as luminous power, measures the total amount of visible light emitted by a source in all directions."
+    },
+    "luminous-intensity": {
+        "desc": "Luminous intensity is the measure of the amount of light emitted in a specific direction, measured in candelas."
+    },
+    "magnetic-field-strength": {
+        "desc": "Magnetic field strength is the measure of the magnetic field's intensity at a specific point, while magnetization is the magnetic moment per unit volume."
+    },
+    "magnetic-flux": {
+        "desc": "Magnetic flux is a measure of the total magnetic field passing through a given surface, expressed in Weber (Wb)."
+    },
+    "magnetic-flux-density": {
+        "desc": "Magnetic flux density is a measure of the strength of a magnetic field within a given area."
+    },
+    "magnetic-moment": {
+        "desc": "Magnetic moment is a measure of the strength and orientation of a magnet's magnetic field. It is represented by a vector."
+    },
+    "mass": {
+        "desc": "Mass is a measure of the amount of matter in an object. It is a fundamental property that determines an object's inertia and gravitational attraction."
+    },
+    "mass-density": {
+        "desc": "Mass density is the amount of mass per unit volume of a substance. Volume density is the amount of volume per unit volume. Concentration is the amount of a substance per unit volume of a mixture."
+    },
+    "mass-flow-rate": {
+        "desc": "Mass flow rate is the amount of mass moving through a system per unit of time, while spectral exposure (fr) measures the amount of radiant energy at a specific frequency."
+    },
+    "molar-concentration": {
+        "desc": "Molar concentration is a measure of the concentration of a solute in a solution, expressed in moles of solute per liter of solution."
+    },
+    "molar-mass": {
+        "desc": "Molar mass is the mass of a substance divided by its amount in moles, expressed in grams per mole. It is a key concept in chemistry."
+    },
+    "molar-volume": {
+        "desc": "Molar volume is the volume occupied by one mole of a substance at a specific temperature and pressure."
+    },
+    "moment-of-inertia": {
+        "desc": "Moment of inertia is a measure of an object's resistance to changes in its rotational motion."
+    },
+    "momentum": {
+        "desc": "Momentum is the product of an object's mass and velocity; impulse is the change in momentum due to a force applied over a period of time."
+    },
+    "optical-power": {
+        "desc": "Optical power measures the rate at which light energy is emitted or received. Wavenumber and wavevector describe the spatial frequency of waves."
+    },
+    "permeability": {
+        "desc": "Permeability is a measure of a material's ability to allow fluids or gases to pass through it."
+    },
+    "permittivity": {
+        "desc": "Permittivity is a measure of a material's ability to store electrical energy in an electric field."
+    },
+    "plane-angle": {
+        "desc": "Plane angle measures rotation between two intersecting lines, often in degrees or radians."
+    },
+    "pop": {
+        "desc": "\"Pop is a unit of measurement used to quantify the amount of sound pressure in a given space, commonly used in the field of acoustics.\""
+    },
+    "power": {
+        "desc": "Power, radiant flux, is the rate at which radiant energy is emitted, transmitted, or received per unit time."
+    },
+    "pressure-gradient": {
+        "desc": "Pressure gradient is the rate of change of pressure over a distance in a fluid or gas, influencing the flow of fluids in various systems."
+    },
+    "pressure": {
+        "desc": "Pressure is the force per unit area. Stress is the force applied to a material. Energy density is the amount of energy stored in a material. Spectral exposure (ln) measures the intensity of light at different wavelengths."
+    },
+    "radiance": {
+        "desc": "Radiance is the amount of light energy emitted or reflected from a surface in a particular direction, measured in watts per square meter per steradian."
+    },
+    "radiant-intensity": {
+        "desc": "Radiant intensity measures the power radiated by a source in a specific direction, typically expressed in watts per steradian."
+    },
+    "reluctance": {
+        "desc": "Reluctance is the opposition to magnetic flux in a material, while electrical conductance is the ease with which electricity flows through a material."
+    },
+    "solid-angle": {
+        "desc": "Solid angle is a measure of the extent of a cone-shaped region in space, representing the amount of 3D space an object subtends."
+    },
+    "specific-energy": {
+        "desc": "Specific energy, Radioactive Dose is the amount of radiation absorbed by an object, measured in joules per kilogram or sieverts."
+    },
+    "specific-heat-capacity": {
+        "desc": "Specific heat capacity is the amount of heat required to raise the temperature of a unit mass of a substance by one degree Celsius."
+    },
+    "specific-intensity-fr": {
+        "desc": "Specific intensity (fr) is the amount of power per unit area, per unit solid angle, and per unit frequency, measured in watts per square meter per steradian per hertz."
+    },
+    "specific-intensity-ln": {
+        "desc": "Specific intensity (ln) is the measure of radiant intensity per unit solid angle in a specific direction."
+    },
+    "specific-volume": {
+        "desc": "Specific volume is the volume occupied by a unit mass of a substance, indicating how much space it occupies."
+    },
+    "spectral-flux-ln": {
+        "desc": "Spectral flux (ln) measures the rate of change of a signal's spectral content, represented in logarithmic scale."
+    },
+    "spectral-intensity-fr": {
+        "desc": "Spectral intensity (fr) refers to the amount of energy per unit frequency in a specific wavelength range."
+    },
+    "spectral-intensity-ln": {
+        "desc": "Spectral intensity (ln) is a measure of the power per unit frequency bandwidth, expressed in natural logarithm scale."
+    },
+    "spectral-irradiance-ln": {
+        "desc": "Spectral irradiance (ln) measures radiant flux per unit wavelength interval. It describes the amount of radiant energy emitted or received at different wavelengths."
+    },
+    "surface-tension": {
+        "desc": "Surface tension is the force acting on the surface of a liquid, while spectral irradiance (fr) is the amount of radiant flux per unit area."
+    },
+    "temperature": {
+        "desc": "Temperature is a measure of the average kinetic energy of particles in a substance, determining its hotness or coldness."
+    },
+    "temperature-gradient": {
+        "desc": "Temperature gradient is the rate of change of temperature over a distance, indicating how quickly temperature changes in a given direction."
+    },
+    "thermal-conductance": {
+        "desc": "Thermal conductance measures the ability of a material to conduct heat, expressed in watts per kelvin."
+    },
+    "thermal-conductivity": {
+        "desc": "\"Thermal conductivity measures a material's ability to conduct heat, determining how quickly heat energy can transfer through it.\""
+    },
+    "thermal-resistance": {
+        "desc": "Thermal resistance measures a material's ability to resist heat flow, expressed in units of degrees Celsius per watt."
+    },
+    "thermal-resistance-coefficient": {
+        "desc": "Thermal resistance coefficient measures the ability of a material to resist heat flow, expressed in units of degrees Celsius per watt (\u00b0C/W)."
+    },
+    "thermal-resistivity": {
+        "desc": "Thermal resistivity measures a material's resistance to heat flow. It is the reciprocal of thermal conductivity."
+    },
+    "time": {
+        "desc": "Time is a fundamental physical quantity measuring the duration of events. Half-life is the time taken for a substance to decay by half. Labour refers to the physical and mental effort exerted in the production of goods and services."
+    },
+    "unitless": {
+        "desc": "\"Unitless\" is a physical quantity that does not have any specific unit of measurement, typically used for ratios, angles, and pure numbers."
+    },
+    "velocity": {
+        "desc": "Velocity is a measurement of the speed and direction of an object's motion. It is a vector quantity with units of meters per second (m/s)."
+    },
+    "viscosity": {
+        "desc": "Viscosity is a measure of a fluid's resistance to flow, influenced by its internal friction and cohesion."
+    },
+    "volume": {
+        "desc": "Volume is the amount of space occupied by an object or substance, measured in cubic units."
+    },
+    "volume-flow-rate": {
+        "desc": "Volume flow rate is the amount of fluid that passes through a given cross-sectional area per unit of time."
+    }
+}

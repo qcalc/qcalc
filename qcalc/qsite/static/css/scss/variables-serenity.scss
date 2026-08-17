@@ -1,0 +1,37 @@
+/* Modern Serenity Theme */
+@import 'variables-common';
+/* Background Colors */
+$background-fullscreen: #f3f6f9; /* Cool light gray for an airy, professional backdrop */
+$background-fullscreen-square: #e8edf0; /* Soft blue-gray for a subtle, modern feel */
+$background-section-input: #f7f9fc; /* Light sky blue, clean and calming for input areas */
+$background-section-output1: #fdf9f5; /* Warm off-white for readability in output sections */
+$background-section-output2: #f9f8f7; /* Soft stone beige for subtle emphasis */
+
+/* Borders */
+$border-default: #b5c1c9; /* Cool gray-blue for a balanced, professional border */
+$border-fullscreen-square: #d3dbe1; /* Light steel blue-gray for calm border effects */
+$border-hover-fullscreen-square: #bcc7d0; /* Gentle gray for a smooth hover effect */
+$border-card-collapse: #e0ccb8; /* Soft almond, adding warmth without distraction */
+$border-table: #96a3af; /* Muted slate blue for a refined table border */
+$border-table-rows: #eff3f5; /* Light icy blue for alternating table rows */
+$border-qhtml: #b4a89e; /* Muted taupe for a subtle yet sophisticated highlight */
+$border-spinner: #b7a28a; /* Soft bronze for understated loading indicators */
+
+/* Text and Icon Colors */
+$icon-checkmark: '✓'; /* Standard checkmark */
+$card-title-font-color: #f7f9fc; /* Light, misty blue-white for clear contrast on dark headers */
+$color-mark-text: #465662; /* Slate gray, balanced and modern for marked text */
+
+/* Button and Link Colors */
+$background-button-cmd: #a4b7c1; /* Muted steel blue for a premium feel on buttons */
+$link-color: #4a708b; /* Cool slate blue for professional link color */
+$link-color-hover: #365469; /* Deeper slate for a subtle, refined hover effect */
+$link-color-active: #2a3d50; /* Midnight blue for active links, conveying clarity */
+$link-color-visited: #6b7075; /* Soft charcoal gray to differentiate visited links */
+
+/* Background Colors for Emphasis */
+$background-card-header: #2c3e50; /* Rich dark blue-gray for a stable, professional header */
+$background-mark2: #e4d5c7; /* Light sand for a gentle highlight that doesn’t overpower */
+
+/* Other Interactive Elements */
+$background-spinner-border: rgba(180, 162, 138, 0.1); /* Soft bronze for loading, subtle and elegant */

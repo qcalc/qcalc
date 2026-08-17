@@ -1,0 +1,149 @@
+{% extends base %}
+{% load qfilter %}
+{% block card %}{% endblock %}
+{% block page_profile %}
+{% add_head "Discover Story and Mission of qCalc | About qCalc" "Discover more about qCalc. Learn about its mission, values, and commitment to excellence." "/page/about/" %}
+{% endblock %}
+{% block _cardtitle %}About qCalc{% endblock %}
+{% block _content %}
+<style>
+        .about {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            background-color: rgb(50,65,72);
+            padding: 10px;
+        }
+        .logo {
+            margin-right: 20px;
+        }
+        .version {
+            font-size: 0.8em;
+            color: #ddd;
+            margin-left: 12px;
+        }
+        .section-about {
+            max-height: 320px;
+            overflow-y: auto;
+            padding: 12px;
+            border-radius: 4px;
+        }
+        .license-text {
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-size: 0.85em;
+            line-height: 1.6;
+            margin: 0;
+        }
+</style>
+<div class="about row">
+    <div class="logo col">
+      <a href="/" class="d-inline-block">
+        <img src="{% static_ver 'qsite/images/logo-qa-240x96.png' %}" height="96" alt="logo">
+      </a>
+      <div class="version"><b>Build {{ data.ver }}</b><br>&copy; 2024-2026 Debasish C Saha &middot; qcalc.org</div>
+      {% setting 'QCALC_HOST' as qcalc_host %}
+      {% if qcalc_host != 'qcalc.org' %}
+        <div class="version">Site: {{ qcalc_host }}</div>
+      {% endif %}
+    </div>
+</div>
+<h2>Welcome to qCalc</h2>
+<p>
+Explore qCalc, featuring a comprehensive array of calculators crafted to simplify intricate computations across diverse disciplines such as business, engineering, health sciences, mathematics, and beyond. Our commitment is to deliver intuitive and reliable tools that empower users to effortlessly tackle calculations with precision and ease.
+</p>
+
+<h2>Mission</h2>
+<p>
+qCalc was born from a passion for using technology to simplify calculation. Its mission is to democratize access to sophisticated technical and programming libraries, making them available to the general user. As a free-to-use web app, qCalc provides a diverse range of user-friendly tools. Although it refers to these tools as 'calculators', they offer not only trivial and simple calculations but also advanced computations, artificial intelligence-based solutions, and simulations.
+</p>
+
+<h2>What It Offers</h2>
+<p>
+  qCalc has a diverse collection of calculators, each designed to address specific needs. Whether you're a common person seeking assistance in finance, a health-conscious individual tracking fitness metrics, a photographer trying to improve photographing techniques using calculations, a professional needing specialized computations for your business, an engineer requiring precise measurements, or a student exploring academic challenges, qCalc stands as your trusted resource. You can also create your own calculators to simplify your everyday calculations and unlock new insights effortlessly.
+</p>
+
+<h2>Values</h2>
+<p>qCalc believes in:</p>
+<ol>
+    <li><strong>Accuracy:</strong> Ensuring calculators provide reliable and precise results.</li>
+    <li><strong>Usability:</strong> Designing intuitive and easy-to-navigate interfaces for all users.</li>
+    <li><strong>Continuous Improvement:</strong> Regularly updating and expanding toolset to meet the evolving needs of the users.</li>
+    <li><strong>Customer Satisfaction:</strong> Prioritizing user feedback and striving to provide the best possible experience.</li>
+</ol>
+
+<h2>Please Contact</h2>
+<p>If you have any questions, feedback, or suggestions, please don't hesitate to {% pagelink '/page/contact/' 'reach out' %}.</p>
+
+<h2>Thank You</h2>
+<p>Thank you for choosing qCalc.</p>
+<br>
+<hr>
+<br>
+<p>Currency Rates as of: {{ data.as_of }}</p>
+<p></p><i>{% upinfo %}</i></p>
+<button type="button" class="card-collapse collapsed btn btn-info btncmd mb-2" href="#license-{{ input.cid }}"
+        data-toggle="collapse" aria-label="technical">LICENSE&nbsp;</button>
+<div class="collapse section-about section-input" id="license-{{ input.cid }}">
+{% lineless_ex %}
+<pre class="license-text">{{ data.license_text }}</pre>
+{% endlineless_ex %}
+</div>
+<button type="button" class="card-collapse collapsed btn btn-info btncmd mb-2" href="#tech-info-{{ input.cid }}"
+        data-toggle="collapse" aria-label="technical">Technical Information&nbsp;</button>
+<div class="collapse section-about section-input" id="tech-info-{{ input.cid }}">
+<p><i class="icon-map5 mr-2"></i>Sitemaps:&nbsp;
+  <a class="btn" href="/sitemap.xml" target="_blank">Index</a>
+  <a class="btn" href="/sitemap-pages.xml" target="_blank">Pages</a>
+  <a class="btn" href="/sitemap-categories.xml" target="_blank">Categories</a>
+  <a class="btn" href="/sitemap-calculators.xml" target="_blank">Calculators</a>
+  <a class="btn" href="/sitemap-quantities.xml" target="_blank">Quantities</a>
+</p>
+<p>{{ data.qcals_user|length }} Calculators and counting</p>
+{% for cal in data.qcals_user %}
+  <a href="/calc/{{ cal }}/" hx-get="/calc/add/?fname={{ cal }}"
+  hx-target="#content-holder" hx-swap="afterbegin">{{ cal }}</a>&nbsp;
+{% endfor %}
+{% if user.is_staff %}
+<br><br>
+<p>{{ data.qcals_admin|length }} Admin Calculators</p>
+{% for cal in data.qcals_admin %}
+  <a href="/calc/{{ cal }}/" hx-get="/calc/add/?fname={{ cal }}"
+  hx-target="#content-holder" hx-swap="afterbegin">{{ cal }}</a>&nbsp;
+{% endfor %}
+{% endif %}
+{% demo_mode user as dm %}
+{% if dm %}
+<br><br>
+<p>{{ data.qcals_demo|length }} Demo Calculators</p>
+{% for cal in data.qcals_demo %}
+  <a href="/calc/{{ cal }}/" hx-get="/calc/add/?fname={{ cal }}"
+  hx-target="#content-holder" hx-swap="afterbegin">{{ cal }}</a>&nbsp;
+{% endfor %}
+{% endif %}
+{% if user.is_staff %}
+<br><br>
+<p>System: {{ data.platform.system }}</p>
+<p>Processor: {{ data.platform.processor }}</p>
+<p>Environment: {{ data.env_file }}</p>
+<p>Workers: {{ data.worker_count }}</p>
+<p>User: {{ request.user }}</p>
+<p>Session Key: {{ request.session.session_key }}</p>
+<p>Instance: {{ data.instance_info.instance_id }}</p>
+<p>Worker PID: {{ data.instance_info.worker_pid }}</p>
+<p>Thread: {{ data.instance_info.thread_name }}</p>
+<p>Debug: {{ data.debug }}</p>
+<p>Demo: {{ data.demo }}</p>
+<p>Cache: {{ data.cache }}</p>
+<p>Apps DIR: {{ data.paths.0 }}</p>
+<p>Help Files DIR: {{ data.paths.1 }}</p>
+<p>JSON Files DIR: {{ data.paths.2 }}</p>
+<p>Fuzzy Search: {{ data.prefs.0 }}</p>
+<p>Semantic Search: {{ data.prefs.1 }}</p>
+<p>About Page Processing Time: {{ data.ptime }} milli seconds</p>
+{% if data.debug %}
+<p><a href="/calc/dump" target="_blank">Show Meomory Dump</a></p>
+{% endif %}
+{% endif %}
+</div>
+{% endblock %}

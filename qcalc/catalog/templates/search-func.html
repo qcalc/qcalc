@@ -1,0 +1,12 @@
+<table class="table">
+  {% for node in calc_data %}
+  <tr>
+    <td>
+    <span><a href="javascript:sm2toggle()"
+      hx-get="/calc/add/?fname={{ node.name }}"
+        hx-target="#card-space" hx-swap="beforebegin">
+        <i class="icon-plus-circle2 mr-2"></i>{{ node.title }} ({{ node.name }}) - {{ node.desc }}</a></span>
+    </td>
+  </tr>
+  {% endfor %}
+</table>

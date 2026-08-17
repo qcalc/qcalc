@@ -1,0 +1,24 @@
+{% load qfilter %}
+<ul>
+  {% for node in qty_data %}
+  <li>
+      {% if node.node_type == 'u' %}
+            <a href="/calc/conv/"
+               hx-get="/calc/add/?path=conv/value/1/from_unit/{{ node.name|deslash }}/convert_to_units/{{ node.name|deslash:1 }}/unit_cost/-/---/"
+               hx-target="#content-holder" hx-swap="afterbegin">
+            <i class="icon-balance"></i>{{ node.title }}</a>
+      {% elif node.node_type == 'q' %}
+            <a href="/calc/conv2/"
+               hx-get="/calc/add/?path=conv2/quantity/{{ node.data }}/mode/q2u/value/1/from_qty/{{ node.name|deslash }}/unit_cost/-/__info/{{ node.data }}/---/"
+               hx-target="#content-holder" hx-swap="afterbegin">
+            <i class="icon-balance"></i>{{ node.title }}</a>
+      {% endif %}
+            <span class="mark2">{{ node.name }}</span>
+  </li>
+  {% endfor %}
+</ul>
+
+
+
+
+

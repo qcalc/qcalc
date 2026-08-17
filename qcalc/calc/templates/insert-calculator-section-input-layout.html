@@ -1,0 +1,27 @@
+        <!-- begin:insert-calculator-section-input-layout -->
+        <div class="col section-input"><!-- col -->
+          {% for field in input.form %}
+          {% if input.doc.info.newcol|length > 0 and field.name == input.doc.info.newcol|first %}
+          <div class="row"><!-- col-row -->{% endif %}
+            {% if field.name in input.doc.info.newcol %}
+            <div class="col"><!-- col-row-col -->{% endif %}
+              {% if field.name in input.doc.info.newrow %}
+              <div class="row"><!-- col-row-col-row -->{% endif %}
+                {% if field.name in input.doc.info.newrow or field.name in input.doc.info.inrowb %}
+                <div class="col"><!-- col-row-col-row-col -->{% endif %}
+                  @@include('insert-calculator-section-input.html')
+                  {% if field.name in input.doc.info.inrowe or field.name in input.doc.info.endrow %}
+                </div><!-- col-row-col-row-col -->
+                {% endif %}
+                {% if field.name in input.doc.info.endrow %}
+              </div><!-- col-row-col-row -->
+              {% endif %}
+              {% if field.name in input.doc.info.endcol %}
+            </div><!-- col-row-col -->
+            {% endif %}
+            {% if input.doc.info.newcol|length > 0 and field.name == input.doc.info.endcol|last %}
+          </div><!-- col-row -->
+          {% endif %}
+          {% endfor %}
+        </div><!-- col -->
+        <!-- end:insert-calculator-section-input-layout -->

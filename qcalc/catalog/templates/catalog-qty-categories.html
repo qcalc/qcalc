@@ -1,0 +1,36 @@
+{% load qfilter %}
+{% if not search %}{% include "catalog-qty-links.html" %}<hr>{% endif %}
+{% if help_html != '' %}{% include help_html %}{% endif %}
+<table class="table" id="qty_table">
+  {% for node in qty_data %}
+    {% if node|is_visible:request %}
+    {% if node.is_active %}
+  <tr>
+    {% if node.is_leaf %}
+    <td>
+      {% if node.node_type == 'u' %}
+        <a href="/calc/conv/"
+           hx-get="/calc/add/?path=conv/value/1/from_unit/{{ node.name|deslash }}/convert_to_units/{{ node.name|deslash:1 }}/unit_cost/-/---/"
+           hx-target="#content-holder" hx-swap="afterbegin">
+        <i class="icon-balance"></i>&nbsp;&nbsp;{{ node.title }}</a>
+      {% elif node.node_type == 'q' %}
+        <a href="/calc/conv2/"
+           hx-get="/calc/add/?path=conv2/quantity/{{ node.data }}/mode/q2u/value/1/from_qty/{{ node.name|deslash }}/unit_cost/-/__info/{{ node.data }}/---/"
+           hx-target="#content-holder" hx-swap="afterbegin">
+        <i class="icon-balance"></i>&nbsp;&nbsp;{{ node.title }}</a>
+      {% endif %}
+      <span class="mark2">&nbsp;{{ node.name }}</span>
+      <p class="desc">{{ node.desc }}</p></td>
+    {% else %}
+    <td><a class="categ" href="/catalog/qty/{{ node.name }}/" hx-get="/catalog/qty/{{ node.name }}/?part=1"
+         hx-target="closest .calc" hx-swap="outerHTML"
+         hx-trigger="click[get_card_once('{{ node.name }}__page')]">
+      <i class="icon-folder4"></i>&nbsp;&nbsp;{{ node.title }} ({{node.leafcount}})</a>
+      <p class="desc">{{ node.desc }}</p>
+    {% endif %}
+  </tr>
+    {% endif %}
+    {% endif %}
+  {% endfor %}
+</table>
+{% if not search %}<hr>{% include "catalog-qty-links.html" %}{% endif %}

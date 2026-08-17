@@ -1,0 +1,81 @@
+import json
+from pathlib import Path
+from qutil import TreeNode
+from django.conf import settings
+import logging
+
+logger = logging.getLogger(__name__)
+
+DOC_EXTENSIONS = {'.md', '.html', '.txt'}
+DOCS_META_FILE = 'docs_meta.json'
+
+
+def get_doc_path(doc_file):
+    doc_path = Path(settings.DOCS_FILES_DIR) / doc_file
+    return doc_path
+
+
+# do not allow PROJ_DIR - unsafe
+# def get_read_path(doc_file):
+#     doc_path = Path(settings.PROJ_DIR) / doc_file
+#     return doc_path
+
+def _doc_title_from_name(name):
+    return name.replace('_', ' ').replace('-', ' ').strip().title()
+
+
+def _load_docs_meta(docs_root: Path) -> dict:
+    # | sidecar JSON manifest overriding title/desc/tags/order/hidden per relative path, e.g.:
+    # | {"sub/advanced.md": {"title": "Advanced Topics", "order": 2}}
+    meta_path = docs_root / DOCS_META_FILE
+    if not meta_path.exists():
+        return {}
+    try:
+        return json.loads(meta_path.read_text(encoding='utf-8'))
+    except (json.JSONDecodeError, OSError) as e:
+        logger.warning(f'build_docs_tree: could not read {meta_path}: {e}')
+        return {}
+
+
+def build_docs_tree(nid='docs', title='Documentation'):
+    # | Builds a TreeNode tree mirroring settings.DOCS_FILES_DIR, with per-node
+    # | title/desc/tags/order/hidden overridable via a docs_meta.json sidecar manifest.
+    docs_root = Path(settings.DOCS_FILES_DIR)
+    meta = _load_docs_meta(docs_root)
+
+    root = TreeNode(nid=nid, name=nid, title=title, is_leaf=False, node_type='doc')
+    root._index_node()
+
+    def add_dir(node, dir_path, id_prefix):
+        try:
+            entries = sorted(dir_path.iterdir(), key=lambda p: p.name.lower())
+        except OSError as e:
+            logger.warning(f'build_docs_tree: could not list {dir_path}: {e}')
+            return
+        for entry in entries:
+            if entry.name.startswith('.') or entry.name == DOCS_META_FILE:
+                continue
+            rel_id = f'{id_prefix}/{entry.name}' if id_prefix else entry.name
+            entry_meta = meta.get(rel_id, {})
+            if entry_meta.get('hidden'):
+                continue
+            is_dir = entry.is_dir()
+            if not is_dir and entry.suffix.lower() not in DOC_EXTENSIONS:
+                continue
+            default_title = _doc_title_from_name(entry.name if is_dir else entry.stem)
+            nid = entry.name
+            child = TreeNode(
+                nid=nid, name=rel_id, title=entry_meta.get('title', default_title),
+                desc=entry_meta.get('desc', ''), tags=entry_meta.get('tags', ''),
+                is_leaf=not is_dir, node_type='doc',
+            )
+            child.data['order'] = entry_meta.get('order', 999)
+            node.add_child(child)
+            if is_dir:
+                add_dir(child, entry, rel_id)
+
+    add_dir(root, docs_root, '')
+    root.update_all_descendant_leafs_count()
+    for nd in root.depth_first():
+        nd.children.sort(key=lambda c: (c.data.get('order', 999), c.title))
+    return root

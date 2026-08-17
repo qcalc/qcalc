@@ -1,0 +1,11 @@
+{% extends base %}
+{% load qfilter %}
+{% block card %}{% endblock %}
+{% block page_profile %}
+{% concat '/catalog/qty/' category.name '/' as canonical %}
+{% add_head category.title category.desc canonical %}
+{% endblock %}
+{% block _cardtitle %}Quantity Catalog - {{ category.title }}{% endblock %}
+{% block _content %}
+@@include('catalog-qty-categories.html')
+{% endblock %}

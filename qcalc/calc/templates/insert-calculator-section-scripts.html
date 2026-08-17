@@ -1,0 +1,82 @@
+<!-- begin:insert-calculator-section-scripts -->
+{{ form.media }}
+
+{% if input.doc.info.qsel2 %}
+<script src="{% static_ver 'calc/js/qsel2.js' %}"></script>
+{% endif %}
+
+{% if input.doc.info.qlist %}
+<script src="{% static_ver 'calc/js/qlist.js' %}"></script>
+{% include 'insert-calculator-init-retry.html' with init_fn='qcalc_InitQlist' cid=input.cid %}
+{% endif %}
+
+{% if input.doc.info.autofill %}
+{% with input.cid|add:"_script_data_autofill" as script_sh_id %}
+{{ input.doc.info.autofill | json_script:script_sh_id }}
+{% endwith %}
+<script src="{% static_ver 'calc/js/seldata-autofill.js' %}"></script>
+{% include 'insert-calculator-init-retry.html' with init_fn='qcalc_InitAutofill' cid=input.cid %}
+{% endif %}
+
+{% if input.doc.info.related %}
+{% with input.cid|add:"_script_data_related" as script_sh_id %}
+{{ input.doc.info.related | json_script:script_sh_id }}
+{% endwith %}
+<script src="{% static_ver 'calc/js/seldata-related.js' %}"></script>
+{% include 'insert-calculator-init-retry.html' with init_fn='qcalc_InitRelated' cid=input.cid %}
+{% endif %}
+
+{% if input.doc.info.showhide %}
+{% with input.cid|add:"_script_data_showhide" as script_sh_id %}
+{{ input.doc.info.showhide | json_script:script_sh_id | safe }}
+{% endwith %}
+<script src="{% static_ver 'calc/js/chdata-showhide.js' %}"></script>
+{% include 'insert-calculator-init-retry.html' with init_fn='qcalc_InitShowhide' cid=input.cid %}
+{% endif %}
+
+{% if input.doc.info.anyof %}
+{% with input.cid|add:"_script_data_anyof" as script_sh_id %}
+{{ input.doc.info.anyof | json_script:script_sh_id | safe }}
+{% endwith %}
+<script src="{% static_ver 'calc/js/chdata-anyof.js' %}"></script>
+{% include 'insert-calculator-init-retry.html' with init_fn='qcalc_InitAnyof' cid=input.cid %}
+{% endif %}
+
+{% if input.doc.info.table_in %}
+<script src="{% static_ver 'calc/js/tabulator-in.js' %}"></script>
+{% include 'insert-calculator-init-retry.html' with init_fn='qcalc_InitTabulatorIn' cid=input.cid %}
+{% endif %}
+
+{% if output.doc.table_out or input.doc.info.table_out %}
+<script src="{% static_ver 'calc/js/tabulator-out.js' %}"></script>
+{% include 'insert-calculator-init-retry.html' with init_fn='qcalc_InitTabulatorOut' cid=input.cid %}
+{% endif %}
+
+{% if 'out_bottom' in input.doc.info.inserts %}
+{{ input.doc.info.inserts.out_bottom | safe }}
+{% endif %}
+
+{% if input.doc.info.onsubmit != '' %}
+<script>
+$(document).ready(function(){
+  $('#form-{{ input.cid }}').on("submit", function(event){
+      _cid='{{ input.cid }}';
+      {{ input.doc.info.onsubmit | safe }}
+  });
+});
+</script>
+{% endif %}
+
+{% if input.doc.info.script != '' %}
+<script>
+  {{ input.doc.info.script | safe }}
+</script>
+{% endif %}
+
+<script>
+  $(document).ready(function() {
+    //console.log('doc ready from script', '{{ input.cid }}');
+    formReady('{{ input.cid }}');
+  });
+</script>
+<!-- end:insert-calculator-section-scripts -->

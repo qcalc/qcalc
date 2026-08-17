@@ -1,0 +1,10 @@
+<a hx-post="{% url 'toggle_favorite' %}" hx-trigger="click" hx-swap="outerHTML" hx-target="this"
+   class="btn" href="/calc/{{func_id}}/"
+{% if fav_state %}
+   hx-vals='{"func_id": "{{ func_id }}", "input_id": {{ input_id }}, "fav_state": "1", "mode":"b"}'>
+  <i class="icon-star-full2"></i>
+{% else %}
+   hx-vals='{"func_id": "{{ func_id }}", "input_id": {{ input_id }}, "fav_state": "0", "mode":"b"}'>
+  <i class="icon-star-empty3"></i>
+{% endif %}
+</a>

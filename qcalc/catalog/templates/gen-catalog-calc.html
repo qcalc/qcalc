@@ -1,0 +1,44 @@
+{% extends base %}
+{% load qfilter %}
+{% block card %}{% endblock %}
+{% block page_profile %}
+{% concat '/catalog/calc/' category.name '/' as canonical %}
+{% add_head category.data.path category.data.path canonical %}
+{% endblock %}
+{% block _cardtitle %}{{ title }} - {{ category.data.path }}{% endblock %}
+{% block _content %}
+{% load qfilter %}
+{% if not search %}<hr>{% include "catalog-calc-links.html" %}<hr>{% endif %}
+<table class="table" id="cal_table">
+  {% for node in calc_data %}
+    {% if node|is_visible:request %}
+    {% if node.is_active %}
+  <tr>
+    {% if node.is_leaf %}
+    <td><a href="/calc/{{node.name}}/" hx-get="/calc/add/?fname={{ node.name }}"
+           hx-target="#content-holder" hx-swap="afterbegin">
+      <i class="icon-calculator4"></i>&nbsp;&nbsp;{{ node.title }}</a><span class="mark2">&nbsp;{{ node.name }}</span>
+      {% if not search %}
+        {% get_fav_state node.name favorite_dict as fav_state %}
+        {% include 'favorite_icon.html' with func_id=node.name input_id=0 fav_state=fav_state %}
+      {% endif %}
+      <p class="desc">{{ node.desc }}</p>
+      {% if not search and show_fav_variants %}
+        {% access_by_key fav_var_data node.name as fav_var_list %}
+        {% include 'favorite_variants.html' with fav_var_list=fav_var_list %}
+      {% endif %}
+    </td>
+    {% else %}
+    <td><a class="categ" href="/catalog/{{ cat }}/{{ node.id }}/" hx-get="/catalog/{{ cat }}/{{ node.id }}/?part=1"
+           hx-target="closest .calc" hx-swap="outerHTML"
+           hx-trigger="click[get_card_once('{{ node.id }}__page')]">
+      <i class="icon-folder4"></i>&nbsp;&nbsp;{{ node.data.path }} ({{node|uleafcount:user}})</a></td>
+    {% endif %}
+  </tr>
+    {% endif %}
+    {% endif %}
+  {% endfor %}
+</table>
+{% if not search %}<hr>{% include "catalog-calc-links.html" %}{% endif %}
+
+{% endblock %}

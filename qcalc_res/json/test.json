@@ -1,0 +1,10 @@
+{
+  "type": "qsel2",
+  "initial": "D",
+  "choices": {
+    "D": "Dhaka",
+    "K": "Kolkata",
+    "L": "London",
+    "N": "New York City"
+  }
+}

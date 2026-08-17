@@ -1,0 +1,44 @@
+{% extends base %}
+{% load static %}
+{% load qfilter %}
+{% block card %}{% endblock %}
+{% block page_profile %}
+{% add_head "Get Started with qCalc" "Take quick tour around qCalc. Explore various features and learn to use qCalc." "/page/tour/" %}
+{% endblock %}
+{% block _cardtitle %}Quick Tour{% endblock %}
+{% block _content %}
+<!--link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intro.js@7.2.0/minified/introjs.min.css"-->
+<link rel="stylesheet" href="{% static 'vendor/introjs/7.2.0/introjs.min.css' %}">
+<!--link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tingle/0.16.0/tingle.min.css"-->
+<link rel="stylesheet" href="{% static 'vendor/tingle/0.16.0/tingle.min.css' %}">
+
+<h1>Welcome to Quick Tour</h1>
+<p>Embark on quick tour of qCalc to explore its various features and learn how to utilize them effectively.</p>
+<div class="container mt-4 page-grid ">
+  <div class="row">
+    <div class="col mb-3">
+      <button class="btn btn-light" onclick="introTour()" id="intro-tour"
+              style="height:100px; width:150px; font-size:0.94rem;">Start Introduction Tour</button>
+    </div>
+    <div class="col mb-3">
+      <button class="btn btn-light" onclick="calcTour()" id="calc-tour"
+              style="height:100px; width:150px; font-size:0.94rem;">Start Calculation Tour</button>
+    </div>
+    <div class="col mb-3">
+      <button class="btn btn-light" onclick="loginTour()" id="login-tour"
+              style="height:100px; width:150px; font-size:0.94rem;">Start My Account Tour</button>
+    </div>
+  </div>
+</div>
+
+<!-- Intro.js Script -->
+<!--script-- src="https://cdn.jsdelivr.net/npm/intro.js@7.2.0/minified/intro.min.js"></script-->
+<script src="{% static 'vendor/introjs/7.2.0/intro.min.js' %}"></script>
+<!--script src="https://cdnjs.cloudflare.com/ajax/libs/tingle/0.16.0/tingle.min.js"></script-->
+<script src="{% static 'vendor/tingle/0.16.0/tingle.min.js' %}"></script>
+<script src="{% static 'js_tour/tour_intro_steps.js' %}"></script>
+<script src="{% static 'js_tour/tour_calc_steps.js' %}"></script>
+<script src="{% static 'js_tour/tour_login_steps.js' %}"></script>
+<script src="{% static 'js_tour/tour.js' %}"></script>
+
+{% endblock %}

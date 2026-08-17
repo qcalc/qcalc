@@ -1,0 +1,18 @@
+{% extends page_base %}
+{% load crispy_forms_tags %}
+{% load qfilter %}
+{% block card %}{% endblock %}
+{% block page_profile %}{% add_head user.username '' %}{% endblock %}
+{% block _cardtitle %}User{% endblock %}
+{% block _content %}
+  <h1>{{ user.username }}</h1>
+  <form class="form-horizontal" method="post" action="{% url 'users:update' %}">
+    {% csrf_token %}
+    {{ form|crispy }}
+    <div class="control-group">
+      <div class="controls">
+        <button type="submit" class="btn btn-danger" aria-label="update">Update</button>
+      </div>
+    </div>
+  </form>
+{% endblock %}

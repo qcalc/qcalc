@@ -1,0 +1,113 @@
+/* qCalc Dark Theme */
+/* qCalc Vibe Theme */
+/* 0.82rem, 0.906 */
+/* 500 */
+/* Dark colors */
+/* Pure black */
+/* Dark grey #333333 */
+/* Deep charcoal */
+/* Medium grey */
+/* Light grey */
+/* Charcoal */
+/* Smoke grey */
+/* Dark smoke */
+/* Modified Dark Theme for Black Foreground */
+/* Lighter grey */
+/* Light grey */
+/* #d9d9d9 Soft silver */
+/* Slate grey */
+/* Subtle white */
+/* White */
+/* Ash grey */
+/* Medium charcoal */
+/* Graphite */
+/* Light grey */
+/* Cornflower blue */
+/* Cyan */
+.categ {
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.tree, .tree ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tree ul {
+  margin-left: 1rem;
+  position: relative;
+}
+
+.tree ul ul {
+  margin-left: 0.5rem;
+}
+
+.tree ul:before {
+  content: "";
+  display: block;
+  width: 0;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  border-left: 1px solid;
+}
+
+.tree li {
+  margin: 0;
+  padding: 0 1rem;
+  line-height: 2rem;
+  color: #6495ed;
+  position: relative;
+}
+
+.tree li .tdesc {
+  color: #333;
+}
+
+.tree ul li:before {
+  content: "";
+  display: block;
+  width: 10px;
+  height: 0;
+  border-top: 1px solid;
+  margin-top: -1px;
+  position: absolute;
+  top: 1rem;
+  left: 0;
+}
+
+.tree ul li:last-child:before {
+  background: #fff;
+  height: auto;
+  top: 1rem;
+  bottom: 0;
+}
+
+.indicator {
+  margin-right: 5px;
+}
+
+.tree li a {
+  text-decoration: none;
+  color: #6495ed;
+}
+
+.tree li button, .tree li button:active, .tree li button:focus {
+  text-decoration: none;
+  color: #6495ed;
+  border: none;
+  background: transparent;
+  margin: 0px 0px 0px 0px;
+  padding: 0px 0px 0px 0px;
+  outline: 0;
+}
+
+.tree li span.mark1 {
+  color: firebrick;
+  background-color: #292929;
+}
+
+/*# sourceMappingURL=tree-dark.css.map */

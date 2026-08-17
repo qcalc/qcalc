@@ -1,0 +1,20 @@
+{% extends base %}
+{% load qfilter %}
+{% block card %}{% endblock %}
+{% block page_profile %}
+{% add_head "Contact qCalc - Get in Touch with us for Support and Inquiries" "Need to get in touch with us? Reach out through contact page for any inquiries, feedback, or support requests. We are here to help!" "/page/contact/" %}
+{% endblock %}
+{% block _cardtitle %}Contact - {% setting 'QCALC_HOST' %}{% endblock %}
+{% block _content %}
+<style>
+  .contact { text-align: left; margin-top: 10px; }
+  .contact form { display: inline-block; text-align: left; margin-top: 10px; }
+  .contact label, .contact input, .contact textarea { margin-bottom: 10px; width: 100%; max-width:600px;}
+  .contact input[type="submit"] { margin-top: 20px; }
+</style>
+
+<div class="contact">
+  {% setting 'CONTACT_EMAIL' as contact_email %}
+  {% include 'pages/contact_part.html' with contact=contact_email %}
+</div>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends base %}
+{% load static %}
+{% load qfilter %}
+{% block card %}{% endblock %}
+{% block page_profile %}
+{% add_head "Documentation" "Browse qCalc user guides and documentation" "/catalog/docs/" %}
+{% endblock %}
+{% block _cardtitle %}{{ title }}{% endblock %}
+{% block _content %}
+<link href="{% static_ver_theme request 'tree' %}" rel="stylesheet" type="text/css" class="theme-stylesheet">
+<script src="{% static_ver 'qsite/js/tree.js' %}" onload="initTreed()" defer></script>
+<div id="toc_tree" class="hidden">
+  <ul>
+      {% include 'include-tree-node-docs.html'%}
+  </ul>
+</div>
+<br>
+<script>
+function initTreed(){
+  $(document).ready(function() {
+    $('#toc_tree').treed({openedClass:'icon-folder-open2', closedClass:'icon-folder2'});
+    document.querySelector('#toc_tree').classList.remove('hidden');
+  });
+};
+</script>
+{% endblock %}

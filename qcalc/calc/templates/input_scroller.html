@@ -1,0 +1,31 @@
+<!-- Scrollable list -->
+{% load qfilter %}
+<div class="scrollable" id="linkList-{{cid}}">
+{% for var in qryset %}
+  <div style="display:flex">
+    {% if var.is_shared %}
+      {% concat "/calc/" var.item_id "/?token=" var.access_token "&run" as cal_url %}
+      {% concat cal_url "&part=1" as get_url %}
+      <a href="{{cal_url}}" class="btn" hx-get="{{get_url}}"
+         hx-target="closest .calc" hx-swap="afterend"><i class="icon-share4"></i></a>
+    {% elif scope == 'examples' %}
+      {% concat "/calc/" var.item_id "/?example=" var.variant_id "&run" as cal_url %}
+      {% concat cal_url "&part=1" as get_url %}
+      <a href="{{cal_url}}" class="btn" hx-get="{{get_url}}"
+         hx-target="closest .calc" hx-swap="afterend"><i class="icon-share4"></i></a>
+    {% else %}
+      {% concat "/calc/" var.item_id "/?variant=" var.variant_id "&var_owner=" request.user.username  "&run" as cal_url %}
+      {% concat cal_url "&part=1" as get_url %}
+      <a href="{{cal_url}}" class="btn" hx-get="{{get_url}}"
+         hx-target="closest .calc" hx-swap="afterend"><i class="icon-plus-circle2"></i></a>
+    {% endif %}
+    {% replace get_url 'part=1' 'part=2' as get_url2 %}
+    <a href="{{cal_url}}" class="btn" hx-get="{{get_url2}}"
+       hx-target="next form" hx-swap="outerHtml"
+       hx-trigger="click[setCidFrom($(this),'section-{{scope}}','{{scope}}-')]">
+    {{var.variant_id}}. {{ var.description }}</a>
+  </div>
+{% endfor %}
+</div>
+<div><p>{{message}}</p></div>
+

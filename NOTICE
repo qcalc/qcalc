@@ -1,0 +1,60 @@
+Third-Party Notices
+===================
+
+This repository is distributed under the MIT License (see LICENSE).
+Third-party components listed below remain under their own license terms.
+
+Vendored static assets (qcalc/qsite/static/vendor/)
+---------------------------------------------------
+
+ Library              Version    License      URL
+ -------------------  ---------  -----------  -----------------------------------
+ Bootstrap            4.3.1      MIT          https://getbootstrap.com
+ jQuery               3.3.1      MIT          https://jquery.com
+ htmx                 1.9.11     0BSD         https://htmx.org
+ Select2              4.1.0-rc.0 MIT          https://select2.org
+ Tabulator            6.1.0      MIT          https://tabulator.info
+ CodeMirror           5.65.x     MIT          https://codemirror.net
+ FileSaver.js         —          MIT          https://github.com/eligrey/FileSaver.js
+ IcoMoon Free         —          GPL-3.0 /    https://icomoon.io
+                                 CC-BY-4.0
+ KaTeX                0.11.1     MIT          https://katex.org
+ SunEditor            2.45.x     MIT          https://github.com/JiHong88/SunEditor
+ Tingle               0.16.0     MIT          https://tingle.robinparisi.com
+ Intro.js (optional)  7.2.0      AGPL-3.0*    https://introjs.com
+
+
+Vendored Google Fonts (qcalc/qsite/static/vendor/fonts/google/)
+---------------------------------------------------------------
+
+ Font         License   URL
+ -----------  --------  -----------------------------------------------
+ Roboto       Apache-2.0 https://fonts.google.com/specimen/Roboto
+ Lato         OFL-1.1    https://fonts.google.com/specimen/Lato
+ Montserrat   OFL-1.1    https://fonts.google.com/specimen/Montserrat
+ Open Sans    Apache-2.0 https://fonts.google.com/specimen/Open+Sans
+
+
+SIL Open Font License text: https://scripts.sil.org/OFL
+Apache License 2.0 text:    https://www.apache.org/licenses/LICENSE-2.0
+
+
+Runtime Python dependencies
+----------------------------
+
+Runtime packages are listed in qcalc/requirements.txt and are not
+bundled in this repository. Each package remains under its own license.
+
+Python source — conceptual derivation
+--------------------------------------
+
+The physical-quantity layer (3 files: qcalc/qcore/qc_munit.py,
+qc_mquantity.py, and qc_units.py) was written from scratch but takes
+design cues from the PhysicalQuantities module in ScientificPython
+by Konrad Hinsen <hinsen@cnrs-orleans.fr> and Greg Ward.
+The code is a new implementation and is released under the MIT License.
+
+Upstream reference:
+  ScientificPython — Scientific/Physics/PhysicalQuantities.py
+  https://github.com/khinsen/ScientificPython
+  License: CeCILL-C (SPDX: CECILL-C)

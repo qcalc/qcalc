@@ -1,0 +1,18 @@
+{% extends base %}
+{% block card %}{% endblock %}
+{% load qfilter %}
+{% block page_profile %}
+{% add_head "Test - qCalc" "Tests" "/page/tests/" %}
+{% endblock %}
+{% block _cardtitle %}Test{% endblock %}
+{% block _content %}
+<a href="/" hx-get="/?part=1" hx-target="closest .calc"
+   hx-swap="outerHTML" hx-trigger="click[get_card_once('home__page')]" class="mr-4">
+  <i class="icon-home2 mr-2"></i>Home</a>
+<br><br>
+{% for item in data %}
+<a href="{{ item|href }}" hx-get="{{ item }}"
+   hx-target="#content-holder" hx-swap="afterbegin">{{ item|href }}</a><br>
+   <!--hx-target="closest .calc" hx-swap="afterend">{{ item|href }}</a><br-->
+{% endfor %}
+{% endblock %}

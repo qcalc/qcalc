@@ -1,0 +1,122 @@
+@charset "UTF-8";
+/* Modern Serenity Theme */
+/* qCalc Vibe Theme */
+/* 0.82rem, 0.906 */
+/* 500 */
+/* Background Colors */
+/* Cool light gray for an airy, professional backdrop */
+/* Soft blue-gray for a subtle, modern feel */
+/* Light sky blue, clean and calming for input areas */
+/* Warm off-white for readability in output sections */
+/* Soft stone beige for subtle emphasis */
+/* Borders */
+/* Cool gray-blue for a balanced, professional border */
+/* Light steel blue-gray for calm border effects */
+/* Gentle gray for a smooth hover effect */
+/* Soft almond, adding warmth without distraction */
+/* Muted slate blue for a refined table border */
+/* Light icy blue for alternating table rows */
+/* Muted taupe for a subtle yet sophisticated highlight */
+/* Soft bronze for understated loading indicators */
+/* Text and Icon Colors */
+/* Standard checkmark */
+/* Light, misty blue-white for clear contrast on dark headers */
+/* Slate gray, balanced and modern for marked text */
+/* Button and Link Colors */
+/* Muted steel blue for a premium feel on buttons */
+/* Cool slate blue for professional link color */
+/* Deeper slate for a subtle, refined hover effect */
+/* Midnight blue for active links, conveying clarity */
+/* Soft charcoal gray to differentiate visited links */
+/* Background Colors for Emphasis */
+/* Rich dark blue-gray for a stable, professional header */
+/* Light sand for a gentle highlight that doesn’t overpower */
+/* Other Interactive Elements */
+/* Soft bronze for loading, subtle and elegant */
+.categ {
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.tree, .tree ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tree ul {
+  margin-left: 1rem;
+  position: relative;
+}
+
+.tree ul ul {
+  margin-left: 0.5rem;
+}
+
+.tree ul:before {
+  content: "";
+  display: block;
+  width: 0;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  border-left: 1px solid;
+}
+
+.tree li {
+  margin: 0;
+  padding: 0 1rem;
+  line-height: 2rem;
+  color: #4a708b;
+  position: relative;
+}
+
+.tree li .tdesc {
+  color: #333;
+}
+
+.tree ul li:before {
+  content: "";
+  display: block;
+  width: 10px;
+  height: 0;
+  border-top: 1px solid;
+  margin-top: -1px;
+  position: absolute;
+  top: 1rem;
+  left: 0;
+}
+
+.tree ul li:last-child:before {
+  background: #fff;
+  height: auto;
+  top: 1rem;
+  bottom: 0;
+}
+
+.indicator {
+  margin-right: 5px;
+}
+
+.tree li a {
+  text-decoration: none;
+  color: #4a708b;
+}
+
+.tree li button, .tree li button:active, .tree li button:focus {
+  text-decoration: none;
+  color: #4a708b;
+  border: none;
+  background: transparent;
+  margin: 0px 0px 0px 0px;
+  padding: 0px 0px 0px 0px;
+  outline: 0;
+}
+
+.tree li span.mark1 {
+  color: firebrick;
+  background-color: #e4d5c7;
+}
+
+/*# sourceMappingURL=tree-serenity.css.map */

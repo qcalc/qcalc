@@ -1,0 +1,115 @@
+/* qCalc Vibe Theme */
+/* qCalc Vibe Theme */
+/* 0.82rem, 0.906 */
+/* 500 */
+/* Very light peach for a fresh background */
+/* Light pastel mint for a refreshing feel */
+/* Blush pink with a bit more depth */
+/* Muted coral with warmth */
+/* Peachy orange for a modern accent */
+/* Vibrant jade green for a fresh look */
+/* Soft pastel mint */
+/* Refined Section Background Colors */
+/* Soft sage green, calmer and more sophisticated */
+/* Gentle cream for warmth and readability */
+/* Light ivory for a subtle, neutral tone */
+/* Bright sunshine yellow */
+/* Light sunshine yellow */
+/* Soft gold */
+/* Deep forest green for sophistication */
+/* Crisp white */
+/* Bright coral */
+/* Warm sunflower yellow */
+/* Deep teal for contrast */
+/* Refined Link Colors for a Professional Look */
+/* Muted rose for a softer, elegant link color */
+/* Subtle wine red for hover to avoid overpowering */
+/* Deep muted red for active, adding a clear indication without being harsh */
+/* Warm, earthy brown for visited links to subtly differentiate */
+.categ {
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.tree, .tree ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tree ul {
+  margin-left: 1rem;
+  position: relative;
+}
+
+.tree ul ul {
+  margin-left: 0.5rem;
+}
+
+.tree ul:before {
+  content: "";
+  display: block;
+  width: 0;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  border-left: 1px solid;
+}
+
+.tree li {
+  margin: 0;
+  padding: 0 1rem;
+  line-height: 2rem;
+  color: #cc6666;
+  position: relative;
+}
+
+.tree li .tdesc {
+  color: #333;
+}
+
+.tree ul li:before {
+  content: "";
+  display: block;
+  width: 10px;
+  height: 0;
+  border-top: 1px solid;
+  margin-top: -1px;
+  position: absolute;
+  top: 1rem;
+  left: 0;
+}
+
+.tree ul li:last-child:before {
+  background: #fff;
+  height: auto;
+  top: 1rem;
+  bottom: 0;
+}
+
+.indicator {
+  margin-right: 5px;
+}
+
+.tree li a {
+  text-decoration: none;
+  color: #cc6666;
+}
+
+.tree li button, .tree li button:active, .tree li button:focus {
+  text-decoration: none;
+  color: #cc6666;
+  border: none;
+  background: transparent;
+  margin: 0px 0px 0px 0px;
+  padding: 0px 0px 0px 0px;
+  outline: 0;
+}
+
+.tree li span.mark1 {
+  color: firebrick;
+  background-color: #ffd166;
+}
+
+/*# sourceMappingURL=tree-vibe.css.map */

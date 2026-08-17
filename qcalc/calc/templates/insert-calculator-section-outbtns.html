@@ -1,0 +1,40 @@
+<!-- begin:insert-calculator-section-outbtns -->
+<div class="btn-group mt-2 section-nextstep">
+{% if request.success %}
+{% for fspec in input.doc.info.step2 %}
+<p><button type="button" class="btn btn-info btncmd" href="/calc/step2/"
+           hx-get="/calc/step2/?step={{ fspec.step }}&func={{ fspec.func }}&src_cid={{ input.cid }}&spec={{fspec.spec | jdumps}}"
+           hx-target="#card-space" hx-swap="beforebegin" aria-label="step2">{{ fspec.caption }}
+</button></p>
+{% endfor %}
+{% endif %}
+</div>
+<br>
+<div class="btn-group mt-2 section-outbtns">
+{% if request.ojson_keep_dumps != '{}' %}
+<p><a class="btn" href="/calc/{{ input.doc.name }}/"
+      hx-get="/calc/cart/?cid={{ input.cid }}&keep={{ request.ojson_keep_dumps }}"
+      hx-target="#status-{{ input.cid }}" hx-swap="innerHTML">
+  <i class="icon-cart-add mr-2"></i><span class="notxt">Collect</span></a></p>
+{% endif %}
+{% if input.doc.info.url and input.doc.furl %}
+<p><a class="btn" href="{{ input.doc.furl | safe }}" target="_blank">
+  <i class="icon-link2 mr-2"></i><span class="notxt">Browse</span></a></p>
+{% endif %}
+{% if input.doc.info.xpr and input.doc.fxpr %}
+<p><a class="btn" href="/calc/eva/" hx-get="/calc/add/?path=eva/code/{{ input.doc.fxpr | safe }}"
+      hx-target="#card-space" hx-swap="beforebegin">
+  <i class="icon-embed2 mr-2"></i><span class="notxt">Express</span></a></p>
+{% if user.is_staff %}
+<p><a class="btn" href="/calc/xtime/" hx-get="/calc/add/?path=xtime/xpr/{{ input.doc.fxpr | safe }}"
+      hx-target="#card-space" hx-swap="beforebegin">
+  <i class="icon-watch2 mr-2"></i><span class="notxt">Time</span></a></p>
+{% endif %}
+{% endif %}
+{% if input.doc.info.loop and input.doc.floop %}
+<p><a class="btn" href="/calc/redo/" hx-get="/calc/add/?path=redo/xpr/{{ input.doc.floop | safe }}"
+      hx-target="#card-space" hx-swap="beforebegin">
+  <i class="icon-loop mr-2"></i><span class="notxt">Redo</span></a></p>
+{% endif %}
+</div>
+<!-- end:insert-calculator-section-outbtns -->

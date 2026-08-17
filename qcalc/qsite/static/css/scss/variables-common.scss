@@ -1,0 +1,29 @@
+/* qCalc Vibe Theme */
+$body-font-size: 0.94rem; /* 0.82rem, 0.906 */
+$sidebar2-font-size: 0.82rem !important;
+$footer-font-size: 0.82rem;
+$font-weight: 400; /* 500 */
+
+$val: 12rem;
+$uom-q: 10rem;
+$val-pq: 9rem;
+$uom-pq: 9rem;
+$ouom-q: $uom-q - 1rem;
+$inp: $val + $uom-q + 0.125rem;
+
+$val-m: $val - 1rem;
+$uom-q-m: $uom-q - 1rem;
+$val-pq-m: $val-pq;
+$uom-pq-m: $uom-pq;
+$ouom-q-m: $ouom-q - 1rem;
+$inp-m: $val-m + $uom-q-m + 0.125rem;
+
+$val-s: $val - 2rem;
+$uom-q-s: $uom-q - 2rem;
+$val-pq-s: $val-pq - 1rem;
+$uom-pq-s: $uom-pq - 1rem;
+$ouom-q-s: $ouom-q - 2rem;
+$inp-s: $val-s + $uom-q-s + 0.125rem;
+
+$vt: 3rem;
+$border-radius: 6px;

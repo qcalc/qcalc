@@ -1,0 +1,23 @@
+<!-- begin:insert-calculator-form -->
+{% load static %}
+{% load qfilter %}
+{% block cardtitle %}{{ input.doc.info.title }} ({{ input.doc.name }}){% endblock %}
+{% block extra_header %}{% if input.doc.name|noindex %}<meta name="robots" content="noindex, nofollow">{% endif %}{% endblock %}
+{% block _card %}
+{% endblock %}
+{% block content %}
+@@include('insert-calculator-section-help.html')
+{% if request.user.is_authenticated and has_user_variants %}
+@@include('insert-calculator-section-variants.html'){% endif %}
+{% if has_owner_examples %}
+@@include('insert-calculator-section-examples.html'){% endif %}
+@@include('insert-calculator-section-top.html')
+<!--onsubmit="return submitting({{ input.cid }});"-->
+<hr>
+<form method=post hx-post="/calc/{{ input.doc.name }}/"
+      id="form-{{ input.cid }}" enctype="multipart/form-data"
+      class="validate {{ input.cid }}">
+@@include('insert-calculator-form-partial.html')
+</form>
+{% endblock %}
+<!-- end:insert-calculator-form -->

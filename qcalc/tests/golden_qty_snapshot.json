@@ -1,0 +1,295 @@
+{
+  "qty_cases": [
+    {
+      "compose_qty": {
+        "ln": 1,
+        "value": "1 ft"
+      },
+      "compose_qty2": {
+        "ln": 1,
+        "value": "1.0 ft"
+      },
+      "id": "simple_length",
+      "input": "1 ft",
+      "qty": {
+        "uom": "ft",
+        "val": 1.0
+      },
+      "str_type": {
+        "kind": "qty",
+        "ln": 1,
+        "value": "1 ft"
+      },
+      "to_units": {
+        "inch": {
+          "uom": "inch",
+          "val": 12.0
+        },
+        "m": {
+          "uom": "m",
+          "val": 0.3048
+        }
+      }
+    },
+    {
+      "compose_qty": {
+        "ln": 1,
+        "value": "12 ft/s"
+      },
+      "compose_qty2": {
+        "ln": 1,
+        "value": "12.0 ft/s"
+      },
+      "id": "simple_speed",
+      "input": "12 ft/s",
+      "qty": {
+        "uom": "ft/s",
+        "val": 12.0
+      },
+      "str_type": {
+        "kind": "qty",
+        "ln": 1,
+        "value": "12 ft/s"
+      },
+      "to_units": {
+        "inch/s": {
+          "uom": "inch/s",
+          "val": 144.0
+        },
+        "m/s": {
+          "uom": "m/s",
+          "val": 3.6576
+        },
+        "yd/s": {
+          "uom": "yd/s",
+          "val": 4.0
+        }
+      }
+    },
+    {
+      "compose_qty": {
+        "ln": 2,
+        "value": "1.5 ft"
+      },
+      "compose_qty2": {
+        "ln": 2,
+        "value": "1.5 ft"
+      },
+      "id": "multipart_length",
+      "input": "1ft, 6 inch",
+      "qty": {
+        "uom": "ft",
+        "val": 1.5
+      },
+      "str_type": {
+        "kind": "qty",
+        "ln": 1,
+        "value": "1ft, 6 inch"
+      },
+      "to_units": {
+        "ft": {
+          "uom": "ft",
+          "val": 1.5
+        },
+        "inch": {
+          "uom": "inch",
+          "val": 18.0
+        },
+        "m": {
+          "uom": "m",
+          "val": 0.4572
+        }
+      }
+    },
+    {
+      "compose_qty": {
+        "ln": 1,
+        "value": "None ft"
+      },
+      "compose_qty2": {
+        "ln": 1,
+        "value": ""
+      },
+      "id": "placeholder_none",
+      "input": "None ft",
+      "qty": {
+        "uom": "ft",
+        "val": null
+      },
+      "str_type": {
+        "kind": "qty",
+        "ln": 1,
+        "value": "None ft"
+      },
+      "to_units": {
+        "inch": {
+          "uom": "inch",
+          "val": null
+        },
+        "m": {
+          "uom": "m",
+          "val": null
+        }
+      }
+    },
+    {
+      "compose_qty": {
+        "ln": 1,
+        "value": "@ft"
+      },
+      "compose_qty2": {
+        "ln": 1,
+        "value": ""
+      },
+      "id": "placeholder_at",
+      "input": "@ft",
+      "qty": {
+        "uom": "ft",
+        "val": null
+      },
+      "str_type": {
+        "kind": "qty",
+        "ln": 1,
+        "value": "@ft"
+      },
+      "to_units": {
+        "inch": {
+          "uom": "inch",
+          "val": null
+        },
+        "m": {
+          "uom": "m",
+          "val": null
+        }
+      }
+    },
+    {
+      "compose_qty": {
+        "ln": 1,
+        "value": "32 degF"
+      },
+      "compose_qty2": {
+        "ln": 1,
+        "value": "32.0 degF"
+      },
+      "id": "temp_f32",
+      "input": "32 degF",
+      "qty": {
+        "uom": "degF",
+        "val": 32.0
+      },
+      "str_type": {
+        "kind": "qty",
+        "ln": 1,
+        "value": "32 degF"
+      },
+      "to_units": {
+        "K": {
+          "uom": "K",
+          "val": 273.15
+        },
+        "degC": {
+          "uom": "degC",
+          "val": 0.0
+        }
+      }
+    },
+    {
+      "compose_qty": {
+        "ln": 1,
+        "value": "100 degC"
+      },
+      "compose_qty2": {
+        "ln": 1,
+        "value": "100.0 degC"
+      },
+      "id": "temp_c100",
+      "input": "100 degC",
+      "qty": {
+        "uom": "degC",
+        "val": 100.0
+      },
+      "str_type": {
+        "kind": "qty",
+        "ln": 1,
+        "value": "100 degC"
+      },
+      "to_units": {
+        "K": {
+          "uom": "K",
+          "val": 373.15
+        },
+        "degF": {
+          "uom": "degF",
+          "val": 212.0
+        }
+      }
+    },
+    {
+      "compose_qty": {
+        "ln": 1,
+        "value": "314159 s"
+      },
+      "compose_qty2": {
+        "ln": 1,
+        "value": "314159.0 s"
+      },
+      "id": "time_split",
+      "input": "314159 s",
+      "qty": {
+        "uom": "s",
+        "val": 314159.0
+      },
+      "str_type": {
+        "kind": "qty",
+        "ln": 1,
+        "value": "314159 s"
+      },
+      "to_units": {
+        "d": {
+          "uom": "d",
+          "val": 3.636099537037
+        },
+        "h": {
+          "uom": "h",
+          "val": 87.266388888889
+        },
+        "min": {
+          "uom": "min",
+          "val": 5235.983333333334
+        },
+        "s": {
+          "uom": "s",
+          "val": 314159.0
+        }
+      }
+    }
+  ],
+  "read_unit_cases": [
+    {
+      "Category": "Pressure gradient",
+      "Dimension": "L-2MT-2",
+      "Quantity": "0.3048 kg/m^2/s^2",
+      "Read as": "kilogram*foot/second^2/meter^3",
+      "Write as": "kg*ft/s^2/m^3",
+      "input": "kg*ft/s^2/m^3"
+    },
+    {
+      "Category": "Velocity",
+      "Dimension": "LT-1",
+      "Quantity": "0.3048 m/s",
+      "Read as": "foot/second",
+      "Write as": "ft/s",
+      "input": "ft/s"
+    },
+    {
+      "Category": "Temperature",
+      "Dimension": "\u0398",
+      "Quantity": "0.5555555555555556 K",
+      "Read as": "degree-fahrenheit",
+      "Write as": "degF",
+      "input": "degf"
+    }
+  ],
+  "schema": "qcalc-qty-golden-v1"
+}

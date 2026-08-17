@@ -1,0 +1,10 @@
+{
+  "type": "choice",
+  "initial": "y",
+  "choices": {
+    "m": "(Manual)",
+    "x": "Option 1",
+    "y": "Option 2",
+    "z": "Option 3"
+  }
+}

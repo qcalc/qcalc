@@ -1,0 +1,12 @@
+<!-- begin:insert-calculator-section-ioinfo -->
+{% load qfilter %}
+<button type="button" class="card-collapse collapsed btn btn-info btncmd mb-2" href="#io-{{ input.cid }}"
+        data-toggle="collapse" aria-label="io">I/O&nbsp;</button>
+<div class="collapse section-ioinfo" id="io-{{ input.cid }}">
+  <p><b>Technical Data</b>:</p>
+  <p>{% pretty_io request input.cid input.doc.info.name %}</p>
+  <p>Render Ends: <span id="renderends"></span><p>
+  <p><b>Template</b>: {{ input.doc.info.template }}</p>
+  <p><b>Process</b>: {% upinfo %}</p>
+</div>
+<!-- end:insert-calculator-section-ioinfo -->

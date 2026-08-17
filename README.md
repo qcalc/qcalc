@@ -35,13 +35,13 @@ For non-SQLite deployments, the setup scripts also mention optional support for 
 
 For a full step-by-step walkthrough covering Python installation, optional database and cache choices, and all configuration files, refer to the following guides:
 
-1. [Set Up qCalc Development System](/docs/installation-guide/create-qcalc-dev-system.md)
+1. [Set Up qCalc Development System](qcalc_res/docs/installation-guide/create-qcalc-dev-system.md)
    - Recommended for a quick development environment or a setup intended for a small number of users.
 
-2. [Set Up qCalc Production Server on Docker](/docs/installation-guide/create-qcalc-prod-server-on-docker.md)
+2. [Set Up qCalc Production Server on Docker](qcalc_res/docs/installation-guide/create-qcalc-prod-server-on-docker.md)
    - Recommended for a public-facing website, where Docker provides better isolation and security.
 
-3. [Set Up qCalc Production Server on Linux](/docs/installation-guide/create-qcalc-prod-server-on-linux.md)
+3. [Set Up qCalc Production Server on Linux](qcalc_res/docs/installation-guide/create-qcalc-prod-server-on-linux.md)
    - Suitable for a local production deployment without Docker.
    
 The installer will:

@@ -1,2 +1,5 @@
+# pip install this if you want MySQL as your database
 mysqlclient==2.2.1
+
+# pip install this if you want PostgreSQL instead
 psycopg2-binary==2.9.9

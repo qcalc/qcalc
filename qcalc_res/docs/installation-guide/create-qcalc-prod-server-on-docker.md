@@ -13,54 +13,9 @@ All services (qCalc/Gunicorn, Nginx, Certbot, PostgreSQL, Memcached) run as Dock
 
 ---
 
-## 1. Initial Server Setup
+## 1. Initial Linux Server Setup
 
-Following instructions have used placeholders as <>. Replace these placeholders with appropriate values before executing the instructions.
-
-### 1a. Create a non-root user
-
-```bash
-ssh root@<yourdomain.com>
-adduser <user_name>
-usermod -aG sudo <user_name>
-exit
-```
-
-### 1b. Set up passwordless SSH access (from your local machine)
-
-```bash
-# On your local machine
-cd ~/.ssh
-ssh-keygen           # skip if a key already exists
-scp id_rsa.pub <email@yourdomain.com>:~/.ssh/authorized_keys
-```
-
-Log in as the new user for all remaining steps:
-
-```bash
-ssh <user_name>@<yourdomain.com>
-```
-
-### 1c. Update the system
-
-```bash
-sudo apt update && sudo apt upgrade -y
-```
-
-### 1d. Create swap space 
-
-This step is optional. It is recommended for small VPS having 2GB RAM or less.
-
-```bash
-sudo fallocate -l 1G /swapfile
-sudo chmod 600 /swapfile
-sudo mkswap /swapfile
-sudo swapon /swapfile
-# Make permanent
-echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
-```
-
----
+Follow [Initial Linux Server Setup](initial-linux-server-setup.md) if you do not have a user account in linux
 
 ## 2. Install Docker Engine and Docker Compose
 
@@ -82,37 +37,27 @@ docker info    # verify
 
 ---
 
-## 3. Create the Project Directory Structure
+## 3. Clone the qCalc Repository from Git
 
 ```bash
-mkdir -p ~/qcalc_dock/.local/nginx/conf
+cd ~
+git clone https://github.com/qcalc/qcalc.git qcalc_dock
+```
+
+---
+
+## 4. Create the Project Directory Structure
+
+```bash
 mkdir -p ~/qcalc_dock/.local/nginx/templates
+mkdir -p ~/qcalc_dock/.local/nginx/conf
 mkdir -p ~/qcalc_dock/.local/certbot/conf
 mkdir -p ~/qcalc_dock/.local/certbot/www
 mkdir -p ~/qcalc_dock/.local/log/nginx
 mkdir -p ~/qcalc_dock/.local/log/gunicorn
 mkdir -p ~/qcalc_dock/.local/log/certbot
 mkdir -p ~/qcalc_dock/.temp
-mkdir -p ~/qcalc_dock/.cache
-mkdir -p ~/qcalc_dock/qcalc_res
-```
-
----
-
-## 4. Deploy the qCalc Project
-
-### 4a. Clone from Git
-
-```bash
-cd ~/qcalc_dock
-git clone <your-qcalc-repo-url> qcalc
-```
-
-### 4b. Transfer resource files from your local machine (if not in Git)
-
-```bash
-# Run from your local machine
-scp -r qcalc_res <user_name>@<yourdomain.com>:~/qcalc_dock/
+mkdir -p ~/qcalc_dock/qcalc/.setup
 ```
 
 ---
@@ -122,7 +67,7 @@ scp -r qcalc_res <user_name>@<yourdomain.com>:~/qcalc_dock/
 The compose template is at `qcalc/setup/docker/template_docker.yml`. Copy it one level up as `docker-compose.yml`:
 
 ```bash
-cp ~/qcalc_dock/qcalc/setup/docker/template_docker.yml ~/qcalc_dock/docker-compose.yml
+cp ~/qcalc_dock/qcalc/setup/docker/template_docker.yml ~/qcalc_dock/qcalc/.setup/docker-compose.yml
 ```
 
 > The compose file uses `~/qcalc_dock/.local/` paths for all volumes. No edits are required unless you change the installation directory.

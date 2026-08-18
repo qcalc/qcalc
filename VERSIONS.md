@@ -107,6 +107,10 @@ and validation of schema, compatibility, and application behavior before deploym
 - if using Redis: version 6.2.23 or 8.0.1 or above (using protocol=3)
 - if using Memcached: version 1.6.8 or above
 
+## OTHERS
+
+- nginx: version 1.31.3
+- gunicorn: version 23.0.0
 
 ## OPTIONAL 
 

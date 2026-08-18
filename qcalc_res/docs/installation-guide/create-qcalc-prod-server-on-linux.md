@@ -13,13 +13,10 @@ This guide covers a bare-metal (no Docker) deployment of qCalc on an Ubuntu VPS 
 
 ---
 
-## 1. Update the System
+## 1. Initial Linux Server Setup
 
-```bash
-sudo apt update && sudo apt upgrade -y
-```
+Follow [Initial Linux Server Setup](initial-linux-server-setup.md) if you do not have a user account in linux
 
----
 
 ## 2. Install Python 3.12
 
@@ -52,7 +49,59 @@ sudo apt install git -y
 
 ---
 
-## 4. Install PostgreSQL
+## 4. Clone the qCalc Repository from Git
+
+```bash
+cd ~
+git clone https://github.com/qcalc/qcalc.git qcalc_dock
+cd ~/qcalc_dock/qcalc
+```
+
+If you are transferring files manually (e.g. via `scp` or `rsync`), ensure the full project structure is present:
+
+```
+~/qcalc_dock/
+    qcalc/          # Django project root
+    qcalc_res/      # Resource files (json, help, model)
+```
+
+## 5. Create the Python Virtual Environment
+
+```bash
+python3.12 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+pip install gunicorn
+```
+
+## 6. Create the Project Directory Structure
+
+```bash
+mkdir -p ~/qcalc_dock/.local/nginx/conf
+mkdir -p ~/qcalc_dock/.local/nginx/templates
+mkdir -p ~/qcalc_dock/.local/certbot/conf
+mkdir -p ~/qcalc_dock/.local/certbot/www
+mkdir -p ~/qcalc_dock/.local/log/nginx
+mkdir -p ~/qcalc_dock/.local/log/gunicorn
+mkdir -p ~/qcalc_dock/.local/log/certbot
+mkdir -p ~/qcalc_dock/.temp
+mkdir -p ~/qcalc_dock/.cache
+mkdir -p ~/qcalc_dock/qcalc_res
+```
+
+## 7. Copy Configuration Templates
+
+From `~/qcalc_dock/qcalc/`:
+
+```bash
+cp setup/env/template_setup.env setup.env
+cp setup/env/template_prod.env .setup/prod.env
+cp setup/env/template_gpref.json gpref.json
+```
+
+## 8. Install Database Service
+
+### 8a. Install PostgreSQL
 
 ```bash
 sudo apt install postgresql postgresql-contrib -y
@@ -68,13 +117,21 @@ sudo -u postgres psql
 
 ```sql
 CREATE DATABASE qcalc;
-CREATE USER postgres WITH PASSWORD '<your_secure_password>';
-GRANT ALL PRIVILEGES ON DATABASE qcalc TO postgres;
+CREATE USER admin WITH PASSWORD '<your_secure_password>';
+GRANT ALL PRIVILEGES ON DATABASE qcalc TO admin;
 ```
 
-> Replace `your_secure_password` with a strong password. Record it — you will need it in step 9.
+Install the PostgreSQL dependency, from `~/qcalc_dock/qcalc/`:
 
-### 4b. (Optional) Install MySQL instead of PostgreSQL
+```bash
+source .venv/bin/activate
+pip install psycopg2-binary==2.9.9
+```
+
+
+> Replace `your_secure_password` with a strong password. Record it — you will need it later.
+
+### 8b. (Optional) Install MySQL instead of PostgreSQL
 
 ```bash
 sudo apt install mysql-server -y
@@ -101,11 +158,19 @@ Install the Python MySQL client (also install the build deps from step 3 if not 
 
 ```bash
 sudo apt install build-essential pkg-config libmysqlclient-dev -y
-source ~/qcalc_dock/qcalc/.venv/bin/activate
+cd ~/qcalc_dock/qcalc
+source .venv/bin/activate
 pip install mysqlclient==2.2.1
 ```
 
-In `.setup/prod.env` use:
+### 8c. Edit `.setup/prod.env` to Update Database Environment
+
+From `~/qcalc_dock/qcalc/`:
+
+```bash
+nano .setup/prod.env
+```
+If you have installed MySQL:
 
 ```env
 DB_ENGINE="django.db.backends.mysql"
@@ -116,9 +181,22 @@ DB_HOST="127.0.0.1"
 DB_PORT="3306"
 ```
 
+If you have installed PostgreSQL:
+
+```env
+DB_ENGINE="django.db.backends.postgresql_psycopg2"
+DB_NAME="qcalc"
+DB_USER="admin"
+DB_PASSWORD="<your_secure_password>"
+DB_HOST="127.0.0.1"
+DB_PORT="5432"
+```
+
 ---
 
-## 5. Install Memcached
+## Install Caching Service
+
+### 9a. Install Memcached
 
 ```bash
 sudo apt install memcached libmemcached-tools -y
@@ -128,7 +206,7 @@ sudo systemctl start memcached
 
 Memcached listens on `127.0.0.1:11211` by default. Edit `/etc/memcached.conf` to set the cache size (e.g. `-m 256` for 256 MB).
 
-### 5b. (Optional) Install Redis instead of Memcached
+### 9b. (Optional) Install Redis instead of Memcached
 
 ```bash
 sudo apt install redis-server -y
@@ -143,7 +221,17 @@ redis-cli ping
 # Expected output: PONG
 ```
 
-In `.setup/prod.env` use:
+### 9c. Edit `.setup/prod.env` to Update Caching Environment:
+
+If you have installed Memcached:
+
+```env
+DEFAULT_CACHE_ALIAS="memcached"
+MEMCACHE_HOST="127.0.0.1"
+MEMCACHE_PORT="11211"
+```
+
+If you have installed Redis:
 
 ```env
 DEFAULT_CACHE_ALIAS="redis"
@@ -155,7 +243,7 @@ REDIS_DB="1"
 
 ---
 
-## 6. Install Nginx
+## 10. Install Nginx
 
 ```bash
 sudo apt install nginx -y
@@ -164,7 +252,7 @@ sudo systemctl enable nginx
 
 ---
 
-## 7. Install Certbot
+## 11. Install Certbot
 
 ```bash
 sudo snap install --classic certbot
@@ -173,57 +261,14 @@ sudo ln -s /snap/bin/certbot /usr/bin/certbot
 
 ---
 
-## 8. Deploy the qCalc Project
-
-Choose a home directory, for example `/home/ubuntu`. All paths below assume the project lives at `~/qcalc_dock`.
-
-```bash
-cd ~
-git clone <your-qcalc-repo-url> qcalc_dock
-```
-
-If you are transferring files manually (e.g. via `scp` or `rsync`), ensure the full project structure is present:
-
-```
-~/qcalc_dock/
-    qcalc/          # Django project root
-    qcalc_res/      # Resource files (json, help, model)
-```
-
-Create the required local directories:
-
-```bash
-mkdir -p ~/qcalc_dock/.local/log/gunicorn
-mkdir -p ~/qcalc_dock/.local/log/nginx
-mkdir -p ~/qcalc_dock/.temp
-mkdir -p ~/qcalc_dock/.cache
-```
-
----
-
-## 9. Set Up the Python Virtual Environment
-
-```bash
-cd ~/qcalc_dock/qcalc
-python3.12 -m venv .venv
-source .venv/bin/activate
-
-pip install -r requirements.txt
-pip install -r req_database.txt      # psycopg2-binary for PostgreSQL
-pip install gunicorn
-```
-
----
-
 ## 10. Configure Environment Files
 
-### 10a. `setup.env`
+### 10a. `~/qcalc_dock/qcalc/setup.env`
 
 Copy the template and edit it:
 
 ```bash
-cp setup/env/template_setup.env setup.env
-nano setup.env
+nano ~/qcalc_dock/qcalc/setup.env
 ```
 
 Set production values:
@@ -235,37 +280,27 @@ QCALC_ENV_FILE=".setup/prod.env"
 DJANGO_SETTINGS_MODULE="config.settings.prd"
 ```
 
-### 10b. Production `.env` File
+### 10b. Production `.setup/prod.env` File
 
 ```bash
-mkdir -p .setup
-cp setup/env/template_prod.env .setup/prod.env
-nano .setup/prod.env
+nano ~/qcalc_dock/qcalc/.setup/prod.env
 ```
 
-Fill in your values (see `setup/env/template_all_env_settings.env` for full reference):
+Edit rest of the environment variables as appropriate (see `setup/env/template_all_env_settings.env` for full reference):
 
 ```env
 ROBOTS_TXT="robots.prod.txt"
 DJANGO_DEBUG="False"
 DJANGO_SECRET_KEY="<generate with: python -c 'import secrets; print(secrets.token_urlsafe(50))'>"
 
-DB_ENGINE="django.db.backends.postgresql_psycopg2"
-DB_NAME="qcalc"
-DB_USER="postgres"
-DB_PASSWORD="<your_secure_password>"
-DB_HOST="127.0.0.1"
-DB_PORT="5432"
+# Keep the Databse Environment Variables as we edited before
+# Keep the Caching Environment Variables as we edited before
 
-DEFAULT_CACHE_ALIAS="memcached"
-MEMCACHE_HOST="127.0.0.1"
-MEMCACHE_PORT="11211"
-
-FILE_UPLOAD_TEMP_DIR="/home/ubuntu/qcalc_dock/.temp/"
-JSON_FILES_DIR="/home/ubuntu/qcalc_dock/qcalc_res/json/"
-HELP_FILES_DIR="/home/ubuntu/qcalc_dock/qcalc_res/help/"
-DOCS_FILES_DIR="/home/ubuntu/qcalc_dock/qcalc_res/docs/"
-AI_MODELS_DIR="/home/ubuntu/qcalc_dock/qcalc_res/model/"
+FILE_UPLOAD_TEMP_DIR="/home/<user_id>/qcalc_dock/.temp/"
+JSON_FILES_DIR="/home/<user_id>/qcalc_dock/qcalc_res/json/"
+HELP_FILES_DIR="/home/<user_id>/qcalc_dock/qcalc_res/help/"
+DOCS_FILES_DIR="/home/<user_id>/qcalc_dock/qcalc_res/docs/"
+AI_MODELS_DIR="/home/<user_id>/qcalc_dock/qcalc_res/model/"
 
 # Optional API keys
 FIXER_API_KEY="<your_fixer_api_key>"
@@ -279,20 +314,26 @@ DJANGO_EMAIL_HOST_USER="<you@yourdomain.com>"
 DJANGO_EMAIL_HOST_PASSWORD="<your_email_password>"
 ```
 
-### 10c. `gpref.json`
+### 10c. Edit Global Preferences `gpref.json`
+
+You can keep the file as it is for time being.
 
 ```bash
-cp setup/env/template_gpref.json gpref.json
+nano ~/qcalc_dock/qcalc/gpref.json
 ```
 
 ---
 
-## 11. Initialise Django
+## 11. Initialize Django
+
+If you are not already in virtual environment
 
 ```bash
 cd ~/qcalc_dock/qcalc
 source .venv/bin/activate
+```
 
+```bash
 python manage.py migrate
 python manage.py collectstatic --noinput
 
@@ -312,6 +353,8 @@ Create a systemd unit file that mirrors the three-instance setup used in Docker:
 ```bash
 sudo nano /etc/systemd/system/qcalc.service
 ```
+Replace <user_id> with your actual linux user_id. qCalc supports multiple workers per application instance. This file has defined 3 application instances and 4 workers per instances. Depending on number of potential users you can decide and change `-- workers 4` parameter and number of instances.
+If you want a stable low load in-house production environment you can keep just 1 instance and 2 workers. 
 
 ```ini
 [Unit]
@@ -319,29 +362,29 @@ Description=qCalc Gunicorn workers
 After=network.target postgresql.service memcached.service
 
 [Service]
-User=ubuntu
-Group=ubuntu
-WorkingDirectory=/home/ubuntu/qcalc_dock/qcalc
-Environment="PATH=/home/ubuntu/qcalc_dock/qcalc/.venv/bin"
+User=<user_id>
+Group=<user_id>
+WorkingDirectory=/home/<user_id>/qcalc_dock/qcalc
+Environment="PATH=/home/<user_id>/qcalc_dock/qcalc/.venv/bin"
 ExecStart=/bin/bash -c '\
   export GUNICORN_INSTANCE_ID=instance_1; \
-  /home/ubuntu/qcalc_dock/qcalc/.venv/bin/gunicorn config.wsgi:application \
+  /home/<user_id>/qcalc_dock/qcalc/.venv/bin/gunicorn config.wsgi:application \
     --bind 127.0.0.1:8001 --workers 4 --timeout 900 \
-    --access-logfile /home/ubuntu/qcalc_dock/.local/log/gunicorn/access_1.log \
-    --error-logfile /home/ubuntu/qcalc_dock/.local/log/gunicorn/error_1.log \
-    --log-file /home/ubuntu/qcalc_dock/.local/log/gunicorn/qcalc_1.log & \
+    --access-logfile /home/<user_id>/qcalc_dock/.local/log/gunicorn/access_1.log \
+    --error-logfile /home/<user_id>/qcalc_dock/.local/log/gunicorn/error_1.log \
+    --log-file /home/<user_id>/qcalc_dock/.local/log/gunicorn/qcalc_1.log & \
   export GUNICORN_INSTANCE_ID=instance_2; \
-  /home/ubuntu/qcalc_dock/qcalc/.venv/bin/gunicorn config.wsgi:application \
+  /home/<user_id>/qcalc_dock/qcalc/.venv/bin/gunicorn config.wsgi:application \
     --bind 127.0.0.1:8002 --workers 4 --timeout 900 \
-    --access-logfile /home/ubuntu/qcalc_dock/.local/log/gunicorn/access_2.log \
-    --error-logfile /home/ubuntu/qcalc_dock/.local/log/gunicorn/error_2.log \
-    --log-file /home/ubuntu/qcalc_dock/.local/log/gunicorn/qcalc_2.log & \
+    --access-logfile /home/<user_id>/qcalc_dock/.local/log/gunicorn/access_2.log \
+    --error-logfile /home/<user_id>/qcalc_dock/.local/log/gunicorn/error_2.log \
+    --log-file /home/<user_id>/qcalc_dock/.local/log/gunicorn/qcalc_2.log & \
   export GUNICORN_INSTANCE_ID=instance_3; \
-  /home/ubuntu/qcalc_dock/qcalc/.venv/bin/gunicorn config.wsgi:application \
+  /home/<user_id>/qcalc_dock/qcalc/.venv/bin/gunicorn config.wsgi:application \
     --bind 127.0.0.1:8003 --workers 4 --timeout 900 \
-    --access-logfile /home/ubuntu/qcalc_dock/.local/log/gunicorn/access_3.log \
-    --error-logfile /home/ubuntu/qcalc_dock/.local/log/gunicorn/error_3.log \
-    --log-file /home/ubuntu/qcalc_dock/.local/log/gunicorn/qcalc_3.log & \
+    --access-logfile /home/<user_id>/qcalc_dock/.local/log/gunicorn/access_3.log \
+    --error-logfile /home/<user_id>/qcalc_dock/.local/log/gunicorn/error_3.log \
+    --log-file /home/<user_id>/qcalc_dock/.local/log/gunicorn/qcalc_3.log & \
   wait'
 Restart=on-failure
 
@@ -362,7 +405,7 @@ sudo systemctl status qcalc
 
 ### 13a. Main `nginx.conf`
 
-Based on `setup/nginx/template_nginx.conf-v1.4j.conf`. Copy it to `/etc/nginx/nginx.conf`:
+Base your config on `setup/nginx/template_nginx.conf-v1.4j.conf`. Copy it to `/etc/nginx/nginx.conf`:
 
 ```bash
 sudo cp ~/qcalc_dock/qcalc/setup/nginx/template_nginx.conf-v1.4j.conf /etc/nginx/nginx.conf

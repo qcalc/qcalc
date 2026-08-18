@@ -2,27 +2,32 @@
   "create-calculators-user-guide.md": {
     "title": "qCalc End User Guide",
     "desc": "Detailed guide to using qCalc's calculators and features.",
-    "order": 1
+    "order": 110
   },
   "create-calculators-examples.md": {
     "title": "Calculator Examples",
     "desc": "Worked examples for building calculators.",
-    "order": 2
+    "order": 120
+  },
+  "install-linux-server-setup.md": {
+    "title": "Initial Linux Server Setup",
+    "desc": "Setting up a user account in linux.",
+    "order": 200
   },
   "create-qcalc-dev-system.md": {
     "title": "Development System Setup",
     "desc": "Setting up a qCalc development environment.",
-    "order": 10
+    "order": 210
   },
   "create-qcalc-prod-server-on-docker.md": {
     "title": "Production Server on Docker",
     "desc": "Deploying qCalc to production using Docker.",
-    "order": 11
+    "order": 220
   },
   "create-qcalc-prod-server-on-linux.md": {
     "title": "Production Server on Linux",
     "desc": "Deploying qCalc to production directly on Linux.",
-    "order": 12
+    "order": 230
   },
   "nodoc.html": {"hidden": true}
 }

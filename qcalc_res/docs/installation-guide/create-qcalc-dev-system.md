@@ -32,10 +32,12 @@ py -3.12 --version
 
 ---
 
-### 2. Clone the Repository
+### 2. Clone the qCalc Repository from Git
+
+Move to directory where you want to clone.
 
 ```powershell
-git clone <your-qcalc-repo-url> qcalc_dock
+git clone https://github.com/qcalc/qcalc.git qcalc_dock
 cd qcalc_dock/qcalc
 ```
 
@@ -205,13 +207,14 @@ python3.12 --version
 ### 2. Clone the Repository
 
 ```bash
-git clone <your-qcalc-repo-url> qcalc_dock
-cd qcalc_dock/qcalc
+cd ~
+git clone https://github.com/qcalc/qcalc.git qcalc_dock
+cd ~/qcalc_dock/qcalc
 ```
 
 ### 3. Run the Automated Installation Script
 
-From `qcalc_dock/qcalc/`:
+From `~/qcalc_dock/qcalc/`:
 
 ```bash
 cp setup/install_qcalc.sh setup/install_qcalc
@@ -223,6 +226,8 @@ The script runs steps 4-7 below. If you prefer to proceed manually, follow those
 
 ### 4. Create the Python Virtual Environment
 
+From `~/qcalc_dock/qcalc/`:
+
 ```bash
 python3.12 -m venv .venv
 source .venv/bin/activate
@@ -232,12 +237,14 @@ pip install -r requirements.txt
 ### 5. Create Required Directories
 
 ```bash
-mkdir -p ../.local
-mkdir -p ../.temp
-mkdir -p .setup
+mkdir -p ~/qcalc_dock/.local
+mkdir -p ~/qcalc_dock/.temp
+mkdir -p ~/qcalc_dock/qcal/.setup
 ```
 
 ### 6. Copy Configuration Templates
+
+From `~/qcalc_dock/qcalc/`:
 
 ```bash
 cp setup/env/template_setup.env setup.env

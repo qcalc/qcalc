@@ -1,3 +1,6 @@
+# Run this file to build a docker image named qcalc
+# docker build -f <this_file_name> -t qcalc .
+
 FROM python:3.12.1-slim
 
 RUN apt-get update && apt-get install -y \
@@ -10,11 +13,23 @@ ENV PIP_DISABLE_PIP_VERSION_CHECK 1
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-WORKDIR /usr/src/qcalc_dock/qcalc
+# Either clone the repo from github, by uncommenting the 2 following lines
+# WORKDIR /usr/src/
+# RUN git clone https://github.com/qcalc/qcalc.git qcalc_dock
 
-COPY . .
+# (optional) Or if you have already cloned locally to ~/qcal_dock folder, just copy them
+# by uncommenting the 2 following lines instead
+# WORKDIR /usr/src/qcalc_dock/
+# COPY . .
+
 RUN pip install --no-cache-dir -r requirements.txt
-RUN pip install --no-cache-dir -r req_database.txt
-RUN pip install gunicorn
+
+# Uncomment the following line if you want MySQL
+# RUN pip install --no-cache-dir mysqlclient==2.2.1
+
+# (optional) Uncomment the following line if you want PostgreSQL instead
+# RUN pip install --no-cache-dir psycopg2-binary==2.9.9
+
+RUN pip install --no-cache-dir gunicorn=23.0.0
 
 

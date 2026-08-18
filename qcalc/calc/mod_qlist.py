@@ -78,10 +78,7 @@ def load_currency(update_now=False, backup=False):
         if j_list == {}:
             notfound = True
         elif success:
-            # todate = date.today()
-            # jcdate = date.fromisoformat(j_list["date"])
-            # obsolete = jcdate + timedelta(1) < todate
-            obsolete = is_obsolete(j_list["timestamp"], 36400)
+            obsolete = is_obsolete(j_list["timestamp"], 36000)
         else:
             logger.error("LDC: "+j_list["error"]["info"])
 

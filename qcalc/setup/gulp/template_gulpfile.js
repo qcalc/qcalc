@@ -12,10 +12,10 @@ const gulp = require('gulp');
 const rename = require('gulp-rename');
 
 // Replace this path with your own project path
-const projectRoot = 's:/PROJECTS/QCALC/github/qcalc_dock/qcalc';
-const qcalc_TemplatesPath = `${projectRoot}/qsite/templates`;
-const calcTemplatesPath = `${projectRoot}/calc/templates`;
-const catalogTemplatesPath = `${projectRoot}/catalog/templates`;
+const appRoot = '<replace_your_path>/qcalc_dock/qcalc';
+const qcalc_TemplatesPath = `${appRoot}/qsite/templates`;
+const calcTemplatesPath = `${appRoot}/calc/templates`;
+const catalogTemplatesPath = `${appRoot}/catalog/templates`;
 
 gulp.task('include1', function() {
   return gulp.src([`${qcalc_TemplatesPath}/_gulp-base.html`])

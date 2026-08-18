@@ -2,6 +2,10 @@ import json
 from pathlib import Path
 from qutil import TreeNode
 from django.conf import settings
+import posixpath
+from urllib.parse import urlsplit, urlunsplit
+from bs4 import BeautifulSoup
+from django.urls import reverse
 import logging
 
 logger = logging.getLogger(__name__)
@@ -79,3 +83,58 @@ def build_docs_tree(nid='docs', title='Documentation'):
     for nd in root.depth_first():
         nd.children.sort(key=lambda c: (c.data.get('order', 999), c.title))
     return root
+
+
+def fix_doc_links(html, pname):
+    soup = BeautifulSoup(html, 'html.parser')
+    current_dir = posixpath.dirname(pname)
+
+    for a in soup.find_all('a', href=True):
+        href = a['href']
+
+        parts = urlsplit(href)
+
+        if (
+            not parts.path
+            or parts.path.startswith('/')
+            or parts.scheme
+            or parts.netloc
+        ):
+            continue
+
+        # Resolve the relative Markdown link against the current document
+        target = posixpath.normpath(
+            posixpath.join(current_dir, parts.path)
+        )
+
+        # Only rewrite links to documentation files
+        if not target.endswith(('.md', '.html')):
+            continue
+
+        doc_url = reverse(
+            'add-page-doc',
+            kwargs={'pname': target}
+        )
+
+        doc_url_part = f'{doc_url}?part=1'
+
+        a['href'] = urlunsplit((
+            '',
+            '',
+            doc_url,
+            parts.query,
+            parts.fragment
+        ))
+
+        a['hx-get'] = urlunsplit((
+            '',
+            '',
+            doc_url_part,
+            parts.query,
+            parts.fragment
+        ))
+        a['hx-target'] = 'closest .calc'
+        a['hx-swap'] = 'afterend'
+        a['hx-trigger'] = f"click[get_card_once('{posixpath.basename(parts.path)}__page')]"
+
+    return str(soup)

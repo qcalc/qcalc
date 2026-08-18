@@ -1,0 +1,2 @@
+# for linux or docker production
+pip install gunicorn=23.0.0

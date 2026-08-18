@@ -1,15 +1,17 @@
 version: '3.8'
 
 name: qcalc
+
 services:
+  # 1. SSL AUTOMATION
   certbot:
-    image: certbot/certbot
+    image: certbot/certbot:v2.11.0
     container_name: certbot
-    restart: no
+    restart: "no"
     # manual run to generate certificate
     # certbot certonly --webroot --webroot-path=/var/www/certbot --email <your_email> --agree-tos --no-eff-email --cert-name <your_domain> -d <your_domain> -d www.<your_domain>
     # bash does not exist in certbot container
-    entrypoint: /bin/sh -c "trap 'exit' TERM && while :; do certbot renew --non-interactive; sleep 12h & wait $${!}; done;"
+    entrypoint: /bin/sh -c "trap 'exit' TERM; while :; do certbot renew --non-interactive; sleep 12h & wait $${!}; done;"
     volumes:
       - ~/qcalc_dock/.local/certbot/conf:/etc/letsencrypt
       - ~/qcalc_dock/.local/certbot/www:/var/www/certbot
@@ -17,12 +19,14 @@ services:
     networks:
       - qcnet
     depends_on:
-      - nginx
+      nginx:
+        condition: service_started
 
+  # 2. REVERSE PROXY & ROUTER
   nginx:
-    image: nginx:1.31
+    image: nginx:1.27-alpine
     container_name: nginx
-    restart: no
+    restart: always
     ports:
       - "80:80"
       - "443:443"
@@ -40,82 +44,85 @@ services:
     networks:
       - qcnet
     depends_on:
-      - qcalc
+      qcalc:
+        condition: service_started
 
-  qcalc:
+  # 3. ONE-TIME MIGRATION WORKER
+  qcalc_init:
     image: qcalc
     build:
-      context: ~/.setup
+      context: ~/qcalc_dock/qcalc/.setup
       dockerfile: <your_docker_file>
-    container_name: qcalc
-    restart: no
-    #gunicorn config.wsgi:application -b 0.0.0.0:8001 -w 2 --log-file ../qcalc.log
-    environment:
-      - GUNICORN_INSTANCE_ID=instance
+    container_name: qcalc_migration_runner
+    restart: "no"
     command: >
-      bash -c '
+      bash -c "
         python manage.py collectstatic --noinput &&
         python manage.py makemigrations &&
-        python manage.py migrate &&
-        export GUNICORN_INSTANCE_ID="instance_1";
-        gunicorn config.wsgi:application --bind 0.0.0.0:8001 --workers 4 --timeout 900 --access-logfile /var/log/gunicorn/access_1.log --error-logfile /var/log/gunicorn/error_1.log --log-file /var/log/gunicorn/qcalc_1.log &
-        export GUNICORN_INSTANCE_ID="instance_2";
-        gunicorn config.wsgi:application --bind 0.0.0.0:8002 --workers 4 --timeout 900 --access-logfile /var/log/gunicorn/access_2.log --error-logfile /var/log/gunicorn/error_2.log --log-file /var/log/gunicorn/qcalc_2.log &
-        export GUNICORN_INSTANCE_ID="instance_3";
-        gunicorn config.wsgi:application --bind 0.0.0.0:8003 --workers 4 --timeout 900 --access-logfile /var/log/gunicorn/access_3.log --error-logfile /var/log/gunicorn/error_3.log --log-file /var/log/gunicorn/qcalc_3.log &
-        wait
-      '
-    # gunicorn timeout 15 minutes or 900 seconds
+        python manage.py migrate
+      "
+    volumes:
+      - ~/qcalc_dock/qcalc:/usr/src/qcalc_dock/qcalc
+      - ~/qcalc_dock/qcalc_res:/usr/src/qcalc_dock/qcalc_res
+      - static:/usr/src/qcalc_dock/qcalc/staticfiles/
+    networks:
+      - qcnet
+    depends_on:
+      memcached:
+        condition: service_started
+#     redis:
+#       condition: service_started
+      postgres:
+        condition: service_started
+#     mysql:
+#       condition: service_started
+
+  # 4. SCALABLE WEB SERVICE (REPLICAS)
+  qcalc:
+    image: qcalc
+    restart: always
+    deploy:
+      replicas: 3
+    environment:
+      - GUNICORN_INSTANCE_ID=${HOSTNAME:-qcalc_web_node}
+    command: gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 2 --timeout 900
     volumes:
       - ~/qcalc_dock/qcalc:/usr/src/qcalc_dock/qcalc
       - ~/qcalc_dock/qcalc_res:/usr/src/qcalc_dock/qcalc_res
       - ~/qcalc_dock/.cache:/usr/src/qcalc_dock.cache
-      - ~/qcalc_dock/.local/log/gunicorn:/var/log/gunicorn
       - ~/qcalc_dock/.temp:/usr/src/qcalc_dock/.temp
-      # check nginx location /static/, the path should be consistent
+      - ~/qcalc_dock/.local/log/gunicorn:/var/log/gunicorn
       - static:/usr/src/qcalc_dock/qcalc/staticfiles/
-    ports:
-      - "8001:8001"
-      - "8002:8002"
-      - "8003:8003"
-      # - "8004:8004"
-      # - "8005:8005"
     networks:
       - qcnet
     depends_on:
-      - cache
-      - db
+      qcalc_init:
+        condition: service_completed_successfully
+      memcached:
+        condition: service_started
+#     redis:
+#       condition: service_started
+      postgres:
+        condition: service_started
+#     mysql:
+#       condition: service_started
 
-
-  cache:
-    image: memcached:1.6
+  # 5. CACHE ENGINE: MEMCACHED
+  memcached:
+    image: memcached:1.6-alpine
     container_name: memcached
     restart: always
     ports:
       - "11211:11211"
-    # memcached cache size 256 MB RAM
     command: memcached -m 256
     networks:
       - qcnet
 
-#  cache:
-#    image: redis:8
-#    container_name: redis
-#    restart: always
-#    ports:
-#      - "6379:6379"
-#    networks:
-#      - qcnet
-#    healthcheck:
-#      test: ["CMD", "redis-cli", "ping"]
-#      interval: 5s
-#      timeout: 3s
-#      retries: 5
-
-  db:
-    image: postgres:16
+  # 6. DATABASE ENGINE: POSTGRESQL
+  postgres:
+    image: postgres:16-alpine
     container_name: postgres
-    restart: no
+    restart: always
     volumes:
       - pgdata:/var/lib/postgresql/data
     ports:
@@ -127,10 +134,20 @@ services:
     networks:
       - qcnet
 
-#  db:
+# --- EXTRA SERVICE ALTERNATIVES (UNCOMMENT TO USE) ---
+#  redis:
+#    image: redis:8
+#    container_name: redis
+#    restart: always
+#    ports:
+#      - "6379:6379"
+#    networks:
+#      - qcnet
+
+#  mysql:
 #    image: mysql:8.4
 #    container_name: mysql
-#    restart: "no"
+#    restart: always
 #    volumes:
 #      - mysqldata:/var/lib/mysql
 #    ports:
@@ -150,8 +167,8 @@ networks:
 
 volumes:
   pgdata:
-    external: true
     name: pgdata
+#  mysqldata:
+#    name: mysqldata
   static:
-    external: true
     name: static

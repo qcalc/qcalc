@@ -3,7 +3,7 @@
 
 from . import __version__
 from calc import QCals, QCache, QPref, get_help_path, cur_as_of
-from .mod_docs import get_doc_path, build_docs_tree
+from .mod_docs import get_doc_path, build_docs_tree, fix_doc_links
 from qutil import HtmxHttpRequest, get_page, q1139_request_init
 from django.conf import settings
 from django.utils.html import escape
@@ -165,6 +165,7 @@ def q1_add_doc(request: HtmxHttpRequest, **kwargs):
             _read_doc_text(doc_path),
             extensions=qconst.MARKDOWN_EXTENSIONS, output_format='html'
         )
+        document_html = fix_doc_links(document_html, pname)
         context = {'help_html': '', 'dyn_html': document_html}
     elif doc_exists and doc_path.suffix in ['.txt']: #,'', '.py'
         # plain text has no markup, so escape it and turn newlines into <br> to preserve line breaks

@@ -375,7 +375,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'  # for Django v3.2
 
 # GENERAL
 # QCALC_SCHEME = env("QCALC_SCHEME", default='http')
-# QCALC_DOMAIN = env("QCALC_DOMAIN", "127.0.0.1:8000")
+# QCALC_DOMAIN = env("QCALC_DOMAIN", default="127.0.0.1:8000")
 # # Split the domain string at the colon
 # domain_parts = QCALC_DOMAIN.split(':')
 # QCALC_PORT = domain_parts[1] if len(domain_parts) > 1 else ""
@@ -521,7 +521,7 @@ QSCHEMA_CACHE_ALIAS = f'{DEFAULT_CACHE_ALIAS}_schema'
 SELECT2_CACHE_BACKEND = DEFAULT_CACHE_ALIAS
 
 QCALC_SCHEME = env("QCALC_SCHEME", default='http')
-QCALC_DOMAIN = env("QCALC_DOMAIN", "127.0.0.1:8000")
+QCALC_DOMAIN = env("QCALC_DOMAIN", default="127.0.0.1:8000")
 
 # Split the domain string at the colon
 domain_parts = QCALC_DOMAIN.split(':')

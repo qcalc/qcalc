@@ -9,9 +9,9 @@ import logging
 
 import qenv
 
-
 NOTE_LEVEL = 35
 print(f"Reading {__file__} ...")
+
 
 def _note(self, message, *args, **kwargs):
     if self.isEnabledFor(NOTE_LEVEL):
@@ -374,9 +374,12 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'  # for Django v3.2
 # )
 
 # GENERAL
-QCALC_SCHEME = env("QCALC_SCHEME", default='https')
-QCALC_DOMAIN = env("QCALC_DOMAIN", default=env.NOTSET)
-QCALC_HOST = QCALC_DOMAIN.split(":")[0].replace("www.","")
+# QCALC_SCHEME = env("QCALC_SCHEME", default='http')
+# QCALC_DOMAIN = env("QCALC_DOMAIN", "127.0.0.1:8000")
+# # Split the domain string at the colon
+# domain_parts = QCALC_DOMAIN.split(':')
+# QCALC_PORT = domain_parts[1] if len(domain_parts) > 1 else ""
+# QCALC_HOST = domain_parts[0].replace("www.","")
 # ------------------------------------------------------------------------------
 ROBOTS_TXT = env("ROBOTS_TXT", default=env.NOTSET)
 # https://docs.djangoproject.com/en/dev/ref/settings/#debug
@@ -516,3 +519,55 @@ QSCHEMA_CACHE_ALIAS = f'{DEFAULT_CACHE_ALIAS}_schema'
 # Tell select2 which cache configuration to use:
 # SELECT2_CACHE_BACKEND = "select2"
 SELECT2_CACHE_BACKEND = DEFAULT_CACHE_ALIAS
+
+QCALC_SCHEME = env("QCALC_SCHEME", default='http')
+QCALC_DOMAIN = env("QCALC_DOMAIN", "127.0.0.1:8000")
+
+# Split the domain string at the colon
+domain_parts = QCALC_DOMAIN.split(':')
+QCALC_PORT = domain_parts[1] if len(domain_parts) > 1 else ""
+QCALC_HOST = domain_parts[0].replace("www.", "")
+
+# ==========================================
+# Dynamic Host and CSRF Configuration
+# ==========================================
+# https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
+
+
+ALLOWED_HOSTS = [
+    "127.0.0.1",
+    "localhost",
+]
+CSRF_TRUSTED_ORIGINS = [
+    "http://127.0.0.1",
+    "http://localhost",
+    "http://127.0.0.1:8000",
+    "http://localhost:8000",
+]
+
+# 1. Populate ALLOWED_HOSTS (Strictly domain names, NO protocols/ports)
+if QCALC_HOST not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(QCALC_HOST)
+
+# Only add www. prefix if it's a domain name (not an IP address like 127.0.0.1)
+if not QCALC_HOST.replace('.', '').isdigit():
+    www_host = f"www.{QCALC_HOST}"
+    if www_host not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(www_host)
+
+# 2. Populate CSRF_TRUSTED_ORIGINS (Requires protocol + host + port if exists)
+if QCALC_PORT:
+    base_origin = f"{QCALC_SCHEME}://{QCALC_HOST}:{QCALC_PORT}"
+    if base_origin not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(base_origin)
+else:
+    # Standard production URL (no ports)
+    base_origin = f"{QCALC_SCHEME}://{QCALC_HOST}"
+    if base_origin not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(base_origin)
+
+    # Add www version for production domains
+    if not QCALC_HOST.replace('.', '').isdigit():
+        www_origin = f"{QCALC_SCHEME}://www.{QCALC_HOST}"
+        if www_origin not in CSRF_TRUSTED_ORIGINS:
+            CSRF_TRUSTED_ORIGINS.append(www_origin)

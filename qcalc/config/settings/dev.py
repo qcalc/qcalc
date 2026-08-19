@@ -68,15 +68,3 @@ elif QCALC_PROFILING == 'silk':
         {'module': 'qcore.PhysicalQuantities', 'function': 'MeasureQuantity.__init__'},
         {'module': 'qcore.PhysicalQuantities', 'function': 'MeasureUnit.__init__'},
     ]
-
-# https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
-ALLOWED_HOSTS = [
-    "localhost",
-    "0.0.0.0",
-    "127.0.0.1",
-    "testserver",
-]
-
-host = QCALC_HOST
-if host not in ALLOWED_HOSTS:
-    ALLOWED_HOSTS.append(host)

@@ -35,25 +35,3 @@ SECURE_HSTS_PRELOAD = env.bool("DJANGO_SECURE_HSTS_PRELOAD", default=True)
 SECURE_CONTENT_TYPE_NOSNIFF = env.bool(
     "DJANGO_SECURE_CONTENT_TYPE_NOSNIFF", default=True
 )
-
-# ------------------------------------------------------------------------------
-ALLOWED_HOSTS = [
-    "127.0.0.1",
-]
-CSRF_TRUSTED_ORIGINS = [
-    "http://127.0.0.1",
-    # "http://www.your_domain",
-    # "http://your_domain",
-]
-
-host = QCALC_HOST
-
-if host not in ALLOWED_HOSTS:
-    ALLOWED_HOSTS.append(host)
-if "www."+host not in ALLOWED_HOSTS:
-    ALLOWED_HOSTS.append("www."+host)
-
-if "http://"+host not in CSRF_TRUSTED_ORIGINS:
-    CSRF_TRUSTED_ORIGINS.append("http://"+host)
-if "http://www."+host not in CSRF_TRUSTED_ORIGINS and host != '127.0.0.1':
-    ALLOWED_HOSTS.append("http://www."+host)

@@ -91,6 +91,27 @@ cp ~/qcalc_dock/qcalc/setup/docker/template_dockerfile ~/qcalc_dock/Dockerfile
 cp ~/qcalc_dock/qcalc/setup/docker/.dockerignore ~/qcalc_dock/.dockerignore
 ```
 
+### Edit the Dockerfile
+
+```bash
+nano ~/qcalc_dock/Dockerfile
+```
+# Uncomment the following line if you are using MySQL
+# RUN pip install --no-cache-dir mysqlclient==2.2.1
+
+# (optional) Uncomment the following line if you are using PostgreSQL instead
+# RUN pip install --no-cache-dir psycopg2-binary==2.9.9
+
+
+### Edit the docker-compose.yml file
+
+Search and replace the following placeholders:
+
+- `<your_host_name>`
+- `<pg_user_password>` or `<mysql_user_password>` and `<mysql_root_password>`
+
+Review Gunicorn instances and number of workers.
+
 > The compose file uses `~/qcalc_dock/.local/` paths for all volumes. No edits are required unless you change the installation directory.
 
 ---
@@ -120,7 +141,7 @@ nano ~/qcalc_dock/.local/nginx/conf/default.conf.init
 ### 6c. Full HTTPS template (used after the SSL certificate is obtained)
 
 ```bash
-cp ~/qcalc_dock/qcalc/setup/nginx/template_default.conf.template-v1.8j.conf \
+cp ~/qcalc_dock/qcalc/setup/nginx/template_default.conf.template-prod.conf.conf \
    ~/qcalc_dock/.local/nginx/templates/default.conf.template.off
 ```
 
@@ -142,7 +163,7 @@ nano ~/qcalc_dock/qcalc/setup.env
 QCALC_SCHEME='https'
 QCALC_DOMAIN="<yourdomain.com>"
 QCALC_ENV_FILE=".setup/prod.env"
-DJANGO_SETTINGS_MODULE="config.settings.prd"
+DJANGO_SETTINGS_MODULE="config.settings.prod"
 ```
 
 ### 7b. Production `.env` file
@@ -153,18 +174,20 @@ nano ~/qcalc_dock/qcalc/.setup/prod.env
 ```
 
 Key settings to fill in (see `setup/env/template_all_env_settings.env` for the full reference):
-Set the DJANGO_SECRET_KEY value after generating the key using the command mentioned below.
+Set the DJANGO_SECRET_KEY value after generating the key using the command mentioned as the current value of the key.
+
+Generate a strong secret key on the development system (as your app will run from docker, your server may not need python to be installed to generate secret) and add it to the `prod.env` file. Do not commit the production key to the git repository.
 
 ```env
 ROBOTS_TXT="robots.prod.txt"
 DJANGO_DEBUG="False"
-DJANGO_SECRET_KEY="<generate: python -c 'import secrets; print(secrets.token_urlsafe(50))'>"
+DJANGO_SECRET_KEY="<python -c 'import secrets; print(secrets.token_urlsafe(50))'>"
 
 DB_ENGINE="django.db.backends.postgresql_psycopg2"
 DB_NAME="qcalc"
-DB_USER="postgres"
-DB_PASSWORD="postgres"       # matches POSTGRES_PASSWORD in docker-compose.yml
-DB_HOST="postgres"           # Docker service/container name, not localhost
+DB_USER="qcalc"
+DB_PASSWORD="<db_user_password>"       # matches POSTGRES_PASSWORD in docker-compose.yml
+DB_HOST="postgres"                     # Docker service/container name, not localhost
 DB_PORT="5432"
 
 DEFAULT_CACHE_ALIAS="memcached"
@@ -253,20 +276,29 @@ Certificate is saved at: /etc/letsencrypt/live/yourdomain.com/fullchain.pem
 Key is saved at:         /etc/letsencrypt/live/yourdomain.com/privkey.pem
 ```
 
-On the host these map to `~/qcalc_dock/.local/certbot/conf/live/yourdomain.com/`.
+On the host these map to `~/qcalc_dock/.local/certbot/conf/live/<your_domain>/`.
 
 ---
 
 ## 11. Phase 2 — Switch Nginx to HTTPS
 
+
+## 11a. Create qCalc Super User
+
+```shell
+docker compose exec qcalc python manage.py createsuperuser --username super
+```
+It will prompt you for the other required details (email and password)
+
+## 11b. Switch to HTTPS
+
 Remove the HTTP-only config and activate the full HTTPS template:
 
 ```bash
-mv ~/qcalc_dock/qcalc_res/nginx/conf/default.conf \
-   ~/qcalc_dock/qcalc_res/nginx/conf/default.conf.init
-mv ~/qcalc_dock/qcalc_res/nginx/templates/default.conf.template.off \
-   ~/qcalc_dock/qcalc_res/nginx/templates/default.conf.template
-cd ~/qcalc_dock
+mv ~/qcalc_dock/.local/nginx/conf/default.conf \
+   ~/qcalc_dock/.local/nginx/conf/default.conf.init
+mv ~/qcalc_dock/.local/nginx/templates/default.conf.template.off \
+   ~/qcalc_dock/.local/nginx/templates/default.conf.template
 ```
 
 The Nginx container automatically processes `default.conf.template`, substitutes `${NGINX_HOST}` with `yourdomain.com`, and writes the result to `conf.d/default.conf`.
@@ -309,7 +341,7 @@ docker compose restart qcalc
 ### Verify static files inside the container
 
 ```bash
-docker exec -it qcalc python manage.py findstatic js/qcalc.js
+docker exec -it qcalc python manage.py findstatic qsite/js/qcalc.js
 ```
 
 ### Run a management command inside the container
@@ -332,7 +364,20 @@ docker compose logs -f qcalc
 docker compose logs -f nginx
 ```
 
+### Some useful docker commands
 ---
+
+```shell
+docker exec -it qcalc bash   # docker shell access
+docker logs --tail 100 qcalc # last 100 lines of log
+docker logs qcalc            # follow the log LIVE
+docker ps              # Running containers
+docker stop qcalc      # Stop
+docker start qcalc     # Start again
+docker restart qcalc   # Restart
+docker rm qcalc        # Remove a stopped container
+
+```
 
 ## Quick Reference — Useful Commands
 

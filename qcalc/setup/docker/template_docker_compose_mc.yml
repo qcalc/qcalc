@@ -51,8 +51,8 @@ services:
   qcalc_init:
     image: qcalc
     build:
-      context: ~/qcalc_dock/qcalc/.setup
-      dockerfile: <your_docker_file>
+      context: ~/qcalc_dock
+      dockerfile: Dockerfile
     container_name: qcalc_migration_runner
     restart: "no"
     command: >
@@ -68,14 +68,15 @@ services:
     networks:
       - qcnet
     depends_on:
-      memcached:
+      redis:
         condition: service_started
-#     redis:
-#       condition: service_started
+#      memcached:
+#        condition: service_started
       postgres:
         condition: service_started
 #     mysql:
 #       condition: service_started
+
 
   # 4. SCALABLE WEB SERVICE (REPLICAS)
   qcalc:
@@ -98,10 +99,10 @@ services:
     depends_on:
       qcalc_init:
         condition: service_completed_successfully
-      memcached:
+      redis:
         condition: service_started
-#     redis:
-#       condition: service_started
+#      memcached:
+#        condition: service_started
       postgres:
         condition: service_started
 #     mysql:
@@ -111,9 +112,7 @@ services:
   memcached:
     image: memcached:1.6-alpine
     container_name: memcached
-    restart: always
-    ports:
-      - "11211:11211"
+    restart: unless-stopped
     command: memcached -m 256
     networks:
       - qcnet
@@ -122,14 +121,12 @@ services:
   postgres:
     image: postgres:16-alpine
     container_name: postgres
-    restart: always
+    restart: unless-stopped
     volumes:
       - pgdata:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
     environment:
-      - POSTGRES_USER=admin
-      - POSTGRES_PASSWORD=<admin_password>
+      - POSTGRES_USER=qcalc
+      - POSTGRES_PASSWORD=<pg_user_password>
       - POSTGRES_DB=qcalc
     networks:
       - qcnet
@@ -138,25 +135,21 @@ services:
 #  redis:
 #    image: redis:8
 #    container_name: redis
-#    restart: always
-#    ports:
-#      - "6379:6379"
+#    restart: unless-stopped
 #    networks:
 #      - qcnet
 
 #  mysql:
 #    image: mysql:8.4
 #    container_name: mysql
-#    restart: always
+#    restart: unless-stopped
 #    volumes:
 #      - mysqldata:/var/lib/mysql
-#    ports:
-#      - "3306:3306"
 #    environment:
-#      MYSQL_ROOT_PASSWORD: <root_password>
+#      MYSQL_ROOT_PASSWORD: <mysql_root_password>
 #      MYSQL_DATABASE: qcalc
-#      MYSQL_USER: admin
-#      MYSQL_PASSWORD: <admin_password>
+#      MYSQL_USER: qcalc
+#      MYSQL_PASSWORD: <mysql_user_password>
 #    networks:
 #      - qcnet
 

@@ -117,8 +117,8 @@ sudo -u postgres psql
 
 ```sql
 CREATE DATABASE qcalc;
-CREATE USER admin WITH PASSWORD '<your_secure_password>';
-GRANT ALL PRIVILEGES ON DATABASE qcalc TO admin;
+CREATE USER qcalc WITH PASSWORD '<pg_user_password>';
+GRANT ALL PRIVILEGES ON DATABASE qcalc TO qcalc;
 ```
 
 Install the PostgreSQL dependency, from `~/qcalc_dock/qcalc/`:
@@ -148,8 +148,8 @@ sudo mysql -u root -p
 
 ```sql
 CREATE DATABASE qcalc;
-CREATE USER 'admin'@'localhost' IDENTIFIED BY '<your_secure_password>';
-GRANT ALL PRIVILEGES ON qcalc.* TO 'admin'@'localhost';
+CREATE USER 'qcalc'@'localhost' IDENTIFIED BY '<mysql_user_password>';
+GRANT ALL PRIVILEGES ON qcalc.* TO 'qcalc'@'localhost';
 FLUSH PRIVILEGES;
 EXIT;
 ```
@@ -175,8 +175,8 @@ If you have installed MySQL:
 ```env
 DB_ENGINE="django.db.backends.mysql"
 DB_NAME="qcalc"
-DB_USER="admin"
-DB_PASSWORD="<your_secure_password>"
+DB_USER="qcalc"
+DB_PASSWORD="<db_user_password>"
 DB_HOST="127.0.0.1"
 DB_PORT="3306"
 ```
@@ -186,8 +186,8 @@ If you have installed PostgreSQL:
 ```env
 DB_ENGINE="django.db.backends.postgresql_psycopg2"
 DB_NAME="qcalc"
-DB_USER="admin"
-DB_PASSWORD="<your_secure_password>"
+DB_USER="qcalc"
+DB_PASSWORD="<db_user_password>"
 DB_HOST="127.0.0.1"
 DB_PORT="5432"
 ```
@@ -277,7 +277,7 @@ Set production values:
 QCALC_SCHEME='https'
 QCALC_DOMAIN="<yourdomain.com>"
 QCALC_ENV_FILE=".setup/prod.env"
-DJANGO_SETTINGS_MODULE="config.settings.prd"
+DJANGO_SETTINGS_MODULE="config.settings.prod"
 ```
 
 ### 10b. Production `.setup/prod.env` File
@@ -468,7 +468,7 @@ sudo systemctl enable snap.certbot.renew.timer
 
 ## 15. Configure Nginx for HTTPS
 
-Based on `setup/nginx/template_default.conf.template-v1.8j.conf`. Replace the HTTP-only config with the full production config. Adapt the upstream block and all path/domain placeholders:
+Based on `setup/nginx/template_default.conf.template-prod.conf.conf`. Replace the HTTP-only config with the full production config. Adapt the upstream block and all path/domain placeholders:
 
 ```bash
 sudo nano /etc/nginx/conf.d/default.conf

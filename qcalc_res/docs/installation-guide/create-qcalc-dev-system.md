@@ -147,8 +147,8 @@ Create a MySQL database and user, then update `.setup/dev_sqlite_file.env` (or c
 ```env
 DB_ENGINE="django.db.backends.mysql"
 DB_NAME="qcalc"
-DB_USER="admin"
-DB_PASSWORD="your_password"
+DB_USER="qcalc"
+DB_PASSWORD="db_user_password"
 DB_HOST="127.0.0.1"
 DB_PORT="3306"
 ```
@@ -309,8 +309,8 @@ Create a MySQL database and user, then update `.setup/dev_sqlite_file.env` (or c
 ```env
 DB_ENGINE="django.db.backends.mysql"
 DB_NAME="qcalc"
-DB_USER="admin"
-DB_PASSWORD="your_password"
+DB_USER="qcalc"
+DB_PASSWORD="db_user_password"
 DB_HOST="127.0.0.1"
 DB_PORT="3306"
 ```

@@ -27,12 +27,10 @@ COPY . .
 WORKDIR /usr/src/qcalc_dock/qcalc
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Uncomment the following line if you want MySQL
+# Uncomment the following line if you are using MySQL
 # RUN pip install --no-cache-dir mysqlclient==2.2.1
 
-# (optional) Uncomment the following line if you want PostgreSQL instead
+# (optional) Uncomment the following line if you are using PostgreSQL instead
 # RUN pip install --no-cache-dir psycopg2-binary==2.9.9
 
-RUN pip install --no-cache-dir gunicorn=23.0.0
-
-
+RUN pip install --no-cache-dir gunicorn==23.0.0

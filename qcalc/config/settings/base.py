@@ -395,8 +395,8 @@ DJANGO_EMAIL_BACKEND = env("DJANGO_EMAIL_BACKEND", default=env.NOTSET)
 
 DB_ENGINE = env("DB_ENGINE", default=env.NOTSET)
 DB_NAME = env("DB_NAME", default=env.NOTSET)
-DB_USER = env("DB_USER", default="admin")
-DB_PASSWORD = env("DB_PASSWORD", default="admin")
+DB_USER = env("DB_USER", default="qcalc")
+DB_PASSWORD = env("DB_PASSWORD", default="qcalc")
 DB_HOST = env("DB_HOST", default="localhost")
 DB_PORT = env("DB_PORT", default="3306")
 

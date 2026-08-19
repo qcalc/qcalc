@@ -13,15 +13,18 @@ ENV PIP_DISABLE_PIP_VERSION_CHECK 1
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-# Either clone the repo from github, by uncommenting the 2 following lines
-# WORKDIR /usr/src/
-# RUN git clone https://github.com/qcalc/qcalc.git qcalc_dock
+# Create the directory
 
-# (optional) Or if you have already cloned locally to ~/qcal_dock folder, just copy them
-# by uncommenting the 2 following lines instead
-# WORKDIR /usr/src/qcalc_dock/
-# COPY . .
+WORKDIR /usr/src/qcalc_dock
 
+# Your build context should be: ~/qcalc_dock
+# That is run build command from: ~/qcalc_dock
+
+COPY . .
+
+# Last WORKDIR is the default for: docker exec -it command
+
+WORKDIR /usr/src/qcalc_dock/qcalc
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Uncomment the following line if you want MySQL

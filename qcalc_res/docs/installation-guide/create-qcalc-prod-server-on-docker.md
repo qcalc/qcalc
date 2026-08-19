@@ -19,20 +19,39 @@ Follow [Initial Linux Server Setup](initial-linux-server-setup.md) if you do not
 
 ## 2. Install Docker Engine and Docker Compose
 
+Following instruction set is for Ubuntu 26.04 LTS.
+
 ```bash
-sudo apt install -y apt-transport-https ca-certificates curl software-properties-common
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
-  | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] \
-  https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" \
-  | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 sudo apt update
-sudo apt install -y docker-ce docker-compose-plugin
-sudo systemctl enable docker
-# Allow the current user to run docker without sudo
+sudo apt install -y ca-certificates curl
+
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
+    -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] \
+  https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}") stable" \
+  | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+sudo apt update
+
+sudo apt install -y \
+    docker-ce \
+    docker-ce-cli \
+    containerd.io \
+    docker-buildx-plugin \
+    docker-compose-plugin
+
+sudo systemctl enable --now docker
+
 sudo usermod -aG docker ${USER}
 newgrp docker
-docker info    # verify
+
+docker info
+docker compose version
 ```
 
 ---
@@ -62,12 +81,14 @@ mkdir -p ~/qcalc_dock/qcalc/.setup
 
 ---
 
-## 5. Set Up the Docker Compose File
+## 5. Set Up the Docker Files
 
 The compose template is at `qcalc/setup/docker/template_docker.yml`. Copy it one level up as `docker-compose.yml`:
 
 ```bash
-cp ~/qcalc_dock/qcalc/setup/docker/template_docker.yml ~/qcalc_dock/qcalc/.setup/docker-compose.yml
+cp ~/qcalc_dock/qcalc/setup/docker/template_docker_compose.yml ~/qcalc_dock/docker-compose.yml
+cp ~/qcalc_dock/qcalc/setup/docker/template_dockerfile ~/qcalc_dock/Dockerfile
+cp ~/qcalc_dock/qcalc/setup/docker/.dockerignore ~/qcalc_dock/.dockerignore
 ```
 
 > The compose file uses `~/qcalc_dock/.local/` paths for all volumes. No edits are required unless you change the installation directory.
@@ -127,7 +148,6 @@ DJANGO_SETTINGS_MODULE="config.settings.prd"
 ### 7b. Production `.env` file
 
 ```bash
-mkdir -p ~/qcalc_dock/qcalc/.setup
 cp ~/qcalc_dock/qcalc/setup/env/template_prod.env ~/qcalc_dock/qcalc/.setup/prod.env
 nano ~/qcalc_dock/qcalc/.setup/prod.env
 ```
@@ -182,8 +202,19 @@ cp ~/qcalc_dock/qcalc/setup/env/template_gpref.json ~/qcalc_dock/qcalc/gpref.jso
 ## 8. Create Docker Named Volumes
 
 ```bash
-docker volume create pgdata
 docker volume create static
+```
+
+or if you have opted for postgres
+
+```bash
+docker volume create pgdata
+```
+
+or if you have opted for mysql
+
+```bash
+docker volume create mysqldata
 ```
 
 ---
@@ -196,19 +227,8 @@ Activate the HTTP-only Nginx config so Certbot can complete the ACME challenge:
 # Uses cp_conf_init.sh logic — copy init config into active default.conf
 cp ~/qcalc_dock/.local/nginx/conf/default.conf.init \
    ~/qcalc_dock/.local/nginx/conf/default.conf
-```
-
-Start all containers:
-
-```bash
 cd ~/qcalc_dock
-docker compose up -d
-```
-
-Verify all containers are running:
-
-```bash
-docker compose ps
+docker compose up
 ```
 
 ---
@@ -220,10 +240,10 @@ Run Certbot inside the certbot container to issue the certificate via the webroo
 ```bash
 docker exec -it certbot certbot certonly \
   --webroot --webroot-path=/var/www/certbot \
-  --email <you@yourdomain.com> \
+  --email <your_email_id> \
   --agree-tos --no-eff-email \
-  --cert-name <yourdomain.com> \
-  -d <yourdomain.com> -d <www.yourdomain.com>
+  --cert-name <your_domain> \
+  -d <your_domainm> -d www.<your_domain>
 ```
 
 Expected output confirms certificate paths:
@@ -242,10 +262,11 @@ On the host these map to `~/qcalc_dock/.local/certbot/conf/live/yourdomain.com/`
 Remove the HTTP-only config and activate the full HTTPS template:
 
 ```bash
-# Uses cp_conf_template.sh logic
-rm -f ~/qcalc_dock/.local/nginx/conf/default.conf
-cp ~/qcalc_dock/.local/nginx/templates/default.conf.template.off \
-   ~/qcalc_dock/.local/nginx/templates/default.conf.template
+mv ~/qcalc_dock/qcalc_res/nginx/conf/default.conf \
+   ~/qcalc_dock/qcalc_res/nginx/conf/default.conf.init
+mv ~/qcalc_dock/qcalc_res/nginx/templates/default.conf.template.off \
+   ~/qcalc_dock/qcalc_res/nginx/templates/default.conf.template
+cd ~/qcalc_dock
 ```
 
 The Nginx container automatically processes `default.conf.template`, substitutes `${NGINX_HOST}` with `yourdomain.com`, and writes the result to `conf.d/default.conf`.
@@ -257,15 +278,21 @@ cd ~/qcalc_dock
 docker compose restart
 ```
 
-Open `https://yourdomain.com` in a browser to verify the site is live and the certificate is valid.
+Open `https://<your_domain>` in a browser to verify the site is live and the certificate is valid.
 
 ---
 
 ## 12. Post-Installation
 
-- Log in to the Django admin at `https://yourdomain.com/admin/` with the superuser created during `collectstatic`/`migrate` (the qCalc container runs these automatically on startup per `docker-compose.yml`). The default credentials are `super` / `super` — **change the password immediately**.
+- Log in to the Django admin at `https://<your_domain>/admin/` with the superuser created during `collectstatic`/`migrate` (the qCalc container runs these automatically on startup per `docker-compose.yml`). The default credentials are `super` / `super` — **change the password immediately**.
 - Replace placeholder API keys in `.setup/prod.env` (Fixer.io, OpenWeather, OpenAI, etc.).
-- Review `robots.txt` — copy and rename a template from `qcalc/qsite/static/txt/` to match `ROBOTS_TXT` in your `.env`.
+- Review `robots.prod.txt` — copy and rename a template from `qcalc/qsite/static/txt/` to match `ROBOTS_TXT` in your `~qcalc_dock/qcalc/.setup/` .env file.
+
+```bash
+cp ~/qcalc_dock/qcalc/qsite/static/txt/template_robots.prod.txt \
+   ~/qcalc_dock/qcalc/qsite/static/txt/robots.prod.txt
+```
+You verify it using the url: `https://<your_domain>/robots.txt`
 
 ---
 
@@ -274,9 +301,8 @@ Open `https://yourdomain.com` in a browser to verify the site is live and the ce
 ### Pull latest code and redeploy
 
 ```bash
-cd ~/qcalc_dock/qcalc
+cd ~/qcalc_dock/
 git pull
-cd ~/qcalc_dock
 docker compose restart qcalc
 ```
 

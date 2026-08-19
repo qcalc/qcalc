@@ -76,8 +76,8 @@ if __name__ == "__main__":
 
     try:
         execute_from_command_line(sys.argv)
-    except OperationalError:
-        print(f"*** Error occurred: {OperationalError}")
+    except OperationalError as e:
+        print(f"*** Error occurred: {e}")
         sys.exit(1)
     except Exception as error:
         raise

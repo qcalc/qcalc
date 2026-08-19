@@ -121,7 +121,7 @@ Review Gunicorn instances and number of workers.
 ### 6a. Main `nginx.conf`
 
 ```bash
-cp ~/qcalc_dock/qcalc/setup/nginx/template_nginx.conf-v1.4j.conf \
+cp ~/qcalc_dock/qcalc/setup/nginx/template_nginx.conf-common.conf \
    ~/qcalc_dock/.local/nginx/nginx.conf
 ```
 
@@ -286,7 +286,7 @@ On the host these map to `~/qcalc_dock/.local/certbot/conf/live/<your_domain>/`.
 ## 11a. Create qCalc Super User
 
 ```shell
-docker compose exec qcalc python manage.py createsuperuser --username super
+docker exec -it qcalc python manage.py createsuperuser --username super
 ```
 It will prompt you for the other required details (email and password)
 

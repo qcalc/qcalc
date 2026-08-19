@@ -9,7 +9,7 @@ services:
       - "80:80"
       - "443:443"
     environment:
-      - NGINX_HOST=127.0.0.1
+      - NGINX_HOST=localhost
     volumes:
       - ~/qcalc_dock/.local/nginx/templates:/etc/nginx/templates
       - ~/qcalc_dock/.local/nginx/conf:/etc/nginx/conf.d
@@ -101,7 +101,7 @@ services:
       - pgdata:/var/lib/postgresql/data
     environment:
       - POSTGRES_USER=qcalc
-      - POSTGRES_PASSWORD=<pg_user_password>
+      - POSTGRES_PASSWORD=qcalc
       - POSTGRES_DB=qcalc
     networks:
       - qcnet

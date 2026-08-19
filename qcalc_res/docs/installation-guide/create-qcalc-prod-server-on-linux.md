@@ -405,10 +405,10 @@ sudo systemctl status qcalc
 
 ### 13a. Main `nginx.conf`
 
-Base your config on `setup/nginx/template_nginx.conf-v1.4j.conf`. Copy it to `/etc/nginx/nginx.conf`:
+Base your config on `setup/nginx/template_default.conf.template-prod.conf`:
 
 ```bash
-sudo cp ~/qcalc_dock/qcalc/setup/nginx/template_nginx.conf-v1.4j.conf /etc/nginx/nginx.conf
+sudo cp ~/qcalc_dock/qcalc/setup/nginx/template_default.conf.template-prod.conf /etc/nginx/nginx.conf
 ```
 
 Review and adjust `worker_processes`, `worker_connections`, and `client_max_body_size` as needed.

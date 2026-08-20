@@ -45,11 +45,13 @@ def create_standard_cataog_from_packages():
     QCals.create_catalog_calc()
 
     QCals.create_catalog_qty()
+    logger.info(f'*** Standard Catalog Created')
 
 
 def create_public_catalog_from_db():
     QCals.package_contents_public()
     QCals.create_catalog_calc_public()
+    logger.info(f'*** Public Catalog Created')
 
 
 def build_search_index():

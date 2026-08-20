@@ -19,6 +19,7 @@ def post_login(sender, request, user, **kwargs):
         uc.create_catalog_calc_private(request)
         uc.package_contents_shared(request)
         uc.create_catalog_calc_shared(request)
+        logger.info(f'*** User Catalog Created')
     except Exception as e:
         logger.error(f"PLG: Exception occured while preparing {user.username}'s catalog during logging in. {e}")
 

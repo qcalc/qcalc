@@ -349,7 +349,7 @@ class QCals:
         host_package_name = package_name
 
         def searchpath(package_name, catalog_name):
-            logger.info(f'Scanning: {package_name}')
+            # logger.info(f'Scanning: {package_name}')
             pkg_cat = package_name.replace(host_package_name, catalog_name)
             cls.qctg_dict[package_name] = pkg_cat
 

@@ -78,7 +78,7 @@ class Command(StaticfilesRunserverCommand):
     def _validate_static_probe():
         """Ensure a known static asset can be resolved by staticfiles finders."""
         logger.info(f"- Configured static URL is [{settings.STATIC_URL}]")
-        static_probe = 'qsite/images/favicon.png'
+        static_probe = 'qsite/js/qcalc.js'
         if finders.find(static_probe):
             return
 

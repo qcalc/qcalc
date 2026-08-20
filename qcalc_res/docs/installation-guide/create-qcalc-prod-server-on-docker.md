@@ -179,7 +179,6 @@ Set the DJANGO_SECRET_KEY value after generating the key using the command menti
 Generate a strong secret key on the development system (as your app will run from docker, your server may not need python to be installed to generate secret) and add it to the `prod.env` file. Do not commit the production key to the git repository.
 
 ```env
-ROBOTS_TXT="robots.prod.txt"
 DJANGO_DEBUG="False"
 DJANGO_SECRET_KEY="<python -c 'import secrets; print(secrets.token_urlsafe(50))'>"
 
@@ -318,11 +317,11 @@ Open `https://<your_domain>` in a browser to verify the site is live and the cer
 
 - Log in to the Django admin at `https://<your_domain>/admin/` with the superuser created during `collectstatic`/`migrate` (the qCalc container runs these automatically on startup per `docker-compose.yml`). The default credentials are `super` / `super` — **change the password immediately**.
 - Replace placeholder API keys in `.setup/prod.env` (Fixer.io, OpenWeather, OpenAI, etc.).
-- Review `robots.prod.txt` — copy and rename a template from `qcalc/qsite/static/txt/` to match `ROBOTS_TXT` in your `~qcalc_dock/qcalc/.setup/` .env file.
+- Review `robots.txt` — copy and rename a template from `~/qcalc_dock/qcalc/setup/txt/` to `~/qcalc_dock/qcalc/qsite/static/qsiite/` folder.
 
 ```bash
-cp ~/qcalc_dock/qcalc/qsite/static/txt/template_robots.prod.txt \
-   ~/qcalc_dock/qcalc/qsite/static/txt/robots.prod.txt
+cp ~/qcalc_dock/qcalc/setup/txt/template_robots.prod.txt \
+   ~/qcalc_dock/qcalc/qsite/static/qsite/robots.txt
 ```
 You verify it using the url: `https://<your_domain>/robots.txt`
 

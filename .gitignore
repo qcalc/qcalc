@@ -232,4 +232,5 @@ gpref.json
 *.log
 .editorconfig
 latest.json
+robots.txt
 _*_/

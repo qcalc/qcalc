@@ -29,6 +29,7 @@ mkdir -p .setup
 cp setup/env/template_setup.env setup.env
 cp setup/env/template_dev_sqlite_file.env .setup/dev_sqlite_file.env
 cp setup/env/template_gpref.json gpref.json
+cp setup/txt/template_robots.dev.txt qsite/static/qsite/robots.txt
 
 python manage.py migrate
 export DJANGO_SUPERUSER_USERNAME=super

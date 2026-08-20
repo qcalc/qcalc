@@ -289,7 +289,6 @@ nano ~/qcalc_dock/qcalc/.setup/prod.env
 Edit rest of the environment variables as appropriate (see `setup/env/template_all_env_settings.env` for full reference):
 
 ```env
-ROBOTS_TXT="robots.prod.txt"
 DJANGO_DEBUG="False"
 DJANGO_SECRET_KEY="<generate with: python -c 'import secrets; print(secrets.token_urlsafe(50))'>"
 
@@ -544,8 +543,12 @@ Open `https://yourdomain.com` in a browser to confirm the site is live.
 
 - Log in to the Django admin at `https://yourdomain.com/admin/` with username `super` and **immediately change the password**.
 - Replace the placeholder API keys in `.setup/prod.env` (Fixer.io, OpenWeather, OpenAI, etc.) with your own keys.
-- Review `robots.txt` — copy and rename a template from `qcalc/qsite/static/txt/` to match `ROBOTS_TXT` in your `.env`.
+- Review `robots.txt` — copy and rename a template from `~/qcalc_dock/qcalc/setup/txt/` to `~/qcalc_dock/qcalc/qsite/static/qsiite/` folder.
 
+```bash
+cp ~/qcalc_dock/qcalc/setup/txt/template_robots.prod.txt \
+   ~/qcalc_dock/qcalc/qsite/static/qsite/robots.txt
+```
 ---
 
 ## Directory Layout Summary

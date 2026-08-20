@@ -374,7 +374,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'  # for Django v3.2
 # )
 
 # ------------------------------------------------------------------------------
-ROBOTS_TXT = env("ROBOTS_TXT", default=env.NOTSET)
 # https://docs.djangoproject.com/en/dev/ref/settings/#debug
 DEBUG = env.bool("DJANGO_DEBUG", False)
 # https://docs.djangoproject.com/en/dev/ref/settings/#secret-key

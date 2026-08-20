@@ -11,17 +11,25 @@ from django.utils.safestring import mark_safe
 from pathlib import Path
 import time
 import markdown
-from qvars import qc_gpref as gs
-import qenv
-from django.http import Http404, JsonResponse
 import json
+from qvars import qc_gpref as gs
+from django.http import JsonResponse
+from django.http import FileResponse
+from django.shortcuts import render, redirect
 from calculators.all.general.cal_evacon import qeval
 from calculators.all.admin.cal_email import email_send
 from qcore import QEncoderBase
 import qutil as ut
-from django.shortcuts import render, redirect
+import qenv
 from .forms import ContactForm
 import qconst
+
+
+def serve_app_static_file(relative_path:str, content_type):
+    def view(request):
+        path = Path(settings.APP_DIR) / "static" / "qsite" / Path(relative_path)
+        return FileResponse(path.open("rb"), content_type=content_type)
+    return view
 
 
 def contact_view(request):
@@ -60,6 +68,7 @@ def _license_text():
     if not license_path.exists():
         return ''
     return mark_safe(escape(_read_doc_text(license_path)))
+
 
 def about_data(request: HtmxHttpRequest):
     st = time.time()
@@ -107,8 +116,10 @@ def docs_tree(request: HtmxHttpRequest):
     }
     return ut.get_page(request, template, context, 'docs_tree')
 
+
 def show_docs(request: HtmxHttpRequest):  # /help/ or /catalog/help/ or /calc/help/
     return docs_tree(request)
+
 
 def show_tour(request: HtmxHttpRequest):
     return get_page(request, page='tour')
@@ -144,6 +155,7 @@ def q1_add_page_help(request: HtmxHttpRequest, **kwargs):
     context['help_path'] = help_path.as_posix()
     return ut.get_page(request, template, context, page=f'page_{pname}_help', as_card=True)
 
+
 def _read_doc_text(doc_path):
     # source files may be saved as utf-8 or utf-16 (BOM); fall back to replacing bad bytes rather than 500ing
     raw = doc_path.read_bytes()
@@ -153,6 +165,7 @@ def _read_doc_text(doc_path):
         return raw.decode('utf-8-sig')
     except UnicodeDecodeError:
         return raw.decode('utf-8', errors='replace')
+
 
 def q1_add_doc(request: HtmxHttpRequest, **kwargs):
     pname = kwargs.get('pname', "").strip()
@@ -167,12 +180,12 @@ def q1_add_doc(request: HtmxHttpRequest, **kwargs):
         )
         document_html = fix_doc_links(document_html, pname)
         context = {'help_html': '', 'dyn_html': document_html}
-    elif doc_exists and doc_path.suffix in ['.txt']: #,'', '.py'
+    elif doc_exists and doc_path.suffix in ['.txt']:  # ,'', '.py'
         # plain text has no markup, so escape it and turn newlines into <br> to preserve line breaks
         from django.utils.html import escape, linebreaks
         document_html = linebreaks(escape(_read_doc_text(doc_path)))
         context = {'dyn_html': document_html, 'help_html': ''}
-    else: #.html
+    else:  # .html
         context = {'dyn_html': '', 'help_html': doc_path.as_posix() if doc_exists else 'nodoc.html'}
 
     current_user = request.user
@@ -183,6 +196,7 @@ def q1_add_doc(request: HtmxHttpRequest, **kwargs):
     context['info'] = info
     context['help_path'] = doc_path.as_posix()
     return ut.get_page(request, template, context, page=f'{doc_path.name}', as_card=True)
+
 
 def q1_create_doc(request: HtmxHttpRequest, **kwargs):
     if not (request.user.is_active and request.user.is_staff):
@@ -205,6 +219,7 @@ def q1_create_doc(request: HtmxHttpRequest, **kwargs):
         return ut.show_modal(request, f"Create Doc", msg)
 
     return redirect(f'/qedit/{doc_path.as_posix()}')
+
 
 def show_home(request: HtmxHttpRequest):
     items = [

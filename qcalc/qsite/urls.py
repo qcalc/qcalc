@@ -2,20 +2,18 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 from django.urls import include, path
-from django.views.generic import TemplateView, RedirectView
+from django.views.generic import TemplateView
 from . import views
 from django.conf import settings
 from qutil import not_found
 from django.contrib.sitemaps import views as sm_views
 from .mod_sitemap import *
-# from django.conf.urls.static import static
 from django.urls import re_path
 from django.views.static import serve
 
 urlpatterns = [
-    # path("robots.txt", TemplateView.as_view(template_name=settings.ROBOTS_TXT, content_type="text/plain")),
-    path("robots.txt", RedirectView.as_view(url=f"{settings.STATIC_URL}txt/{settings.ROBOTS_TXT}", permanent=True)),
-    path("favicon.ico", RedirectView.as_view(url=f"{settings.STATIC_URL}qsite/images/favicon.png", permanent=True)),
+    path("robots.txt", views.serve_app_static_file("robots.txt", "text/plain")),
+    path("favicon.ico", views.serve_app_static_file("favicon.png", "image/png")),
     path("", views.show_home, name="home"),
     path("api-auth/", include("rest_framework.urls")),
     path('page/console/execute/', views.execute_command, name='execute_command'),
@@ -28,7 +26,7 @@ urlpatterns = [
     path('help/', views.show_docs, name='show-docs'),
     path('docs/<path:pname>', views.q1_add_doc, name='add-page-doc'),  # pname, no end-slash
     # path('read/<path:rpname>', views.q1_add_doc, name='add-page-read'),  # rpname, no end-slash
-    path('doc_create/<path:file>', views.q1_create_doc, name='create-doc'), # file, no end-slash
+    path('doc_create/<path:file>', views.q1_create_doc, name='create-doc'),  # file, no end-slash
 ]
 
 urlpatterns += [
@@ -49,15 +47,9 @@ urlpatterns += [
          name="django.contrib.sitemaps.views.sitemap"),
 ]
 
-# if not settings.DEBUG:
-#     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-
 if not settings.DEBUG:
     urlpatterns += [
         re_path(r'^static/(?P<path>.*)$', serve, {
             'document_root': settings.STATIC_ROOT,
         }),
     ]
-
-# print('s', settings.DEBUG, type(settings.DEBUG))
-# print('u', urlpatterns)

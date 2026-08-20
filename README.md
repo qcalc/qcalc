@@ -66,7 +66,6 @@ These files hold the base environment and Django settings for development. Durin
 
 The main environment template is `setup/env/template_all_env_settings.env`. It documents the common startup variables, including:
 
-- `ROBOTS_TXT` for the robots file to use
 - `DJANGO_DEBUG` and `DJANGO_SECRET_KEY` for Django runtime settings
 - `DB_ENGINE`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, and `DB_PORT` for database selection
 - `DEFAULT_CACHE_ALIAS` and related cache settings such as Redis or Memcached

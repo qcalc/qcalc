@@ -373,13 +373,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'  # for Django v3.2
 #     'django.core.files.uploadhandler.TemporaryFileUploadHandler',
 # )
 
-# GENERAL
-# QCALC_SCHEME = env("QCALC_SCHEME", default='http')
-# QCALC_DOMAIN = env("QCALC_DOMAIN", default="127.0.0.1:8000")
-# # Split the domain string at the colon
-# domain_parts = QCALC_DOMAIN.split(':')
-# QCALC_PORT = domain_parts[1] if len(domain_parts) > 1 else ""
-# QCALC_HOST = domain_parts[0].replace("www.","")
 # ------------------------------------------------------------------------------
 ROBOTS_TXT = env("ROBOTS_TXT", default=env.NOTSET)
 # https://docs.djangoproject.com/en/dev/ref/settings/#debug

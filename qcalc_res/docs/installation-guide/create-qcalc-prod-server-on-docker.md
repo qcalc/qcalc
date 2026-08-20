@@ -95,13 +95,13 @@ cp ~/qcalc_dock/qcalc/setup/docker/.dockerignore ~/qcalc_dock/.dockerignore
 
 ```bash
 nano ~/qcalc_dock/Dockerfile
-```
+
 # Uncomment the following line if you are using MySQL
 # RUN pip install --no-cache-dir mysqlclient==2.2.1
 
 # (optional) Uncomment the following line if you are using PostgreSQL instead
 # RUN pip install --no-cache-dir psycopg2-binary==2.9.9
-
+```
 
 ### Edit the docker-compose.yml file
 

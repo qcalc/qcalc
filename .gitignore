@@ -231,4 +231,5 @@ robots*.txt
 gpref.json
 *.log
 .editorconfig
+latest.json
 _*_/

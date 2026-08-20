@@ -40,10 +40,9 @@ class CalcConfig(AppConfig):
             return "--noreload" in sys.argv or os.environ.get("RUN_MAIN") == "true"
 
         # Gunicorn does not normally put "runserver" in sys.argv,
-        # so detect Gunicorn separately, define in YML file:
-        # environment:
-        #   QCALC_SERVING: "1"
-        if "gunicorn" in os.path.basename(sys.argv[0]).lower() or os.environ.get("QCALC_SERVING") == "1":
+        # so detect Gunicorn separately by environment variable in YML
+        if os.environ.get("GUNICORN_INSTANCE_ID"):
+            logger.info(f"GUNICORN_INSTANCE_ID={os.environ.get('GUNICORN_INSTANCE_ID')}")
             return True
 
         # Management commands such as: migrate, collectstatic, check, shell, etc.

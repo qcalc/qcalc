@@ -56,17 +56,19 @@ def build_search_index():
     QSearch('m', True)
 
 
-def initialize_py_catalog_once_per_worker():
+def w2_initialize_py_catalog_once_per_worker():
     create_standard_cataog_from_packages()  # | Read python modules
-    logger.info(f'--- STAGE W.2: initialize_py_catalog_once_per_worker() completed')
+    logger.info(f'--- STAGE W.2: w2_initialize_py_catalog_once_per_worker() completed')
 
 
-def initialize_db_catalog_once_per_worker():
+def w3_initialize_db_catalog_once_per_worker():
     # accessing the database during app initialization is discouraged
     # avoid executing queries in AppConfig.ready()
+    if not StdList.initialized:
+        StdList.w1_prepare_lists_once_per_worker()
     if not hasattr(QCals, 'calc_root'):
-        initialize_py_catalog_once_per_worker()
+        w2_initialize_py_catalog_once_per_worker()
     create_public_catalog_from_db()  # | Accessing the database
     build_search_index()  # | based on both pacakage based and db based catalog
     get_super_user()  # | Accessing the database
-    logger.info(f'--- STAGE W.3: initialize_db_catalog_once_per_worker() completed')
+    logger.info(f'--- STAGE W.3: w3_initialize_db_catalog_once_per_worker() completed')

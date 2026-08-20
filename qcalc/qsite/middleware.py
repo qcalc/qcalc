@@ -2,11 +2,10 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 from qutil import create_session_once_per_session, QThread
-from calc import initialize_db_catalog_once_per_worker, QPref
+from calc import w3_initialize_db_catalog_once_per_worker, QPref
 import qvars
 import threading
 from django.core.exceptions import DisallowedHost
-# from django.http import HttpResponseForbidden
 from django.http import HttpResponseBadRequest
 import logging
 
@@ -15,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 class IgnoreDisallowedHostMiddleware:
     # | middleware/ignore_disallowed_host.py
-    # | Add this middleware to your MIDDLEWARE settings before Django’s SecurityMiddleware
+    # | Add this middleware to MIDDLEWARE settings before Django’s SecurityMiddleware
     def __init__(self, get_response):
         self.get_response = get_response
 
@@ -43,7 +42,7 @@ class CalcMiddleware:
                 return
             # Run exactly once per process/worker even under concurrent first requests.
             logger.info("CMW: Running one-time per worker db initialization")
-            initialize_db_catalog_once_per_worker()
+            w3_initialize_db_catalog_once_per_worker()
             self.__class__._worker_init_done = True
 
     def __call__(self, request):  # | run on every request

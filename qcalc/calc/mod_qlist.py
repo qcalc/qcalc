@@ -138,20 +138,21 @@ def list2options(lst, **kwargs):
 
 
 class StdList:
+    initialized = False
     autofill1_list = {}
     autofill1data_list = {}
     autofill2_list = {}
     autofill2data_list = {}
     related1_list = {}
     related1data_list = {}
-    currency_list: dict
+    currency_list: dict = {}
     currency_desc = {}
     text_list = {}
     theme_list = {}
     timezone_list = {}
 
     @classmethod
-    def prepare_lists(cls):
+    def w1_prepare_lists_once_per_worker(cls):
         cls.autofill1_list = load_json("autofill1.json")
         cls.autofill1data_list = load_json("autofill1data.json")
         cls.autofill2_list = load_json("autofill2.json")
@@ -178,6 +179,8 @@ class StdList:
         logger.info('*** Qty info updated')
         unit_info.update(load_json("unit_info.json"))
         logger.info('*** Unit info updated')
+        cls.initialized = True
+        logger.info("--- STAGE W.1: w1_prepare_lists_once_per_worker() completed")
 
 
 class QList:

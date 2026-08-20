@@ -21,7 +21,7 @@ def init():
 
     from calc import create_standard_cataog_from_packages, StdList
     create_standard_cataog_from_packages()
-    StdList.prepare_lists()
+    StdList.w1_prepare_lists_once_per_worker()
     __cat_initialized = True
 
 if __name__ == '__main__':

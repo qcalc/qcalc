@@ -365,13 +365,6 @@ def register_shared_cal(func_id, token):
     ctg_node_id = "shared"
     if not stree:
         ctg_node = create_category_node(ctg_node_id, "shared", "Shared with Me", uname)
-        # # noinspection PyProtectedMember
-        # ctg_node._index_node()
-        # ctg_node.title = path_title(ctg_node_name)
-        # ctg_node.data["path"] = ctg_node.title
-        # ctg_node.is_leaf = False
-        # ctg_node.node_type = 'c'
-        # ctg_node.uname = uname
     else:
         ctg_node = stree
 

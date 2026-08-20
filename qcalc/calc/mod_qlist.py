@@ -78,7 +78,7 @@ def load_currency(update_now=False, backup=False):
         if j_list == {}:
             notfound = True
         elif success:
-            obsolete = is_obsolete(j_list["timestamp"], 36000)
+            obsolete = is_obsolete(j_list["timestamp"], 18000)  # 5 hr
         else:
             logger.error("LDC: " + j_list["error"]["info"])
 
@@ -126,21 +126,18 @@ def load_currency(update_now=False, backup=False):
                 j_list = load_json(default_json_file)
                 logger.warning(f"LDC: Using Standard Currency rates from {default_json_file}")
             except Exception as e:
-                raise logger.exception(f"Exception occurred: {e}")
+                logger.exception(f"Exception occurred: {e}")
 
     return j_list
 
 
-def update_currency():
-    cl = load_currency(update_now=True)
+def update_currency(update_now=False):
+    cl = load_currency(update_now=update_now)
     StdList.currency_list.update(cl)  # update the global list
     add_currencies(StdList.currency_list, StdList.currency_desc)
     update_msg = "Currency updated as of: " + cur_as_of()
-    publish_redis_action(
-        channel="qcalc_channel",
-        action="update_currency"
-    )
     return update_msg
+
 
 def list2options(lst, **kwargs):
     for key, value in kwargs.items():

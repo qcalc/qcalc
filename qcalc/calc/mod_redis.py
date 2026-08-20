@@ -63,6 +63,7 @@ def handle_qcalc_channel(message):
         func = pubsub_actions.get(action, None)
         if not func: return
         if action == "update_public_cal":
+            print('|update_public_cal')
             cal_id = kwargs.pop('cal_id', '')
             cal_owner = kwargs.pop('cal_owner', '')
             code = kwargs.pop('code', '')
@@ -74,7 +75,8 @@ def handle_qcalc_channel(message):
             func(cal_id)
         elif action == "update_currency":
             # call update_currency()
-            func()
+            update_now = kwargs.pop('update_now', False)
+            func(update_now)  # update_now False=already downloaded, upload only
     except json.JSONDecodeError as e:
         print(f"JSON decoding error: {e}")
     except Exception as e:

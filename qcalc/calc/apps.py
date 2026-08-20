@@ -2,12 +2,12 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 from django.apps import AppConfig
-from calc import StdList, listen_to_qcalc_channel, w2_initialize_py_catalog_once_per_worker, publish_redis_check
+from calc import StdList, listen_to_qcalc_channel, w2_initialize_py_catalog_once_per_worker, \
+    publish_redis_check, redis_pubsub_active
 import os
 import sys
 import threading
 import atexit
-from django.conf import settings
 import qenv
 import qvars
 import logging
@@ -60,10 +60,7 @@ class CalcConfig(AppConfig):
             self.__class__._shutdown_hook_registered = True
 
         # Redis pub/sub listener for this worker
-        if (
-            settings.REDIS_PUBSUB == "1"
-            and settings.DEFAULT_CACHE_ALIAS == "redis"
-        ):
+        if redis_pubsub_active():
             publish_redis_check()
             logger.info("--- STAGE W.0.1: publish_redis_check() completed")
 

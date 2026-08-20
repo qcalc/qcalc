@@ -6,6 +6,7 @@ import os
 import urllib.request
 from qutil import makeid, check_setting, is_obsolete, timestamp_to_dt
 from qcore import add_measurement_units, add_currencies, add_quantities
+from .mod_redis import register_redis_action, publish_redis_action
 import sys
 from django.conf import settings
 from qvars import qfunc_info, qty_info, unit_info
@@ -69,7 +70,6 @@ def load_json(json_file_name, path=None):
 
 
 def load_currency(update_now=False, backup=False):
-
     def check_curlist(j_list):
         notfound = False
         obsolete = False
@@ -80,7 +80,7 @@ def load_currency(update_now=False, backup=False):
         elif success:
             obsolete = is_obsolete(j_list["timestamp"], 36000)
         else:
-            logger.error("LDC: "+j_list["error"]["info"])
+            logger.error("LDC: " + j_list["error"]["info"])
 
         return notfound, obsolete, success
 
@@ -109,11 +109,11 @@ def load_currency(update_now=False, backup=False):
                 with urllib.request.urlopen(url, timeout=15) as response:
                     jdata = json.loads(response.read())
                 json_object = json.dumps(jdata)  # | simple JSON dumps
-                if (not notfound) and success and backup: # rename existing latest.json
+                if (not notfound) and success and backup:  # rename existing latest.json
                     os.rename(latest_filepath, os.path.join(
                         settings.JSON_FILES_DIR,
                         latest_json_file.replace('.json', f'-{j_list["date"]}-{makeid()}.json')))
-                with open(latest_filepath, "w") as outfile: # write current JSON dumps to latest.json
+                with open(latest_filepath, "w") as outfile:  # write current JSON dumps to latest.json
                     outfile.write(json_object)
                 j_list = load_json(latest_json_file)
                 notfound, obsolete, success = check_curlist(j_list)
@@ -130,6 +130,17 @@ def load_currency(update_now=False, backup=False):
 
     return j_list
 
+
+def update_currency():
+    cl = load_currency(update_now=True)
+    StdList.currency_list.update(cl)  # update the global list
+    add_currencies(StdList.currency_list, StdList.currency_desc)
+    update_msg = "Currency updated as of: " + cur_as_of()
+    publish_redis_action(
+        channel="qcalc_channel",
+        action="update_currency"
+    )
+    return update_msg
 
 def list2options(lst, **kwargs):
     for key, value in kwargs.items():
@@ -168,8 +179,10 @@ class StdList:
         add_quantities()
         logger.info('*** Qtys added')
         cls.currency_list = load_currency()
+        register_redis_action(update_currency)
         cls.currency_desc = load_json("currency.json")
         add_currencies(cls.currency_list, cls.currency_desc)
+
         logger.info('*** Currencies added')
         # qc_gpref.update(load_json("gpref.json", settings.ROOT_DIR))
         # lprint(qc_gpref)

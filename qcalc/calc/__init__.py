@@ -7,7 +7,7 @@ from .mod_head import *
 from .mod_init import *
 # mfunc
 from .mod_openai import *
-from .mod_qcals import QCals, listen_to_qcalc_channel
+from .mod_qcals import QCals
 # mod_qcals_security
 from .mod_qlist import *
 from .mod_redis import *

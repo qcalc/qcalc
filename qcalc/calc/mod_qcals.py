@@ -10,21 +10,16 @@ import threading
 from qutil import variable_to_title, TreeNode, \
     preprocess_expression, QThread, create_category_node, \
     joinx, names2fid, user_name, fid2owner
-import qvars
 from qvars import qc_gpref as gs, qfunc_info, qty_info, unit_info
 import bisect
-from .mod_redis import publish_redis_action, pubsub_client
+from .mod_redis import publish_redis_action, register_redis_action
 from qcore import _unit_table, Qty, _base_categories, _unit_tree, _unit_info, \
     unit_short_desc, _base_categ_d2s, _qty_tree, _qty_info, lmt_title, dim_to_bname, _base_names
 from asteval import make_symbol_table
 from .mod_qcals_security import safe_execute
 from .mod_cache import QMeta, QMyCal
-import json
-from django.conf import settings
-import time
 import qconst
 import qcalc_api
-import redis
 
 import logging
 
@@ -48,6 +43,10 @@ class QCals:
     pc_list: list = []  # sorted list of keys from pfunc_dict (calculators)
     pcalc_root: TreeNode
     _registry_lock = threading.RLock()
+
+    def __init__(cls):
+        register_redis_action(cls.update_public_cal)
+        register_redis_action(cls.delete_public_cal)
 
     @classmethod
     def func_exists(cls, func_id, scope='qpots'):
@@ -633,7 +632,6 @@ class QCals:
             cal_id, cal_name, cal_owner = fid2owner(calc_id)
             owner_node_id = cal_owner
             toret = False
-            # if owner == user_name(): # redis action run in its own thread and request.user not available
             try:
                 owner_node = cls.pcalc_root.get_node_by_id(owner_node_id)
                 cur_node = cls.pcalc_root.get_node_by_id(calc_id)
@@ -654,14 +652,6 @@ class QCals:
         cur_node_id = ""
         for cur_node_name in cats:
             cur_node_id = joinx((cur_node_id, cur_node_name), qconst.name_separator)
-            # cur_node, flag = cur_node.add_node_if_not_found(par_id, cur_node_id, cur_node_name)
-            # if not cur_node:
-            #     lprint(f'Error processing {cur_node_id}')
-            # if flag == 0:  # newly added node
-            #     cur_node.title = path_title(cur_node_name)
-            #     cur_node.data["path"] = path_title(cur_node_id)
-            #     cur_node.is_leaf = False
-            #     cur_node.node_type = 'c'
             cur_node = cur_node.add_category_node(par_id, cur_node_id, cur_node_name, cur_node_name, uname)
             par_id = cur_node_id
         return cur_node  # last sub category added
@@ -685,78 +675,6 @@ class QCals:
 
         cls.pcalc_root.update_all_descendant_leafs_count()
         cls.pcalc_root.sort_by()
-
-
-def handle_qcalc_channel(message):
-    if settings.REDIS_PUBSUB != "1": return
-    # | Worker function to handle cache invalidation based on Redis messages
-    try:
-        kwargs = json.loads(message['data'])
-        action = kwargs.pop('action', '')
-        cal_id = kwargs.pop('cal_id', '')
-        # print('a', action, cal_id, kwargs)
-        succ = False
-        if action == "update_public_cal":
-            cal_owner = kwargs.pop('cal_owner', '')
-            code = kwargs.pop('code', '')
-            succ = QCals.update_public_cal(cal_id, cal_owner, code)
-        elif action == "delete_public_cal":
-            succ = QCals.delete_public_cal(cal_id)
-        # print('s', action, succ)
-    except json.JSONDecodeError as e:
-        print(f"JSON decoding error: {e}")
-    except Exception as e:
-        print(f"Error in handle_redis_notification: {e}")
-
-
-def listen_to_qcalc_channel_v1():
-    if settings.REDIS_PUBSUB != "1": return
-    # | Function to listen to Redis Pub/Sub notifications
-    pubsub = pubsub_client.pubsub()
-    pubsub.subscribe("qcalc_channel")
-    try:
-        while not qvars.stop_redis_listener:
-            message = pubsub.get_message(timeout=5)  # Check for messages every 5 second
-            if message and message['type'] == 'message':
-                handle_qcalc_channel(message)
-    except Exception as e:
-        logger.error(f"LQC: Error occurred: {e}")
-
-
-def listen_to_qcalc_channel():
-    if settings.REDIS_PUBSUB != "1":
-        return
-
-    # | Retry connecting to Redis until it's available
-    while not qvars.stop_redis_listener:
-        try:
-            # pubsub_client = redis.StrictRedis(host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=settings.REDIS_DB)
-            pubsub_client = redis.Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT,
-                                        db=settings.REDIS_DB)
-            pubsub = pubsub_client.pubsub()
-            pubsub.subscribe("qcalc_channel")
-            break  # | Exit the loop once connection and subscription succeed
-        except redis.exceptions.ConnectionError:
-            if qvars.stop_redis_listener:
-                return
-            logger.error("LQC: Redis not reachable, retrying in 5 seconds...")
-            time.sleep(5)
-
-    if qvars.stop_redis_listener:
-        return
-
-    # | Begin listening for messages
-    try:
-        while not qvars.stop_redis_listener:
-            message = pubsub.get_message(timeout=5)  # | Check for messages every 5 seconds
-            if message and message['type'] == 'message':
-                handle_qcalc_channel(message)
-            else:
-                time.sleep(0.1)  # | Add a small sleep to prevent high CPU usage
-    except Exception as e:
-        logger.error(f"LQC: Error occurred: {e}")
-    finally:
-        pubsub.close()  # | Ensure pubsub is closed when listener stops
 
 
 if __name__ == "__main__":

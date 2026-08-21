@@ -84,7 +84,7 @@
         {% if item_id == '-all-' %}
         { title: "Func ID", field: "item_id", editor: false },
         {% endif %}
-        {% if is_staff == 'y' %}
+        {% if can_publish == 'y' %}
         { title: "Public?", field: "is_public", editor: "tickCross" },
         {% else %}
         { title: "Public?", field: "is_public", editor: false },

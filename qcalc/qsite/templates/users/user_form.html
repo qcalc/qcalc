@@ -15,4 +15,8 @@
       </div>
     </div>
   </form>
+{% if user.can_publish %}
+  <br/>
+  <p>You can create public calculator</p>
+{% endif %}
 {% endblock %}

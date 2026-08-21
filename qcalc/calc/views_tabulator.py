@@ -31,8 +31,9 @@ def tabulate_stuff(request, scope, item_id, cid):
     # Non-staff users can only create private calculator.
     # All users can share their private calculators with others by sharing the access_token.
     is_staff = 'y' if request.user.is_staff else 'n'
+    can_publish = 'y' if request.user.can_publish else 'n'
     return render(request, 'stuff_tabulator.html',
-                  {'scope': scope, 'item_id': item_id, 'cid': cid, 'is_staff': is_staff})
+                  {'scope': scope, 'item_id': item_id, 'cid': cid, 'is_staff': is_staff, 'can_publish': can_publish})
 
 
 def get_input_data(request, scope, item_id, jresp=True):  # used in input_tabulator

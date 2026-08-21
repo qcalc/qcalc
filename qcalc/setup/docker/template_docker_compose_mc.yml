@@ -92,6 +92,7 @@ services:
       - ~/qcalc_dock/qcalc_res:/usr/src/qcalc_dock/qcalc_res
       - ~/qcalc_dock/.cache:/usr/src/qcalc_dock/.cache
       - ~/qcalc_dock/.temp:/usr/src/qcalc_dock/.temp
+      - ~/qcalc_dock/.local/log/qcalc:/usr/src/qcalc_dock/.local/log/qcalc
       - ~/qcalc_dock/.local/log/gunicorn:/var/log/gunicorn
       - static:/usr/src/qcalc_dock/qcalc/staticfiles/
     networks:

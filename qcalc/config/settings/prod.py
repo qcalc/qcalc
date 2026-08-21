@@ -3,6 +3,7 @@
 
 from .base import *  # noqa
 from .base import env
+
 print(f"Reading {__file__} ...")
 # DATABASES
 # ------------------------------------------------------------------------------
@@ -35,3 +36,11 @@ SECURE_HSTS_PRELOAD = env.bool("DJANGO_SECURE_HSTS_PRELOAD", default=True)
 SECURE_CONTENT_TYPE_NOSNIFF = env.bool(
     "DJANGO_SECURE_CONTENT_TYPE_NOSNIFF", default=True
 )
+
+ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+ACCOUNT_SIGNUP_FORM_HONEYPOT_FIELD = "phone_number"
+ACCOUNT_RATE_LIMITS = {
+    "signup": "5/h/ip", # Each IP address can make 5 signup attempts per hour.
+    "login": "10/m/ip", # Each IP address can make 10 login attempts per minute.
+    "reset_password": "3/h/ip", # Each IP address can request password resets only 3 times per hour.
+}

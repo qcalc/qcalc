@@ -52,6 +52,7 @@ services:
       - ~/qcalc_dock/.cache:/usr/src/qcalc_dock/.cache
       - ~/qcalc_dock/.local/log/gunicorn:/var/log/gunicorn
       - ~/qcalc_dock/.temp:/usr/src/qcalc_dock/.temp
+      - ~/qcalc_dock/.local/log/qcalc:/usr/src/qcalc_dock/.local/log/qcalc
       # check nginx location /static/, the path should be consistent
       - static:/usr/src/qcalc_dock/qcalc/staticfiles/
     ports:

@@ -299,8 +299,9 @@ LOGGING = {
     },
     "formatters": {
         "verbose": {
-            "format": "%(levelname)s %(asctime)s %(module)s "
-                      "%(process)d %(thread)d %(message)s"
+            "format": "{asctime} {levelname} {name}: {message}",
+            "datefmt": "%Y-%m-%d %H:%M:%S",
+            "style": "{",
         }
     },
     "handlers": {
@@ -317,7 +318,7 @@ LOGGING = {
         "rotating_file": {
             "level": "WARNING",  # "INFO",
             "class": "logging.handlers.RotatingFileHandler",
-            "filename": env("DJANGO_LOG_FILE", default=str(PROJ_DIR.path(".local/qcalc.log"))),
+            "filename": env("DJANGO_LOG_FILE", default=str(PROJ_DIR.path(".local/log/qcalc/qcalc.log"))),
             "maxBytes": 2000000,
             "backupCount": 5,
             "formatter": "verbose",
@@ -329,14 +330,18 @@ LOGGING = {
     },
     "loggers": {
         "django.request": {
-            "handlers": ["mail_admins"],
+            "handlers": ["console"],
             "level": "ERROR",
             "propagate": True,
         },
+        # "django.security.DisallowedHost": {
+        #     "handlers": ["console", "mail_admins"],
+        #     "level": "ERROR",
+        #     "propagate": True,
+        # },
         "django.security.DisallowedHost": {
-            "handlers": ["console", "mail_admins"],
-            "level": "ERROR",
-            "propagate": True,
+            "handlers": [],
+            "propagate": False,
         },
     },
 }

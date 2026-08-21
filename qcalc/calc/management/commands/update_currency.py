@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 
-from calc import update_currency, publish_redis_action
+from calc import update_currency, redis_publish_action
 
 
 class Command(BaseCommand):
@@ -8,7 +8,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         update_msg = update_currency(update_now=True)
-        publish_redis_action(
+        redis_publish_action(
             channel="qcalc_channel",
             action="update_currency",
             update_now=False  # update_now False=already downloaded, upload only

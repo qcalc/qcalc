@@ -461,7 +461,7 @@ def q1_add_func_help(request: HtmxHttpRequest, **kwargs):
             context['editable'] = help_exists and help_path.suffix == '.html'
             context['createable'] = not help_exists
     except Exception as e:
-        logger.error(f"AFH: Unexpected error in q1_add_func_help for function '{func_id}': {e}")
+        logger.error(f">>> AFH: Unexpected error in q1_add_func_help for function '{func_id}': {e}")
         return ut.show_modal("", f"The function '{func_id}' not be found.")
     context["help_path"] = help_path.as_posix()
     return ut.get_page(request, template, context, page=f'{func_id}_help', as_card=True)

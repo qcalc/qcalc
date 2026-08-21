@@ -37,7 +37,7 @@ def _load_docs_meta(docs_root: Path) -> dict:
     try:
         return json.loads(meta_path.read_text(encoding='utf-8'))
     except (json.JSONDecodeError, OSError) as e:
-        logger.warning(f'build_docs_tree: could not read {meta_path}: {e}')
+        logger.warning(f'!!! LDM: Could not read {meta_path}: {e}')
         return {}
 
 
@@ -54,7 +54,7 @@ def build_docs_tree(nid='docs', title='Documentation'):
         try:
             entries = sorted(dir_path.iterdir(), key=lambda p: p.name.lower())
         except OSError as e:
-            logger.warning(f'build_docs_tree: could not list {dir_path}: {e}')
+            logger.warning(f'!!! BDT: Could not list {dir_path}: {e}')
             return
         for entry in entries:
             if entry.name.startswith('.') or entry.name == DOCS_META_FILE:

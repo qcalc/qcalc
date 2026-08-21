@@ -182,7 +182,7 @@ class UCals:
                     func_node.sub_type = 'e'
                     func_node.uname = self.cal_owner
             except Exception as e:
-                logger.exception(f"Exception occurred: {e}")  # Example: Log the exception
+                logger.error(f">>> EC: {e}")  # Example: Log the exception
 
         ctg_node.update_all_descendant_leafs_count()
         ctg_node.sort_by()
@@ -376,7 +376,7 @@ def register_shared_cal(func_id, token):
         func_node.uname = uname
         ctg_node.add_child(func_node)
     except Exception as e:
-        logger.exception(f"Exception occurred: {e}")  # Example: Log the exception
+        logger.error(f">>> RSC: {e}")
 
     ctg_node.update_all_descendant_leafs_count()
     ctg_node.sort_by()

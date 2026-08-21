@@ -89,7 +89,7 @@ def qcache(functions='', clear_cache=False):
                 out.write('')
         res = out.flush()
     except Exception as e:
-        logger.error(f'QCH: Could not connect to cache server; {e}')
+        logger.error(f'>>> QCH: Could not connect to cache server; {e}')
 
     gs = qvars.qc_gpref
     return {

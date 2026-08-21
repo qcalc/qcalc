@@ -213,7 +213,7 @@ def q11422_form_data_modify_after_post(request, func_id, sig_type, arg_name, arg
                 try:
                     arg_value = modify_callback(arg_name, new_arg_value, action)
                 except Exception as e:
-                    logger.exception(f"Exception occurred: {e}")
+                    logger.error(f">>> FDM: {e}")
                     arg_value = new_arg_value
                     # | end exit point
     # return modified arg_value

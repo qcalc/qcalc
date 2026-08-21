@@ -22,7 +22,7 @@ class IgnoreDisallowedHostMiddleware:
         try:
             return self.get_response(request)
         except DisallowedHost as e:
-            logger.error(f"IDH: DisallowedHost exception: {e}")
+            logger.error(f">>> IDH: DisallowedHost exception: {e}")
             return HttpResponseBadRequest("Bad Request: Host not allowed")
 
 
@@ -51,16 +51,13 @@ class CalcMiddleware:
             if not request.session.session_key or 'hash' not in request.session:
                 # | Run once per user session
                 create_session_once_per_session(request)
-                # lprint('--- STAGE S.1: create_session_once_per_session() completed')
                 QPref.setp(qvars.qc_gpref)  # authentication middleware required
-                # lprint('--- STAGE S.2: QPref.setp() completed')
-                # lprint("*** Initialization code per session completed")
 
             self._ensure_worker_init()
 
             response = self.get_response(request)
         except Exception as e:
-            logger.error(f"CMW: Error in CalcMiddleware after response: {e}")
+            logger.error(f">>> CMW: Error in CalcMiddleware after response: {e}")
             raise
         finally:
             QThread.set_req(None)

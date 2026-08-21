@@ -361,7 +361,7 @@ class TreeNode:
     def add_category_node(self, par_id, ctg_node_id, ctg_node_name, ctg_node_title, uname=None):
         ctg_node, flag = self.add_node_if_not_found(par_id, ctg_node_id, ctg_node_name)
         if not ctg_node:
-            logger.error(f'ACN: Error processing {ctg_node_id}')
+            logger.error(f'>>> ACN: Error processing {ctg_node_id}')
         if flag == 0:  # newly added node
             # | ctg_node._index_node()
             ctg_node.title = path_title(ctg_node_title)

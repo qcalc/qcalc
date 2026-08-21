@@ -7,7 +7,7 @@ from django.conf import settings
 from django.contrib import admin
 from django.utils.crypto import get_random_string
 from qutil import fid2owner
-from .mod_redis import publish_redis_action
+from .mod_redis import redis_publish_action
 from .mod_ucals import UCals
 import logging
 
@@ -42,7 +42,7 @@ class MyStuff(models.Model):
                 if code:
                     cal_id, cal_name, cal_owner = fid2owner(self.item_id)
                     updated = QCals.update_public_cal(self.item_id, cal_owner, code)
-                    if updated: publish_redis_action(
+                    if updated: redis_publish_action(
                         channel="qcalc_channel",
                         action="update_public_cal",
                         cal_id=self.item_id,
@@ -52,7 +52,7 @@ class MyStuff(models.Model):
             elif not self.is_public and self.item_id in QCals.pc_list:
                 deleted = QCals.delete_public_cal(self.item_id)
                 if deleted:
-                    publish_redis_action(
+                    redis_publish_action(
                         channel="qcalc_channel",
                         action="delete_public_cal",
                         cal_id=self.item_id
@@ -66,7 +66,7 @@ class MyStuff(models.Model):
             if self.is_public and self.item_id in QCals.pc_list:
                 deleted = QCals.delete_public_cal(self.item_id)
                 if deleted:
-                    publish_redis_action(
+                    redis_publish_action(
                         channel="qcalc_channel",
                         action="delete_public_cal",
                         cal_id=self.item_id
@@ -83,7 +83,7 @@ class MyStuff(models.Model):
                 # | Delete all user's favorites for the item_id from MyStuff if object_id is 'fav'
                 MyStuff.objects.filter(object_id='fav', item_id=self.item_id).delete()
             except Exception as e:
-                logger.error(f'MSD: {str(e)}')
+                logger.error(f'>>> MSD: {str(e)}')
 
         super().delete(*args, **kwargs)  # Proceed with deletion
 

@@ -21,7 +21,7 @@ class Command(StaticfilesRunserverCommand):
         # Run prechecks only in the child process to avoid duplicate startup work/logging.
         if options.get("use_reloader") and os.environ.get("RUN_MAIN") != "true":
             return super().handle(*args, **options)
-        print(f"***")
+        print("")
         logger.info("SVR: Checking database service availability...")
         self._check_database_service_is_reachable()
         logger.info("SVR: Checking required superuser...")
@@ -30,7 +30,7 @@ class Command(StaticfilesRunserverCommand):
         self._validate_static_probe()
         logger.info("SVR: Checking if caching is active...")
         self._validate_cache_is_active()
-        print(f"***")
+        print("")
         logger.note("SVR: Starting qCalc server")
         return super().handle(*args, **options)
 
@@ -56,7 +56,7 @@ class Command(StaticfilesRunserverCommand):
             with socket.create_connection((db_host, db_port), timeout=2):
                 return
         except OSError:
-            logger.critical("Database server is not available. Start the database service, then run runserver again.")
+            logger.error(">>> CDS: Database server is not available. Start the database service, then run runserver again.")
             os._exit(1)
 
     @staticmethod
@@ -68,9 +68,9 @@ class Command(StaticfilesRunserverCommand):
             if user_model.objects.filter(username='super').exists():
                 return
         except Exception as e:
-            logger.critical(f"*** {e}. If required database or table doesn't exist, Run >> python manage.py migrate")
+            logger.error(f">>> VRS: {e}. If required database or table doesn't exist, Run >> python manage.py migrate")
             os._exit(1)
-        logger.critical("*** super user has not been created yet. Run >> python manage.py createsuperuser")
+        logger.error(">>> VRS: Super user has not been created yet. Run >> python manage.py createsuperuser")
         # Force immediate process termination before server loop starts.
         os._exit(1)
 
@@ -82,8 +82,8 @@ class Command(StaticfilesRunserverCommand):
         if finders.find(static_probe):
             return
 
-        logger.critical(
-            f"Static probe failed: cannot resolve {settings.STATIC_URL}{static_probe}. "
+        logger.error(
+            f">>> VSP: Static probe failed: cannot resolve {settings.STATIC_URL}{static_probe}. "
             "Check STATICFILES_DIRS / app static folders / collectstatic setup."
         )
         os._exit(1)
@@ -97,8 +97,8 @@ class Command(StaticfilesRunserverCommand):
         if QCache.isactive():
             return
 
-        logger.critical(
-            f"Cache [{check_setting(settings.QSCHEMA_CACHE_ALIAS, "QSCHEMA_CACHE_ALIAS")}] is not active. "
+        logger.error(
+            f">>> VCA: Cache [{check_setting(settings.QSCHEMA_CACHE_ALIAS, "QSCHEMA_CACHE_ALIAS")}] is not active. "
             "Use either locmem, file, memcached, or redis (configured in base.py settings) as the DEFAULT_CACHE_ALIAS."
             "If memcached or redis, then start the corresponding service."
         )

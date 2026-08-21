@@ -11,6 +11,7 @@ from .mod_qcals import QCals
 # mod_qcals_security
 from .mod_qlist import *
 from .mod_redis import *
+from .mod_redis_act import *
 from .mod_result import result_values
 from .mod_ucals import UCals
 from .mod_whoosh import QSearch, print_search_result, search_result_nodes
@@ -60,7 +61,7 @@ def build_search_index():
 
 def w2_initialize_py_catalog_once_per_worker():
     create_standard_cataog_from_packages()  # | Read python modules
-    logger.info(f'--- STAGE W.2: w2_initialize_py_catalog_once_per_worker() completed')
+    logger.info(f'*** STAGE W.2: w2_initialize_py_catalog_once_per_worker() completed')
 
 
 def w3_initialize_db_catalog_once_per_worker():
@@ -73,4 +74,4 @@ def w3_initialize_db_catalog_once_per_worker():
     create_public_catalog_from_db()  # | Accessing the database
     build_search_index()  # | based on both pacakage based and db based catalog
     get_super_user()  # | Accessing the database
-    logger.info(f'--- STAGE W.3: w3_initialize_db_catalog_once_per_worker() completed')
+    logger.info(f'*** STAGE W.3: w3_initialize_db_catalog_once_per_worker() completed')

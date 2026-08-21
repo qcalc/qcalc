@@ -72,7 +72,7 @@ class QSession:
         if QCache.active and not self.volatile:
             rqsn.modified = True
         else:
-            logger.error('QSP: Session not saved')
+            logger.error('>>> QSP: Session not saved')
 
     def getp(self, defa: None | dict = None) -> dict:
         # | get dict. If it doesn't exist return {}, never returns None

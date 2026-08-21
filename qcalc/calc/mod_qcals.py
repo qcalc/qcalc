@@ -12,7 +12,7 @@ from qutil import variable_to_title, TreeNode, \
     joinx, names2fid, user_name, fid2owner
 from qvars import qc_gpref as gs, qfunc_info, qty_info, unit_info
 import bisect
-from .mod_redis import publish_redis_action, register_redis_action
+from .mod_redis import redis_publish_action
 from qcore import _unit_table, Qty, _base_categories, _unit_tree, _unit_info, \
     unit_short_desc, _base_categ_d2s, _qty_tree, _qty_info, lmt_title, dim_to_bname, _base_names
 from asteval import make_symbol_table
@@ -43,10 +43,6 @@ class QCals:
     pc_list: list = []  # sorted list of keys from pfunc_dict (calculators)
     pcalc_root: TreeNode
     _registry_lock = threading.RLock()
-
-    def __init__(cls):
-        register_redis_action(cls.update_public_cal)
-        register_redis_action(cls.delete_public_cal)
 
     @classmethod
     def func_exists(cls, func_id, scope='qpots'):
@@ -286,7 +282,7 @@ class QCals:
                 raise Exception(f'Error (LUC): Calculator {cal_id} not found')
         # local_dict = cls.safe_exec(code)
         cls.update_public_cal(cal_id, owner, code)
-        publish_redis_action(
+        redis_publish_action(
             channel="qcalc_channel",
             action="update_public_cal",
             cal_id=cal_id,
@@ -475,7 +471,7 @@ class QCals:
             for uname in _unit_tree[dim]:
                 cur_node, flag = cls.qty_root.add_node_if_not_found(parent_id=slug, nid=uname, name=uname)
                 if not cur_node:
-                    logger.error(f'CCQ: Error processing {uname}')
+                    logger.error(f'>>> CCQ: Error processing {uname}')
                 if flag == 0:  # newly added node
                     cur_node.title = _unit_info[uname]['long_name']
                     # | unit_short_desc end with a semicolon
@@ -504,7 +500,7 @@ class QCals:
             for qname in _qty_tree[dim]:
                 cur_node, flag = cls.qty_root.add_node_if_not_found(parent_id=f"{slug}_objects", nid=qname, name=qname)
                 if not cur_node:
-                    logger.error(f'CCQ: Error processing {qname}')
+                    logger.error(f'>>> CCQ: Error processing {qname}')
                 if flag == 0:  # newly added node
                     cur_node.title = _qty_info[qname]['description']
                     cur_node.desc = ''
@@ -622,7 +618,7 @@ class QCals:
                 owner_node.add_child(func_node)
                 owner_node.count_descendant_leafs()
             except Exception as e:
-                logger.error(f'AFP: {calc_id} could not be added, {str(e)}')
+                logger.error(f'>>> AFP: {calc_id} could not be added, {str(e)}')
                 toret = False
             return toret
 

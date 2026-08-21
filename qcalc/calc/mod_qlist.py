@@ -6,7 +6,6 @@ import os
 import urllib.request
 from qutil import makeid, check_setting, is_obsolete, timestamp_to_dt
 from qcore import add_measurement_units, add_currencies, add_quantities
-from .mod_redis import register_redis_action, publish_redis_action
 import sys
 from django.conf import settings
 from qvars import qfunc_info, qty_info, unit_info
@@ -64,7 +63,7 @@ def load_json(json_file_name, path=None):
         j_list = json.load(json_data)
         json_data.close()
     except FileNotFoundError:
-        logger.error(f'LDJ: File {filepath} does not exist')
+        logger.error(f'>>> LDJ: File {filepath} does not exist')
         j_list = {}
     return j_list
 
@@ -80,7 +79,7 @@ def load_currency(update_now=False, backup=False):
         elif success:
             obsolete = is_obsolete(j_list["timestamp"], 18000)  # 5 hr
         else:
-            logger.error("LDC: " + j_list["error"]["info"])
+            logger.error(">>> LDC: " + j_list["error"]["info"])
 
         return notfound, obsolete, success
 
@@ -102,7 +101,7 @@ def load_currency(update_now=False, backup=False):
             fixer_api_key = check_setting(settings.FIXER_API_KEY, "FIXER_API_KEY", optional=True)
             if fixer_api_key == '':
                 success = False
-                logger.warning(f"LDC: Currency API key missing from settings.FIXER_API_KEY")
+                logger.warning(f"!!! LC: Currency API key missing from settings.FIXER_API_KEY")
             else:
                 fixer_api_url = check_setting(settings.FIXER_API_URL, "FIXER_API_URL")
                 url = fixer_api_url + fixer_api_key
@@ -118,15 +117,15 @@ def load_currency(update_now=False, backup=False):
                 j_list = load_json(latest_json_file)
                 notfound, obsolete, success = check_curlist(j_list)
         except Exception as e:
-            logger.exception(f"Exception occurred: {e}")
+            logger.error(f">>> LC: {e}")
             success = False
 
         if not success:
             try:
                 j_list = load_json(default_json_file)
-                logger.warning(f"LDC: Using Standard Currency rates from {default_json_file}")
+                logger.warning(f"!!! LC: Using Standard Currency rates from {default_json_file}")
             except Exception as e:
-                logger.exception(f"Exception occurred: {e}")
+                logger.error(f">>> LC: {e}")
 
     return j_list
 
@@ -176,7 +175,6 @@ class StdList:
         add_quantities()
         logger.info('*** Qtys added')
         cls.currency_list = load_currency()
-        register_redis_action(update_currency)
         cls.currency_desc = load_json("currency.json")
         add_currencies(cls.currency_list, cls.currency_desc)
 
@@ -190,7 +188,7 @@ class StdList:
         unit_info.update(load_json("unit_info.json"))
         logger.info('*** Unit info updated')
         cls.initialized = True
-        logger.info("--- STAGE W.1: w1_prepare_lists_once_per_worker() completed")
+        logger.info("*** STAGE W.1: w1_prepare_lists_once_per_worker() completed")
 
 
 class QList:

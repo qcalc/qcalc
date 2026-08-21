@@ -37,7 +37,7 @@ def _download_nltk_resources():
 
 def run_once_per_instance():  # | run once for every instance
     if _download_nltk_resources():
-        logger.info(f'--- STAGE I.1: download_nltk_resources() completed')
+        logger.info(f'*** STAGE I.1: download_nltk_resources() completed')
         logger.info("*** Initialization code per instance completed")
         # | Next stages per worker in calc/app.py
 

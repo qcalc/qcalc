@@ -3,7 +3,7 @@
 
 from django.apps import AppConfig
 from calc import StdList, listen_to_qcalc_channel, w2_initialize_py_catalog_once_per_worker, \
-    publish_redis_check, redis_pubsub_active
+    redis_publish_check, redis_pubsub_active
 import os
 import sys
 import threading
@@ -61,15 +61,15 @@ class CalcConfig(AppConfig):
 
         # Redis pub/sub listener for this worker
         if redis_pubsub_active():
-            publish_redis_check()
-            logger.info("--- STAGE W.0.1: publish_redis_check() completed")
+            redis_publish_check()
+            logger.info("*** STAGE W.0.1: redis_publish_check() completed")
 
             listener_thread = threading.Thread(
                 target=listen_to_qcalc_channel,
                 daemon=True,
             )
             listener_thread.start()
-            logger.info("--- STAGE W.0.2: listen_to_qcalc_channel() started")
+            logger.info("*** STAGE W.0.2: listen_to_qcalc_channel() started")
 
         # Application data loaded into this worker's memory
         StdList.w1_prepare_lists_once_per_worker()

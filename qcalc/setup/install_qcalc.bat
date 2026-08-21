@@ -25,7 +25,7 @@ call .venv\Scripts\activate
 rem MS Visual C++ Runtime 14 or later is required
 pip install -r requirements.txt
 
-mkdir ..\.local
+mkdir ..\.local\log\qcalc
 mkdir ..\.temp
 mkdir .setup
 copy setup\env\template_setup.env setup.env

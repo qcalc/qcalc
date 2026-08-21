@@ -68,7 +68,7 @@ pip install -r requirements.txt
 ### 5. Create Required Directories
 
 ```bat
-mkdir ..\.local
+mkdir ..\.local\log\qcalc
 mkdir ..\.temp
 mkdir .setup
 ```
@@ -237,7 +237,7 @@ pip install -r requirements.txt
 ### 5. Create Required Directories
 
 ```bash
-mkdir -p ~/qcalc_dock/.local
+mkdir -p ~/qcalc_dock/.local/log/qcalc
 mkdir -p ~/qcalc_dock/.temp
 mkdir -p ~/qcalc_dock/qcal/.setup
 ```

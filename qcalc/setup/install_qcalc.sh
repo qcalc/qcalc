@@ -23,7 +23,7 @@ python3.12 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 
-mkdir -p ../.local
+mkdir -p ../.local/log/qcalc
 mkdir -p ../.temp
 mkdir -p .setup
 cp setup/env/template_setup.env setup.env

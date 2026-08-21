@@ -334,11 +334,6 @@ LOGGING = {
             "level": "ERROR",
             "propagate": True,
         },
-        # "django.security.DisallowedHost": {
-        #     "handlers": ["console", "mail_admins"],
-        #     "level": "ERROR",
-        #     "propagate": True,
-        # },
         "django.security.DisallowedHost": {
             "handlers": [],
             "propagate": False,

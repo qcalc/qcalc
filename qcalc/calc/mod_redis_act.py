@@ -21,7 +21,6 @@ def handle_qcalc_channel(message):
         kwargs = json.loads(message['data'])
         action = kwargs.pop('action', '')
         if action == "update_public_cal":
-            print('|update_public_cal')
             cal_id = kwargs.pop('cal_id', '')
             cal_owner = kwargs.pop('cal_owner', '')
             code = kwargs.pop('code', '')
@@ -33,9 +32,9 @@ def handle_qcalc_channel(message):
             update_now = kwargs.pop('update_now', False)
             update_currency(update_now)  # update_now False=already downloaded, upload only
     except json.JSONDecodeError as e:
-        print(f"JSON decoding error: {e}")
+        logger.error(f"HQC: JSON decoding error: {e}")
     except Exception as e:
-        print(f"Error in handle_redis_notification: {e}")
+        logger.error(f"HQC: {e}")
 
 
 def listen_to_qcalc_channel():

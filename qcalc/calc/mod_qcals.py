@@ -31,6 +31,7 @@ class QCals:
     qc_dict: dict  # dict of qcalc names and packages (calculators)
     qctg_dict: dict  # dict of qcalc package and category names
     qc_list: list  # sorted list of keys from qc_dict (calculators)
+
     qc_admin_list: list  # sorted list of admin function names, not serach engine indexable
     qc_demo_list: list  # sorted list of demo function names, not serach engine indexable
     qc_user_list: list  # sorted list of user function names, serach engine indexable
@@ -39,8 +40,11 @@ class QCals:
     qsymbol_dict: dict  # dict of qfunction names/addresses plus uoms/Qty plus py/asteval syms
     qty_root: TreeNode
 
-    pfunc_dict: dict = {}  # dict of user created public function names and addresses
+    pfunc_dict: dict = {}  # dict of public function names and addresses
+    pc_dict: dict = {} # dict of public function names and packages (calculators)
+    pctg_dict: dict = {} # dict of public package and category names
     pc_list: list = []  # sorted list of keys from pfunc_dict (calculators)
+
     pcalc_root: TreeNode
     _registry_lock = threading.RLock()
 

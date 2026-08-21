@@ -27,16 +27,17 @@ logger = logging.getLogger(__name__)
 
 
 class QCals:
+    catalog_name: str
+
     qfunc_dict: dict  # dict of qfunction names and addresses
     qc_dict: dict  # dict of qcalc names and packages (calculators)
     qctg_dict: dict  # dict of qcalc package and category names
     qc_list: list  # sorted list of keys from qc_dict (calculators)
+    calc_root: TreeNode
 
     qc_admin_list: list  # sorted list of admin function names, not serach engine indexable
     qc_demo_list: list  # sorted list of demo function names, not serach engine indexable
     qc_user_list: list  # sorted list of user function names, serach engine indexable
-    calc_root: TreeNode
-    catalog_name: str
     qsymbol_dict: dict  # dict of qfunction names/addresses plus uoms/Qty plus py/asteval syms
     qty_root: TreeNode
 
@@ -44,8 +45,8 @@ class QCals:
     pc_dict: dict = {} # dict of public function names and packages (calculators)
     pctg_dict: dict = {} # dict of public package and category names
     pc_list: list = []  # sorted list of keys from pfunc_dict (calculators)
+    pcalc_root: TreeNode = create_category_node('pcals', 'pcals', 'Public Cals')
 
-    pcalc_root: TreeNode
     _registry_lock = threading.RLock()
 
     @classmethod
@@ -659,7 +660,7 @@ class QCals:
     @classmethod
     def create_catalog_calc_public(cls):
         TreeNode.setup(qconst.admin_name, qconst.demo_name, qconst.personal_name)
-        cls.pcalc_root = create_category_node('pcals', 'pcals', 'Public Cals')
+        # cls.pcalc_root = create_category_node('pcals', 'pcals', 'Public Cals')
         for pkg, ctg in cls.pctg_dict.items():
             cur_node = cls.add_catagories_to_node(cls.pcalc_root, ctg)
 

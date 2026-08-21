@@ -32,9 +32,9 @@ def handle_qcalc_channel(message):
             update_now = kwargs.pop('update_now', False)
             update_currency(update_now)  # update_now False=already downloaded, upload only
     except json.JSONDecodeError as e:
-        logger.error(f"HQC: JSON decoding error: {e}")
+        logger.error(f">>> HQC: JSON decoding error: {e}")
     except Exception as e:
-        logger.error(f"HQC: {e}")
+        logger.error(f">>> HQC: {e}")
 
 
 def listen_to_qcalc_channel():

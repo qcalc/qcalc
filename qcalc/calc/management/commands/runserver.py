@@ -82,8 +82,7 @@ class Command(StaticfilesRunserverCommand):
         if finders.find(static_probe):
             return
 
-        logger.error(
-            f">>> VSP: Static probe failed: cannot resolve {settings.STATIC_URL}{static_probe}. "
+        logger.error(f">>> VSP: Static probe failed: cannot resolve {settings.STATIC_URL}{static_probe}. "
             "Check STATICFILES_DIRS / app static folders / collectstatic setup."
         )
         os._exit(1)
@@ -97,8 +96,7 @@ class Command(StaticfilesRunserverCommand):
         if QCache.isactive():
             return
 
-        logger.error(
-            f">>> VCA: Cache [{check_setting(settings.QSCHEMA_CACHE_ALIAS, "QSCHEMA_CACHE_ALIAS")}] is not active. "
+        logger.error(f">>> VCA: Cache [{check_setting(settings.QSCHEMA_CACHE_ALIAS, "QSCHEMA_CACHE_ALIAS")}] is not active. "
             "Use either locmem, file, memcached, or redis (configured in base.py settings) as the DEFAULT_CACHE_ALIAS."
             "If memcached or redis, then start the corresponding service."
         )

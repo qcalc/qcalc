@@ -13,9 +13,9 @@ logger = logging.getLogger(__name__)
 
 
 class TreeNode:
-    admin_name: str
-    demo_name: str
-    personal_name: str
+    admin_name: str = "admin"
+    demo_name: str = "demo"
+    personal_name: str = "personal"
 
     def __init__(self, nid, name, title='', desc='', tags='', is_leaf=False, node_type=None, is_active=True,
                  data=None, sub_type=''):

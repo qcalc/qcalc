@@ -6,12 +6,11 @@ from django.contrib import admin
 
 
 class User(AbstractUser):
-
     # First Name and Last Name do not cover name patterns
     # around the globe.
     name = CharField(_("Name of User"), blank=True, max_length=255)
 
-    #deb@21.08.26
+    # deb@21.08.26
     class Meta(AbstractUser.Meta):
         permissions = [
             ("can_publish_calculator", "Can publish calculator"),

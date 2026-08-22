@@ -11,6 +11,12 @@ from .mod_sitemap import *
 from django.urls import re_path
 from django.views.static import serve
 
+from django.contrib import admin
+
+admin.site.site_header = "QCalc Administration"
+admin.site.site_title = "QCalc Admin"
+admin.site.index_title = "Welcome to QCalc Administration"
+
 urlpatterns = [
     path("robots.txt", views.serve_app_static_file("robots.txt", "text/plain")),
     path("favicon.ico", views.serve_app_static_file("favicon.png", "image/png")),

@@ -38,9 +38,9 @@ SECURE_CONTENT_TYPE_NOSNIFF = env.bool(
 )
 
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
-ACCOUNT_SIGNUP_FORM_HONEYPOT_FIELD = "phone_number"
+ACCOUNT_SIGNUP_FORM_HONEYPOT_FIELD = "phone_number" # work on allauth 0.63+
 # Tell allauth to safely trust the IP coming from Nginx
-ALLAUTH_TRUSTED_CLIENT_IP_HEADER = "X-Real-IP"
+ALLAUTH_TRUSTED_CLIENT_IP_HEADER = "X-Real-IP" # check nginx settings
 ACCOUNT_RATE_LIMITS = {
     "signup": "5/h", # Each IP address can make 5 signup attempts per hour.
     "login": "10/m", # Each IP address can make 10 login attempts per minute.

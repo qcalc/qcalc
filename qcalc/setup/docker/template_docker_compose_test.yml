@@ -55,12 +55,6 @@ services:
       - ~/qcalc_dock/.local/log/qcalc:/usr/src/qcalc_dock/.local/log/qcalc
       # check nginx location /static/, the path should be consistent
       - static:/usr/src/qcalc_dock/qcalc/staticfiles/
-    ports:
-      - "8001:8001"
-      - "8002:8002"
-      - "8003:8003"
-      # - "8004:8004"
-      # - "8005:8005"
     networks:
       - qcnet
     depends_on:

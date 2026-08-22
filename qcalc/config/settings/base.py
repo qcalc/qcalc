@@ -350,7 +350,7 @@ ACCOUNT_AUTHENTICATION_METHOD = "username"
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_EMAIL_NOTIFICATIONS = True
 ACCOUNT_PASSWORD_RESET_ENABLED = env.bool("DJANGO_ACCOUNT_PASSWORD_RESET_ENABLED", True)
-
+ACCOUNT_UNIQUE_EMAIL = True
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
@@ -563,3 +563,8 @@ else:
         www_origin = f"{QCALC_SCHEME}://www.{QCALC_HOST}"
         if www_origin not in CSRF_TRUSTED_ORIGINS:
             CSRF_TRUSTED_ORIGINS.append(www_origin)
+
+# deb@22.08.26
+ACCOUNT_FORMS = {
+    'signup': 'qsite.users.forms.CustomSignupForm',
+}

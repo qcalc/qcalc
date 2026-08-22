@@ -66,9 +66,6 @@ def soup2text(soup):
 def is_absolute_url(url):
     """
     Checks if a URL is absolute.
-
-    :param url: The URL to check.
-    :return: True if the URL is absolute, False if it is relative.
     """
     parsed_url = urlparse(url)
     # A URL is considered absolute if it has a scheme (e.g., http or https) and a netloc (domain)
@@ -78,9 +75,5 @@ def is_absolute_url(url):
 def is_relative_url(url):
     """
     Checks if a URL is relative.
-
-    :param url: The URL to check.
-    :return: True if the URL is relative, False if it is absolute.
     """
     return not is_absolute_url(url)
-

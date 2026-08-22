@@ -8,6 +8,7 @@ from qutil import qaddr
 from urllib.parse import urljoin, urlparse
 import re
 
+
 def is_valid_url(url):
     """
     Checks whether `url` is a valid URL.
@@ -34,9 +35,9 @@ def xurls(page_url: qtexta = qaddr(), page_content: qtexta = ''):
         return "Eneter a valid url"
 
     mode = ''
-    domain_name =''
+    domain_name = ''
     content = ''
-    if webpage_url and page_content=='':
+    if webpage_url and page_content == '':
         domain_name = urlparse(webpage_url).netloc
         resp = requests.get(webpage_url, timeout=(3, 15))
         content = resp.content
@@ -88,17 +89,6 @@ def xurls(page_url: qtexta = qaddr(), page_content: qtexta = ''):
             href = parsed_href.scheme + "://" + parsed_href.netloc + parsed_href.path
             store_link(href)
 
-
-    # out = QScreen()
-    # for url in internal_urls:
-    #     out.print(url)
-    # internal_url_list = out.flush()
-    #
-    # out = QScreen()
-    # for url in external_urls:
-    #     out.print(url)
-    # external_url_list = out.flush()
-
     internal_url_count = len(internal_urls)
     external_url_count = len(external_urls)
     total_url_count = internal_url_count + external_url_count
@@ -133,13 +123,11 @@ def broken_links(url: qtexta = qaddr(),
 
         urls = xurls(url)
         allurls = list(urls["Internal Url List"]) + list(urls["External Url List"])
-        # print(allurls[0], len(allurls), type(allurls))
         i = 0
         for link_url in allurls:
             i += 1
             if i > max_urls_to_check:
                 break
-            # print(link_url)
             if link_url.startswith('javascript'):
                 continue
             link_response = requests.get(link_url, timeout=(3, 15))

@@ -54,7 +54,6 @@ class CalcMiddleware:
                 QPref.setp(qvars.qc_gpref)  # authentication middleware required
 
             self._ensure_worker_init()
-
             response = self.get_response(request)
         except Exception as e:
             logger.error(f">>> CMW: Error in CalcMiddleware after response: {e}")

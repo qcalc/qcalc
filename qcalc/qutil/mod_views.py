@@ -67,15 +67,13 @@ def create_session_once_per_session(request):
         request.session.save()
         assert request.session.session_key is not None
         request.session['hash'] = session_id_hash(request.session.session_key)
-        logger.info(f'CRS: New session key created | user={request.session['hash']}')
+        # logger.info(f'CRS: New session key created | user={request.session['hash']}')
 
     if not request.session.session_key or 'hash' not in request.session:
         # logger.info('Session key not found')
         # if session key exists or the old session is lost and a new session is created
         # e.g. when server restarts
         new_session(request)
-
-    # print('session key', request.session.session_key, request.session['hash'])
 
 
 def q1139_request_init(request: HtmxHttpRequest):

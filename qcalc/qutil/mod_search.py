@@ -1,9 +1,7 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
-# import nltk
 from fuzzywuzzy import fuzz
-# from nltk.corpus import wordnet as wn
 import re
 
 FzThold = 70  # 67 'bank' matches with 'an'
@@ -79,28 +77,9 @@ def find_matched_variables(expression, variable_list):
     return vars_
 
 
-def download_nltk_resources():
-    import nltk
-    # Check if the wordnet resource is available, if not, download it
-    not_found_downloaded = False
-    try:
-        nltk.data.find('corpora/wordnet.zip')
-    except LookupError:
-        not_found_downloaded = True
-        nltk.download('wordnet')
-
-    # Check if the sentiwordnet resource is available, if not, download it
-    try:
-        nltk.data.find('corpora/sentiwordnet.zip')
-    except LookupError:
-        not_found_downloaded = True
-        nltk.download('sentiwordnet')
-
-    return not_found_downloaded
-
-
 if __name__ == '__main__':
-    download_nltk_resources()
+    from qenv import _download_nltk_resources
+    _download_nltk_resources()
     text = 'jwellery items'
     term = 'jewlry'
     print(fuzz.ratio(term, text))

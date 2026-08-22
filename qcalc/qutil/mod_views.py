@@ -66,8 +66,8 @@ def create_session_once_per_session(request):
     def new_session(request):
         request.session.save()
         assert request.session.session_key is not None
-        logger.info('CRS: New session key created')
         request.session['hash'] = session_id_hash(request.session.session_key)
+        logger.info(f'CRS: New session key created | user={request.session['hash']}')
 
     if not request.session.session_key or 'hash' not in request.session:
         # logger.info('Session key not found')

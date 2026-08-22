@@ -10,11 +10,8 @@ def requires_login(func):
         if not request.user.is_authenticated:
             raise PermissionError("Login required")
         return func(request, *args, **kwargs)
-    return wrapper
 
-# @requires_login
-# def my_function(request):
-#     return "You are logged in!"
+    return wrapper
 
 
 def user_name(request=None):
@@ -43,4 +40,3 @@ def user_process():
     instance_id = info.get('instance_id')
     worker_pid = info.get('worker_pid')
     return f'User: {user_name()}, Instance: {instance_id}, PID: {worker_pid}'
-

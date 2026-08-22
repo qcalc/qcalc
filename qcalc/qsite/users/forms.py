@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2024-2026 Debasish C Saha
+
 from django.contrib.auth import get_user_model, forms
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
@@ -43,8 +46,8 @@ class CustomSignupForm(AntiBotSecurityMixin, AllauthSignupForm):
 
         # Explicit security field names from the Mixin
         security_fields = [
-            'captcha_answer',
             'captcha_question',
+            'captcha_answer',
             'captcha_correct_answer',
             'honeypot',
             'timestamp',

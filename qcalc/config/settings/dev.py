@@ -68,3 +68,16 @@ elif QCALC_PROFILING == 'silk':
         {'module': 'qcore.PhysicalQuantities', 'function': 'MeasureQuantity.__init__'},
         {'module': 'qcore.PhysicalQuantities', 'function': 'MeasureUnit.__init__'},
     ]
+
+# https://docs.djangoproject.com/en/dev/ref/settings/#auth-password-validators
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        'OPTIONS': {
+            'min_length': 4,
+        },
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"
+    },
+]

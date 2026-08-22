@@ -36,12 +36,15 @@ class AntiBotSecurityMixin(forms.Form):
                 self.request = args[0]
                 args = args[1:]  # Shift args down so super() doesn't choke
 
-        is_post = kwargs.pop('post', False)
-        super().__init__(*args, **kwargs)
-
+        is_post = kwargs.pop('post', False)  # contact form send this parameter
+        if not is_post:  # signup form is an alauth form, need to check data
+            data = kwargs.get('data') or (args[0] if args and isinstance(args[0], dict) else None)
+            is_post = data is not None
         # Fallback automated check if 'post=True' wasn't explicitly passed
         if not is_post and self.request and self.request.method == 'POST':
             is_post = True
+
+        super().__init__(*args, **kwargs)
 
         if not is_post:
             question, answer = self.get_random_qa()
@@ -50,7 +53,12 @@ class AntiBotSecurityMixin(forms.Form):
             self.fields['captcha_correct_answer'].initial = sha256(str(answer).encode()).hexdigest()
             self.fields['timestamp'].initial = int(time.time())
         else:
-            self.fields['captcha_answer'].label = self.data.get('captcha_question')
+            submitted_data = kwargs.get('data') or args[0]
+            q_text = submitted_data.get('captcha_question', 'CAPTCHA Question')
+            self.fields['captcha_question'].initial = q_text
+            self.fields['captcha_answer'].label = q_text
+            self.fields['captcha_correct_answer'].initial = submitted_data.get('captcha_correct_answer')
+            self.fields['timestamp'].initial = submitted_data.get('timestamp')
 
     def clean_captcha_answer(self):
         answer = self.cleaned_data.get('captcha_answer', '').strip()
@@ -104,13 +112,6 @@ class AntiBotSecurityMixin(forms.Form):
             question = f"What is the result of: {num1} {random.choice(['*', 'multiplied by', 'multiply with', 'times'])} {num2} ?"
             answer = num1 * num2
             return question, answer
-
-        # def string_question():
-        #     rstr = makeid()
-        #     rpos = random.randint(1, 8)
-        #     question = f"What is the {ordinal(rpos)} character of the string: {rstr} ?"
-        #     answer = rstr[rpos - 1]
-        #     return question, answer
 
         def string_question():
             rstr = makeid()

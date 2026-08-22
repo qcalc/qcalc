@@ -46,3 +46,21 @@ ACCOUNT_RATE_LIMITS = {
     "login": "10/m", # Each IP address can make 10 login attempts per minute.
     "reset_password": "3/h", # Each IP address can request password resets only 3 times per hour.
 }
+
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        'OPTIONS': {
+            'min_length': 5,
+        },
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
+    },
+]

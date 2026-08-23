@@ -33,6 +33,22 @@
 /* Light peach-gold for a gentle highlight without being bold */
 /* Other Interactive Elements */
 /* Very light gold for unobtrusive loading */
+:root {
+  --qmd-pre-bg: #f4f8f5;
+  --qmd-pre-border: #cdddcf;
+  --qmd-pre-text: #32443c;
+  --qmd-inline-bg: #eef5ef;
+  --qmd-inline-border: #d6e3d7;
+  --qmd-table-border: #d0ddd2;
+  --qmd-quote-bg: #f0f7f2;
+  --qmd-quote-border: #9cb5a1;
+  --qmd-quote-text: #3d544a;
+  --qmd-copy-bg: #f8fcf8;
+  --qmd-copy-bg-hover: #edf6ee;
+  --qmd-copy-border: #b8cdbb;
+  --qmd-copy-color: #3d544a;
+}
+
 /* Page Grid */
 .page-grid .row {
   display: flex;

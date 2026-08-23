@@ -33,6 +33,22 @@
 /* Light sand for a gentle highlight that doesn’t overpower */
 /* Other Interactive Elements */
 /* Soft bronze for loading, subtle and elegant */
+:root {
+  --qmd-pre-bg: #f5f7fa;
+  --qmd-pre-border: #d3dbe3;
+  --qmd-pre-text: #334150;
+  --qmd-inline-bg: #eef2f6;
+  --qmd-inline-border: #dbe3ea;
+  --qmd-table-border: #d4dde5;
+  --qmd-quote-bg: #f7f9fc;
+  --qmd-quote-border: #a4b7c1;
+  --qmd-quote-text: #425466;
+  --qmd-copy-bg: #ffffff;
+  --qmd-copy-bg-hover: #f2f5f8;
+  --qmd-copy-border: #c7d3df;
+  --qmd-copy-color: #405265;
+}
+
 /* Page Grid */
 .page-grid .row {
   display: flex;

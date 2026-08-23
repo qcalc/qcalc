@@ -37,6 +37,20 @@ def test_unsafe_probes_are_rejected(label, probe):
         safe_execute(probe)
 
 
+def test_metadata_type_key_is_allowed():
+    result = safe_execute("""
+def sample__info():
+    return {'schema': {'coats': {'type': 'choice'}}}
+""")
+
+    assert result['sample__info']()['schema']['coats']['type'] == 'choice'
+
+
+def test_type_identifier_is_rejected():
+    with pytest.raises(Exception):
+        safe_execute("value = type(1)")
+
+
 MANUAL_MYCAL_PROBES = [
     "__import__('os').environ.get('PATH')",
     "__import__('builtins').eval('__import__(\'os\').environ')",

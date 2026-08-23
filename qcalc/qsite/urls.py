@@ -13,9 +13,9 @@ from django.views.static import serve
 
 from django.contrib import admin
 
-admin.site.site_header = "QCalc Administration"
-admin.site.site_title = "QCalc Admin"
-admin.site.index_title = "Welcome to QCalc Administration"
+admin.site.site_header = "qCalc Administration"
+admin.site.site_title = "qCalc Admin"
+admin.site.index_title = "Welcome to qCalc Administration"
 
 urlpatterns = [
     path("robots.txt", views.serve_app_static_file("robots.txt", "text/plain")),

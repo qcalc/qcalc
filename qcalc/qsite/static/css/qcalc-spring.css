@@ -23,6 +23,22 @@
 /* Dark teal */
 /* Bright coral */
 /* Vivid red */
+:root {
+  --qmd-pre-bg: #fffaf0;
+  --qmd-pre-border: #f1dcc0;
+  --qmd-pre-text: #4f3f2c;
+  --qmd-inline-bg: #fff3dd;
+  --qmd-inline-border: #f2e0c3;
+  --qmd-table-border: #ecd9bf;
+  --qmd-quote-bg: #fff5e6;
+  --qmd-quote-border: #f6d365;
+  --qmd-quote-text: #5e4b33;
+  --qmd-copy-bg: #fffdf6;
+  --qmd-copy-bg-hover: #fff2da;
+  --qmd-copy-border: #e4cc9e;
+  --qmd-copy-color: #624d31;
+}
+
 /* Page Grid */
 .page-grid .row {
   display: flex;

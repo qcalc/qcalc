@@ -31,7 +31,7 @@ def href_url(addurl):
         path = path[:-1]
     if path.endswith("?"):
         path = path[:-1]
-    path = path.replace("&", "?") # if only & it should be ?
+    path = path.replace("&", "?")  # if only & it should be ?
     return path
 
 
@@ -123,13 +123,7 @@ def list2table(lst, cols, cid, elem, url_format='', url_col=-1):
     return tbl
 
 
-# def table_js():
-#     scr = '<script src="/static/js/tabulator-out.js"></script>'
-#     return scr
-
-
 if __name__ == '__main__':
-    # print(table_js())
     print(command_button('cost', 'Refresh', '__modify', args=['a', 'b']))
     print(cal_link(calurl('gold'), 'Gold', cid='xyz'))
     print(cal_link(calurl('bmi', 'weight/50 kg/height/5.5 ft/'), 'Gold', cid='xyz'))

@@ -25,6 +25,27 @@
 /* Light grey */
 /* Cornflower blue */
 /* Cyan */
+
+:root {
+  --qmd-pre-bg: #20262d;
+  --qmd-pre-border: #3b4652;
+  --qmd-pre-text: #e3e8ef;
+  --qmd-inline-bg: #27313a;
+  --qmd-inline-border: #3f4b58;
+  --qmd-table-border: #3f4b58;
+  --qmd-quote-bg: #20262d;
+  --qmd-quote-border: #4d7ea8;
+  --qmd-quote-text: #d3dce7;
+  --qmd-copy-bg: #2a3340;
+  --qmd-copy-bg-hover: #344151;
+  --qmd-copy-border: #4a5a6e;
+  --qmd-copy-color: #d9e2ec;
+  --qmd-copy-ok-border: #3cbf8b;
+  --qmd-copy-ok-color: #89e2bb;
+  --qmd-copy-fail-border: #e57373;
+  --qmd-copy-fail-color: #ffb4b4;
+}
+
 /* Page Grid */
 .page-grid .row {
   display: flex;

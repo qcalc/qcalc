@@ -1,2 +1,19 @@
 @use 'variables-elegance' as v;
+
+:root {
+	--qmd-pre-bg: #f6f8fb;
+	--qmd-pre-border: #d0d8e2;
+	--qmd-pre-text: #2f3c4a;
+	--qmd-inline-bg: #edf1f6;
+	--qmd-inline-border: #dce3ea;
+	--qmd-table-border: #d5dde6;
+	--qmd-quote-bg: #f5f8fc;
+	--qmd-quote-border: #9bb2c7;
+	--qmd-quote-text: #3a4b5d;
+	--qmd-copy-bg: #ffffff;
+	--qmd-copy-bg-hover: #f1f5fa;
+	--qmd-copy-border: #bcc9d7;
+	--qmd-copy-color: #33465a;
+}
+
 @import 'qcalc-common';

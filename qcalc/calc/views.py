@@ -505,29 +505,29 @@ def q1141_read_func_meta(func_id, __info=None, scope='qpots'):
         # layout
         'row': [],  # ['arg1-argN',...]
         'col': [],  # ['arg1-argN',...]
-        'newcol': [],  # auto calculated from row, col spec
-        'endcol': [],  # auto calculated from row, col spec
-        'newrow': [],  # template v4.21, auto calculated from row, col spec
-        'inrowb': [],  # template v4.21, auto calculated from row, col spec
-        'inrowe': [],  # template v4.21, auto calculated from row, col spec
-        'endrow': [],  # template v4.21, auto calculated from row, col spec
+        'newcol': [],  # internal use - auto calculated from row, col spec
+        'endcol': [],  # internal use - auto calculated from row, col spec
+        'newrow': [],  # internal use - auto calculated from row, col spec, template v4.21
+        'inrowb': [],  # internal use - auto calculated from row, col spec, template v4.21
+        'inrowe': [],  # internal use - auto calculated from row, col spec, template v4.21
+        'endrow': [],  # internal use - auto calculated from row, col spec, template v4.21
         'outcol': [],  # ['chart','table','result','page','image']
         'template': '',  # string e.g. 'v4.21'
         # extra front end logic
         'onsubmit': '',
         'script': '',  # string e.g. 'function cfn(v){return v>100;}'
         # 'quom2': False,
-        'qsel2': False,
-        'qlist': False,
-        'table_out': False,
-        'table_in': False,
+        'qsel2': False, # internal use
+        'qlist': False, # internal use
+        'table_out': False, # internal use - auto calculated if it is an output table
+        'table_in': False,  # internal use - auto calculated if it is an input table
         'kins': '',  # comma separated cal list meant to be sepcified through qfunc_info.json
         'tags': '',  # comma separated tag list meant to be specified through qfunc_info.json
         'xpr': True,
         'url': True,
         'loop': True,
         'step2': [],
-        'cost': False,
+        'cost': False, # internal use
         'inserts': {},
     }  # variable_to_title(fn.__name__)
 

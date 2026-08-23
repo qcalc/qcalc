@@ -1,0 +1,122 @@
+/* SPDX-License-Identifier: MIT
+   Copyright (c) 2024-2026 Debasish C Saha */
+
+:root {
+  --qmd-pre-bg: #f6f8fa;
+  --qmd-pre-border: #d0d7de;
+  --qmd-pre-text: #1f2328;
+  --qmd-inline-bg: #f1f3f5;
+  --qmd-inline-border: #e2e6ea;
+  --qmd-table-border: #d9dee3;
+  --qmd-quote-bg: #f8fafc;
+  --qmd-quote-border: #c7d2e0;
+  --qmd-quote-text: #495057;
+  --qmd-copy-bg: #ffffff;
+  --qmd-copy-bg-hover: #f6f8fa;
+  --qmd-copy-border: #c8d0d8;
+  --qmd-copy-color: #1f2328;
+  --qmd-copy-ok-border: #22a06b;
+  --qmd-copy-ok-color: #15803d;
+  --qmd-copy-fail-border: #d32f2f;
+  --qmd-copy-fail-color: #b3261e;
+}
+
+/* Scoped styling for Markdown-rendered help/doc content */
+.md-content {
+  line-height: 1.65;
+}
+
+.md-content pre {
+  position: relative;
+  background: var(--qmd-pre-bg);
+  border: 1px solid var(--qmd-pre-border);
+  border-radius: 8px;
+  padding: 0.9rem 1rem;
+  margin: 0.75rem 0 1rem;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.md-content pre code {
+  display: block;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  white-space: pre;
+  color: var(--qmd-pre-text);
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.md-content :not(pre) > code {
+  background: var(--qmd-inline-bg);
+  border: 1px solid var(--qmd-inline-border);
+  border-radius: 4px;
+  padding: 0.08rem 0.35rem;
+  font-size: 0.9em;
+}
+
+.md-content table {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  margin: 0.75rem 0 1rem;
+}
+
+.md-content th,
+.md-content td {
+  border: 1px solid var(--qmd-table-border);
+  padding: 0.45rem 0.6rem;
+  vertical-align: top;
+}
+
+.md-content blockquote {
+  border-left: 4px solid var(--qmd-quote-border);
+  padding: 0.2rem 0.9rem;
+  color: var(--qmd-quote-text);
+  margin: 0.75rem 0 1rem;
+  background: var(--qmd-quote-bg);
+}
+
+.md-content .qmd-copy-btn {
+  position: absolute;
+  top: 0.32rem;
+  right: 0.32rem;
+  border: 1px solid var(--qmd-copy-border);
+  background: var(--qmd-copy-bg);
+  color: var(--qmd-copy-color);
+  border-radius: 5px;
+  font-size: 0.76rem;
+  line-height: 1;
+  width: 1.45rem;
+  height: 1.3rem;
+  padding: 0;
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-2px);
+  transition: opacity 0.12s ease, transform 0.12s ease;
+}
+
+.md-content pre:hover .qmd-copy-btn,
+.md-content pre:focus-within .qmd-copy-btn {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.md-content .qmd-copy-btn:hover {
+  background: var(--qmd-copy-bg-hover);
+}
+
+.md-content .qmd-copy-btn.qmd-copy-ok {
+  border-color: var(--qmd-copy-ok-border);
+  color: var(--qmd-copy-ok-color);
+}
+
+.md-content .qmd-copy-btn.qmd-copy-fail {
+  border-color: var(--qmd-copy-fail-border);
+  color: var(--qmd-copy-fail-color);
+}

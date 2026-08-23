@@ -27,6 +27,22 @@
 /* Subtle wine red for hover to avoid overpowering */
 /* Deep muted red for active, adding a clear indication without being harsh */
 /* Warm, earthy brown for visited links to subtly differentiate */
+:root {
+  --qmd-pre-bg: #fff8f2;
+  --qmd-pre-border: #f2d6c8;
+  --qmd-pre-text: #4a3a30;
+  --qmd-inline-bg: #fff1e8;
+  --qmd-inline-border: #f3d9cc;
+  --qmd-table-border: #e9d2c6;
+  --qmd-quote-bg: #fff5ec;
+  --qmd-quote-border: #f4b183;
+  --qmd-quote-text: #5b4335;
+  --qmd-copy-bg: #fffaf4;
+  --qmd-copy-bg-hover: #fff0e3;
+  --qmd-copy-border: #e2bea9;
+  --qmd-copy-color: #6b4f3f;
+}
+
 /* Page Grid */
 .page-grid .row {
   display: flex;

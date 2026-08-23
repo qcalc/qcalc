@@ -15,7 +15,9 @@
 {% if help_html %}
 {% include help_html %}
 {% endif %}
+<div class="md-content">
 {{dyn_html | safe }}
+</div>
 <br>
 {% if editable %}
 <a href="/qedit/{{ help_path }}" target="_blank">Edit</a>

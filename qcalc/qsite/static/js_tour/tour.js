@@ -124,7 +124,12 @@ function startTour(allSteps, callback_onbeforechange, callback_onchange) {
   }
 
   // Filter out steps where the element is not visible
-  const validSteps = allSteps.filter(step => step.element && (step.type === 'dynamic' || isElementVisible(step.element)));
+  // const validSteps = allSteps.filter(step => step.element && (step.type === 'dynamic' || isElementVisible(step.element)));
+  const validSteps = allSteps.filter(step => {
+    if (!step.element) return false;
+    if (step.type === 'dynamic') return true; // Keep it safely without checking the DOM yet!
+    return isElementVisible(step.element);
+  });
   if (validSteps.length === 0) {
     customAlert('No steps to show. Please resize your browser or ensure the sidebar is visible.');
     return;

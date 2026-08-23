@@ -17,6 +17,7 @@
 	<link href="{% static 'vendor/bootstrap/4.3.1/bootstrap.min.css' %}" rel="stylesheet" type="text/css">
 	<link href="{% static_ver 'qsite/layout/layout.css' %}" rel="stylesheet" type="text/css">
 	<link href="{% static_ver 'qsite/layout/components.css' %}" rel="stylesheet" type="text/css">
+	<link href="{% static_ver 'qsite/css/qmd.css' %}" rel="stylesheet" type="text/css">
   <link href="{% static 'vendor/tabulator/6.1.0/tabulator.min.css' %}" rel="stylesheet" type="text/css">
   <link href="{% static 'vendor/select2/4.1.0-rc.0/select2.min.css' %}" rel="stylesheet" type="text/css">
   <link href="{% static_ver_theme request 'qcalc' %}" rel="stylesheet" type="text/css" class="theme-stylesheet">
@@ -540,9 +541,9 @@
   {% block addcal_card %}
   <form method="post" hx-get="/calc/add/" hx-target="#card-space" hx-swap="beforebegin">
       <div class="input-group">
-        <input type="text" class="form-control" placeholder="Add Calculator" name="fname" id="fname_cs">
+        <input id="fname_cs" type="text" class="form-control" placeholder="Add Calculator" name="fname">
         <div class="input-group-addon">
-          <button type="submit" class="btn" aria-label="add_cal"><i class="icon-plus-circle2 text-muted"></i></button>
+          <button id="btn_fname_cs" type="submit" class="btn" aria-label="add_cal"><i class="icon-plus-circle2 text-muted"></i></button>
           <button type="submit" class="btn" aria-label="convert_unit" name="fname" value="conv"><i class="icon-balance text-muted"></i></button>
           <a type="button" class="btn" href="/page/cal/" hx-get="/page/cal/?part=1" hx-target="#card-space" hx-swap="beforebegin"
              hx-trigger="click[get_card_once('cal__page')]"><i class="icon-calculator2 text-muted"></i></a>

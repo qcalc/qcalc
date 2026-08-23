@@ -12,13 +12,28 @@ var calcSteps = [
   {
     title: "Add Calculator: Input Name",
     element: '#fname_sb',
-    intro: 'We will type "bmi" as the calculator name and perform body mass index calculations.',
+    intro: 'We will type "gold" as the calculator name',
     position: 'top',
     container: 'sidebar2',
   },
   {
     title: "Add Calculator: Enter",
     element: '#btn_fname_sb',
+    intro: '[Click] on the button (+) to open the Calculator',
+    position: 'top',
+    container: 'sidebar2',
+    disableInteraction: false,
+  },
+  {
+    title: "Add Another Calculator: Input Name",
+    element: '#fname_cs',
+    intro: 'We can add calculator from the bottom of the screen as well. Let us type "bmi" as the calculator name to perform body mass index calculations.',
+    position: 'top',
+    container: 'sidebar2',
+  },
+  {
+    title: "Add Calculator: Enter",
+    element: '#btn_fname_cs',
     intro: '[Click] on the button (+) to open the Calculator',
     position: 'top',
     container: 'sidebar2',
@@ -43,23 +58,26 @@ var calcSteps = [
 ]
 function calc_onbeforechange(targetElement) {
   if (targetElement.id==='fname_sb') {
+    targetElement.value = "gold";
+    //targetElement.focus();
+  }
+
+  if (targetElement.id==='fname_cs') {
     targetElement.value = "bmi";
     //targetElement.focus();
   }
-  if (targetElement.id==='btn_fname_sb') {
-    ;
+  if (targetElement.class==='btncal') {
+    document.querySelector('.btncal').click();
+    //targetElement.focus();
   }
 }
 
 function calc_onchange(targetElement) {
   if (targetElement.id==='btn_fname_sb') {
     document.querySelector('#btn_fname_sb').click();
-    /*setTimeout(() => {
-        cid = getCid();
-        updates = {element: '#calculate_'+cid}
-        console.log(updates);
-        modifyStep("Calculate", updates)
-    }, 1000);*/
+  }
+  if (targetElement.id==='btn_fname_cs') {
+    document.querySelector('#btn_fname_cs').click();
   }
 }
 

@@ -3,7 +3,6 @@
 
 import ast
 import importlib
-import re
 import qconst
 
 preloaded_modules = ['qcalc_api', 'math', 'statistics']
@@ -113,12 +112,6 @@ def is_code_safe(code, gdict):
 
     # Shared security validation across evaluator entry points.
     validate_expression_security(code, gdict)
-
-    # Check for dangerous keywords
-    pattern = re.compile(r'\b(' + '|'.join(re.escape(k) for k in dangerous_keywords) + r')\b')
-    match = pattern.search(code)
-    if match:
-        raise UnsafeCodeError(match.group())
 
     return True
 

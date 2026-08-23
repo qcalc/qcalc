@@ -13,7 +13,7 @@ def demo_addx__info():
         'title': 'Add two numbers',
         'inserts': {
             'form_bottom':
-                page_link('/page/about/?part=1', caption='add about page') + '<br>' +
+                page_link('/page/about/', caption='add about page') + '<br>' +
                 cal_link(calurl('demo_addx', 'x/-20.1/y/12'), caption='add first', target='f') + '<br>' +
                 cal_link(calurl('demo_addx', 'x/-10.1/y/12'), caption='add before', target='b') + '<br>' +
                 cal_link(calurl('demo_addx', 'x/0.1/y/13'), caption='replace', target='r') + '<br>' +

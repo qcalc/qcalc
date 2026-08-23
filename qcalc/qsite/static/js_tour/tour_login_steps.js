@@ -5,7 +5,14 @@ const loginSteps = [
   {
     title: "My Account Tour",
     element: '#login-tour',
-    intro: "Let's walk through the steps to learn what your user account has to offer.",
+    intro: "Let's walk through the steps to learn how to login.",
+    position: 'bottom',
+    container: ''
+  },
+  {
+    title: "My Account: Signup/Login",
+    element: '#nav-user',
+    intro: "Click here to signup or login to your account.",
     position: 'bottom',
     container: ''
   },
@@ -15,7 +22,7 @@ const loginSteps = [
     intro: 'Thank you for taking the account tour. Hope you found it useful.',
     position: 'bottom',
     container: ''
-  }
+  },
 ]
 
 function login_onbeforechange(targetElement) {

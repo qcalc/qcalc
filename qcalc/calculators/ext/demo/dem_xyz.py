@@ -1,7 +1,11 @@
 
-def demo_addz__info():
-    return {'title': 'Add from xyz Package'}
+def demo_circle__info():
+    return {
+        'title': 'Area of a Circle',
+        'images': {'top':['calculators/ext/circle.jpg']}
+    }
 
-
-def demo_addz(a=5, b=6):
-    return a + b
+def demo_circle(radius=5.0):
+    return {
+        'Area': 4*3.14*radius**2
+    }

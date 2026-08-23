@@ -494,3 +494,78 @@ function setCustomAttributes(elementId, attributes) {
     }
 }
 
+function qmdCopyText(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        return navigator.clipboard.writeText(text);
+    }
+
+    return new Promise(function(resolve, reject) {
+        var area = document.createElement('textarea');
+        area.value = text;
+        area.setAttribute('readonly', 'readonly');
+        area.style.position = 'fixed';
+        area.style.opacity = '0';
+        document.body.appendChild(area);
+        area.select();
+        try {
+            document.execCommand('copy');
+            resolve();
+        } catch (err) {
+            reject(err);
+        } finally {
+            document.body.removeChild(area);
+        }
+    });
+}
+
+function qmdEnhanceCodeBlocks(root) {
+    var scope = root || document;
+    var blocks = scope.querySelectorAll('.md-content pre');
+
+    blocks.forEach(function(pre) {
+        if (pre.querySelector('.qmd-copy-btn')) {
+            return;
+        }
+
+        var button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'qmd-copy-btn';
+        button.innerHTML = '<i class="icon-files-empty" aria-hidden="true"></i>';
+        button.setAttribute('aria-label', 'Copy code block');
+        button.setAttribute('title', 'Copy');
+
+        button.addEventListener('click', function() {
+            var code = pre.querySelector('code');
+            var text = code ? code.innerText : pre.innerText;
+            qmdCopyText(text).then(function() {
+                button.classList.add('qmd-copy-ok');
+                button.setAttribute('title', 'Copied');
+                window.setTimeout(function() {
+                    button.classList.remove('qmd-copy-ok');
+                    button.setAttribute('title', 'Copy');
+                    button.blur();
+                }, 500);
+            }).catch(function() {
+                button.classList.add('qmd-copy-fail');
+                button.setAttribute('title', 'Copy failed');
+                window.setTimeout(function() {
+                    button.classList.remove('qmd-copy-fail');
+                    button.setAttribute('title', 'Copy');
+                    button.blur();
+                }, 500);
+            });
+        });
+
+        pre.appendChild(button);
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    qmdEnhanceCodeBlocks(document);
+    if (document.body) {
+        document.body.addEventListener('htmx:afterSwap', function(evt) {
+            qmdEnhanceCodeBlocks(evt.target);
+        });
+    }
+});
+

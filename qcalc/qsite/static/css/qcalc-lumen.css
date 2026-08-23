@@ -3,6 +3,22 @@
 /* qCalc Vibe Theme */
 /* 0.82rem, 0.906 */
 /* 500 */
+:root {
+  --qmd-pre-bg: #f7fbff;
+  --qmd-pre-border: #cfe0f3;
+  --qmd-pre-text: #2d3f53;
+  --qmd-inline-bg: #edf4fb;
+  --qmd-inline-border: #d8e6f5;
+  --qmd-table-border: #d3e2f2;
+  --qmd-quote-bg: #f2f7fd;
+  --qmd-quote-border: #90cdf4;
+  --qmd-quote-text: #38506a;
+  --qmd-copy-bg: #ffffff;
+  --qmd-copy-bg-hover: #edf5ff;
+  --qmd-copy-border: #b8d0ea;
+  --qmd-copy-color: #2f4a65;
+}
+
 /* Page Grid */
 .page-grid .row {
   display: flex;

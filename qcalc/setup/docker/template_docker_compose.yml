@@ -50,7 +50,6 @@ services:
       dockerfile: Dockerfile
     container_name: qcalc
     restart: always
-    #gunicorn config.wsgi:application -b 0.0.0.0:8001 -w 2 --log-file ../qcalc.log
     environment:
       - GUNICORN_INSTANCE_ID=instance
     command: >

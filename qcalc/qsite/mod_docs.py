@@ -25,7 +25,7 @@ def get_doc_path(doc_file):
 #     return doc_path
 
 def _doc_title_from_name(name):
-    return name.replace('_', ' ').replace('-', ' ').strip().title()
+    return name.replace('_', ' ').replace('-', ' ').strip().title().replace('Qcalc','qCalc')
 
 
 def _load_docs_meta(docs_root: Path) -> dict:
@@ -61,6 +61,7 @@ def build_docs_tree(nid='docs', title='Documentation'):
                 continue
             rel_id = f'{id_prefix}/{entry.name}' if id_prefix else entry.name
             entry_meta = meta.get(rel_id, {})
+            # print(f'|{rel_id},{entry_meta}')
             if entry_meta.get('hidden'):
                 continue
             is_dir = entry.is_dir()

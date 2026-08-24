@@ -70,7 +70,7 @@ def instruct_ask_gpt(instruction: str = 'please be short and precise',
 def ask_gpt(question: str = "Hello how are you?", temperature=0.7):
     # The 'role' can take one of three values: 'system', 'user' or the 'assistant'
     api_key = check_setting(settings.OPENAI_API_KEY, "OPENAI_API_KEY", optional=False)
-    client = openai.OpenAI(api_key)
+    client = openai.OpenAI(api_key=api_key)
     response = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[

@@ -4,8 +4,7 @@
 import openai
 from qcore import qtexta
 from django.conf import settings
-from calc import check_setting
-
+from calc import check_setting, ask_gpt
 
 def qchat__info():
     return {
@@ -14,19 +13,8 @@ def qchat__info():
     }
 
 
-def qchat(question: qtexta = "Hello how are you?"):
-    api_key = check_setting(settings.OPENAI_API_KEY, "OPENAI_API_KEY", optional=False)
-    client = openai.OpenAI(api_key=api_key)
-    response = client.chat.completions.create(
-        messages=[
-            {
-                "role": "user",
-                "content": question,
-            }
-        ],
-        model="gpt-3.5-turbo",
-    )
-    resp = response.choices[0].message.content
+def qchat(question: qtexta = "What is qCalc"):
+    resp = ask_gpt(question)
     return resp
 
 

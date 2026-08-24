@@ -39,9 +39,9 @@ def ccwork(work_thickness='3 inch', work_length='10.0 ft', work_width='15 inch',
 
     return {
         'Cement': Qty(total_cement_volume, 'bag'),
-        'Sand': Qty(total_sand_volume, 'inch**3').to('cft'),
-        'Gravel': Qty(total_gravel_volume, 'inch**3').to('cft'),
-        'CC Work Volume': Qty(work_volume, 'inch**3').to('cft'),
+        'Sand': Qty(total_sand_volume, 'cft'),
+        'Gravel': Qty(total_gravel_volume, 'cft'),
+        'CC Work Volume': Qty(work_volume, 'cft'),
         'Skilled Labour': Qty(skilled_labour_nos, 'manday'),
         'Unskilled Labour': Qty(unskilled_labour_nos, 'manday')
     }
@@ -93,7 +93,6 @@ def brickwork(brick_length='9.5 inch', brick_width='4.5 inch', brick_height='2.7
     unskilled_labour_nos = work_volume / unskilled_labour
 
     # be careful about handling 'pct'
-    # 'o_value()' can be mistakenly typed as 'o_value' which will prevent calculation
     # float can be typed as '0.5'
     # input arg, processing variable and output parameter names may clash and result in incorrect output
 
@@ -101,8 +100,8 @@ def brickwork(brick_length='9.5 inch', brick_width='4.5 inch', brick_height='2.7
         'Brick': Qty(total_number_of_bricks, 'nos'),
         # | adding a unit will enable cost calculation in conv()
         'Cement': Qty(total_cement_volume, 'bag'),
-        'Sand': Qty(total_sand_volume, 'inch**3').to('cft'),
-        'Brick Work Volume': Qty(work_volume, 'inch**3').to('cft'),
+        'Sand': Qty(total_sand_volume, 'cft'),
+        'Brick Work Volume': Qty(work_volume, 'cft'),
         'Skilled Labour': Qty(skilled_labour_nos, 'manday'),
         'Unskilled Labour': Qty(unskilled_labour_nos, 'manday')
     }

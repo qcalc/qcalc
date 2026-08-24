@@ -1,5 +1,9 @@
+
 {
-  "user-guide/create-calculator-user-guide.md": {
+  "user-guide": {"order": "0.10"},
+  "author-guide": {"order": "0.20"},
+  "installation-guide": {"order": "0.30"},
+  "user-guide/end-user-guide.md": {
     "title": "qCalc End User Guide",
     "desc": "Detailed guide to using qCalc's calculators and features.",
     "order": "1.10"

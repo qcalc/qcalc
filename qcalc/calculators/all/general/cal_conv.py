@@ -265,7 +265,6 @@ def conv__info():
         'script': '''
             function convert_sh(v)
             {
-            console.log(v);
             if(v=='1') return [false,false,false,false];
             else if(v=='2') return [false,false,true,true];
             else return [true,true,true,true]

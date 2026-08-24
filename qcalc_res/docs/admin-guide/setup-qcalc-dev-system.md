@@ -343,8 +343,8 @@ Required toolchain versions:
 
 Step-by-step production installation guides are provided in the `docs` folder:
 
-- Bare-metal Ubuntu Linux/VPS using Python, Gunicorn, Nginx, PostgreSQL, and Certbot: [qCalc Production Server on Linux](/docs/installation-guide/create-qcalc-prod-server-on-linux.md)
-- Docker Compose deployment with Nginx, Certbot, PostgreSQL, and Memcached containers: [qCalc Production Server on Docker](/docs/installation-guide/create-qcalc-prod-server-on-docker.md)
+- Bare-metal Ubuntu Linux/VPS using Python, Gunicorn, Nginx, PostgreSQL, and Certbot: [qCalc Production Server on Linux](setup-qcalc-prod-server-on-linux.md)
+- Docker Compose deployment with Nginx, Certbot, PostgreSQL, and Memcached containers: [qCalc Production Server on Docker](setup-qcalc-prod-server-on-docker.md)
 
 ## Directory Layout After Setup
 

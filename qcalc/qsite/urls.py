@@ -41,6 +41,7 @@ urlpatterns += [
 
 sitemaps = {
     'pages': QSitemapPage,
+    'docs': QSitemapDocs,
     'categories': QSitemapCat,
     'calculators': QSitemapCal,
     'quantities': QSitemapQty,

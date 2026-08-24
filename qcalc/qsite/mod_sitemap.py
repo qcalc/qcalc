@@ -2,10 +2,10 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 from django.contrib.sitemaps import Sitemap
-# from django.shortcuts import reverse
 from calc import QCals
 from qcore import _base_slugs
 from datetime import date
+from .mod_docs import build_docs_tree
 
 
 class QSitemapPage(Sitemap):
@@ -28,6 +28,24 @@ class QSitemapPage(Sitemap):
     @classmethod
     def location(cls, obj):
         return f'{obj}'
+
+
+class QSitemapDocs(Sitemap):
+    changefreq = "monthly"
+    priority = 0.6
+
+    @classmethod
+    def items(cls):
+        root = build_docs_tree()
+        return [node.name for node in root.depth_first() if node.is_leaf and node.name]
+
+    @classmethod
+    def lastmod(cls, obj):
+        return date(2024, 8, 3)
+
+    @classmethod
+    def location(cls, obj):
+        return f'/docs/{obj}'
 
 
 class QSitemapCal(Sitemap):

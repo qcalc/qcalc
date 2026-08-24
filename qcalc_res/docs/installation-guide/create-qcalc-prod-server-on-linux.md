@@ -15,7 +15,7 @@ This guide covers a bare-metal (no Docker) deployment of qCalc on an Ubuntu VPS 
 
 ## 1. Initial Linux Server Setup
 
-Follow [Initial Linux Server Setup](initial-linux-server-setup.md) if you do not have a user account in linux
+Follow [Initial Linux Server Setup](related-topics/initial-linux-server-setup.md) if you do not have a user account in linux
 
 
 ## 2. Install Python 3.12

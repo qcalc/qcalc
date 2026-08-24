@@ -30,7 +30,6 @@ def _doc_title_from_name(name):
 
 def _load_docs_meta(docs_root: Path) -> dict:
     # | sidecar JSON manifest overriding title/desc/tags/order/hidden per relative path, e.g.:
-    # | {"sub/advanced.md": {"title": "Advanced Topics", "order": 2}}
     meta_path = docs_root / DOCS_META_FILE
     if not meta_path.exists():
         return {}
@@ -68,13 +67,13 @@ def build_docs_tree(nid='docs', title='Documentation'):
             if not is_dir and entry.suffix.lower() not in DOC_EXTENSIONS:
                 continue
             default_title = _doc_title_from_name(entry.name if is_dir else entry.stem)
-            nid = entry.name
+            # nid = entry.name
             child = TreeNode(
-                nid=nid, name=rel_id, title=entry_meta.get('title', default_title),
+                nid=rel_id, name=rel_id, title=entry_meta.get('title', default_title),
                 desc=entry_meta.get('desc', ''), tags=entry_meta.get('tags', ''),
                 is_leaf=not is_dir, node_type='doc',
             )
-            child.data['order'] = entry_meta.get('order', 999)
+            child.data['order'] = entry_meta.get('order', "99999")
             node.add_child(child)
             if is_dir:
                 add_dir(child, entry, rel_id)
@@ -82,13 +81,32 @@ def build_docs_tree(nid='docs', title='Documentation'):
     add_dir(root, docs_root, '')
     root.update_all_descendant_leafs_count()
     for nd in root.depth_first():
-        nd.children.sort(key=lambda c: (c.data.get('order', 999), c.title))
+        nd.children.sort(key=lambda c: (c.data.get('order', "99999"), c.title))
     return root
 
 
 def fix_doc_links(html, pname):
     soup = BeautifulSoup(html, 'html.parser')
     current_dir = posixpath.dirname(pname)
+
+    for image in soup.find_all('img', src=True):
+        src = image['src']
+        parts = urlsplit(src)
+        if (
+            not parts.path
+            or parts.path.startswith('/')
+            or parts.scheme
+            or parts.netloc
+        ):
+            continue
+        image_path = posixpath.normpath(
+            posixpath.join(current_dir, parts.path)
+        )
+        if image_path == 'images' or image_path.startswith('images/'):
+            image['src'] = urlunsplit((
+                '', '', f'/static/docs/{image_path}',
+                parts.query, parts.fragment
+            ))
 
     for a in soup.find_all('a', href=True):
         href = a['href']

@@ -30,6 +30,7 @@ qCalc provides defaults for omitted keys. Start with `title`, `desc`, and, when 
 
 Following table lists down the optional elements of a metadata function:
 
+### Info Keys
 | Key | Type | Purpose |
 |---|---|---|
 | `title` | string | Calculator title shown to the user. |
@@ -55,17 +56,24 @@ Following table lists down the optional elements of a metadata function:
 | `inserts` | dict | Trusted HTML placed at named points in the calculator template. |
 | `template` | string | Advanced template override. |
 
+### Schema Keys
+| Key       | Type | Purpose                                                      |
+|-----------|---|--------------------------------------------------------------|
+| `type`    | string | Type of a parameter e.g. `choice`, `radio`, `checkbox`, etc. |
+| `choices` | string | list of choices if the parameter type is `choice`            |
+| `initial` | string | default or initial value                                     |
+
 Key names are case-sensitive.
 
-## A Complete Everyday Example
+## A Complete Example
 
-This calculator uses a clear title, help text, choices, a compact layout, and a custom button caption:
+This calculator uses info keys: `title`, `desc`, `calculate`, `schema` and `tags`, schema keys: `type`, `choices`, and `initial`:
 
 ```python
 # following line is required for back-end calculator creation
 # from qcore import Qty
 
-
+# Complete example, you can copy/paste to create in front end
 def wall_paint__info():
     return {
         'title': 'Paint Required for a Wall',
@@ -102,7 +110,7 @@ Input names, such as `coats`, in metadata must match function parameter names.
 
 ## Core Presentation Keys
 
-### `title`, `desc`, and `calculate`
+### Info Key: `title`, `desc`, and `calculate`
 
 `title` is the visible calculator name. Use an action-oriented, plain-language title:
 
@@ -124,7 +132,7 @@ The default button label is `Calculate`. Change it only when a short verb (one w
 'calculate': 'Suggest'
 ```
 
-### `images`
+### Info Key: `images`
 
 `images` places one or more images at the top, bottom, left, or right of the calculator. Paths should normally be relative to calculator static files.
 
@@ -137,7 +145,7 @@ The default button label is `Calculate`. Change it only when a short verb (one w
 
 Each position accepts a list of images (e.g. you can have another image at the top section, enter it separated by comma). Use images that clarify the task, such as a wall diagram for a paint calculator.
 
-## `schema`: Input Widgets and Field Options
+## Info Key: `schema`: Input Widgets and Field Options
 
 Without a schema, qCalc derives fields from function parameters, annotations, and defaults. Use `schema` to clearly specify and improve a particular input.
 
@@ -159,7 +167,7 @@ Without a schema, qCalc derives fields from function parameters, annotations, an
 
 Useful properties include `type`, `choices`, `initial`, `label`, `help_text`, `required`, `disabled`, and `attrs`. qCalc also forwards ordinary Django-form properties such as validators and error messages where supported.
 
-### Choices, multi-selects, and text areas
+### Info Key: `choice`, `radio`, and `multiplechoice`
 
 Use `choice`, `radio`, or `multiplechoice` for a known set of values. A dictionary key is the value passed to Python; its value is the label shown to users.
 
@@ -234,11 +242,72 @@ Use `autofill` when a selected product, material, or preset supplies known value
     'brand': {
         'fields': ['coverage', 'tin_size'],
         'autofill': {
-            'standard': ['350 sqft/gal', '1 gal'],
-            'premium': ['425 sqft/gal', '1 gal'],
+            'standard': ['350', '1'],
+            'premium': ['425', '1'],
         },
     },
 },
+```
+
+
+```python
+# following import is required for back-end calculator creation
+# from qcore import Qty
+# import is not required for front end calculator creation
+
+# Complete example, you can copy/paste to create in front end
+def wall_paint2__info():
+    return {
+        'title': 'Paint Required for a Wall v2',
+        'desc': 'Enter the wall size, brand and paint coverage. Brand choice autofill coverage and tin size.',
+        'calculate': 'Estimate',
+        'schema': {
+            'brand': {
+                'type': 'choice',
+                'choices': {'standard': 'Standard', 'premium': 'Premium'},
+                'initial': 'standard',
+            },
+            'coats': {
+                'type': 'choice',
+                'choices': {1: 'One coat', 2: 'Two coats'},
+                'initial': 2,
+            },
+        },
+        'autofill': {
+            'brand': {
+                'fields': ['coverage', 'tin_size'],
+                'autofill': {
+                    'standard': ['350', '1.0'],
+                    'premium': ['600', '1.5'],
+                },
+            },
+        },
+        'tags': 'home, painting, estimation',
+    }
+
+
+def wall_paint2(
+    width='12 ft',
+    height='8 ft',
+    brand='standard',
+    coverage='350 sqft/gal',
+    tin_size='1 gal',
+    coats=2
+):
+
+    width_q = Qty(width, 'ft')
+    height_q = Qty(height, 'ft')
+    coverage_q = Qty(coverage, 'sqft/gal')
+    tin_size_q = Qty(tin_size, 'gal')
+
+    area = width_q * height_q * int(coats)
+    paint = area / coverage_q
+    tins = paint / tin_size_q
+
+    return {
+        'Paint needed': Qty(paint, 'gal'),
+        'Tins to buy': tins
+    }
 ```
 
 The `fields` order must match the value order in every `autofill` entry.
@@ -249,6 +318,7 @@ Use `related` for country -> state -> city, department -> team -> employee, and 
 
 
 ```python
+# Complete example, you can copy/paste to create in front end
 def demo_related__info():
     return {
         'title': 'Demonstrating related metadata',
@@ -275,6 +345,8 @@ def demo_related__info():
 def demo_related(country, province, city):
     return f'Selection: {country}, {province}, {city}'
 ```
+![demo_related calculator](../images/demo_related.jpg)
+<br>_Fig: How the 'demo_related' calculator looks inside qCalc_
 
 The current implementation supports up to four levels of dependency (e.g. country, state, city, zipcode). Do not put the same field in both `related` and `anyof` or `showhide`; these features can compete for control of it.
 

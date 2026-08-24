@@ -2,42 +2,43 @@
   "user-guide/create-calculator-user-guide.md": {
     "title": "qCalc End User Guide",
     "desc": "Detailed guide to using qCalc's calculators and features.",
-    "order": 110
+    "order": "1.10"
   },
   "author-guide/calculator-meta-functions.md": {
     "title": "Calculator Meta Functions",
     "desc": "Meta function specification for qCalc calculators.",
-    "order": 200
+    "order": "1.20"
   },
   "author-guide/calculator-author-guide.md": {
     "title": "Calculator Author Guide",
     "desc": "Guide for authors (developers) on creating qCalc calculators.",
-    "order": 210
+    "order": "2.10"
   },
     "author-guide/create-calculator-examples.md": {
     "title": "Calculator Examples",
     "desc": "Worked examples for building calculators.",
-    "order": 220
-  },
-  "installation-guide/initial-linux-server-setup.md": {
-    "title": "Initial Linux Server Setup",
-    "desc": "Setting up a user account in linux.",
-    "order": 300
+    "order": "2.20"
   },
   "installation-guide/create-qcalc-dev-system.md": {
     "title": "Setup Development System (Windows and Linux)",
     "desc": "Setting up a qCalc development environment.",
-    "order": 310
+    "order": "3.10"
   },
   "installation-guide/create-qcalc-prod-server-on-docker.md": {
     "title": "Setup Production Server on Docker",
     "desc": "Deploying qCalc to production using Docker.",
-    "order": 320
+    "order": "3.20"
   },
   "installation-guide/create-qcalc-prod-server-on-linux.md": {
     "title": "Setup Production Server on Linux",
     "desc": "Deploying qCalc to production directly on Linux.",
-    "order": 330
+    "order": "3.30"
   },
-  "nodoc.html": {"hidden": true}
+    "installation-guide/related-topics/initial-linux-server-setup.md": {
+      "title": "Initial Linux Server Setup",
+      "desc": "Setting up a user account in linux.",
+      "order": "3.00.10"
+    },
+  "nodoc.html": {"hidden": true},
+  "images": {"hidden": true}
 }

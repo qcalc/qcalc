@@ -175,7 +175,11 @@ STATIC_ROOT = str(ROOT_DIR("staticfiles"))
 # https://docs.djangoproject.com/en/dev/ref/settings/#static-url
 STATIC_URL = "/static/"
 # https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#std:setting-STATICFILES_DIRS
-STATICFILES_DIRS = [str(APP_DIR.path("static")),str(ROOT_DIR.path("calculators", "static"))]
+STATICFILES_DIRS = [
+    str(APP_DIR.path("static")),
+    str(ROOT_DIR.path("calculators", "static")),
+    str(PROJ_DIR.path("qcalc_res")),
+]
 # https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#staticfiles-finders
 STATICFILES_FINDERS = [
     "django.contrib.staticfiles.finders.FileSystemFinder",

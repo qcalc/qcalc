@@ -15,7 +15,7 @@ All services (qCalc/Gunicorn, Nginx, Certbot, PostgreSQL, Memcached) run as Dock
 
 ## 1. Initial Linux Server Setup
 
-Follow [Initial Linux Server Setup](initial-linux-server-setup.md) if you do not have a user account in linux
+Follow [Initial Linux Server Setup](related-topics/initial-linux-server-setup.md) if you do not have a user account in linux
 
 ## 2. Install Docker Engine and Docker Compose
 

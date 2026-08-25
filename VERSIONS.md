@@ -103,9 +103,9 @@ and validation of schema, compatibility, and application behavior before deploym
 
 ## CACHE SERVER
 
-- by default qCalc use a file based cache, for which no cache service is required
-- if using Redis: version 6.2.23 or 8.0.1 or above (using protocol=3)
-- if using Memcached: version 1.6.8 or above
+- by default qCalc use a file based cache for development system, for which no cache service is required
+- Please use **Redis** for production: version 6.2.23 or 8.0.1 or above (using protocol=3)
+- Memcached can also be used for development: version 1.6.8 or above
 
 ## OTHERS
 

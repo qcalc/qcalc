@@ -234,3 +234,5 @@ gpref.json
 latest.json
 robots.txt
 _*_/
+Dockerfile
+docker-compose.yml

@@ -1,15 +1,15 @@
-
 {
-  "user-guide": {"order": "0.10"},
-  "author-guide": {"order": "0.20"},
-  "admin-guide": {"order": "0.30"},
-
+  "user-guide": {
+    "order": "0.10"
+  },
   "user-guide/qcalc-user-guide.md": {
     "title": "qCalc end user guide",
     "desc": "Detailed guide to using qCalc's calculators and features.",
     "order": "1.10"
   },
-
+  "author-guide": {
+    "order": "0.20"
+  },
   "author-guide/qcalc-author-guide.md": {
     "title": "qCalc calculator author guide",
     "desc": "Guide for authors (developers) on creating qCalc calculators.",
@@ -20,7 +20,7 @@
     "desc": "Meta function specification for qCalc calculators.",
     "order": "2.20"
   },
-    "author-guide/create-calculator-examples.md": {
+  "author-guide/create-calculator-examples.md": {
     "title": "Calculator examples",
     "desc": "Worked examples for building calculators.",
     "order": "2.30"
@@ -29,6 +29,14 @@
     "title": "qCalc field types (annotations)",
     "desc": "Alphabetical list of qCalc field types or annotations",
     "order": "2.00.10"
+  },
+  "author-guide/related-topics/quantity-reference.md": {
+    "title": "qCalc quantity reference",
+    "desc": "Reference for using quantities, units, conversions, and dimensional arithmetic in qCalc",
+    "order": "2.00.20"
+  },
+  "admin-guide": {
+    "order": "0.30"
   },
   "admin-guide/setup-qcalc-dev-system.md": {
     "title": "Setup qCalc development system (Windows and Linux)",
@@ -45,11 +53,20 @@
     "desc": "Deploying qCalc to production directly on Linux.",
     "order": "3.30"
   },
+  "admin-guide/related-topics/LICENSE.txt": {
+    "title": "qCalc license",
+    "desc": "Host qCalc yourself. Open source. Customize it. Make it yours. Free, with no strings attached.",
+    "order": "3.00.00"
+  },
   "admin-guide/related-topics/initial-linux-server-setup.md": {
     "title": "Initial Linux server setup",
     "desc": "Setting up a user account in linux.",
     "order": "3.00.10"
   },
-  "nodoc.html": {"hidden": true},
-  "static": {"hidden": true}
+  "nodoc.html": {
+    "hidden": true
+  },
+  "static": {
+    "hidden": true
+  }
 }

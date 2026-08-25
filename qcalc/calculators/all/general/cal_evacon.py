@@ -68,7 +68,11 @@ def qeval(request: HtmxHttpRequest, xpr: str):
     strict_assign = QPref.getp1('strict_assign')
 
     aeval = Interpreter(
-        symtable=syms,
+        # nested_symtable requires an asteval Group-based symtable (built via
+        # user_symbols=), not a plain dict, or calls to user-defined functions
+        # break name lookup (AttributeError: 'dict' object has no attribute
+        # '__getattr__').
+        user_symbols=syms,
         readonly_symbols=reserved_syms if strict_assign else None,
         nested_symtable=True,
         writer=out.out,

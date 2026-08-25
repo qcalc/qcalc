@@ -54,11 +54,14 @@ show(y)
     # strict_assign = QPref.getp1('strict_assign')
 
     aeval = Interpreter(
-        symtable=syms,
+        # nested_symtable requires an asteval Group-based symtable (built via
+        # user_symbols=), not a plain dict, or calls to user-defined functions
+        # break name lookup (AttributeError: 'dict' object has no attribute
+        # '__getattr__').
+        user_symbols=syms,
         # strict_assign is commented out, so evaluator code can be used/shared freely.
         # readonly_symbols=reserved_syms if strict_assign else None,
         nested_symtable=True,
-        # user_symbols=QCals.qsymbol_dict,
         writer=out.out,
         err_writer=out.out,
         # builtins_readonly=True,

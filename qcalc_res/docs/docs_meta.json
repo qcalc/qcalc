@@ -10,6 +10,11 @@
   "author-guide": {
     "order": "0.20"
   },
+  "author-guide/author-quick-start.md": {
+    "title": "Create a calculator quickly",
+    "desc": "Quick start tutorial on creating qCalc calculators.",
+    "order": "2.05"
+  },
   "author-guide/qcalc-author-guide.md": {
     "title": "qCalc calculator author guide",
     "desc": "Guide for authors (developers) on creating qCalc calculators.",

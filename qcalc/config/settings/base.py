@@ -175,10 +175,14 @@ STATIC_ROOT = str(ROOT_DIR("staticfiles"))
 # https://docs.djangoproject.com/en/dev/ref/settings/#static-url
 STATIC_URL = "/static/"
 # https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#std:setting-STATICFILES_DIRS
+# NOTE: plain (non-prefixed) entry - Django's FileSystemFinder prefix matching
+# (finders.py find_location) compares against os.sep, which is "\\" on Windows
+# and never matches "/"-separated URL paths, so a ("docs/images", ...) tuple
+# would silently 404 in local dev. A prefix-less entry avoids that check.
 STATICFILES_DIRS = [
     str(APP_DIR.path("static")),
     str(ROOT_DIR.path("calculators", "static")),
-    str(PROJ_DIR.path("qcalc_res")),
+    str(PROJ_DIR.path("qcalc_res", "docs", "static")),
 ]
 # https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#staticfiles-finders
 STATICFILES_FINDERS = [

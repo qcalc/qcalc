@@ -5,47 +5,51 @@
   "admin-guide": {"order": "0.30"},
 
   "user-guide/qcalc-user-guide.md": {
-    "title": "qCalc End User Guide",
+    "title": "qCalc end user guide",
     "desc": "Detailed guide to using qCalc's calculators and features.",
     "order": "1.10"
   },
 
   "author-guide/qcalc-author-guide.md": {
-    "title": "qCalc Calculator Author Guide",
+    "title": "qCalc calculator author guide",
     "desc": "Guide for authors (developers) on creating qCalc calculators.",
     "order": "2.10"
   },
   "author-guide/calculator-meta-functions.md": {
-    "title": "Calculator Meta Functions",
+    "title": "Calculator meta Functions",
     "desc": "Meta function specification for qCalc calculators.",
     "order": "2.20"
   },
     "author-guide/create-calculator-examples.md": {
-    "title": "Calculator Examples",
+    "title": "Calculator examples",
     "desc": "Worked examples for building calculators.",
     "order": "2.30"
   },
-
+  "author-guide/related-topics/qcalc-field-types.md": {
+    "title": "qCalc field types (annotations)",
+    "desc": "Alphabetical list of qCalc field types or annotations",
+    "order": "2.00.10"
+  },
   "admin-guide/setup-qcalc-dev-system.md": {
-    "title": "Setup qCalc Development System (Windows and Linux)",
+    "title": "Setup qCalc development system (Windows and Linux)",
     "desc": "Setting up a qCalc development environment.",
     "order": "3.10"
   },
   "admin-guide/setup-qcalc-prod-server-on-docker.md": {
-    "title": "Setup qCalc Production Server on Docker",
+    "title": "Setup qCalc production server on Docker",
     "desc": "Deploying qCalc to production using Docker.",
     "order": "3.20"
   },
   "admin-guide/setup-qcalc-prod-server-on-linux.md": {
-    "title": "Setup qCalc Production Server on Linux",
+    "title": "Setup qCalc production server on Linux",
     "desc": "Deploying qCalc to production directly on Linux.",
     "order": "3.30"
   },
   "admin-guide/related-topics/initial-linux-server-setup.md": {
-    "title": "Initial Linux Server Setup",
+    "title": "Initial Linux server setup",
     "desc": "Setting up a user account in linux.",
     "order": "3.00.10"
   },
   "nodoc.html": {"hidden": true},
-  "images": {"hidden": true}
+  "static": {"hidden": true}
 }

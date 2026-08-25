@@ -191,7 +191,7 @@ def q1_add_doc(request: HtmxHttpRequest, **kwargs):
     current_user = request.user
     if current_user.is_active and current_user.is_staff:
         context['editable'] = doc_exists and doc_path.suffix == '.html'
-    title = ut.smart_title(doc_path.stem)
+    title = ut.doc_title(doc_path.stem)
     info = {'name': doc_path.stem, 'title': title}
     context['info'] = info
     context['help_path'] = doc_path.as_posix()

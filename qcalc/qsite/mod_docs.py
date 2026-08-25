@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from qutil import TreeNode
+from qutil import TreeNode, doc_title
 from django.conf import settings
 import posixpath
 from urllib.parse import urlsplit, urlunsplit
@@ -23,9 +23,6 @@ def get_doc_path(doc_file):
 # def get_read_path(doc_file):
 #     doc_path = Path(settings.PROJ_DIR) / doc_file
 #     return doc_path
-
-def _doc_title_from_name(name):
-    return name.replace('_', ' ').replace('-', ' ').strip().title().replace('Qcalc','qCalc')
 
 
 def _load_docs_meta(docs_root: Path) -> dict:
@@ -66,7 +63,7 @@ def build_docs_tree(nid='docs', title='Documentation'):
             is_dir = entry.is_dir()
             if not is_dir and entry.suffix.lower() not in DOC_EXTENSIONS:
                 continue
-            default_title = _doc_title_from_name(entry.name if is_dir else entry.stem)
+            default_title = doc_title(entry.name if is_dir else entry.stem)
             # nid = entry.name
             child = TreeNode(
                 nid=rel_id, name=rel_id, title=entry_meta.get('title', default_title),
@@ -102,9 +99,9 @@ def fix_doc_links(html, pname):
         image_path = posixpath.normpath(
             posixpath.join(current_dir, parts.path)
         )
-        if image_path == 'images' or image_path.startswith('images/'):
+        if image_path == 'static/images' or image_path.startswith('static/images/'):
             image['src'] = urlunsplit((
-                '', '', f'/static/docs/{image_path}',
+                '', '', f'/{image_path}',
                 parts.query, parts.fragment
             ))
 

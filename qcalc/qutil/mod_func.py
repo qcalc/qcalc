@@ -94,11 +94,11 @@ def fid2help_file(func_id):
 
 def preprocess_expression(qexpr, disp=False):  # deb@13.08.23, @25.11.23
     expr_unit = qexpr
-    if not disp: # Before Calculation
+    if not disp:  # Before Calculation
         expr_unit = expr_unit.replace('^', '**')  # exponent
         expr_unit = expr_unit.replace('****', '^')  # xor
         expr_unit = insert_implicit_multiply(expr_unit)  # 5kg -> 5*kg
-    else: # Before Displaying
+    else:  # Before Displaying
         expr_unit = expr_unit.replace('****', '^^')  # xor
         expr_unit = expr_unit.replace('**', '^')  # exponent
     expr_unit = expr_unit.replace('!', '/')  # browser friendly, can't use | as it is a binary operator
@@ -112,10 +112,12 @@ def title_to_variable(title, data_type=''):
     title = title + data_type
     return title
 
-def smart_title(var):
-    var = re.sub(r'__r[a-z]?', '', var).replace('_', ' ').replace('--', ': ').replace('-', ' ')
-    var = titlecase(var)
+
+def doc_title(name):
+    var = name.replace('_', ' ').replace('-', ' ').strip()
+    var = titlecase(var).replace('Qcalc', 'qCalc')
     return var
+
 
 def variable_to_title(var):
     var = re.sub(r'__r[a-z]?', '', var).replace('_', ' ').replace('--', ': ')

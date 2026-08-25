@@ -560,11 +560,28 @@ function qmdEnhanceCodeBlocks(root) {
     });
 }
 
+function qmdEnhanceImages(root) {
+    var scope = root || document;
+    var images = scope.querySelectorAll('.md-content img:not(.qmd-img-wrapper img)');
+
+    images.forEach(function(img) {
+        if (img.closest('.qmd-img-wrapper')) {
+            return;
+        }
+        var wrapper = document.createElement('span');
+        wrapper.className = 'qmd-img-wrapper';
+        img.parentNode.insertBefore(wrapper, img);
+        wrapper.appendChild(img);
+    });
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     qmdEnhanceCodeBlocks(document);
+    qmdEnhanceImages(document);
     if (document.body) {
         document.body.addEventListener('htmx:afterSwap', function(evt) {
             qmdEnhanceCodeBlocks(evt.target);
+            qmdEnhanceImages(evt.target);
         });
     }
 });

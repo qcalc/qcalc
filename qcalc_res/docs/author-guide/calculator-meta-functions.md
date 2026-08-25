@@ -345,7 +345,7 @@ def demo_related__info():
 def demo_related(country, province, city):
     return f'Selection: {country}, {province}, {city}'
 ```
-![demo_related calculator](../images/demo_related.jpg)
+![demo_related calculator](../static/images/demo_related.jpg)
 <br>_Fig: How the 'demo_related' calculator looks inside qCalc_
 
 The current implementation supports up to four levels of dependency (e.g. country, state, city, zipcode). Do not put the same field in both `related` and `anyof` or `showhide`; these features can compete for control of it.

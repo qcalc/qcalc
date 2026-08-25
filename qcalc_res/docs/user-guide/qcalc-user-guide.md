@@ -102,6 +102,9 @@ Opens user-facing calculator preferences. The available settings depend on the q
 
 Opens the in-application documentation and guidance. Use it when you need an overview of qCalc or want to learn how a feature works.
 
+![Description](../static/images/main-and-secondary-sidebar.png)
+<br>_Main and secondary sidebar_<br>
+
 ## Secondary sidebar options
 
 Open the secondary sidebar with the secondary-sidebar button in the top bar.
@@ -137,9 +140,15 @@ Use the calculator's qCalc name when you know it. If nothing opens, try searchin
 3. Review the calculator title and description.
 4. Select a calculator title to open it.
 
-Use the navigation links in the catalog to move between the home page and the Standard, Personal, and Public catalog views.
+![Calculator catalog](../static/images/calculator-catalog.png)
+<br>_Standard calculator catalog_<br>
+
+You can use the navigation links (either at the top or bottom of the catalog screen)  to move between the home page and the Standard, Personal, and Public catalog views.
 
 ### Search the catalog
+
+![Search catalog](../static/images/top-navbar.png)
+<br>_Search the catalog from top navigation bar_<br>
 
 Use the **Search Catalog** field in the page header when it is visible, or open the catalog search page and enter a word or phrase. Search can return several kinds of results:
 
@@ -148,6 +157,9 @@ Use the **Search Catalog** field in the page header when it is visible, or open 
 - **Quantity Search Results:** matching quantities or units.
 
 Select a calculator result to add it to the work area. Refine the search with a more specific term if the result list is too large. Search terms can describe a calculator's purpose, subject, or title.
+
+![Catalog search result](../static/images/catalog-search-results.png)
+<br>_Catalog search results_<br>
 
 ## Using a calculator
 

@@ -120,3 +120,16 @@
   border-color: var(--qmd-copy-fail-border);
   color: var(--qmd-copy-fail-color);
 }
+/* Wrapper's shrink-to-fit width resolves to the image's native pixel size,
+   so the 80% below is always relative to that native size, not the card. */
+.md-content .qmd-img-wrapper {
+  display: inline-block;
+  max-width: 100%;
+}
+
+.md-content .qmd-img-wrapper img {
+  display: block;
+  width: 80%;
+  max-width: 100%;
+  height: auto;
+}

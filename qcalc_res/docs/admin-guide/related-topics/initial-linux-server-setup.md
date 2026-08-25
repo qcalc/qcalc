@@ -1,5 +1,11 @@
 ## Initial Linux Server Setup
-
+<!-- TOC -->
+  * [Initial Linux Server Setup](#initial-linux-server-setup)
+    * [a. Create a non-root user](#a-create-a-non-root-user)
+    * [b. Set up passwordless SSH access (from your local machine)](#b-set-up-passwordless-ssh-access-from-your-local-machine)
+    * [c. Update the system](#c-update-the-system)
+    * [d. Create swap space](#d-create-swap-space-)
+<!-- TOC -->
 Following instructions have used placeholders shown below. Replace these placeholders with appropriate values before executing the instructions.
 
 - `<yourdomain.com>`

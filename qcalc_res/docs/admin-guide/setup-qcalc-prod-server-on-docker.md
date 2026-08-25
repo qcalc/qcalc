@@ -1,5 +1,38 @@
 # qCalc — Docker, Ubuntu Linux, VPS: Installation Guide
-
+<!-- TOC -->
+* [qCalc — Docker, Ubuntu Linux, VPS: Installation Guide](#qcalc--docker-ubuntu-linux-vps-installation-guide)
+  * [Prerequisites](#prerequisites)
+  * [1. Initial Linux Server Setup](#1-initial-linux-server-setup)
+  * [2. Install Docker Engine and Docker Compose](#2-install-docker-engine-and-docker-compose)
+  * [3. Clone the qCalc Repository from Git](#3-clone-the-qcalc-repository-from-git)
+  * [4. Create the Project Directory Structure](#4-create-the-project-directory-structure)
+  * [5. Set Up the Docker Files](#5-set-up-the-docker-files)
+    * [Edit the Dockerfile](#edit-the-dockerfile)
+    * [Edit the docker-compose.yml file](#edit-the-docker-composeyml-file)
+  * [6. Set Up Nginx Configuration Files](#6-set-up-nginx-configuration-files)
+    * [6a. Main `nginx.conf`](#6a-main-nginxconf)
+    * [6b. Initial HTTP-only config (used before the SSL certificate exists)](#6b-initial-http-only-config-used-before-the-ssl-certificate-exists)
+    * [6c. Full HTTPS template (used after the SSL certificate is obtained)](#6c-full-https-template-used-after-the-ssl-certificate-is-obtained)
+  * [7. Configure Environment Files](#7-configure-environment-files)
+    * [7a. `setup.env`](#7a-setupenv)
+    * [7b. Production `.env` file](#7b-production-env-file)
+    * [7c. `gpref.json`](#7c-gprefjson)
+  * [8. Create Docker Named Volumes](#8-create-docker-named-volumes)
+  * [9. Phase 1 — Start Containers with HTTP-Only Nginx](#9-phase-1--start-containers-with-http-only-nginx)
+  * [10. Obtain the SSL Certificate](#10-obtain-the-ssl-certificate)
+  * [11. Phase 2 — Switch Nginx to HTTPS](#11-phase-2--switch-nginx-to-https)
+  * [11a. Create qCalc Super User](#11a-create-qcalc-super-user)
+  * [11b. Switch to HTTPS](#11b-switch-to-https)
+  * [12. Post-Installation](#12-post-installation)
+  * [Day-to-Day Operations](#day-to-day-operations)
+    * [Pull latest code and redeploy](#pull-latest-code-and-redeploy)
+    * [Verify static files inside the container](#verify-static-files-inside-the-container)
+    * [Run a management command inside the container](#run-a-management-command-inside-the-container)
+    * [View logs](#view-logs)
+  * [### Some useful docker commands](#-some-useful-docker-commands)
+  * [Quick Reference — Useful Commands](#quick-reference--useful-commands)
+  * [Directory Layout Summary](#directory-layout-summary)
+<!-- TOC -->
 This guide covers a Docker-based deployment of qCalc on an Ubuntu VPS.
 All services (qCalc/Gunicorn, Nginx, Certbot, PostgreSQL, Memcached) run as Docker containers defined in `setup/docker/template_docker.yml`.
 

@@ -1,12 +1,57 @@
 # qCalc End-User Guide
-
+<!-- TOC -->
+* [qCalc End-User Guide](#qcalc-end-user-guide)
+  * [1. Getting started](#1-getting-started)
+    * [1.1 The page layout](#11-the-page-layout)
+    * [1.2 Output collection](#12-output-collection)
+  * [2. Main sidebar options](#2-main-sidebar-options)
+    * [2.1 Home](#21-home)
+    * [2.2 `Calculator Catalog`](#22-calculator-catalog)
+    * [2.3 `Quantity Catalog`](#23-quantity-catalog)
+    * [2.4 `Create My Calculator`](#24-create-my-calculator)
+    * [2.5 `Personal Catalog`](#25-personal-catalog)
+    * [2.6 `Public Catalog`](#26-public-catalog)
+    * [2.7 `Clear Screen`](#27-clear-screen)
+    * [2.8 `Unit Converter`](#28-unit-converter)
+    * [2.9 `Quick Calculator`](#29-quick-calculator)
+    * [2.10 `Currency Converter`](#210-currency-converter)
+    * [2.11 `Expression Evaluator`](#211-expression-evaluator)
+    * [2.12 `Command Line`](#212-command-line)
+    * [2.13 `Settings`](#213-settings)
+    * [2.14 `User Guide`](#214-user-guide)
+  * [3. Secondary sidebar options](#3-secondary-sidebar-options)
+    * [3.1 `Saved Input: Open`](#31-saved-input-open)
+    * [3.2 `Temp`](#32-temp)
+    * [3.3 `Search Unit`](#33-search-unit)
+    * [3.4 `Add Calculator`](#34-add-calculator)
+  * [4. Finding calculators](#4-finding-calculators)
+    * [4.1 Browse the catalogs](#41-browse-the-catalogs)
+    * [4.2 Search the catalog](#42-search-the-catalog)
+  * [5. Using a calculator](#5-using-a-calculator)
+    * [5.1 Working with multiple calculators](#51-working-with-multiple-calculators)
+    * [5.2 Calculator card menu](#52-calculator-card-menu)
+    * [5.3 Saving and restoring Input](#53-saving-and-restoring-input)
+      * [5.3.1 Save input to a file](#531-save-input-to-a-file)
+      * [5.3.2 Reopen saved input](#532-reopen-saved-input)
+    * [5.4 Variants](#54-variants)
+  * [6. User accounts](#6-user-accounts)
+    * [6.1 Guest access](#61-guest-access)
+    * [6.2 Sign up and sign in](#62-sign-up-and-sign-in)
+    * [6.3 My profile](#63-my-profile)
+    * [6.4 Account settings](#64-account-settings)
+  * [7. Getting help](#7-getting-help)
+    * [7.1 General qCalc help](#71-general-qcalc-help)
+    * [7.2 Calculator-specific help](#72-calculator-specific-help)
+    * [7.3 Contact and feedback](#73-contact-and-feedback)
+  * [8. Practical tips](#8-practical-tips)
+<!-- TOC -->
 The following guide is intended for users of qCalc who access the application through its web interface. 
 It is designed to provide instructions on how to navigate and interact with calculators, 
 manage the display of calculator cards, maintain a record of user work, manage user accounts, 
 and seek assistance. This document does not address the development of calculator code, 
 the editing of documentation, or the administration of a qCalc installation.
 
-## Getting started
+## 1. Getting started
 
 qCalc is a web application containing calculators for everyday tasks. 
 A calculator opens as a card in the main work area. You can open several cards during a session and 
@@ -15,7 +60,7 @@ close them individually when you are finished.
 You can use many calculators as a guest. Create an account and sign in when you want account-specific features 
 such as personal calculators, catalog and favorites, saved input variants, or create, save and share your own calculators.
 
-### The page layout
+### 1.1 The page layout
 
 The interface has four useful areas:
 
@@ -27,20 +72,20 @@ The interface has four useful areas:
 On a smaller screen, the sidebar controls are shown as buttons. Use the main-sidebar button to open the main navigation 
 and the more/secondary-sidebar button to open the secondary tools.
 
-### Output Collection
+### 1.2 Output collection
 
 The collection button in the top bar opens **Output Collection**. Use it to gather outputs from calculations 
 and aggregate them when a calculator supports that workflow. The number on the button shows how many collected items 
 are currently available. 
 
-## Main sidebar options
+## 2. Main sidebar options
 
-### Home
+### 2.1 Home
 
 Returns to the home work area. Use it as a starting point or when you want to see the normal calculator 
 workspace again.
 
-### Calculator Catalog
+### 2.2 `Calculator Catalog`
 
 Opens the standard qCalc catalog. Browse categories to see the calculators supplied with the site. 
 Select a calculator name to add it to the work area.
@@ -48,92 +93,92 @@ Select a calculator name to add it to the work area.
 The catalog may show a favorite control beside a calculator. Use it to mark a calculator for easier 
 access in the catalog.
 
-### Quantity Catalog
+### 2.3 `Quantity Catalog`
 
 Lists quantities and units known to qCalc. Use it when you need to inspect a unit or find the correct 
 spelling of a quantity before entering a value in a calculator.
 
 For a quicker unit lookup, use **Search Unit** in the secondary sidebar.
 
-### Create My Calculator
+### 2.4 `Create My Calculator`
 
 Opens the personal-calculator area for the users. This option is for making a calculator from the user interface. 
 If you only need to run an existing calculator, use **Calculator Catalog**, **Public Catalog**, 
 **Personal Catalog**, or **Add Calculator** instead. Anonymous users can create calculators within qCalc, but in order 
 to save these calculators, they must sign up for an account and then sign in.
 
-### Personal Catalog
+### 2.5 `Personal Catalog`
 
 Shows calculators associated with your account. This is where you can find calculators you have created or otherwise have available in your personal catalog. Sign in if the site asks for an account.
 
-### Public Catalog
+### 2.6 `Public Catalog`
 
 Shows calculators shared for public use. A public calculator is separate from the standard calculators shipped with qCalc and may be provided by another user or organization.
 
-### Clear Screen
+### 2.7 `Clear Screen`
 
 Clears the current calculator cards from the work area. Use this when you want a fresh workspace. Save any input you may need before clearing the screen.
 
-### Unit Converter
+### 2.8 `Unit Converter`
 
 Opens the unit-conversion calculator. Enter a value and its source unit, choose the target unit, and run the conversion. You can also use the unit search in the secondary sidebar to look up unit names.
 
-### Quick Calculator
+### 2.9 `Quick Calculator`
 
 Opens a general-purpose calculator for quick arithmetic and common expressions. For specialized work, choose a calculator from a catalog instead.
 
-### Currency Converter
+### 2.10 `Currency Converter`
 
 Opens the currency-conversion calculator. Enter the amount and currencies requested by the form. Currency results depend on the exchange-rate data available to the qCalc site, so check the displayed rate date when precision matters.
 
-### Expression Evaluator
+### 2.11 `Expression Evaluator`
 
 Opens the expression evaluator for entering supported mathematical expressions. Follow the calculator's own input guidance and review the result before using it in important work.
 
-### Command Line
+### 2.12 `Command Line`
 
 Opens qCalc's command-line style interface. It is useful for users who prefer entering commands or expressions directly. It is still a user interface for calculations; it is not a server administration console.
 
-### Settings
+### 2.13 `Settings`
 
 Opens user-facing calculator preferences. The available settings depend on the qCalc site. Change a setting, then use the control provided by the page to apply or save it.
 
-### User Guide
+### 2.14 `User Guide`
 
 Opens the in-application documentation and guidance. Use it when you need an overview of qCalc or want to learn how a feature works.
 
 ![Description](../static/images/main-and-secondary-sidebar.png)
 <br>_Main and secondary sidebar_<br>
 
-## Secondary sidebar options
+## 3. Secondary sidebar options
 
 Open the secondary sidebar with the secondary-sidebar button in the top bar.
 
-### Saved Input: Open
+### 3.1 `Saved Input: Open`
 
 Use **Saved Input** to select a qCalc input file from your computer, then select **Open**. Saved input files contain calculator input data that was previously downloaded from qCalc. Opening one adds the corresponding calculator and restores the saved values when the file is compatible with the current site.
 
 Only choose files you trust. If a file does not load, confirm that it is a qCalc input file and that the calculator it belongs to is available on this site.
 
-### Temp
+### 3.2 `Temp`
 
 Use **Temp** to open the temporary saved-input area provided by the site. It is useful for returning to temporary work without browsing for a downloaded file. Treat temporary work as short-lived and save an input file if you need to keep it.
 
-### Search Unit
+### 3.3 `Search Unit`
 
 Enter part of a unit name in **Search Unit**. Results appear below the field as you type. Select a result when you need to identify or use that unit in a calculator.
 
 This searches units, not calculator names. To find a calculator, use the catalog search described below.
 
-### Add Calculator
+### 3.4 `Add Calculator`
 
 Enter a calculator name in **Add Calculator**, then select the plus button. qCalc adds the matching calculator to the work area without requiring you to browse through categories first.
 
 Use the calculator's qCalc name when you know it. If nothing opens, try searching the catalog for a title or keyword, then select the calculator from the results. A calculator name is not necessarily the same as the wording in its description.
 
-## Finding calculators
+## 4. Finding calculators
 
-### Browse the catalogs
+### 4.1 Browse the catalogs
 
 1. Open **Calculator Catalog**, **Public Catalog**, or **Personal Catalog**.
 2. Select a category or subcategory.
@@ -145,7 +190,7 @@ Use the calculator's qCalc name when you know it. If nothing opens, try searchin
 
 You can use the navigation links (either at the top or bottom of the catalog screen)  to move between the home page and the Standard, Personal, and Public catalog views.
 
-### Search the catalog
+### 4.2 Search the catalog
 
 ![Search catalog](../static/images/top-navbar.png)
 <br>_Search the catalog from top navigation bar_<br>
@@ -161,7 +206,7 @@ Select a calculator result to add it to the work area. Refine the search with a 
 ![Catalog search result](../static/images/catalog-search-results.png)
 <br>_Catalog search results_<br>
 
-## Using a calculator
+## 5. Using a calculator
 
 1. Open a calculator from a catalog, search result, or **Add Calculator**.
 2. Read the labels and any help text beside the inputs.
@@ -173,11 +218,11 @@ A calculator may produce text, tables, charts, images, or other rich results. Sc
 
 A validation message normally identifies an input that needs attention. Correct that field and run the calculator again. If the result seems unexpected, first check units, decimal separators, and the assumptions described in the calculator help.
 
-### Working with multiple calculators
+### 5.1 Working with multiple calculators
 
 Each calculator opens in its own card. Keep several cards open to compare results or use one result while filling in another. Use a card's close button when you no longer need it. **Clear Screen** closes the current calculator workspace at once.
 
-### Calculator card menu
+### 5.2 Calculator card menu
 
 Open the menu in a calculator card to see the actions available for that card. Depending on whether you are signed in and on the calculator type, the menu can include:
 
@@ -188,9 +233,9 @@ Open the menu in a calculator card to see the actions available for that card. D
 
 Signed-in users may also see additional account-related actions. The available menu items can differ between calculators.
 
-## Saving and restoring work
+### 5.3 Saving and restoring Input
 
-### Save input to a file
+#### 5.3.1 Save input to a file
 
 To keep the values currently entered in a calculator:
 
@@ -201,37 +246,37 @@ To keep the values currently entered in a calculator:
 
 The saved file is intended for restoring calculator inputs, not for manually editing as a general data file.
 
-### Reopen saved input
+#### 5.3.2 Reopen saved input
 
 Open the secondary sidebar, select **Saved Input**, choose the saved file, and select **Open**. qCalc restores the input in a new or matching calculator card when possible.
 
 Save important work before closing the browser or clearing the screen. A browser session is not a substitute for a saved input file.
 
-### Variants
+### 5.4 Variants
 
 A variant is a saved version of a calculator's inputs or setup. Signed-in users can use **Save Current Variant** to preserve the current state and **Create New Variant** to start another variation. Use **My Variants** from your profile to review variants available to your account.
 
 Variants are useful for comparing cases such as different prices, dimensions, rates, or assumptions. They are different from a downloaded input file: a variant is associated with your qCalc account, while an input file is stored on your device.
 
-## User accounts
+## 6. User accounts
 
 Open the user menu in the top bar. The menu shows **Guest** when you are not signed in.
 
-### Guest access
+### 6.1 Guest access
 
 Guests can use the calculators and browse the public parts of qCalc, subject to the site's configuration. Guest work may not be associated with a permanent account, so sign in before using account-specific features.
 
-### Sign up and sign in
+### 6.2 Sign up and sign in
 
 Select **Sign Up** to create an account, or **Login** to use an existing one. Follow the form's instructions. Some qCalc sites may offer an external sign-in provider as well as a qCalc account.
 
 If you forget your password, use **Forgot Password?** when that link is available. Some installations disable password reset; in that case, contact the support person for the site.
 
-### My profile
+### 6.3 My profile
 
 After signing in, select your username and choose **My profile**. Your profile page can provide links to your personal information, email settings, calculators, catalog, and variants.
 
-### Account settings
+### 6.4 Account settings
 
 Choose **Account settings** to update the account information exposed by the site. Choose **Change Password** to set a new password. Use **Logout** when you finish on a shared or public computer.
 
@@ -245,25 +290,25 @@ The profile page can include these user areas:
 
 The exact options depend on the site's account configuration and your permissions.
 
-## Getting help
+## 7. Getting help
 
-### General qCalc help
+### 7.1 General qCalc help
 
 Select **User Guide** in the main sidebar. You can also use the Quick Tour page when it is available. The tour provides separate introductions to the qCalc interface, calculation workflow, and account features.
 
-### Calculator-specific help
+### 7.2 Calculator-specific help
 
 If a calculator has documentation, a help icon appears in its card header. Select it to open help for that calculator. Read this before entering unfamiliar values: it may explain the calculation, expected units, assumptions, input formats, and interpretation of the result.
 
 Not every calculator has a help page. If no help icon is shown, use the field labels and help text provided by the calculator.
 
-### Contact and feedback
+### 7.3 Contact and feedback
 
 For questions about a site's availability, account access, missing calculators, or unexpected behavior, use the site's contact/support channel. The **About qCalc** page also provides general project information and a contact link when configured.
 
 When reporting a problem, include the calculator name, the values or units you entered, the message shown by qCalc, and the approximate time of the problem. Do not include passwords, API keys, or other private information.
 
-## Practical tips
+## 8. Practical tips
 
 - Check units before trusting a result.
 - Read calculator-specific help before using an unfamiliar calculator.

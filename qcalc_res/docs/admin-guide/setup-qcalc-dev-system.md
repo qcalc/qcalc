@@ -1,5 +1,32 @@
 # qCalc — Dev System Setup Guide
-
+<!-- TOC -->
+* [qCalc — Dev System Setup Guide](#qcalc--dev-system-setup-guide)
+  * [Windows Setup](#windows-setup)
+    * [1. Prerequisites](#1-prerequisites)
+    * [2. Clone the qCalc Repository from Git](#2-clone-the-qcalc-repository-from-git)
+    * [3. Run the Automated Installation Script](#3-run-the-automated-installation-script)
+    * [4. Create the Python Virtual Environment](#4-create-the-python-virtual-environment)
+    * [5. Create Required Directories](#5-create-required-directories)
+    * [6. Copy Configuration Templates](#6-copy-configuration-templates)
+    * [7. Initialize Django](#7-initialize-django)
+    * [8. Start the Development Server](#8-start-the-development-server)
+    * [9. Optional: Use MySQL Instead of SQLite](#9-optional-use-mysql-instead-of-sqlite)
+    * [10. Optional: Rebuild Templates, Themes, and Static Files](#10-optional-rebuild-templates-themes-and-static-files)
+  * [Linux Setup](#linux-setup)
+    * [1. Prerequisites](#1-prerequisites-1)
+    * [2. Clone the Repository](#2-clone-the-repository)
+    * [3. Run the Automated Installation Script](#3-run-the-automated-installation-script-1)
+    * [4. Create the Python Virtual Environment](#4-create-the-python-virtual-environment-1)
+    * [5. Create Required Directories](#5-create-required-directories-1)
+    * [6. Copy Configuration Templates](#6-copy-configuration-templates-1)
+    * [7. Initialize Django](#7-initialize-django-1)
+    * [8. Start the Development Server](#8-start-the-development-server-1)
+    * [9. Optional: Use MySQL Instead of SQLite](#9-optional-use-mysql-instead-of-sqlite-1)
+    * [10. Optional: Rebuild Templates, Themes, and Static Files](#10-optional-rebuild-templates-themes-and-static-files-1)
+  * [Production Deployment notes](#production-deployment-notes)
+  * [Directory Layout After Setup](#directory-layout-after-setup)
+  * [Quick Reference](#quick-reference)
+<!-- TOC -->
 This guide sets up a local qCalc development environment using **SQLite** as the database and **file-based caching** - no PostgreSQL, MySQL, Memcached, or Redis required. Platform-specific instructions are grouped into separate Windows and Linux sections.
 
 The automated scripts `setup/install_qcalc.bat` (Windows) and `setup/install_qcalc.sh` (Linux) perform all steps below. You can run them directly or follow this guide manually.

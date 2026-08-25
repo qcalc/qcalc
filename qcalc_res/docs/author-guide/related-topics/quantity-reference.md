@@ -1,5 +1,35 @@
 # Quantity Reference
-
+<!-- TOC -->
+* [Quantity Reference](#quantity-reference)
+* [1. Measure using `Qty`](#1-measure-using-qty)
+  * [2. Constructing quantities](#2-constructing-quantities)
+    * [2.1 From a quantity string](#21-from-a-quantity-string)
+    * [2.2 From a value and unit](#22-from-a-value-and-unit)
+    * [2.3 Parse and convert in one step](#23-parse-and-convert-in-one-step)
+    * [2.4 Multi-part values](#24-multi-part-values)
+    * [2.5 Value not yet supplied](#25-value-not-yet-supplied)
+  * [3. Reading a quantity](#3-reading-a-quantity)
+  * [4. Arithmetic and dimensions](#4-arithmetic-and-dimensions)
+    * [4.1 Addition and subtraction](#41-addition-and-subtraction)
+    * [4.2 Multiplication and division](#42-multiplication-and-division)
+    * [4.3 Powers and mathematical functions](#43-powers-and-mathematical-functions)
+    * [4.4 Comparisons and truthiness](#44-comparisons-and-truthiness)
+  * [5. Converting units](#5-converting-units)
+    * [5.1 `.to(unit)`](#51-tounit)
+    * [5.2 `.to_units(units)`](#52-to_unitsunits)
+    * [5.3 `.in_units_of(*units)` and `.as_units(units)`](#53-in_units_ofunits-and-as_unitsunits)
+    * [5.4 Standard systems and base units](#54-standard-systems-and-base-units)
+  * [6. Formatting and small helpers](#6-formatting-and-small-helpers)
+    * [6.1 Rounding](#61-rounding)
+    * [6.2 Missing value normalization](#62-missing-value-normalization)
+    * [6.3 Compatibility and category](#63-compatibility-and-category)
+  * [7. Practical patterns](#7-practical-patterns)
+    * [7.1 Normalize inputs, calculate with scalars, restore units](#71-normalize-inputs-calculate-with-scalars-restore-units)
+    * [7.2 Keep quantities through the formula](#72-keep-quantities-through-the-formula)
+    * [7.3 Preserve the caller's output convention](#73-preserve-the-callers-output-convention)
+  * [8. Common mistakes](#8-common-mistakes)
+  * [9. API summary](#9-api-summary)
+<!-- TOC -->
 # 1. Measure using `Qty`
 
 `Qty` represents a numeric value together with a unit of measure. 

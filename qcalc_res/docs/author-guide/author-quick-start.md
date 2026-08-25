@@ -1,5 +1,12 @@
 # Create Calculator: Quick Start
-
+<!-- TOC -->
+* [Create Calculator: Quick Start](#create-calculator-quick-start)
+  * [1. Create calculator using `mycal`](#1-create-calculator-using-mycal)
+  * [2. Hello World](#2-hello-world)
+    * [2.1. The calculator function](#21-the-calculator-function)
+    * [2.2. The `__info()` function](#22-the-__info-function)
+  * [3. Add Two Lengths](#3-add-two-lengths)
+<!-- TOC -->
 Some introductory knowledge of Python is a prerequisite to create a calculator in qCalc. 
 You will need a basic grasp of functions and conditional logic to map out the calculation 
 workflow. However, knowing the basics of operators and variables is more than enough 

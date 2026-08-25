@@ -1,5 +1,39 @@
 # Calculator `__info()` Metadata Guide
 
+<!-- TOC -->
+* [Calculator `__info()` Metadata Guide](#calculator-__info-metadata-guide)
+  * [1. Quick Reference](#1-quick-reference)
+    * [1.1 Info Keys](#11-info-keys)
+    * [1.2 Schema Keys](#12-schema-keys)
+  * [2. A Complete Example](#2-a-complete-example)
+  * [3. Core Presentation Info Keys](#3-core-presentation-info-keys)
+    * [3.1 Info Key: `title`, `desc`, and `calculate`](#31-info-key-title-desc-and-calculate)
+    * [3.2 Info Key: `images`](#32-info-key-images)
+    * [3.3 Info Key: `schema`: Input Widgets and Field Options](#33-info-key-schema-input-widgets-and-field-options)
+      * [3.3.1 Info Key: `choice`, `radio`, and `multiplechoice`](#331-info-key-choice-radio-and-multiplechoice)
+      * [3.3.2 Searchable selects, tables, and lists](#332-searchable-selects-tables-and-lists)
+  * [4. Input Interaction Patterns](#4-input-interaction-patterns)
+    * [4.1 `autofill`: Fill fields from a selection](#41-autofill-fill-fields-from-a-selection)
+    * [4.2 `related`: Dependent selections](#42-related-dependent-selections)
+    * [4.3 `showhide`: Reveal inputs only when needed](#43-showhide-reveal-inputs-only-when-needed)
+    * [4.4 `anyof`: Alternative ways to provide one value](#44-anyof-alternative-ways-to-provide-one-value)
+  * [5. Layout Keys](#5-layout-keys)
+    * [5.1 `row`](#51-row)
+    * [5.2 `col`](#52-col)
+    * [5.3 `outcol`](#53-outcol)
+  * [6. Follow-up Actions and Discovery](#6-follow-up-actions-and-discovery)
+    * [6.1 `step2`](#61-step2)
+    * [6.2 `kins` and `tags`](#62-kins-and-tags)
+    * [6.3 `xpr`, `url`, and `loop`](#63-xpr-url-and-loop)
+  * [7. Advanced Trusted Markup and JavaScript](#7-advanced-trusted-markup-and-javascript)
+    * [7.1 `script`](#71-script)
+    * [7.2 `onsubmit`](#72-onsubmit)
+    * [7.3 `inserts`](#73-inserts)
+    * [7.4 `template`](#74-template)
+  * [8. Parameterized Metadata](#8-parameterized-metadata)
+  * [9. Author Checklist](#9-author-checklist)
+<!-- TOC -->
+
 Every qCalc calculator is a Python function with a companion metadata function named `<calculator_name>__info()`. When this function exists, qCalc considers the corresponding function (without `__info` in name) as a **calculator**.
 
 The metadata function suffix has a double underscore followed by `info` i.e. `__info()`. The function name may or may not have underscores in it e.g. `wall_paint()` or `bmi()`, but it is recommended not to use double underscore other than metadata function.
@@ -26,11 +60,11 @@ def wall_paint__info():
 
 qCalc provides defaults for omitted keys. Start with `title`, `desc`, and, when needed, `schema`; add the other keys only when they make the calculator easier to use.
 
-## Quick Reference
+## 1. Quick Reference
 
 Following table lists down the optional elements of a metadata function:
 
-### Info Keys
+### 1.1 Info Keys
 | Key | Type | Purpose |
 |---|---|---|
 | `title` | string | Calculator title shown to the user. |
@@ -56,7 +90,7 @@ Following table lists down the optional elements of a metadata function:
 | `inserts` | dict | Trusted HTML placed at named points in the calculator template. |
 | `template` | string | Advanced template override. |
 
-### Schema Keys
+### 1.2 Schema Keys
 | Key       | Type | Purpose                                                      |
 |-----------|---|--------------------------------------------------------------|
 | `type`    | string | Type of a parameter e.g. `choice`, `radio`, `checkbox`, etc. |
@@ -65,7 +99,7 @@ Following table lists down the optional elements of a metadata function:
 
 Key names are case-sensitive.
 
-## A Complete Example
+## 2. A Complete Example
 
 This calculator uses info keys: `title`, `desc`, `calculate`, `schema` and `tags`, schema keys: `type`, `choices`, and `initial`:
 
@@ -108,9 +142,9 @@ def wall_paint(width='12 ft', height='8 ft', coverage='350 sqft/gal',
 
 Input names, such as `coats`, in metadata must match function parameter names.
 
-## Core Presentation Keys
+## 3. Core Presentation Info Keys
 
-### Info Key: `title`, `desc`, and `calculate`
+### 3.1 Info Key: `title`, `desc`, and `calculate`
 
 `title` is the visible calculator name. Use an action-oriented, plain-language title:
 
@@ -132,7 +166,7 @@ The default button label is `Calculate`. Change it only when a short verb (one w
 'calculate': 'Suggest'
 ```
 
-### Info Key: `images`
+### 3.2 Info Key: `images`
 
 `images` places one or more images at the top, bottom, left, or right of the calculator. Paths should normally be relative to calculator static files.
 
@@ -145,7 +179,7 @@ The default button label is `Calculate`. Change it only when a short verb (one w
 
 Each position accepts a list of images (e.g. you can have another image at the top section, enter it separated by comma). Use images that clarify the task, such as a wall diagram for a paint calculator.
 
-## Info Key: `schema`: Input Widgets and Field Options
+### 3.3 Info Key: `schema`: Input Widgets and Field Options
 
 Without a schema, qCalc derives fields from function parameters, annotations, and defaults. Use `schema` to clearly specify and improve a particular input.
 
@@ -167,7 +201,7 @@ Without a schema, qCalc derives fields from function parameters, annotations, an
 
 Useful properties include `type`, `choices`, `initial`, `label`, `help_text`, `required`, `disabled`, and `attrs`. qCalc also forwards ordinary Django-form properties such as validators and error messages where supported.
 
-### Info Key: `choice`, `radio`, and `multiplechoice`
+#### 3.3.1 Info Key: `choice`, `radio`, and `multiplechoice`
 
 Use `choice`, `radio`, or `multiplechoice` for a known set of values. A dictionary key is the value passed to Python; its value is the label shown to users.
 
@@ -186,7 +220,7 @@ Use `choice`, `radio`, or `multiplechoice` for a known set of values. A dictiona
 }
 ```
 
-### Searchable selects, tables, and lists
+#### 3.3.2 Searchable selects, tables, and lists
 
 Use `qsel2` for searchable long lists:
 
@@ -222,11 +256,11 @@ def material_total(items: qtable, discounts: qlist = [0, 0, 0]):
 
 For new calculator code that does not need pandas operations, `qtbl` is the safer table annotation and receives a plain `{'columns': ..., 'data': ...}` dictionary.
 
-## Input Interaction Patterns
+## 4. Input Interaction Patterns
 
 Make sure every field named by these patterns is a calculator parameter.
 
-### `autofill`: Fill fields from a selection
+### 4.1 `autofill`: Fill fields from a selection
 
 Use `autofill` when a selected product, material, or preset supplies known values:
 
@@ -312,7 +346,7 @@ def wall_paint2(
 
 The `fields` order must match the value order in every `autofill` entry.
 
-### `related`: Dependent selections
+### 4.2 `related`: Dependent selections
 
 Use `related` for country -> state -> city, department -> team -> employee, and similar chains. Define fields in display order; `relation` is a nested dictionary with a final list.
 
@@ -350,7 +384,7 @@ def demo_related(country, province, city):
 
 The current implementation supports up to four levels of dependency (e.g. country, state, city, zipcode). Do not put the same field in both `related` and `anyof` or `showhide`; these features can compete for control of it.
 
-### `showhide`: Reveal inputs only when needed
+### 4.3 `showhide`: Reveal inputs only when needed
 
 Use `showhide` to keep the form small. In its basic form, listed fields are visible only while the controlling input is empty:
 
@@ -377,7 +411,7 @@ For one simple rule, qCalc also supports a compact callback such as `'callback':
 'showhide': {'__': {'fields': ['internal_reference']}}
 ```
 
-### `anyof`: Alternative ways to provide one value
+### 4.4 `anyof`: Alternative ways to provide one value
 
 Use `anyof` when inputs are alternatives. When a user enters one value, qCalc clears the others in that group:
 
@@ -389,11 +423,11 @@ Use `anyof` when inputs are alternatives. When a user enters one value, qCalc cl
 
 You may define several groups. `anyof` does not validate that the remaining value is mathematically sufficient, so the Python function must still handle missing values correctly.
 
-## Layout Keys
+## 5. Layout Keys
 
 qCalc normally displays inputs in function-parameter order. Use layout options only when they improve scanning.
 
-### `row`
+### 5.1 `row`
 
 `row` groups fields on the same row. Join field names with hyphens:
 
@@ -401,7 +435,7 @@ qCalc normally displays inputs in function-parameter order. Use layout options o
 'row': ['width-height', 'coverage-tin_size']
 ```
 
-### `col`
+### 5.2 `col`
 
 `col` starts new input columns. It accepts an integer count or field group specifications:
 
@@ -415,7 +449,7 @@ qCalc normally displays inputs in function-parameter order. Use layout options o
 
 Start with `row`; use columns only when the result stays readable on narrow screens.
 
-### `outcol`
+### 5.3 `outcol`
 
 `outcol` moves output fields into a second output column. qCalc lowercases a return label, converts spaces to underscores, and adds `__r`. For example, `Monthly payment` becomes `monthly_payment__r`.
 
@@ -434,9 +468,9 @@ def mortgage(principal, rate, years):
 
 Use this for charts, tables, long explanations, or results that deserve separate visual emphasis.
 
-## Follow-up Actions and Discovery
+## 6. Follow-up Actions and Discovery
 
-### `step2`
+### 6.1 `step2`
 
 `step2` adds buttons after a successful calculation. Every item has `step`, `caption`, and `spec`; a `run` action also needs `func`.
 
@@ -473,7 +507,7 @@ Open a returned qCalc chart object in its chart calculator:
 ],
 ```
 
-### `kins` and `tags`
+### 6.2 `kins` and `tags`
 
 `kins` lists related calculator IDs. qCalc resolves each one to its visible title:
 
@@ -489,7 +523,7 @@ Open a returned qCalc chart object in its chart calculator:
 
 Only include real, useful next calculators and short phrases a user would search for.
 
-### `xpr`, `url`, and `loop`
+### 6.3 `xpr`, `url`, and `loop`
 
 These switches control standard after-calculation controls:
 
@@ -501,13 +535,13 @@ These switches control standard after-calculation controls:
 
 All default to `True`. qCalc automatically disables looping for rich results such as tables, charts, images, pages, and long text.
 
-## Advanced Trusted Markup and JavaScript
+## 7. Advanced Trusted Markup and JavaScript
 
-### `script`
+### 7.1 `script`
 
 `script` is inserted as JavaScript on the calculator page, most often to provide a `showhide` callback. Treat it as reviewed application code. Do not place untrusted user text in it.
 
-### `onsubmit`
+### 7.2 `onsubmit`
 
 `onsubmit` runs in a jQuery submit handler immediately before the form is submitted. The calculator instance ID is available as `_cid`.
 
@@ -522,7 +556,7 @@ if (!document.getElementById('id_' + _cid + '_email').value) {
 
 Use server-side validation for rules that protect data or business logic; browser code can be bypassed.
 
-### `inserts`
+### 7.3 `inserts`
 
 `inserts` renders trusted HTML at standard template positions: `card_top`, `form_top`, `form_bottom`, `out_top`, and `out_bottom`.
 
@@ -535,7 +569,7 @@ Use server-side validation for rules that protect data or business logic; browse
 
 For reusable links and command buttons, prefer helpers such as `cal_link`, `page_link`, and `command_button` rather than constructing URLs and HTML by hand. Never interpolate untrusted content into an insert.
 
-### `template`
+### 7.4 `template`
 
 `template` selects a project-specific calculator template:
 
@@ -545,7 +579,7 @@ For reusable links and command buttons, prefer helpers such as `cal_link`, `page
 
 This is an advanced integration option. Most calculator authors should use the configured default.
 
-## Parameterized Metadata
+## 8. Parameterized Metadata
 
 An `__info()` function may accept `__info`. qCalc passes this selected mode when the calculator is opened. It is useful when the mode changes available choices, such as length versus weight conversion.
 
@@ -565,7 +599,7 @@ def unit_converter__info(__info=None):
 The calculator function may also accept `__info` if it needs the selected mode during calculation.
 
 
-## Author Checklist
+## 9. Author Checklist
 
 1. Define `<calculator_name>__info()` beside the calculator function.
 2. Add a plain-language `title` and a concise `desc` when the calculation needs context.

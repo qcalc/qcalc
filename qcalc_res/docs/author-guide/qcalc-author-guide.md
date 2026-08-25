@@ -1,5 +1,30 @@
 # qCalc Author Guide: Creating Calculators
-
+<!-- TOC -->
+* [qCalc Author Guide: Creating Calculators](#qcalc-author-guide-creating-calculators)
+  * [1. Where calculators live](#1-where-calculators-live)
+    * [1.1 Backend calculators](#11-backend-calculators)
+    * [1.2 Frontend calculators](#12-frontend-calculators)
+  * [2. Calculator functions and naming convention](#2-calculator-functions-and-naming-convention)
+    * [2.1 Calculator function](#21-calculator-function)
+    * [2.2 Metadata functions](#22-metadata-functions)
+  * [3. Minimal calculator example](#3-minimal-calculator-example)
+  * [4. Understanding function arguments and UI generation](#4-understanding-function-arguments-and-ui-generation)
+    * [4.1 Defaults define initial values](#41-defaults-define-initial-values)
+    * [4.2 Type annotations influence field type](#42-type-annotations-influence-field-type)
+  * [5. The `__info()` meta dictionary](#5-the-__info-meta-dictionary)
+    * [5.2 Dynamic `__info`](#52-dynamic-__info)
+  * [6. Input value precedence (important)](#6-input-value-precedence-important)
+  * [7. Optional hooks](#7-optional-hooks)
+  * [7.1 `__input(_kwargs)`](#71-__input_kwargs)
+  * [7.2 `__modify(arg_name, arg_value, action)`](#72-__modifyarg_name-arg_value-action)
+  * [7.3 `__command(fkwargs, extra)`](#73-__commandfkwargs-extra)
+  * [7.4 `__help(__info=None)`](#74-__help__infonone)
+  * [8. Working with quantities and units using `Qty()`](#8-working-with-quantities-and-units-using-qty)
+  * [9. Form behavior patterns you can reuse](#9-form-behavior-patterns-you-can-reuse)
+  * [10. Full template (copy/paste)](#10-full-template-copypaste)
+  * [11. Common mistakes and fixes](#11-common-mistakes-and-fixes)
+  * [12. Quick author checklist](#12-quick-author-checklist)
+<!-- TOC -->
 This guide explains how to create a calculator in qCalc using the same patterns and methods as those employed by built-in calculators. 
 
 You can create qCalc `backend calculators` on a self-hosted qCalc Server. 

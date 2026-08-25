@@ -8,7 +8,8 @@ CODE_TAB = 4
 
 # Local trusted deployments may enable legacy unrestricted user-calculator imports.
 ALLOW_UNSAFE_USER_CALCULATOR_IMPORTS = False
-MARKDOWN_EXTENSIONS = extensions=['extra', 'fenced_code', 'tables', 'mdx_math']
+# 'toc' adds slug ids to headings (e.g. #1-getting-started) so in-doc TOC/bookmark links resolve
+MARKDOWN_EXTENSIONS = extensions=['extra', 'fenced_code', 'tables', 'mdx_math', 'toc']
 
 # catalog properties
 name_separator = '-'

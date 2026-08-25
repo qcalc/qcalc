@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model, forms
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 from allauth.account.forms import SignupForm as AllauthSignupForm
-from utils.qmixins import AntiBotSecurityMixin
+from qsite.utils.qmixins import AntiBotSecurityMixin
 
 User = get_user_model()
 

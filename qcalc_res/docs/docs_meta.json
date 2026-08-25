@@ -16,7 +16,7 @@
     "order": "2.10"
   },
   "author-guide/calculator-meta-functions.md": {
-    "title": "Calculator meta Functions",
+    "title": "Calculator meta functions",
     "desc": "Meta function specification for qCalc calculators.",
     "order": "2.20"
   },

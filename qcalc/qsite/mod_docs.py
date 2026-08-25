@@ -37,7 +37,7 @@ def _load_docs_meta(docs_root: Path) -> dict:
         return {}
 
 
-def build_docs_tree(nid='docs', title='Documentation'):
+def build_docs_tree(nid='docs', title='qCalc Documentation'):
     # | Builds a TreeNode tree mirroring settings.DOCS_FILES_DIR, with per-node
     # | title/desc/tags/order/hidden overridable via a docs_meta.json sidecar manifest.
     docs_root = Path(settings.DOCS_FILES_DIR)

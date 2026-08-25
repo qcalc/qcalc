@@ -112,7 +112,7 @@ def docs_tree(request: HtmxHttpRequest):
     context = {
         "docs_data": root.children,
         "request": request,
-        "title": "Documentation",
+        "title": "qCalc Documentation",
     }
     return ut.get_page(request, template, context, 'docs_tree')
 

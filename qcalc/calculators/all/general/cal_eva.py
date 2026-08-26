@@ -63,7 +63,7 @@ show(y)
         # readonly_symbols=reserved_syms if strict_assign else None,
         nested_symtable=True,
         writer=out.out,
-        err_writer=out.out,
+        # err_writer=out.out,
         # builtins_readonly=True,
     )
 
@@ -71,9 +71,26 @@ show(y)
     try:
         validate_expression_security(expr, syms)
     except Exception as e:
-        return {'result': f'Error (EVR): {e}'}
+        return {'result': f'{e}'}
 
-    res = aeval(expr)
+    res = aeval(expr, show_errors=False)
+    if aeval.error:
+        error = aeval.error[0]
+        line_no = getattr(error.node, 'lineno', None)
+        lines = expr.splitlines()
+        source_line = (
+            lines[line_no - 1]
+            if line_no and line_no <= len(lines)
+            else ''
+        )
+        line_info = f'at line {line_no}' if line_no else ''
+        return {
+            'result': (
+                f'Error {line_info}: {error.msg}'
+                f'\n>> {source_line}' if source_line else
+                f'Error {line_info}: {error.msg}'
+            )
+        }
     # print(res)
     if res is not None:
         show(res)

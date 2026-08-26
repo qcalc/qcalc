@@ -2,6 +2,7 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 from django import forms
+from django.utils.html import escape
 from django.utils.safestring import mark_safe
 from django.forms import Widget
 import pandas as pd
@@ -90,7 +91,7 @@ class CodeWidget_codemirror(Widget):
         '''
         ret += f'''
         <div class="elem-wrapper" style="width:100%;">
-        <textarea id="{self.id}" name="{name}">{value or "hidden"}</textarea>
+        <textarea id="{self.id}" name="{name}"{' disabled' if (attrs or {}).get('disabled') else ''}{' readonly' if (attrs or {}).get('readonly') else ''}>{escape(value) if value else ""}</textarea>
         <span class="fullscreen-square" onclick="toggleFullscreen(this.closest('.elem-wrapper'))"></span>
          <input type="file" id="{self.id}_upload" accept=".py,text/x-python" class="inputfile"
              onchange="uploadCodeMirrorWidget(this, '{self.id}')">

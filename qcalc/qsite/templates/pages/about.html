@@ -7,6 +7,16 @@
 {% block _cardtitle %}About qCalc{% endblock %}
 {% block _content %}
 <style>
+        h2 {
+          margin-top: 30px;
+        }
+        .highlight {
+            padding: 12px 16px;
+            margin: 20px 0;
+            border-left: 4px solid #666;
+            background: #f5f5f5;
+            font-size: 1.05em;
+        }
         .about {
             display: flex;
             align-items: center;
@@ -48,6 +58,7 @@
       {% endif %}
     </div>
 </div>
+
 <h2>A place to calculate, create, and share</h2>
 <p>
   Calculations are everywhere. Some are simple enough for a pocket calculator, while others involve formulas,
@@ -55,15 +66,20 @@
   to justify building a complete application, so they end up being done repeatedly in spreadsheets, scripts, or by hand.
 </p>
 <p>qCalc aims to provide a simpler way.</p>
+
 <h2>Use a calculator—or create your own</h2>
 <p>
   qCalc provides a growing collection of calculators covering mathematics, engineering, science, finance, photography,
   everyday calculations, and many other areas.
+</p>
 <p>But qCalc is not intended to be just a collection of predefined calculators.</p>
 <p>
-  With qCalc, you can create your own calculator using Python <b>directly in your browser</b>. You can write the calculation,
-  check and validate your code, test it, and save the calculator for future use.
+  With qCalc, you can create your own calculator using Python <b>directly in your browser</b>. Using its
+  <b>function-to-form</b> capability, qCalc can automatically turn a Python function into a user-friendly calculator form,
+  using the function's parameters to build the interface. You can check and validate your code, test it, and save the
+  calculator for future use.
 </p>
+<p class="highlight"><b>You write the calculation; qCalc builds the interface.</b></p>
 <p>
   This makes it possible to turn a calculation that might otherwise live in a spreadsheet or a small script
   into a <b>reusable web-based tool</b>.
@@ -73,16 +89,17 @@
 <p>A calculator you create for yourself may also be useful to someone else.</p>
 <p>
   qCalc is a platform where specialized calculators can be created, organized, used, and shared.
-  The goal is to make it easier for people with technical knowledge to turn their calculations into tools
+  The goal is to make it easier for people with some technical knowledge to turn their calculations into tools
   that others can use without needing to write code themselves.
 </p>
 <p>
   Whether it is an engineering formula, a financial calculation, a photography tool, or a small utility for everyday work,
   qCalc provides a place to build it.
 </p>
+
 <h2>qCalc Philosophy</h2>
 <p>qCalc is built around a simple idea:</p>
-<p><b>If a calculation is useful, it should be easy to turn it into a useful tool.</b></p>
+<p class="highlight"><b>If a calculation is useful, it should be easy to turn it into a useful tool.</b></p>
 <p>
   We believe sophisticated computational capabilities should be accessible without requiring everyone to build a
   complete software application.
@@ -91,13 +108,14 @@
   qCalc is therefore designed to make calculations accessible, reusable, and practical—while providing a path for users
   to create tools of their own.
 </p>
+
 <h2>Free and open to everyone</h2>
 <p>
   qCalc is developed as a free-to-use web application, with the aim of making useful computational tools accessible
   to as many people as possible.
 </p>
 <p>The project is continuously evolving, and the collection of calculators and capabilities will continue to grow.</p>
-<p><b>Use a calculator. Create one. Make it useful to someone else.</b></p>
+<p class="highlight"><b>Use a calculator. Create one. Make it useful to someone else.</b></p>
 <h2>Self-host qCalc</h2>
 <p>qCalc is also designed to be self-hosted.</p>
 <p>
@@ -106,14 +124,14 @@
   standards, or other information that should remain private.
 </p>
 <p>
-  A self-hosted qCalc can provide the same calculator-building concept in a private environment,
+  A self-hosted qCalc can provide the same calculator-building capabilities in a private environment,
   giving you control over your calculators, data, and deployment.
 </p>
-<p>The qCalc source code and self-hosting instructions are available here:
-  <b><a href="https://github.com/qcalc/qcalc" target="_blank">qCalc on Github</a></b>.
+<p class="highlight"><b>qCalc source code and self-hosting instructions are available on
+  <a href="https://github.com/qcalc/qcalc" target="_blank">GitHub</a>.</b>
 </p>
 
-<h2>Please Contact</h2>
+<h2>Contact</h2>
 <p>If you have any questions, feedback, or suggestions, please don't hesitate to {% pagelink '/page/contact/' 'reach out' %}.</p>
 <p>Thank you for your interest in qCalc.</p>
 <br>

@@ -79,6 +79,9 @@ class CodeWidget_codemirror(Widget):
             .CodeMirror {
                 border: 1px solid #ccc;
                 height: 250px;
+                min-height: 100px;
+                resize: vertical;
+                overflow: auto;
             }
             .elem-wrapper.fullscreen .CodeMirror {
                 height: 95vh;

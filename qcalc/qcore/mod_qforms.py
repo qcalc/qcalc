@@ -62,13 +62,6 @@ class QFieldHandler:
             'disabled': bool(field_meta.get('disabled', 0))
         }
 
-        # if not options['required']:
-        #     sufx = options['label_suffix']
-        #     if sufx is None:
-        #         options['label_suffix'] = ' (optional)'
-        #     else:
-        #         options['label_suffix'] += ' (optional)'
-
         # | in case of uom2 and select2 field_meta['initial'] is replaced with current posted value
         # | however options['initial'] remains the original arguement value
         if field_meta['type'] in ['uom2', 'select2', 'quom2', 'qsel2']:  # @08-13.01.24

@@ -118,6 +118,10 @@ function initializeCodeMirrorWidget(textareaId) {
 
     textarea.dataset.codemirrorInitialized = 'true';
 
+    if (typeof ResizeObserver !== 'undefined') {
+        new ResizeObserver(function() { editor.refresh(); }).observe(editor.getWrapperElement());
+    }
+
     if (textarea.form) {
         textarea.form.addEventListener('submit', function() {
             textarea.value = editor.getValue();

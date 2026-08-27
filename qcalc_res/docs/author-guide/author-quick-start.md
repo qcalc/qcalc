@@ -157,7 +157,7 @@ and c) return the quantity.
 
 `addlen` comes as a default code in `mycal`, so you can click on **Refresh** icon 
 (green button with circular arrows) to get this default code. Alternatively, you can copy/paste as well.
-Then click on **[Check Syntax]***, **[Save]** and finally **[Open addlen]** to run it.
+Then click on **[Check Syntax]**, **[Save]** and finally **[Open addlen]** to run it.
 
 ![addlen calculator](../static/images/addlen-calculator.png)
 <br>_`addlen` calculator user interface_<br>
@@ -170,5 +170,8 @@ to another length.
 ![conv2 calculator converts length](../static/images/conv2-convert-length.png)
 <br>_Clicking on Scale icon opens up the unit converter_<br>
 
-For more information and examples on `Qty()`, see the 
-[Quantity Reference](related-topics/quantity-reference.md).
+>For more information and examples on `Qty()`, see the 
+[Quantity Reference](related-topics/quantity-reference.md). For further details about authoring qCalc calculator, see 
+[qCalc Author's Guide](qcalc-author-guide.md)
+
+

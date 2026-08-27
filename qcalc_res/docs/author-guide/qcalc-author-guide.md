@@ -79,6 +79,9 @@ title, description, input fields, labels, choices, validation rules, help text, 
 and other form-related settings. In other words, this function tells qCalc how the calculator should appear and behave in the interface. 
 It is essential for distinguishing calculator functions from ordinary Python functions and for building the interactive form that users see.
 
+>For further details about the `__info()` metadata function, please see 
+[Calculator meta functions](calculator-meta-functions.md)
+
 - **__input()**: The `__input()` function is used to provide runtime default values for calculator inputs when 
 the values are not simple static constants. While basic defaults can be supplied directly as function arguments 
 or declared in the `__info()` metadata schema, `__input()` is useful when defaults must be computed dynamically 

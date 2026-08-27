@@ -62,7 +62,7 @@ qCalc provides defaults for omitted keys. Start with `title`, `desc`, and, when 
 
 ## 1. Quick Reference
 
-Following table lists down the optional elements of a metadata function:
+Following table lists down the optional elements or info keys of a metadata function:
 
 ### 1.1 Info Keys
 | Key | Type | Purpose |
@@ -90,14 +90,21 @@ Following table lists down the optional elements of a metadata function:
 | `inserts` | dict | Trusted HTML placed at named points in the calculator template. |
 | `template` | string | Advanced template override. |
 
+Key names are case-sensitive.
+
 ### 1.2 Schema Keys
+
+The info key `schema` can be used to define the behavior of individual fields using 
+various schema keys. Some examples are given below:
+
 | Key       | Type | Purpose                                                      |
 |-----------|---|--------------------------------------------------------------|
 | `type`    | string | Type of a parameter e.g. `choice`, `radio`, `checkbox`, etc. |
 | `choices` | string | list of choices if the parameter type is `choice`            |
 | `initial` | string | default or initial value                                     |
 
-Key names are case-sensitive.
+> For further details about the field types and schema keys please see 
+[qCalc field types](related-topics/qcalc-field-types.md)
 
 ## 2. A Complete Example
 
@@ -382,17 +389,20 @@ def demo_related(country, province, city):
 ![demo_related calculator](../static/images/demo_related.jpg)
 <br>_Fig: How the 'demo_related' calculator looks inside qCalc_
 
-The current implementation supports up to four levels of dependency (e.g. country, state, city, zipcode). Do not put the same field in both `related` and `anyof` or `showhide`; these features can compete for control of it.
+The current implementation supports up to four levels of dependency (e.g. country, state, city, zipcode). 
+Do not put the same field in both `related` and `anyof` or `showhide`; these features can compete for control of it.
 
 ### 4.3 `showhide`: Reveal inputs only when needed
 
-Use `showhide` to keep the form small. In its basic form, listed fields are visible only while the controlling input is empty:
+Use `showhide` to keep the form small. In its basic form, listed fields are visible only while 
+the controlling input is empty:
 
 ```python
 'showhide': {'use_custom_coverage': {'fields': ['coverage']}}
 ```
 
-For typical forms, use a callback in `script`. The callback receives the controlling value and returns one Boolean for every field: `true` shows it; `false` hides it.
+For typical forms, use a callback in `script`. The callback receives the controlling value 
+and returns one Boolean for every field: `true` shows it; `false` hides it.
 
 ```python
 'showhide': {
@@ -405,7 +415,8 @@ function showCustomRate(value) {
 ''',
 ```
 
-For one simple rule, qCalc also supports a compact callback such as `'callback': '@==100'`. Prefer a named function for anything more complex. Use the special `__` key to hide a field unconditionally:
+For one simple rule, qCalc also supports a compact callback such as `'callback': '@==100'`. 
+Prefer a named function for anything more complex. Use the special `__` key to hide a field unconditionally:
 
 ```python
 'showhide': {'__': {'fields': ['internal_reference']}}
@@ -413,7 +424,8 @@ For one simple rule, qCalc also supports a compact callback such as `'callback':
 
 ### 4.4 `anyof`: Alternative ways to provide one value
 
-Use `anyof` when inputs are alternatives. When a user enters one value, qCalc clears the others in that group:
+Use `anyof` when inputs are alternatives. When a user enters one value, qCalc clears the other 
+fields in that group:
 
 ```python
 'anyof': {
@@ -421,7 +433,8 @@ Use `anyof` when inputs are alternatives. When a user enters one value, qCalc cl
 }
 ```
 
-You may define several groups. `anyof` does not validate that the remaining value is mathematically sufficient, so the Python function must still handle missing values correctly.
+You may define several groups. `anyof` does not validate that the remaining value is mathematically sufficient, 
+so the Python function must still handle missing values correctly.
 
 ## 5. Layout Keys
 
@@ -429,7 +442,7 @@ qCalc normally displays inputs in function-parameter order. Use layout options o
 
 ### 5.1 `row`
 
-`row` groups fields on the same row. Join field names with hyphens:
+`row` groups fields on the same row. Join field names (from one field to another in parameter list) with hyphens:
 
 ```python
 'row': ['width-height', 'coverage-tin_size']
@@ -451,7 +464,9 @@ Start with `row`; use columns only when the result stays readable on narrow scre
 
 ### 5.3 `outcol`
 
-`outcol` moves output fields into a second output column. qCalc lowercases a return label, converts spaces to underscores, and adds `__r`. For example, `Monthly payment` becomes `monthly_payment__r`.
+`outcol` moves output fields into a second output column. 
+For output parameter name, qCalc lowercases a return label, converts spaces to underscores, 
+and adds `__r`. For example, `Monthly payment` becomes `monthly_payment__r`.
 
 ```python
 def mortgage__info():
@@ -472,7 +487,8 @@ Use this for charts, tables, long explanations, or results that deserve separate
 
 ### 6.1 `step2`
 
-`step2` adds buttons after a successful calculation. Every item has `step`, `caption`, and `spec`; a `run` action also needs `func`.
+`step2` adds buttons after a successful calculation. Every item has `step`, `caption`, and `spec`; 
+a `run` action also needs `func`.
 
 Open another calculator with values pre-filled:
 
@@ -487,7 +503,8 @@ Open another calculator with values pre-filled:
 ],
 ```
 
-Estimate costs from returned quantity values. `include` and `exclude` select returned labels; `'*'` includes all outputs before exclusions:
+Estimate costs from returned quantity values. `include` and `exclude` select returned labels; 
+`'*'` includes all outputs before exclusions:
 
 ```python
 'step2': [
@@ -514,6 +531,7 @@ Open a returned qCalc chart object in its chart calculator:
 ```python
 'kins': 'bmi,bmr,calorie'
 ```
+Only include real, useful next calculators.
 
 `tags` makes a calculator easier to find in catalog search:
 
@@ -521,7 +539,7 @@ Open a returned qCalc chart object in its chart calculator:
 'tags': 'mortgage,loan,finance,monthly payment'
 ```
 
-Only include real, useful next calculators and short phrases a user would search for.
+Only include short phrases a user would search for.
 
 ### 6.3 `xpr`, `url`, and `loop`
 
@@ -539,11 +557,13 @@ All default to `True`. qCalc automatically disables looping for rich results suc
 
 ### 7.1 `script`
 
-`script` is inserted as JavaScript on the calculator page, most often to provide a `showhide` callback. Treat it as reviewed application code. Do not place untrusted user text in it.
+`script` is inserted as JavaScript on the calculator page, most often to provide a `showhide` callback. 
+Treat it as reviewed application code. Do not place untrusted user text in it.
 
 ### 7.2 `onsubmit`
 
-`onsubmit` runs in a jQuery submit handler immediately before the form is submitted. The calculator instance ID is available as `_cid`.
+`onsubmit` runs in a jQuery submit handler immediately before the form is submitted. 
+The calculator instance ID is available as `_cid`.
 
 ```python
 'onsubmit': '''
@@ -554,7 +574,8 @@ if (!document.getElementById('id_' + _cid + '_email').value) {
 ''',
 ```
 
-Use server-side validation for rules that protect data or business logic; browser code can be bypassed.
+Use server-side validation for rules that protect data or business logic; 
+browser code can be bypassed.
 
 ### 7.3 `inserts`
 
@@ -567,7 +588,8 @@ Use server-side validation for rules that protect data or business logic; browse
 },
 ```
 
-For reusable links and command buttons, prefer helpers such as `cal_link`, `page_link`, and `command_button` rather than constructing URLs and HTML by hand. Never interpolate untrusted content into an insert.
+For reusable links and command buttons, prefer helpers such as `cal_link`, `page_link`, and `command_button` rather than 
+constructing URLs and HTML by hand. Never interpolate untrusted content into an insert.
 
 ### 7.4 `template`
 
@@ -581,7 +603,9 @@ This is an advanced integration option. Most calculator authors should use the c
 
 ## 8. Parameterized Metadata
 
-An `__info()` function may accept `__info`. qCalc passes this selected mode when the calculator is opened. It is useful when the mode changes available choices, such as length versus weight conversion.
+An `__info()` function may accept a parameter named `__info` as well which can be thought of as a dynamic mode selector.
+qCalc passes this selected mode when the calculator is opened. It is useful when the mode changes available choices, 
+such as length versus weight conversion.
 
 ```python
 def unit_converter__info(__info=None):

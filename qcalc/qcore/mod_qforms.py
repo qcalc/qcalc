@@ -336,6 +336,6 @@ class QFieldHandler:
     def create_multivalue_field(self, _field_meta, options):
         return forms.MultiValueField(**options)
 
-    # noinspection PyMethodMayBeStatic
-    def create_splitdatetime_field(self, _field_meta, options):
-        return forms.SplitDateTimeField(**options)
+    # # noinspection PyMethodMayBeStatic
+    # def create_splitdatetime_field(self, _field_meta, options):
+    #     return forms.SplitDateTimeField(**options)

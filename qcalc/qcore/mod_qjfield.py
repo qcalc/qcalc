@@ -196,9 +196,10 @@ class QJField:  # 11422
         elif arg_type in ['radio']:
             self.jf['type'] = arg_type
             self.jf['attrs']['class'] = 'radio'
+        # elif arg_type in ['splitdatetime']: # out of scope for time being
+        #     self.jf['type'] = arg_type
         elif arg_type in ['combo', 'decimal', 'duration', 'filepath', 'multiplechoice',
-                          'multivalue', 'nullboolean', 'range', 'rchoice', 'slug',
-                          'splitdatetime', 'uuid']:  # some are not tested
+                          'multivalue', 'nullboolean', 'range', 'rchoice', 'slug', 'uuid']:  # some are not tested
             self.jf['type'] = arg_type
         else:
             raise Exception(f'Error (QJF): Unknown type [{arg_type}]')

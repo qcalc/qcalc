@@ -93,7 +93,7 @@ def cost__info():
     return {
         'title': 'Calculate Cost',
         'inserts': {
-            'form_bottom': addcal_button('rates', 'Update Rates') +
+            'form_bottom': addcal_button('rates', 'Schedule of Rates') +
                       '<button type="button" class="btn btn-info btncmd ml-2 cmd-rates" '
                       'name="apply_rate">Apply Rates</button>'
             # cmd_btn('cost','callback',['items'],'Apply Rates 2') # not good for scripting
@@ -141,7 +141,7 @@ def cost(items: qtable = pd.DataFrame({'Item': ['Brick'], 'Quantity': ['1000 nos
 
 def rates__info():
     return {
-        'title': 'Schedule of Prices',
+        'title': 'Schedule of Rates',
         'calculate': 'Load'
     }
 

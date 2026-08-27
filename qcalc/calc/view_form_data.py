@@ -280,7 +280,7 @@ def q11449_form_data_postprocess_and_run(request, func_id):  # cid
                 QSave.clear()
                 QSave.setp({'function': func_id, 'input': request.json_d4f})
                 # | Saving: STEP 1 of 2 (save json_d4f to server)
-                result = 'Input data can be saved to file'
+                result = 'Input data can be saved to file now'
             elif request.cmd in ['save_var', 'create_var']:
                 # | POST/GET: Save input in DB
                 q11441_data_for_function(request)

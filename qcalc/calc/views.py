@@ -257,7 +257,7 @@ def q1_step2(request: HtmxHttpRequest):
     fstep = request.GET.get('step', "").strip().lower()  # run, cost, chart
     fname = request.GET.get('func', "").strip().lower()  # run function name
     # | fcaption = request.GET.get('caption', "").strip().lower() # used in template
-    fcid = request.GET.get('src_cid', "").strip()  # source cid
+    fcid = request.GET.get('src_cid', "").strip()  # source cid may not have been used, collected from html
     fspec = json.loads(request.GET.get('spec', {}))  # spec
     # | print(type(fspec), fspec) # spec can be: 'include, 'exclude', 'field', dict of arg:field
     output = QIO.getp1(fcid, {}).get('output', {})

@@ -1,4 +1,4 @@
-__version__ = "v1.0.15.627-rc"  # @2026.08.27
+__version__ = "v1.0.16.628-rc"  # @2026.08.28
 __author__ = "Debasish C Saha"
 __version_info__ = tuple(
     [

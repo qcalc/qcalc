@@ -166,7 +166,7 @@
   <br>
   <!-- begin:insert-calculator-section-outbtns -->
 <div class="btn-group mt-2 section-nextstep">
-{% if request.success %}
+{% if request.success and request.method == 'POST' %}
 {% for fspec in input.doc.info.step2 %}
 <p><button type="button" class="btn btn-info btncmd" href="/calc/step2/"
            hx-get="/calc/step2/?step={{ fspec.step }}&func={{ fspec.func }}&src_cid={{ input.cid }}&spec={{fspec.spec | jdumps}}"

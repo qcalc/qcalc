@@ -295,7 +295,7 @@ def q11449_form_data_postprocess_and_run(request, func_id):  # cid
                         QInput.save_shared_cal(func_id, request.token, check_only=False)
                 request.variant = QInput.set_variant(func_id, var_id, json)
                 result = (f"Input variant #{request.variant} is "
-                          f"{'saved' if var_id > 0 else 'created, click on [Display variants] to refresh the list'}")
+                          f"{'saved' if var_id > 0 else 'created, refresh and click on [Display variants] to see'}")
             elif request.cmd == 'open':
                 # | POST: data from file
                 result = 'Input data is entered from file'

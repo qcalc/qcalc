@@ -110,6 +110,7 @@ mkdir -p ~/qcalc_dock/.local/log/gunicorn
 mkdir -p ~/qcalc_dock/.local/log/certbot
 mkdir -p ~/qcalc_dock/.temp
 mkdir -p ~/qcalc_dock/qcalc/.setup
+mkdir -p ~/qcalc_dock/.cache
 ```
 
 ---

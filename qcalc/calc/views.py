@@ -869,6 +869,15 @@ def q1145_result_to_form_schema(request: HtmxHttpRequest, func_id, cid, result):
                 for value in result:
                     process_result(value, join_title(name, str(i + 1)) if lnr > 1 else name)
                     i += 1
+        elif isinstance(result, dict) and "data" in result and "columns" in result:  # qtbl
+            if name == '':
+                name = 'result'
+            df = pd.DataFrame(
+                data=result["data"],
+                columns=result["columns"],
+                index=result.get("index"),
+            )
+            rs_item(request, name, df)
         elif isinstance(result, dict):  # result can be a dictionary of values or quantities
             i = 0
             for name2, value in result.items():

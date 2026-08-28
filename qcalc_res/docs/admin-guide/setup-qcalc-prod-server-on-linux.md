@@ -57,14 +57,6 @@ git clone https://github.com/qcalc/qcalc.git qcalc_dock
 cd ~/qcalc_dock/qcalc
 ```
 
-If you are transferring files manually (e.g. via `scp` or `rsync`), ensure the full project structure is present:
-
-```
-~/qcalc_dock/
-    qcalc/          # Django project root
-    qcalc_res/      # Resource files (json, help, model)
-```
-
 ## 5. Create the Python Virtual Environment
 
 ```bash
@@ -77,23 +69,22 @@ pip install gunicorn
 ## 6. Create the Project Directory Structure
 
 ```bash
-mkdir -p ~/qcalc_dock/.local/nginx/conf
 mkdir -p ~/qcalc_dock/.local/nginx/templates
+mkdir -p ~/qcalc_dock/.local/nginx/conf
 mkdir -p ~/qcalc_dock/.local/certbot/conf
 mkdir -p ~/qcalc_dock/.local/certbot/www
 mkdir -p ~/qcalc_dock/.local/log/nginx
 mkdir -p ~/qcalc_dock/.local/log/gunicorn
 mkdir -p ~/qcalc_dock/.local/log/certbot
 mkdir -p ~/qcalc_dock/.temp
+mkdir -p ~/qcalc_dock/qcalc/.setup
 mkdir -p ~/qcalc_dock/.cache
-mkdir -p ~/qcalc_dock/qcalc_res
 ```
 
 ## 7. Copy Configuration Templates
 
-From `~/qcalc_dock/qcalc/`:
-
 ```bash
+cd ~/qcalc_dock/qcalc
 cp setup/env/template_setup.env setup.env
 cp setup/env/template_prod.env .setup/prod.env
 cp setup/env/template_gpref.json gpref.json
@@ -120,16 +111,15 @@ CREATE DATABASE qcalc;
 CREATE USER qcalc WITH PASSWORD '<pg_user_password>';
 GRANT ALL PRIVILEGES ON DATABASE qcalc TO qcalc;
 ```
+> Replace `pg_user_password` with a strong password. Record it — you will need it later.
 
-Install the PostgreSQL dependency, from `~/qcalc_dock/qcalc/`:
+Install the PostgreSQL dependency:
 
 ```bash
+cd ~/qcalc_dock/qcalc
 source .venv/bin/activate
 pip install psycopg2-binary==2.9.9
 ```
-
-
-> Replace `your_secure_password` with a strong password. Record it — you will need it later.
 
 ### 8b. (Optional) Install MySQL instead of PostgreSQL
 
@@ -196,17 +186,11 @@ DB_PORT="5432"
 
 ## Install Caching Service
 
-### 9a. Install Memcached
+Install either redis or memcached.
 
-```bash
-sudo apt install memcached libmemcached-tools -y
-sudo systemctl enable memcached
-sudo systemctl start memcached
-```
+### 9a. Install Redis
 
-Memcached listens on `127.0.0.1:11211` by default. Edit `/etc/memcached.conf` to set the cache size (e.g. `-m 256` for 256 MB).
-
-### 9b. (Optional) Install Redis instead of Memcached
+Redis is recommended for production environment
 
 ```bash
 sudo apt install redis-server -y
@@ -220,6 +204,21 @@ Verify Redis is responding:
 redis-cli ping
 # Expected output: PONG
 ```
+
+### 9b. Install Memcached
+
+Memcached is not recommended for production environment. Especially if you want
+multi instance setup and multiple gunicorn worker per instance, please install redis.
+
+```bash
+sudo apt install memcached libmemcached-tools -y
+sudo systemctl enable memcached
+sudo systemctl start memcached
+```
+
+Memcached listens on `127.0.0.1:11211` by default. 
+Edit `/etc/memcached.conf` to set the cache size (e.g. `-m 256` for 256 MB).
+
 
 ### 9c. Edit `.setup/prod.env` to Update Caching Environment:
 
@@ -263,9 +262,7 @@ sudo ln -s /snap/bin/certbot /usr/bin/certbot
 
 ## 10. Configure Environment Files
 
-### 10a. `~/qcalc_dock/qcalc/setup.env`
-
-Copy the template and edit it:
+### 10a. Edit `~/qcalc_dock/qcalc/setup.env`
 
 ```bash
 nano ~/qcalc_dock/qcalc/setup.env
@@ -286,7 +283,7 @@ DJANGO_SETTINGS_MODULE="config.settings.prod"
 nano ~/qcalc_dock/qcalc/.setup/prod.env
 ```
 
-Edit rest of the environment variables as appropriate (see `setup/env/template_all_env_settings.env` for full reference):
+Edit the environment variables as appropriate (see `setup/env/template_all_env_settings.env` for full reference):
 
 ```env
 DJANGO_DEBUG="False"
@@ -301,8 +298,9 @@ HELP_FILES_DIR="/home/<user_id>/qcalc_dock/qcalc_res/help/"
 DOCS_FILES_DIR="/home/<user_id>/qcalc_dock/qcalc_res/docs/"
 AI_MODELS_DIR="/home/<user_id>/qcalc_dock/qcalc_res/model/"
 
+FIXER_API_KEY="<your_fixer_api_key>" # Your own key recommended for currency updates
+
 # Optional API keys
-FIXER_API_KEY="<your_fixer_api_key>"
 OPENW_API_KEY="<your_openweather_api_key>"
 
 DJANGO_EMAIL_BACKEND="django.core.mail.backends.smtp.EmailBackend"
@@ -338,7 +336,7 @@ python manage.py collectstatic --noinput
 
 # Create superuser
 export DJANGO_SUPERUSER_USERNAME=super
-export DJANGO_SUPERUSER_EMAIL=<admin@yourdomain.com>
+export DJANGO_SUPERUSER_EMAIL=<your_email_address>
 export DJANGO_SUPERUSER_PASSWORD=super    # change this now or immediately after first login
 python manage.py createsuperuser --noinput
 ```
@@ -352,8 +350,9 @@ Create a systemd unit file that mirrors the three-instance setup used in Docker:
 ```bash
 sudo nano /etc/systemd/system/qcalc.service
 ```
-Replace <user_id> with your actual linux user_id. qCalc supports multiple workers per application instance. This file has defined 3 application instances and 4 workers per instances. Depending on number of potential users you can decide and change `-- workers 4` parameter and number of instances.
-If you want a stable low load in-house production environment you can keep just 1 instance and 2 workers. 
+Replace <user_id> with your actual linux user_id. qCalc supports multiple workers per application instance. 
+This file has defined 2 application instances and 2 workers per instances (`--workers 2`). Depending on number of potential users you can decide and change them.
+If you want a stable low load in-house production environment you can keep just 1 instance and 1 worker. 
 
 ```ini
 [Unit]
@@ -368,22 +367,16 @@ Environment="PATH=/home/<user_id>/qcalc_dock/qcalc/.venv/bin"
 ExecStart=/bin/bash -c '\
   export GUNICORN_INSTANCE_ID=instance_1; \
   /home/<user_id>/qcalc_dock/qcalc/.venv/bin/gunicorn config.wsgi:application \
-    --bind 127.0.0.1:8001 --workers 4 --timeout 900 \
+    --bind 127.0.0.1:8001 --workers 2 --timeout 900 \
     --access-logfile /home/<user_id>/qcalc_dock/.local/log/gunicorn/access_1.log \
     --error-logfile /home/<user_id>/qcalc_dock/.local/log/gunicorn/error_1.log \
     --log-file /home/<user_id>/qcalc_dock/.local/log/gunicorn/qcalc_1.log & \
   export GUNICORN_INSTANCE_ID=instance_2; \
   /home/<user_id>/qcalc_dock/qcalc/.venv/bin/gunicorn config.wsgi:application \
-    --bind 127.0.0.1:8002 --workers 4 --timeout 900 \
+    --bind 127.0.0.1:8002 --workers 2 --timeout 900 \
     --access-logfile /home/<user_id>/qcalc_dock/.local/log/gunicorn/access_2.log \
     --error-logfile /home/<user_id>/qcalc_dock/.local/log/gunicorn/error_2.log \
     --log-file /home/<user_id>/qcalc_dock/.local/log/gunicorn/qcalc_2.log & \
-  export GUNICORN_INSTANCE_ID=instance_3; \
-  /home/<user_id>/qcalc_dock/qcalc/.venv/bin/gunicorn config.wsgi:application \
-    --bind 127.0.0.1:8003 --workers 4 --timeout 900 \
-    --access-logfile /home/<user_id>/qcalc_dock/.local/log/gunicorn/access_3.log \
-    --error-logfile /home/<user_id>/qcalc_dock/.local/log/gunicorn/error_3.log \
-    --log-file /home/<user_id>/qcalc_dock/.local/log/gunicorn/qcalc_3.log & \
   wait'
 Restart=on-failure
 
@@ -449,10 +442,10 @@ sudo systemctl reload nginx
 ```bash
 sudo certbot certonly --webroot \
   --webroot-path=/var/www/certbot \
-  --email you@yourdomain.com \
+  --email <your_email_address> \
   --agree-tos --no-eff-email \
-  --cert-name yourdomain.com \
-  -d yourdomain.com -d www.yourdomain.com
+  --cert-name <your_domain> \
+  -d <your_domain> -d www.<your_domain>
 ```
 
 Certificates are written to `/etc/letsencrypt/live/yourdomain.com/`.
@@ -482,7 +475,6 @@ Key changes from the template for a non-Docker setup:
 upstream qcalc_servers {
     server 127.0.0.1:8001;
     server 127.0.0.1:8002;
-    server 127.0.0.1:8003;
 }
 
 # Static files — use the local filesystem path

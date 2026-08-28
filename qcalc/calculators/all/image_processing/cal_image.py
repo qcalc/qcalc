@@ -10,6 +10,7 @@ from qutil import demo_url
 def image_reader__info():
     return {
         'title': 'Image Reader',
+        'calculate': 'Display',
         'schema': {
             'upload_image': {
                 'help_text': 'Maximum image file size is 10 MB. '
@@ -43,6 +44,7 @@ def image_reader(upload_image: qimage = None, image_url: qurl = demo_url('dog.jp
 def image_gray__info():
     return {
         'title': 'Convert Image to Grayscale or Black & White',
+        'calculate': 'Convert',
         'schema': {
             'option': {'type': 'choice', 'choices': {'gray': 'Gray Scale', 'bw': 'Black & white'}},
             'upload_image': {
@@ -75,6 +77,7 @@ def image_gray(upload_image: qimage = None, image_url: qurl = demo_url('parrot.j
 def image_rotate__info():
     return {
         'title': 'Rotate an Image',
+        'calculate': 'Rotate',
         'schema': {
             'option': {'type': 'choice', 'choices': {'gray': 'Gray Scale', 'bw': 'Black & white'}},
             'upload_image': {
@@ -106,6 +109,7 @@ def image_rotate(upload_image: qimage = None, image_url: qurl = demo_url('parrot
 def image_resize__info():
     return {
         'title': 'Resize an Image',
+        'calculate': 'Resize',
         'schema': {
             'upload_image': {
                 'help_text': 'Maximum image file size is 10 MB. '

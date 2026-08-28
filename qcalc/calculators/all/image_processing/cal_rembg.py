@@ -15,6 +15,7 @@ from django.conf import settings
 def image_rembg__info():
     return {
         'title': 'Remove Background from an Image',
+        'calculate': 'Process',
         'schema': {
             'upload_image': {
                 'help_text': 'Maximum image file size is 10 MB. '
@@ -39,6 +40,7 @@ def image_rembg(upload_image: qimage = None, image_url: qurl = demo_url('owl.jpg
 def image_upscale__info():
     return {
         'title': 'Upscale Image to Higher Resolution',
+        'calculate': 'Upscale',
         'schema': {
             'upload_image': {
                 'help_text': 'Maximum image file size is 5 MB. '

@@ -3,14 +3,11 @@
 
 import inspect
 
-# import numpy as np  # keep
-# import pandas as pd  # keep
-# from datetime import date  # keep
-# from qcalc_api import Qty  # keep
 from qcore.mod_anno import *
 from calc.mod_mfunc import *
 from calc import UCals, QCals
-from qutil import cal_link, calurl, command_button, page_link, format_py_code, ensure_info_function, extract_common_prefix, get_functions, pretty_json
+from qutil import command_button, page_link, format_py_code, ensure_info_function, extract_common_prefix, \
+    get_functions, pretty_json, addcal_button #cal_link, calurl,
 
 
 def validate_calculator_defaults(user_code):
@@ -140,10 +137,9 @@ def addlen__info():
         res = uc.edit_cal(cal_name, code)
         # | clear input memory
         cal_name = extract_common_prefix(get_functions(code))
-        # a calculator can exist with same name either in qcalc or in another user account
+        # | a calculator can exist with same name either in qcalc or in another user account
         cal_id = f"{cal_name}-{uc.cal_owner}"
-        # print('cal_id', cal_id, cal_link(calurl(cal_id)))
-        open_button = qhtml(cal_link(calurl(cal_id), f'Open {cal_name}', target='a', button=True))
+        open_button = qhtml(addcal_button(cal_id, f'Open {cal_name}'))
         return {
             'Remarks': res,
             'Open': open_button

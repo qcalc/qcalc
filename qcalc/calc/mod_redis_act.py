@@ -9,6 +9,7 @@ import time
 from .mod_redis import redis_pubsub_active
 from .mod_qcals import QCals
 from .mod_qlist import update_currency
+from qvars import qc_gpref
 import logging
 
 logger = logging.getLogger(__name__)
@@ -31,6 +32,10 @@ def handle_qcalc_channel(message):
         elif action == "update_currency":
             update_now = kwargs.pop('update_now', False)
             update_currency(update_now)  # update_now False=already downloaded, upload only
+        elif action == "update_gpref":
+            up_gpref = kwargs.pop('up_gpref', qc_gpref)
+            qc_gpref.update(up_gpref)
+            logger.note(f"HQC: Updated gpref")
     except json.JSONDecodeError as e:
         logger.error(f">>> HQC: JSON decoding error: {e}")
     except Exception as e:

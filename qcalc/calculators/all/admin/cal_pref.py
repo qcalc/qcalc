@@ -5,6 +5,7 @@ from qcore import QScreen
 import qvars
 from calc import QCache, QCals
 from qutil import nzs, css2strs, truncate
+from calc import redis_publish_action
 import logging
 
 logger = logging.getLogger(__name__)
@@ -55,12 +56,17 @@ def gpref(
     gs['uom_v2'] = uom_v2  # global
     gs['execution_mode'] = execution_mode  # global
     # save settings
+    redis_publish_action(
+        channel="qcalc_channel",
+        action="update_gpref",
+        up_gpref=gs
+    )
     return 'Global Preferences Updated'
 
 
 def qcache__info():
     return {
-        'title': 'User Cache',
+        'title': 'Global Schema Cache',
         'calculate': 'Show',
     }
 

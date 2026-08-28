@@ -353,6 +353,7 @@ class QMem:
 # QCache = SimpleLazyObject(lambda: QCacheGen(alias=check_setting(settings.QSCHEMA_CACHE_ALIAS)))
 # QPref = SimpleLazyObject(lambda: QDBSession(prefix='pref', volatile=False, defa=qvars.qc_gpref))
 
+# | global cache (not user or session specific, it is common) to save calculator schema
 QCache = QCacheGen(alias=check_setting(settings.QSCHEMA_CACHE_ALIAS, "QSCHEMA_CACHE_ALIAS"))
 # QCache.active will be false if cache is not configured properly; runserver checks this at startup.
 # | session specific user preferences and data - stay alive throughout the session

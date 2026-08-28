@@ -76,18 +76,44 @@ def collect(output: qtable = pd.DataFrame({"SL": [1, 2], "Value": [
             }
 
 
-def cost__modify(arg_name, arg_value, _action):  # | cation not used but required
+# def cost__modify(arg_name, arg_value, _action):  # | _action not used but required
+#     if arg_name == 'items':
+#         items = arg_value
+#         rates = QData.getp1('rates')
+#         if isinstance(rates, pd.DataFrame):
+#             merged_df = items.merge(rates, on='Item', how='left')
+#             items['Unit Cost'] = merged_df['Unit Cost_y'].fillna(items['Unit Cost'])
+#             return items
+#         elif rates is None:
+#             raise Exception('No Rates loaded. Click on [Open Rates] to update and load')
+#     return arg_value
+
+def cost__modify(arg_name, arg_value, _action):  # _action not used but required
     if arg_name == 'items':
         items = arg_value
         rates = QData.getp1('rates')
-        if isinstance(rates, pd.DataFrame):
-            merged_df = items.merge(rates, on='Item', how='left')
-            items['Unit Cost'] = merged_df['Unit Cost_y'].fillna(items['Unit Cost'])
-            return items
-        elif rates is None:
-            raise Exception('No Rates loaded. Click on [Open Rates] to update and load')
-    return arg_value
 
+        if isinstance(rates, pd.DataFrame):
+            item_key = items['Item'].str.strip().str.casefold()
+            rate_key = rates['Item'].str.strip().str.casefold()
+
+            merged_df = items.merge(
+                rates.assign(_item_key=rate_key),
+                left_on=item_key,
+                right_on='_item_key',
+                how='left'
+            )
+
+            items['Unit Cost'] = merged_df['Unit Cost_y'].fillna(items['Unit Cost'])
+
+            return items
+
+        elif rates is None:
+            raise Exception(
+                'No Rates loaded. Click on [Open Rates] to update and load'
+            )
+
+    return arg_value
 
 def cost__info():
     return {

@@ -6,4 +6,4 @@ __version_info__ = tuple(
         for num in __version__.replace("-", ".", 1).split(".")
     ]
 )
-STATIC_VERSION = '1.0.33'
+STATIC_VERSION = '1.0.34'

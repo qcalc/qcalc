@@ -20,6 +20,11 @@
     "desc": "Guide for authors (developers) on creating qCalc calculators.",
     "order": "2.10"
   },
+  "author-guide/code-editor.md": {
+    "title": "qCalc code editor",
+    "desc": "Guide for authors on using the qCalc code editor.",
+    "order": "2.15"
+  },
   "author-guide/calculator-meta-functions.md": {
     "title": "Calculator meta functions",
     "desc": "Meta function specification for qCalc calculators.",

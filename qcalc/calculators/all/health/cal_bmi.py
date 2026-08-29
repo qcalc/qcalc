@@ -12,7 +12,7 @@ def bmi__info():
     A high BMI can be an indicator of high body fatness. BMI can be used to screen for weight categories\
     that may lead to health problems but it is not diagnostic of the body fatness or health of an individual.",
         'images': {
-            'top': ['calc/images/obesity.png'],
+            'top': ['calculators/all/obesity.png'],
         },
         'step2': [
             {

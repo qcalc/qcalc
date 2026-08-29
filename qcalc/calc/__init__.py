@@ -1,4 +1,3 @@
-from .conflicts import *
 from .mod_cache import QMem, QPref, QCache, QTemp, QKeep, QSave, QIO, QData, QRam, QMeta, QFav
 from .mod_cutil import valid_numq, ancestors, get_help_path, get_fhelp
 from .mod_db import QInput
@@ -19,7 +18,7 @@ from .mod_whoosh import QSearch, print_search_result, search_result_nodes
 import os
 import signal
 import logging
-from qcalc_api import pylib_dict
+from qapi import pylib_dict
 
 logger = logging.getLogger(__name__)
 

@@ -66,6 +66,7 @@ class CodeWidget_codemirror(Widget):
             js=[static("vendor/codemirror/5.65.5/codemirror.min.js"),
                 static("vendor/codemirror/5.65.5/mode/python.min.js"),
                 static("vendor/codemirror/5.65.5/matchbrackets.min.js"),
+                static("vendor/codemirror/5.65.5/closebrackets.min.js"),
                 ]
         )
 
@@ -83,6 +84,18 @@ class CodeWidget_codemirror(Widget):
                 min-height: 100px;
                 resize: vertical;
                 overflow: auto;
+            }
+            .CodeMirror-lines {
+                position: relative;
+            }
+            .CodeMirror-lines::after {
+                border-left: 1px solid rgba(255, 255, 255, 0.18);
+                content: "";
+                height: 100%;
+                left: 100ch;
+                pointer-events: none;
+                position: absolute;
+                top: 0;
             }
             .elem-wrapper.fullscreen .CodeMirror {
                 height: 95vh;
@@ -179,7 +192,6 @@ class TabulatorWidget(Widget):
         self.class_ = class_
 
     def render(self, name, value, attrs=None, renderer=None):
-        # print('v',value)
         defa_mode = "edit"
         if isinstance(value, pd.DataFrame):  # data from django
             df = value
@@ -187,7 +199,6 @@ class TabulatorWidget(Widget):
             mode = defa_mode  # default
             # print('mode defa', mode)
         elif isinstance(value, dict):  # input from json file
-            # df = pd.DataFrame(value)
             # orient="split"
             if "data" in value and "columns" in value:
                 df = pd.DataFrame(

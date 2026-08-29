@@ -1,13 +1,13 @@
 import pytest
 
 import qconst
-from calc.mod_qcals_security import safe_execute
+from qapi import safe_execute
 
 
 @pytest.mark.parametrize(
     "module_name",
     [
-        "qcalc_api", "math", "cmath", "statistics", "decimal",
+        "qapi", "math", "cmath", "statistics", "decimal",
         "datetime", "calendar", "random", "itertools", "collections", "re", "json",
     ],
 )
@@ -23,15 +23,15 @@ def test_safe_execute_rejects_non_allowlisted_import(module_name):
         safe_execute(f"import {module_name}")
 
 
-def test_safe_execute_exposes_qcalc_api_symbols():
+def test_safe_execute_exposes_qapi_symbols():
     local_dict = safe_execute(
-        "from qcalc_api import Qty, qtexta\nresult = (Qty('2 m').to('cm').value, qtexta.__name__)"
+        "from qapi import Qty, qtexta\nresult = (Qty('2 m').to('cm').value, qtexta.__name__)"
     )
 
     assert local_dict["result"] == (200, "qtexta")
 
 
-def test_safe_execute_exposes_qcalc_api_annotations_as_globals():
+def test_safe_execute_exposes_qapi_annotations_as_globals():
     local_dict = safe_execute(
         "def addlen(x: qtc2 = '7 ft'):\n    return Qty(x)\nresult = addlen.__annotations__['x']"
     )

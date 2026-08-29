@@ -5,7 +5,7 @@ import ast
 import importlib
 import qconst
 
-preloaded_modules = ['qcalc_api', 'math', 'statistics']
+preloaded_modules = ['qapi', 'math', 'statistics']
 
 # Optional: allow-list of standard-library modules suitable for calculators.
 allowed_modules = [
@@ -104,7 +104,7 @@ def is_code_safe(code, gdict):
     for module_name in preloaded_modules:
         module = importlib.import_module(module_name)
         gdict[module_name] = module
-        if module_name == 'qcalc_api':
+        if module_name == 'qapi':
             gdict.update({name: getattr(module, name) for name in module.__all__})
 
     # Restrict imports to allowed modules only

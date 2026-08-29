@@ -16,10 +16,10 @@ from .mod_redis import redis_publish_action
 from qcore import _unit_table, Qty, _base_categories, _unit_tree, _unit_info, \
     unit_short_desc, _base_categ_d2s, _qty_tree, _qty_info, lmt_title, dim_to_bname, _base_names
 from asteval import make_symbol_table
-from .mod_qcals_security import safe_execute
+from qapi import safe_execute
 from .mod_cache import QMeta, QMyCal
+import qapi
 import qconst
-import qcalc_api
 
 import logging
 
@@ -418,7 +418,7 @@ class QCals:
         # deb@05.09.24 - exclude admin and test calculators from symbol list
         qsyms = {key: qsyms[key] for key in qsyms if key not in cls.qc_admin_list + cls.qc_demo_list}
         qsyms.update({k: Qty(1, v) for k, v in _unit_table.items()})
-        qsyms.update({name: getattr(qcalc_api, name) for name in qcalc_api.__evaonly__})
+        qsyms.update({name: getattr(qapi, name) for name in qapi.__evacon__})
 
         # | ic(set(cls.qsymbol_dict).intersection(make_symbol_table(use_numpy=False)))  # 'min'
         psyms = make_symbol_table(use_numpy=False)

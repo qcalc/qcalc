@@ -191,7 +191,7 @@ def conv_output(value, from_unit, inunits: list, xinunits: list, converted_value
 def conv1__info():
     return {
         'title': 'Simple Unit Converter (old version)',
-        'images': {'top': ['calc/images/measuring-tools.png']},
+        'images': {'top': ['calculators/all/measuring-tools.png']},
         'kins': 'conv2'
     }
 
@@ -260,7 +260,7 @@ def conv__info():
             "mode": {"fields": ["from_qty", "convert_to_qty", "express_in_units", "unit_cost"],
                      "callback": "convert_sh"}
         },
-        'images': {'top': ['calc/images/measuring-tools.png']},
+        'images': {'top': ['calculators/all/measuring-tools.png']},
         'kins': 'conv2',
         'script': '''
             function convert_sh(v)

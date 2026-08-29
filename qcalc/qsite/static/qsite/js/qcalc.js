@@ -104,14 +104,41 @@ function initializeCodeMirrorWidget(textareaId) {
         theme: 'dracula',
         lineNumbers: true,
         matchBrackets: true,
+        autoCloseBrackets: true,
         lineWrapping: true,
         indentUnit: 4,
         tabSize: 4,
         indentWithTabs: false,
         extraKeys: {
             Tab: function(cm) {
-                const spaces = ' '.repeat(cm.getOption('indentUnit'));
-                cm.replaceSelection(spaces);
+                if (cm.somethingSelected()) {
+                    cm.indentSelection('add');
+                    return;
+                }
+                cm.replaceSelection(' '.repeat(cm.getOption('indentUnit')), 'end');
+            },
+            'Shift-Tab': function(cm) {
+                if (cm.somethingSelected()) {
+                    cm.indentSelection('subtract');
+                    return;
+                }
+                cm.indentLine(cm.getCursor().line, 'subtract');
+            },
+            'Ctrl-S': function() {
+                downloadCodeMirrorWidget(textareaId);
+            },
+            'Cmd-S': function() {
+                downloadCodeMirrorWidget(textareaId);
+            },
+            F11: function(cm) {
+                const wrapper = textarea.closest('.elem-wrapper');
+                if (!wrapper) {
+                    return;
+                }
+                toggleFullscreen(wrapper);
+                setTimeout(function() {
+                    cm.refresh();
+                }, 100);
             }
         }
     });

@@ -8,7 +8,7 @@ from qcore import SmartCalc
 def circle__info():
     return {
         'title': 'Calculate Area, Circumference, Diameter and Radius of a Circle',
-        'calc/images': {'bottom': ['calc/images/circle.jpg']},
+        'images': {'bottom': ['calculators/ext/circle.jpg']},
         'anyof':
             {
                 "1": {'fields': ['radius', 'dia', 'circumference', 'area']}

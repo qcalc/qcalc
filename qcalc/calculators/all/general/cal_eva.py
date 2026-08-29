@@ -2,8 +2,8 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 from qcore import QScreen, qcode
-from calc import QCals, QPref
-from calc.mod_qcals_security import validate_expression_security
+from calc import QCals
+from qapi import validate_expression_security
 from asteval import Interpreter
 from qvars import qc_gpref as gs
 from qutil import preprocess_expression, command_button, format_py_code

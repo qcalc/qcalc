@@ -1,4 +1,4 @@
-__version__ = "v1.0.16.628-rc"  # @2026.08.28
+__version__ = "v1.0.17.628-rc"  # @2026.08.28
 __author__ = "Debasish C Saha"
 __version_info__ = tuple(
     [
@@ -6,4 +6,4 @@ __version_info__ = tuple(
         for num in __version__.replace("-", ".", 1).split(".")
     ]
 )
-STATIC_VERSION = '1.0.28'
+STATIC_VERSION = '1.0.33'

@@ -10,7 +10,7 @@ import os
 from django.conf import settings
 from .mod_qcals import QCals
 # from calc.mod_qcals import QCals
-from whoosh.qparser import QueryParser, FuzzyTermPlugin, DisMaxParser  # MultifieldParser, OrGroup,
+from whoosh.qparser import QueryParser, FuzzyTermPlugin, DisMaxParser
 from qcore import QScreen
 from whoosh import scoring
 from qutil import QThread

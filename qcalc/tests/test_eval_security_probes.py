@@ -4,7 +4,7 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.dev")
 
 import pytest
 
-from calc.mod_qcals_security import safe_execute
+from qapi import safe_execute, np
 
 UNSAFE_PROBES = [
     ("builtins exposure", "__builtins__"),
@@ -49,6 +49,11 @@ def sample__info():
 def test_type_identifier_is_rejected():
     with pytest.raises(Exception):
         safe_execute("value = type(1)")
+
+
+def test_numpy_large_results_are_rejected():
+    with pytest.raises(ValueError, match="too large"):
+        np.array(range(10_001))
 
 
 MANUAL_MYCAL_PROBES = [

@@ -4,7 +4,7 @@
 import ast
 from qcore import QScreen
 from calc import QCals, QRam, QPref
-from calc.mod_qcals_security import validate_expression_security
+from qapi import validate_expression_security
 from asteval import Interpreter
 from qutil import HtmxHttpRequest, q1139_request_init, preprocess_expression, is_debug
 

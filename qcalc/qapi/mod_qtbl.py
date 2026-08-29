@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2024-2026 Debasish C Saha
+
 from qcore.qc_qty import Qty, is_str_qty
 from qcore.qc_mquantity import isMeasureQuantity as is_qty
 import operator

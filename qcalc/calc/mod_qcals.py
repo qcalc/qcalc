@@ -9,14 +9,13 @@ import inspect
 import threading
 from qutil import variable_to_title, TreeNode, \
     preprocess_expression, QThread, create_category_node, \
-    joinx, names2fid, user_name, fid2owner
+    joinx, names2fid, user_name, fid2owner, safe_execute
 from qvars import qc_gpref as gs, qfunc_info, qty_info, unit_info
 import bisect
 from .mod_redis import redis_publish_action
 from qcore import _unit_table, Qty, _base_categories, _unit_tree, _unit_info, \
     unit_short_desc, _base_categ_d2s, _qty_tree, _qty_info, lmt_title, dim_to_bname, _base_names
 from asteval import make_symbol_table
-from qapi import safe_execute
 from .mod_cache import QMeta, QMyCal
 import qapi
 import qconst

@@ -176,13 +176,6 @@ def key_val(spath):
     return kvdict
 
 
-def docstring_to_html0(docstring):
-    lines = docstring.split('\n')
-    html_lines = ['<p>' + line + '</p>' if line.strip() else '<br>' for line in lines]
-    html_content = '\n'.join(html_lines)
-    return html_content
-
-
 def docstring_to_html(docstring):
     # Split the docstring into lines
     lines = docstring.split('\n')
@@ -277,6 +270,7 @@ def fchoices(vchoices):
     else:
         return []
 
+
 if __name__ == '__main__':
     def _test():
         print(fchoices({1: 'a', 2: 'b', 3: 'c'}))
@@ -289,8 +283,10 @@ if __name__ == '__main__':
         # ['x', 'y', 'c', 'd', 'z', '?']
         print(replace_words('km/usd', ['USD'], 'bdt'))
         print(replace_words('km/uSd', ['USD'], 'bdt', False))
-        print(css2strs([1,2,3])) # list
-        print(css2strs('1, 2, 3')) # string
-        print(css2strs((1, 2, 3))) # touple
+        print(css2strs([1, 2, 3]))  # list
+        print(css2strs('1, 2, 3'))  # string
+        print(css2strs((1, 2, 3)))  # touple
         # print(css2strs({1, 2, 3})) # set
+
+
     _test()

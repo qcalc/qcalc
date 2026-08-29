@@ -1,7 +1,7 @@
 import pytest
 
 import qconst
-from qapi import safe_execute
+from qutil import safe_execute
 
 
 @pytest.mark.parametrize(

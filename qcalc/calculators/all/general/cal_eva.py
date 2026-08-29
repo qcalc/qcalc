@@ -3,10 +3,9 @@
 
 from qcore import QScreen, qcode
 from calc import QCals
-from qapi import validate_expression_security
 from asteval import Interpreter
 from qvars import qc_gpref as gs
-from qutil import preprocess_expression, command_button, format_py_code
+from qutil import preprocess_expression, command_button, format_py_code, validate_expression_security
 
 
 def eva__modify(arg_name, arg_value, action):

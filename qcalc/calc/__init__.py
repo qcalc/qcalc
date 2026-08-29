@@ -18,7 +18,14 @@ from .mod_whoosh import QSearch, print_search_result, search_result_nodes
 import os
 import signal
 import logging
-from qapi import pylib_dict
+from qapi import qlib_dict
+
+calc_dict = {
+    # 'datetime': datetime.datetime, 'date': datetime.date, 'time': datetime.time,
+    # 'QGeo': QGeo, 'geo': QGeo,
+    # 'QCals': QCals, 'UCals': UCals, 'QFav': QFav,
+    'call': QCals.addr,
+}
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +44,7 @@ def create_standard_cataog_from_packages():
     QCals.package_contents('calculators.all', 'all', extend=False)
     # | use extend=false only once
     # QCals.qfunc_dict.update(dict(inspect.getmembers(math, inspect.isbuiltin)))  # ok but covered by asteval
+    pylib_dict = {**qlib_dict, **calc_dict}
     QCals.qfunc_dict.update(pylib_dict)  # ok
 
     # | Extend Ctalog : Add Pacakge

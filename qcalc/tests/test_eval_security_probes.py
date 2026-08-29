@@ -4,7 +4,8 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.dev")
 
 import pytest
 
-from qapi import safe_execute, np
+from qapi import np
+from qutil import safe_execute
 
 UNSAFE_PROBES = [
     ("builtins exposure", "__builtins__"),

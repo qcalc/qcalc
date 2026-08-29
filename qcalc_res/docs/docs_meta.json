@@ -11,7 +11,7 @@
     "order": "0.20"
   },
   "author-guide/author-quick-start.md": {
-    "title": "Create a calculator quickly",
+    "title": "Create calculators - quick start",
     "desc": "Quick start tutorial on creating qCalc calculators.",
     "order": "2.05"
   },
@@ -30,9 +30,9 @@
     "desc": "Meta function specification for qCalc calculators.",
     "order": "2.20"
   },
-  "author-guide/create-calculator-examples.md": {
-    "title": "Calculator examples",
-    "desc": "Worked examples for building calculators.",
+  "author-guide/create-calculators-examples.md": {
+    "title": "Create calculators - learn by examples",
+    "desc": "Worked examples for learning and building qCalc calculators.",
     "order": "2.30"
   },
   "author-guide/related-topics/qcalc-field-types.md": {

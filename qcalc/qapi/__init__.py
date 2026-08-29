@@ -2,22 +2,25 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 """Narrow public API for restricted user calculators."""
-from .qcalc_security import validate_expression_security, safe_execute
-from qcore import Qty, base_units, base_dims, unit_desc, prefixes, \
-    uname2lmt as unit2lmt, lmt_title as lmt_desc, str_type, \
-    lmt2categ as lmt2cat, lmt2ulist, lmt2qlist, find_unit
-from qcore import isMeasureUnit as is_unit, isMeasureQuantity as is_qty, read_unit
+
+import datetime
+# imports from qcore, qutil, qapi and standard python
+# for imports from calc see inside the package itself
+
 from qcore import (
+    Qty, base_units, base_dims, unit_desc, prefixes, \
+    uname2lmt as unit2lmt, lmt_title as lmt_desc, str_type, \
+    lmt2categ as lmt2cat, lmt2ulist, lmt2qlist, find_unit, is_str_qty, qx, qxi, \
+    isMeasureUnit as is_unit, isMeasureQuantity as is_qty, read_unit, \
+    # | Keep the following annotations
     oqfunc, qchar, qcode, qdate, qdict, qdatetime, qemail, qfl, qfile, qfunc, qhide,
     qhidex, qhtml, qin, qimage, qlist, qpage, qread, qregex, qsel2, qtbl, qtc,
     qtc2, qtext, qtexta, qtexte, qtime, qt, qt2, qtx, quom, quom2, quomx,
-    qurl, qvstr, is_str_qty
+    qurl, qvstr
 )
+from qutil import QDateTime, iif
 from .mod_np import np_names, np
 from .mod_qtbl import *
-from qutil import QDateTime, iif
-from qcore import qx, qxi
-import datetime
 
 
 def minimum(*args, key=None):
@@ -26,14 +29,14 @@ def minimum(*args, key=None):
     return min(*args, key=key)
 
 
-pylib_dict = {
+qlib_dict = {
     'QDateTime': QDateTime, 'qdt': QDateTime,
     'datetime': datetime.datetime, 'date': datetime.date, 'time': datetime.time,
     'Qty': Qty, 'q': Qty, 'qx': qx, 'qxi': qxi,
     # 'QGeo': QGeo, 'geo': QGeo,
-    # 'QCals': QCals, 'call': QCals.addr, 'UCals': UCals, 'QFav': QFav,
-    'minimum': minimum,
-}  # specials and conflicts
+    # 'QCals': QCals, 'UCals': UCals, 'QFav': QFav,
+    # 'call': QCals.addr, (circular)
+}
 
 __qtypes__ = [
     "oqfunc", "qchar", "qcode", "qdate", "qdict", "qdatetime", "qemail",
@@ -44,18 +47,18 @@ __qtypes__ = [
     "qtexte", "qtime", "qt", "qt2", "qtx", "quom", "quom2", "quomx", "qurl", "qvstr",
 ]
 
-# for eva() and console.
+# for eva(), mycal() and console
 __evacon__ = [
     "is_qty", "is_unit", "base_units", "base_dims", "unit_desc", "prefixes", "unit2lmt",
     "lmt_desc", "str_type", "read_unit", "lmt2cat", "lmt2ulist", "lmt2qlist", "find_unit",
-    "iif",
+    "iif", 'minimum',
     "np", "qdf", "qcol", "qrow", "qsum", "qadd", "qsub", "qmul", "qdiv",
-    "qlib", "qtypes",  # qlib(), qtypes() are defined below
+    "qlib", "qtypes",
 ]
 
 
 def qlib():
-    names = set(pylib_dict) | set(__evacon__)
+    names = set(qlib_dict) | set(__evacon__)
     names |= qdf_names()
     names |= np_names()
     return sorted(names)

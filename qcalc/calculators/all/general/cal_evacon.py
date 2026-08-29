@@ -4,9 +4,9 @@
 import ast
 from qcore import QScreen
 from calc import QCals, QRam, QPref
-from qapi import validate_expression_security
 from asteval import Interpreter
-from qutil import HtmxHttpRequest, q1139_request_init, preprocess_expression, is_debug
+from qutil import HtmxHttpRequest, q1139_request_init, preprocess_expression, is_debug, \
+    validate_expression_security
 
 
 def _parse_top_level_assignment(xpr: str):

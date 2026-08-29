@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2024-2026 Debasish C Saha
+
 import numpy as _np
 from .mod_autil import to_plain
 

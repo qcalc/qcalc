@@ -154,15 +154,33 @@ class SelectDataListWidget(forms.Select):
         self.attrs.update({'data-list': 'list__%s' % self.list_id})
 
     def render(self, name, value, attrs=None, renderer=None):
-        text_html = super().render(name, value, attrs=attrs)
-        result = text_html
+        original_attrs = dict(self.attrs)
+        merged = dict(self.attrs)
+        if attrs:
+            merged.update(attrs)
+
+        if merged.get('readonly'):
+            self.attrs = {k: v for k, v in self.attrs.items() if k != 'readonly'}
+            merged.pop('readonly', None)
+            merged['disabled'] = True
+            hidden = f'<input type="hidden" name="{name}" value="{escape(value)}">'
+            try:
+                text_html = super().render(name, value, attrs=merged)
+            finally:
+                self.attrs = original_attrs
+            result = hidden + text_html
+        else:
+            try:
+                text_html = super().render(name, value, attrs=merged)
+            finally:
+                self.attrs = original_attrs
+            result = text_html
         if not self.list_exists:
             data_list = '<datalist id="list__%s">' % self.list_id
             for item in self._list:
                 data_list += f'<option value="{item[0]}">{item[1]}</option>'
             data_list += '</datalist>'
             result += data_list
-            # print(attrs, result)
         return mark_safe(result)  # dj5
 
 
@@ -173,14 +191,34 @@ class QtyWidget(forms.MultiWidget):
         super(QtyWidget, self).__init__(widgets)
         self.fnames = fnames
         self.fvalues = fvalues
+        self.readonly = False
 
     def render(self, name, value, attrs=None, renderer=None):
         html = ''
         if all(x is None for x in value):
             value = self.fvalues
-        for w, n, v in zip(self.widgets, self.fnames, value):  # self.fvalues
-            html += w.render(n, v)
-        # ic(html)
+
+        parent_attrs = dict(getattr(self, 'attrs', {}) or {})
+        if attrs is not None:
+            parent_attrs.update(attrs)
+        self.readonly = bool(parent_attrs.get('readonly', False))
+
+        for w, n, v in zip(self.widgets, self.fnames, value):
+            child_attrs = dict(getattr(w, 'attrs', {}) or {})
+            if attrs is not None:
+                child_attrs.update(attrs)
+
+            if self.readonly:
+                if isinstance(w, forms.Select):
+                    child_attrs.pop('readonly', None)
+                    child_attrs['disabled'] = True
+                    html += f'<input type="hidden" name="{n}" value="{escape(v)}">'
+                    html += w.render(n, v, attrs=child_attrs or None)
+                else:
+                    child_attrs['readonly'] = True
+                    html += w.render(n, v, attrs=child_attrs or None)
+            else:
+                html += w.render(n, v, attrs=child_attrs or None)
         return mark_safe(html)
 
 

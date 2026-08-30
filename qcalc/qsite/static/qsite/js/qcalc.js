@@ -44,16 +44,50 @@ function toggleLoadButton()
 
 function formReady(cid) {
     $(document).ready(function() {
+        function preserveReadonlySelect($sel) {
+            var name = $sel.attr('name');
+            var value = $sel.val();
+            $sel.prop('disabled', true);
+            $sel.removeAttr('readonly');
+            if (name) {
+                $sel.removeAttr('name');
+                if ($sel.prop('multiple')) {
+                    var values = Array.isArray(value) ? value : [value];
+                    values.forEach(function(v) {
+                        if (v !== null && v !== undefined && v !== '') {
+                            $('<input type="hidden" />')
+                                .attr('name', name)
+                                .val(v)
+                                .insertBefore($sel);
+                        }
+                    });
+                } else if (value !== null && value !== undefined && value !== '') {
+                    $('<input type="hidden" />')
+                        .attr('name', name)
+                        .val(value)
+                        .insertBefore($sel);
+                }
+            }
+        }
+
         function initializeSelect2(defaultValue) {
             return function() {
-                var dataListId = $(this).data('list');
+                var $sel = $(this);
+                var isReadOnly = $sel.attr('readonly') !== undefined || $sel.data('readonly') === true;
+
+                if (isReadOnly) {
+                    preserveReadonlySelect($sel);
+                    return;
+                }
+
+                var dataListId = $sel.data('list');
                 var options = $('#' + dataListId + ' option');
-                if($(this).hasClass('inp')){
+                if($sel.hasClass('inp')){
                     drop = 'sel2-dropdown';
                 } else {
                     drop = 'uom2-dropdown';
                 }
-                $(this).select2({
+                $sel.select2({
                     data: options.map(function() {
                         return { id: $(this).val(), text: $(this).text() };
                     }).get(),
@@ -61,12 +95,20 @@ function formReady(cid) {
                     dropdownCssClass : drop,
                 });
                 var newOption = new Option(defaultValue, defaultValue, true, true);
-                $(this).append(newOption).trigger('change');
+                $sel.append(newOption).trigger('change');
             }
         } // function
-        $('#card-holder-'+cid).find('select.select2').each(function() {
-            var defaultValue = $(this).data('default');
-            $(this).each(initializeSelect2(defaultValue));
+        $('#card-holder-'+cid).find('select').each(function() {
+            var $sel = $(this);
+            var isReadOnly = $sel.attr('readonly') !== undefined || $sel.data('readonly') === true;
+            if (isReadOnly) {
+                preserveReadonlySelect($sel);
+                return;
+            }
+            if ($sel.hasClass('select2')) {
+                var defaultValue = $sel.data('default');
+                $sel.each(initializeSelect2(defaultValue));
+            }
         });
 
         button = document.getElementById('dec-'+cid);

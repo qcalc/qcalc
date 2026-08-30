@@ -154,6 +154,28 @@ def q11429_func_to_form_schema(request: HtmxHttpRequest, func_addr, func_id, cid
                 # |    # 'type' and 'initial' are already considered
                 # |    pass
 
+        # | propagate readonly from a qty parent to generated child fields, whether they are
+        # | nested under comp or emitted as sibling schema entries such as tin_size_uom
+        parent_attrs = request.json_schema[parent_index].get('attrs', {})
+        if parent_attrs.get('readonly', False):
+            parent_name = request.json_schema[parent_index].get('name')
+            for child_meta in request.json_schema:
+                child_name = child_meta.get('name')
+                if not child_name or child_name == parent_name:
+                    continue
+                if child_name.startswith(parent_name + '_') and ('_uom' in child_name or '_part_uom' in child_name):
+                    child_meta.setdefault('attrs', {})
+                    child_meta['attrs']['readonly'] = True
+                elif child_name.endswith('_uom') and child_name.startswith(parent_name):
+                    child_meta.setdefault('attrs', {})
+                    child_meta['attrs']['readonly'] = True
+
+            if 'comp' in request.json_schema[parent_index]:
+                for child_name, child_meta in request.json_schema[parent_index]['comp'].items():
+                    if child_name.endswith('_uom') or child_name.endswith('_part_uom') or '_part_uom' in child_name:
+                        child_meta.setdefault('attrs', {})
+                        child_meta['attrs']['readonly'] = True
+
         # related - initial values
         for key in request.json_doc['info']['related']:
             rdata = request.json_doc['info']['related'][key]

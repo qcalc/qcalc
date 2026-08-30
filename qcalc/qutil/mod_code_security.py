@@ -28,6 +28,8 @@ dangerous_keywords = [
     'QThread', 'qreq'
 ]
 
+allowed_keywords = ['__info'] # parameter to __info()
+
 dangerous_attributes = {
     '__class__', '__mro__', '__bases__', '__subclasses__', '__globals__', '__dict__', '__code__',
     '__func__', '__self__', '__annotations__', '__closure__', '__defaults__', '__kwdefaults__',
@@ -54,6 +56,8 @@ def validate_expression_security(code, gdict=None):
 
     for node in ast.walk(tree):
         if isinstance(node, ast.Name):
+            if node.id in allowed_keywords:
+                continue
             if node.id in dangerous_keywords or node.id.startswith('__'):
                 raise UnsafeCodeError(node.id)
 

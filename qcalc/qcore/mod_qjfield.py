@@ -268,13 +268,18 @@ class QJField:  # 11422
         self.s2f['parts'] = ln  # fields to combine
         self.c4f[self.name] = ln * 2
         qval = ut.css2strs(value)
+        parent_attrs = dict(self.jf.get('attrs', {}))
+        readonly = bool(parent_attrs.get('readonly', False))
         for j in range(ln):
             namej = self.name + '_' + str(j + 1) + '_part' if j > 0 else self.name
             typej = 'float' if j == ln - 1 else 'integer'
             type_sizej = typej + full_part
             var_qt = Qty(qval[j])
             if j > 0:
-                self.jf_ex.append(QJField(namej, type_sizej, var_qt.val, self.id_prefix))
+                child = QJField(namej, type_sizej, var_qt.val, self.id_prefix)
+                if readonly:
+                    child.jf['attrs']['readonly'] = True
+                self.jf_ex.append(child)
             else:
                 self.jf['type'] = typej
                 self.jf['initial'] = var_qt.val
@@ -286,7 +291,10 @@ class QJField:  # 11422
                 namej = self.name + '_part_uom'
             else:
                 namej = self.name + '_' + str(j + 1) + '_part_uom'
-            self.jf_ex.append(QJField(namej, uom_type, var_qt.uom, self.id_prefix, True))
+            unit_field = QJField(namej, uom_type, var_qt.uom, self.id_prefix, True)
+            if readonly:
+                unit_field.jf['attrs']['readonly'] = True
+            self.jf_ex.append(unit_field)
 
     def _str2qtc(self, value, uom_interface=None):  # arg_type in ['qt']
         value = '' if value is None else value.strip()
@@ -304,6 +312,8 @@ class QJField:  # 11422
         self.jf['type'] = 'qty'
         self.jf['initial'] = value
         self.jf['attrs']['class'] = ''
+        parent_attrs = dict(self.jf.get('attrs', {}))
+        readonly = bool(parent_attrs.get('readonly', False))
 
         vals = []
         for j in range(ln):
@@ -312,7 +322,10 @@ class QJField:  # 11422
             typej = 'float' if j == ln - 1 else 'integer'
             type_sizej = typej + full_part
             var_qt = Qty(qval[j])
-            self.jf_ex.append(QJField(namej, type_sizej, var_qt.val, self.id_prefix, sufx=sufxj))
+            value_field = QJField(namej, type_sizej, var_qt.val, self.id_prefix, sufx=sufxj)
+            if readonly:
+                value_field.jf['attrs']['readonly'] = True
+            self.jf_ex.append(value_field)
             vals.append(var_qt.val)
 
             if j == 0 and ln == 1:
@@ -324,7 +337,10 @@ class QJField:  # 11422
             else:
                 namej = self.name + '_' + str(j + 1) + '_part_uom'
                 sufxj = str(j + 1) + '_part_uom'
-            self.jf_ex.append(QJField(namej, uom_type, var_qt.uom, self.id_prefix, True, sufx=sufxj))
+            unit_field = QJField(namej, uom_type, var_qt.uom, self.id_prefix, True, sufx=sufxj)
+            if readonly:
+                unit_field.jf['attrs']['readonly'] = True
+            self.jf_ex.append(unit_field)
             vals.append(var_qt.uom)
 
         self.jf['initial'] = None  # vals

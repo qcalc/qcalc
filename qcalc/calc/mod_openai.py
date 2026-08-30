@@ -115,7 +115,7 @@ def func_guide(func_id: str = 'gold'):
         vi) Any other Instruction you think necessary and helpful for end users
         vii) please analyse the code and briefly describe the steps of calculation
 
-    The point viii), ix) and x) that follows are for technical users who have some technical background.
+    The point viii), ix) and x) that follow are for technical users who have some technical background.
     so some technical details are ok:
 
         viii) Please provide a comma separated list of the function's Technical Parameter names
@@ -127,7 +127,7 @@ def func_guide(func_id: str = 'gold'):
 
     Note: You will see two functions in the code that will follow. One is the function() itself and
     the other is names as function__info() with a suffix of __info to describe some function meta data,
-    you may find useful such as function title, list of values for such parameters if any,
+    you may find useful info such as function title, list of values for such parameters if any,
     limits of values, and so on.
 
     Here is the code for the meta data (__info) and the function:\n
@@ -177,7 +177,7 @@ def qty_desc(qty_slug: str = 'length'):
     qty_title = _base_categories[_base_categ_s2d[qty_slug]]
     prompt = f"""
     Please briefly describe physical quantity "{qty_title}",
-    Length of the description should less than 170 characters.
+    Length of the description should be less than 170 characters.
     """
     desc = ask_gpt(prompt, 0.7)
     return desc

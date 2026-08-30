@@ -108,8 +108,6 @@ various schema keys. Some examples are given below:
 
 ## 2. A Complete Example
 
-This calculator uses info keys: `title`, `desc`, `calculate`, `schema` and `tags`, schema keys: `type`, `choices`, and `initial`:
-
 ```python
 # following line is required for back-end calculator creation
 # from qcore import Qty
@@ -124,10 +122,8 @@ def wall_paint__info():
             'coats': {
                 'type': 'choice',
                 'choices': {1: 'One coat', 2: 'Two coats'},
-                'initial': 2,
             },
         },
-        'tags': 'home,painting,estimation',
     }
 
 
@@ -146,8 +142,12 @@ def wall_paint(width='12 ft', height='8 ft', coverage='350 sqft/gal',
     return {'Paint needed': Qty(paint, 'gal'), 'Tins to buy': tins}
 
 ```
+* This calculator uses the info keys: `title`, `desc`, `calculate`, and `schema`.
+* The schema for the `coats` parameter uses the keys `type` and `choices`.
+* Input names, such as `coats`, in the metadata must match the corresponding function parameter names, such as `coats`.
+* Choices can be specified as a dictionary of `{value: description, ...}`: `'choices': {1: 'One coat', 2: 'Two coats'}`.
+* Choices can also be specified simply as a list of values: `'choices': [1, 2]`.
 
-Input names, such as `coats`, in metadata must match function parameter names.
 
 ## 3. Core Presentation Info Keys
 
@@ -162,16 +162,17 @@ Input names, such as `coats`, in metadata must match function parameter names.
 `desc` appears above the form. Explain the calculation, assumptions, or a material limitation in one short paragraph:
 
 ```python
-'desc': 'Estimate monthly loan payments. The estimate does not include taxes or insurance.'
+'desc': 'Enter the wall size and paint coverage. The estimate includes every coat.'
 ```
 
 The default button label is `Calculate`. Change it only when a short verb (one word if possible) better fits the task:
 
 ```python
-'calculate': 'Convert'
 'calculate': 'Estimate'
-'calculate': 'Suggest'
 ```
+
+Following are some examples of labels of `Calculate` button: 
+`Aggregate, Calculate, Compute, Convert, Display, Estimate, Explain, Load, Open, Process, Recommend, Resize, Rotate, Save, Send, Share, Show, Solve, Upscale`, etc.
 
 ### 3.2 Info Key: `images`
 
@@ -185,10 +186,13 @@ The default button label is `Calculate`. Change it only when a short verb (one w
 ```
 
 Each position accepts a list of images (e.g. you can have another image at the top section, enter it separated by comma). Use images that clarify the task, such as a wall diagram for a paint calculator.
+Avoid unnecessary use of image as it may slow down the performance of your calculator.
 
 ### 3.3 Info Key: `schema`: Input Widgets and Field Options
 
-Without a schema, qCalc derives fields from function parameters, annotations, and defaults. Use `schema` to clearly specify and improve a particular input.
+Within the `schema`, you can specify the behavior of each parameter independently.
+
+Without a schema, qCalc derives fields from function parameters, annotations, and default values. Use `schema` to clearly specify or customize a particular input.
 
 ```python
 'schema': {
@@ -206,24 +210,24 @@ Without a schema, qCalc derives fields from function parameters, annotations, an
 }
 ```
 
-Useful properties include `type`, `choices`, `initial`, `label`, `help_text`, `required`, `disabled`, and `attrs`. qCalc also forwards ordinary Django-form properties such as validators and error messages where supported.
+Useful properties include `type`, `choices`, `initial`, `label`, `help_text`, `required`, `readonly`, disabled`, and `attrs`. qCalc also forwards ordinary Django-form properties such as validators and error messages where supported.
 
 #### 3.3.1 Info Key: `choice`, `radio`, and `multiplechoice`
 
-Use `choice`, `radio`, or `multiplechoice` for a known set of values. A dictionary key is the value passed to Python; its value is the label shown to users.
+Use `choice`, `radio`, or `multiplechoice` for a known set of values. 
+`choices` can be a list of `[values, ...]` or a dictionary of `{key:value, ...}` where key is the value passed to calculation; its value is the label shown to users.
 
 ```python
 'schema': {
     'payment_frequency': {
         'type': 'radio',
-        'choices': {'monthly': 'Monthly', 'yearly': 'Yearly'},
+        'choices': {'monthly': 'Monthly', 'yearly': 'Yearly'}, # as a dict
         'initial': 'monthly',
     },
     'services': {
         'type': 'checkboxselectmultiple',
-        'choices': {'design': 'Design', 'build': 'Build', 'test': 'Testing'},
+        'choices': ['design', 'build', 'test'], # as a list of values
     },
-    'notes': {'type': 'textarea', 'help_text': 'Optional notes for this estimate.'},
 }
 ```
 
@@ -233,39 +237,46 @@ Use `qsel2` for searchable long lists:
 
 ```python
 'schema': {
-    'time_zone': {
+    'country': {
         'type': 'qsel2',
-        'choices': {'UTC': 'UTC', 'Asia/Dhaka': 'Asia/Dhaka'},
-        'initial': 'UTC',
+        'choices': ['Bangladesh', 'Japan', 'Canada', 'Germany', 'Australia'],
+        'initial': 'Canada',
     },
 }
 ```
 
-For tables and repeated lists, use annotations. qCalc enables their widgets automatically.
+For tables and repeated lists, use annotations `qtbl` and `qlist`.
+user can resize these input controls during data entry. For tables, user can specify number of columns and rows.
+For list user can add and remove rows.
 
 ```python
-import pandas as pd
-from qcore import qtable, qlist
-
-
-def material_total__info():
+def material_cost__info():
     return {
-        'title': 'Material Total',
+        'title': 'Material Cost Schedule',
         'schema': {
-            'items': {'initial': pd.DataFrame(columns=['Item', 'Quantity', 'Unit price'])},
-        },
+            'items': {
+                'initial': {
+                    "columns": ["Item", "Quantity", "Unit Cost"],
+                    "data": [
+                        ["Brick", "3650 nos", "0.01 USD/nos"],
+                        ["Sand", "100 cft", "3.5 USD/cft"],
+                        ["Cement", "20 bag", "7.2 USD/bag"],
+                    ]
+                },
+            },
+        }
     }
 
 
-def material_total(items: qtable, discounts: qlist = [0, 0, 0]):
+def material_cost(items: qtbl):
     return items
 ```
 
-For new calculator code that does not need pandas operations, `qtbl` is the safer table annotation and receives a plain `{'columns': ..., 'data': ...}` dictionary.
+* `qtbl` is the safer table annotation and accepts a plain `{'columns': ..., 'data': ...}` dictionary.
+* Backend calculators can also use a full pandas DataFrame-compatible table with the `qtable` annotation.
+* For frontend calculators, use `qtbl`, which is a lightweight version that mimics a pandas DataFrame.
 
 ## 4. Input Interaction Patterns
-
-Make sure every field named by these patterns is a calculator parameter.
 
 ### 4.1 `autofill`: Fill fields from a selection
 
@@ -275,87 +286,28 @@ Use `autofill` when a selected product, material, or preset supplies known value
 'schema': {
     'brand': {
         'type': 'choice',
-        'choices': {'standard': 'Standard', 'premium': 'Premium'},
+        'choices': ['standard', 'premium'],
         'initial': 'standard',
     },
 },
 'autofill': {
-    'brand': {
-        'fields': ['coverage', 'tin_size'],
+    'brand': { # autofill when brand is changed
+        'fields': ['coverage', 'tin_size'], # autofill these fields
         'autofill': {
-            'standard': ['350', '1'],
-            'premium': ['425', '1'],
+            'standard': ['350', '1'], # autofill with these values
+            'premium': ['425', '1'], # values are in field order
         },
     },
 },
 ```
 
-
-```python
-# following import is required for back-end calculator creation
-# from qcore import Qty
-# import is not required for front end calculator creation
-
-# Complete example, you can copy/paste to create in front end
-def wall_paint2__info():
-    return {
-        'title': 'Paint Required for a Wall v2',
-        'desc': 'Enter the wall size, brand and paint coverage. Brand choice autofill coverage and tin size.',
-        'calculate': 'Estimate',
-        'schema': {
-            'brand': {
-                'type': 'choice',
-                'choices': {'standard': 'Standard', 'premium': 'Premium'},
-                'initial': 'standard',
-            },
-            'coats': {
-                'type': 'choice',
-                'choices': {1: 'One coat', 2: 'Two coats'},
-                'initial': 2,
-            },
-        },
-        'autofill': {
-            'brand': {
-                'fields': ['coverage', 'tin_size'],
-                'autofill': {
-                    'standard': ['350', '1.0'],
-                    'premium': ['600', '1.5'],
-                },
-            },
-        },
-        'tags': 'home, painting, estimation',
-    }
-
-
-def wall_paint2(
-    width='12 ft',
-    height='8 ft',
-    brand='standard',
-    coverage='350 sqft/gal',
-    tin_size='1 gal',
-    coats=2
-):
-
-    width_q = Qty(width, 'ft')
-    height_q = Qty(height, 'ft')
-    coverage_q = Qty(coverage, 'sqft/gal')
-    tin_size_q = Qty(tin_size, 'gal')
-
-    area = width_q * height_q * int(coats)
-    paint = area / coverage_q
-    tins = paint / tin_size_q
-
-    return {
-        'Paint needed': Qty(paint, 'gal'),
-        'Tins to buy': tins
-    }
-```
-
-The `fields` order must match the value order in every `autofill` entry.
+* The `fields` order must match the value order in every `autofill` entry.
+* You can fill in values of a quantity field.
+* Sometimes it is better to make the those fields readonly which are automatically filled.
 
 ### 4.2 `related`: Dependent selections
 
-Use `related` for country -> state -> city, department -> team -> employee, and similar chains. Define fields in display order; `relation` is a nested dictionary with a final list.
+Use `related` for country -> state -> city, department -> team -> employee, and similar chains.
 
 
 ```python
@@ -394,14 +346,9 @@ Do not put the same field in both `related` and `anyof` or `showhide`; these fea
 
 ### 4.3 `showhide`: Reveal inputs only when needed
 
-Use `showhide` to keep the form small. In its basic form, listed fields are visible only while 
-the controlling input is empty:
+Use `showhide` to keep some fields visible or hidden when necessary.
 
-```python
-'showhide': {'use_custom_coverage': {'fields': ['coverage']}}
-```
-
-For typical forms, use a callback in `script`. The callback receives the controlling value 
+For typical forms, use a tiny JavaScript callback using `script` key. The callback receives the controlling value 
 and returns one Boolean for every field: `true` shows it; `false` hides it.
 
 ```python
@@ -415,8 +362,8 @@ function showCustomRate(value) {
 ''',
 ```
 
-For one simple rule, qCalc also supports a compact callback such as `'callback': '@==100'`. 
-Prefer a named function for anything more complex. Use the special `__` key to hide a field unconditionally:
+For one simple rule, qCalc also supports a compact callback such as `'callback': "@=='custom'"`. 
+Prefer a named function for anything more complex. Use the special `__` key to hide a list of fields unconditionally:
 
 ```python
 'showhide': {'__': {'fields': ['internal_reference']}}
@@ -433,12 +380,12 @@ fields in that group:
 }
 ```
 
-You may define several groups. `anyof` does not validate that the remaining value is mathematically sufficient, 
-so the Python function must still handle missing values correctly.
+`circle_size` here is an arbitrary group name. You may define several groups of fields.
 
 ## 5. Layout Keys
 
-qCalc normally displays inputs in function-parameter order. Use layout options only when they improve scanning.
+qCalc normally displays inputs in one column and in function-parameter order. 
+Use layout options to change this.
 
 ### 5.1 `row`
 
@@ -460,28 +407,32 @@ qCalc normally displays inputs in function-parameter order. Use layout options o
 'col': ['length-width', 'height-depth']
 ```
 
-Start with `row`; use columns only when the result stays readable on narrow screens.
+* Use `row` and `col` only when necessary and fit the screen.
+* Use `col` only when the result stays readable on narrow screens.
+* Default single column layout is recommended as it fits multiple calculators on screen.
 
 ### 5.3 `outcol`
 
-`outcol` moves output fields into a second output column. 
-For output parameter name, qCalc lowercases a return label, converts spaces to underscores, 
-and adds `__r`. For example, `Monthly payment` becomes `monthly_payment__r`.
-
 ```python
-def mortgage__info():
-    return {'outcol': ['monthly_payment__r', 'total_interest__r']}
-
-
-def mortgage(principal, rate, years):
+# Complete example, you can copy/paste to create in front end
+def mypie__info():
     return {
-        'Monthly payment': 1234.56,
-        'Total interest': 44444.44,
-        'Total paid': 144444.44,
+        'title': 'My Pie Chart',
+        'outcol': ['chart__r'],
+    }
+
+
+def mypie(mychart: qfunc = pie_chart):
+    # pie_chart is a qcalc function, It's interface is being reused here.
+    # Nesting function is a powerful qCalc feature
+    return {
+        'chart': mychart['chart']
     }
 ```
-
-Use this for charts, tables, long explanations, or results that deserve separate visual emphasis.
+* `outcol` moves output fields into a second output column.
+* Use `outcol` for charts, tables, long explanations, or results that deserve separate visual emphasis.
+* For output parameter names, qCalc converts the return label to lowercase, replaces spaces with underscores, and adds `__r`. For example, `chart` becomes `chart__r`, while `Monthly payment` becomes `monthly_payment__r`. Therefore, use `'outcol': ['chart__r']` for a return label of `chart`.
+* If you do not see the chart in the second column, close other cards/calculators and keep only your calculator open to view the result.
 
 ## 6. Follow-up Actions and Discovery
 

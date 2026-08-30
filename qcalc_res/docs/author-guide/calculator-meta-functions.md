@@ -316,15 +316,15 @@ def demo_related__info():
     return {
         'title': 'Demonstrating related metadata',
         'related': {
-            'address': {
-                'fields': {
-                    'country': 'Canada', 
+            'address': { # this is an arbitrary name of the group
+                'fields': { # fields that are related
+                    'country': 'Canada', # initial value of country
                     'province': 'Ontario', 
                     'city': 'Toronto',
                 },
-                'relation': {
-                    'Canada': {
-                        'Ontario': ['Toronto', 'Ottawa'],
+                'relation': { # how field values are related
+                    'Canada': { # each country relates to provinces
+                        'Ontario': ['Toronto', 'Ottawa'], # province relates to cities
                         'Quebec': ['Montreal', 'Quebec City'],
                     },
 
@@ -339,59 +339,63 @@ def demo_related(country, province, city):
     return f'Selection: {country}, {province}, {city}'
 ```
 ![demo_related calculator](../static/images/demo_related.jpg)
-<br>_Fig: How the 'demo_related' calculator looks inside qCalc_
+*Fig: How the 'demo_related' calculator looks inside qCalc*
 
-The current implementation supports up to four levels of dependency (e.g. country, state, city, zipcode). 
-Do not put the same field in both `related` and `anyof` or `showhide`; these features can compete for control of it.
+* The current implementation supports up to four levels of dependency (e.g. country, state, city, zipcode). 
+* Do not put the same field in both `related` and `anyof` or `showhide`; these features can compete for control of it.
 
 ### 4.3 `showhide`: Reveal inputs only when needed
 
-Use `showhide` to keep some fields visible or hidden when necessary.
-
-For typical forms, use a tiny JavaScript callback using `script` key. The callback receives the controlling value 
-and returns one Boolean for every field: `true` shows it; `false` hides it.
 
 ```python
 'showhide': {
-    'rate_mode': {'fields': ['custom_rate'], 'callback': 'showCustomRate'},
+    'rate_mode': { # field that determines other field's viibility
+        'fields': ['custom_rate'], # list of fields to show/hide
+        'callback': 'showCustomRate' # callback function name
+    },
 },
 'script': '''
-function showCustomRate(value) {
-    return [value === 'custom'];
+function showCustomRate(value) { # callback JavaScript function
+    return [value === 'custom']; # value of rate_mode passed at runtime
 }
 ''',
 ```
-
-For one simple rule, qCalc also supports a compact callback such as `'callback': "@=='custom'"`. 
-Prefer a named function for anything more complex. Use the special `__` key to hide a list of fields unconditionally:
+* Use `showhide` to keep some fields visible or hidden when necessary.
+* For typical forms, use a tiny JavaScript callback using `script` key. The callback receives the controlling value and returns one Boolean for every field: `true` shows it; `false` hides it.
+* For one simple rule, qCalc also supports a compact callback such as `'callback': "@=='custom'"`. 
+Prefer a named callback function for anything more complex. 
+* Use the special `__` key to hide a list of fields unconditionally:
 
 ```python
-'showhide': {'__': {'fields': ['internal_reference']}}
+'showhide': {'__': {'fields': ['internal']}}
 ```
 
 ### 4.4 `anyof`: Alternative ways to provide one value
 
-Use `anyof` when inputs are alternatives. When a user enters one value, qCalc clears the other 
-fields in that group:
+Suppose you want to calculate the area of a circle by providing either the radius or the diameter. You can use the `anyof` key to ensure that only one value is specified, which clears the other input.
 
 ```python
 'anyof': {
-    'circle_size': {'fields': ['radius', 'diameter', 'area']},
+    'circle_size': { # arbitrary group name
+        'fields': ['radius', 'diameter'] # list of alternative fields
+    },
 }
 ```
 
-`circle_size` here is an arbitrary group name. You may define several groups of fields.
+* Use `anyof` when inputs are alternatives. When a user enters one value, qCalc clears the other fields in that group.
+* `circle_size` here is an arbitrary group name. You may define several groups of fields.
 
 ## 5. Layout Keys
 
-qCalc normally displays inputs in one column and in function-parameter order. 
-Use layout options to change this.
+qCalc normally displays inputs in one column. Use layout options to change this.
 
 ### 5.1 `row`
 
 `row` groups fields on the same row. Join field names (from one field to another in parameter list) with hyphens:
 
 ```python
+# field width to height in one row
+# field coverage to tin_size in another row
 'row': ['width-height', 'coverage-tin_size']
 ```
 
@@ -407,9 +411,10 @@ Use layout options to change this.
 'col': ['length-width', 'height-depth']
 ```
 
-* Use `row` and `col` only when necessary and fit the screen.
-* Use `col` only when the result stays readable on narrow screens.
-* Default single column layout is recommended as it fits multiple calculators on screen.
+* Use `row` and `col` only when necessary and when they fit on the screen.
+* Use `col` when the result remains readable on narrow screens.
+* A single-column layout (default) is recommended, as it allows multiple calculators to fit on the screen.
+
 
 ### 5.3 `outcol`
 
@@ -438,10 +443,9 @@ def mypie(mychart: qfunc = pie_chart):
 
 ### 6.1 `step2`
 
-`step2` adds buttons after a successful calculation. Every item has `step`, `caption`, and `spec`; 
-a `run` action also needs `func`.
+`step2` adds buttons after a successful calculation. Every item has `step`, `caption`, and `spec`; a `run` action also needs `func`.
 
-Open another calculator with values pre-filled:
+`'step': 'run'` to open another calculator (in the following example `bmr`) with parameter values pre-filled with current result:
 
 ```python
 'step2': [
@@ -454,8 +458,7 @@ Open another calculator with values pre-filled:
 ],
 ```
 
-Estimate costs from returned quantity values. `include` and `exclude` select returned labels; 
-`'*'` includes all outputs before exclusions:
+`'step': 'cost'` to estimate costs from returned quantity values. `include` and `exclude` select current output labels; `'*'` includes all outputs before exclusions:
 
 ```python
 'step2': [
@@ -467,11 +470,15 @@ Estimate costs from returned quantity values. `include` and `exclude` select ret
 ],
 ```
 
-Open a returned qCalc chart object in its chart calculator:
+`'step': 'chart'` to open a returned qCalc chart object in its chart calculator:
 
 ```python
 'step2': [
-    {'step': 'chart', 'caption': 'Explore chart', 'spec': {'field': 'chart'}},
+    {
+        'step': 'chart', 
+        'caption': 'Explore chart', 
+        'spec': {'field': 'chart'},
+    },
 ],
 ```
 
@@ -480,14 +487,14 @@ Open a returned qCalc chart object in its chart calculator:
 `kins` lists related calculator IDs. qCalc resolves each one to its visible title:
 
 ```python
-'kins': 'bmi,bmr,calorie'
+'kins': 'bmi, bmr, calorie'
 ```
 Only include real, useful next calculators.
 
 `tags` makes a calculator easier to find in catalog search:
 
 ```python
-'tags': 'mortgage,loan,finance,monthly payment'
+'tags': 'mortgage, loan, finance, monthly payment'
 ```
 
 Only include short phrases a user would search for.
@@ -497,7 +504,7 @@ Only include short phrases a user would search for.
 These switches control standard after-calculation controls:
 
 ```python
-'xpr': False,   # Hide expression and staff timing actions.
+'xpr': False,   # Hide eva expression link.
 'url': False,   # Hide the generated Browse link.
 'loop': False,  # Hide the Redo action.
 ```
@@ -513,8 +520,7 @@ Treat it as reviewed application code. Do not place untrusted user text in it.
 
 ### 7.2 `onsubmit`
 
-`onsubmit` runs in a jQuery submit handler immediately before the form is submitted. 
-The calculator instance ID is available as `_cid`.
+`onsubmit` runs in a jQuery submit handler immediately before the form is submitted. The calculator instance ID is available as `_cid`.
 
 ```python
 'onsubmit': '''
@@ -525,8 +531,7 @@ if (!document.getElementById('id_' + _cid + '_email').value) {
 ''',
 ```
 
-Use server-side validation for rules that protect data or business logic; 
-browser code can be bypassed.
+Use server-side validation for rules that protect data or business logic; browser code can be bypassed.
 
 ### 7.3 `inserts`
 
@@ -534,8 +539,8 @@ browser code can be bypassed.
 
 ```python
 'inserts': {
-    'form_top': '<p class="helptext">Measurements may be entered in ft, m, or cm.</p>',
-    'out_bottom': '<p class="helptext">Round up when buying full tins.</p>',
+    'form_top': '<p>Measurements may be entered in ft, m, or cm.</p>',
+    'out_bottom': '<p>Round up when buying full tins.</p>',
 },
 ```
 

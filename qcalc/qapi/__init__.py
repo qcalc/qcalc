@@ -18,7 +18,7 @@ from qcore import (
     qtc2, qtext, qtexta, qtexte, qtime, qt, qt2, qtx, quom, quom2, quomx,
     qurl, qvstr
 )
-from qutil import QDateTime, iif
+from qutil import QDateTime, iif, DotDict
 from .mod_np import np_names, np
 from .mod_qtbl import *
 
@@ -30,7 +30,7 @@ def minimum(*args, key=None):
 
 
 qlib_dict = {
-    'QDateTime': QDateTime, 'qdt': QDateTime,
+    'QDateTime': QDateTime, 'qdt': QDateTime, 'DotDict': DotDict, 'dd': DotDict,
     'datetime': datetime.datetime, 'date': datetime.date, 'time': datetime.time,
     'Qty': Qty, 'q': Qty, 'qx': qx, 'qxi': qxi,
     # 'QGeo': QGeo, 'geo': QGeo,

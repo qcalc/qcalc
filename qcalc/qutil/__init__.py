@@ -18,3 +18,4 @@ from .timed_thread import thread_with_timeout, QThread
 from .timed_signal import run_with_timeout
 from .mod_code_format import *
 from .mod_code_security import *
+from .mod_dict import *

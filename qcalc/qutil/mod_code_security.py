@@ -32,7 +32,7 @@ allowed_keywords = ['__info'] # parameter to __info()
 
 dangerous_attributes = {
     '__class__', '__mro__', '__bases__', '__subclasses__', '__globals__', '__dict__', '__code__',
-    '__func__', '__self__', '__annotations__', '__closure__', '__defaults__', '__kwdefaults__',
+    '__func__', '__self__', '__closure__', '__defaults__', '__kwdefaults__',
     '__module__', '__qualname__', '__init__', '__new__', '__getattribute__', '__getattr__',
     '__setattr__', '__delattr__', '__getstate__', '__setstate__', '__reduce__', '__reduce_ex__',
     '__slots__', '__weakref__', '__iter__', '__next__', '__call__', '__getitem__', '__setitem__',
@@ -45,6 +45,8 @@ dangerous_attributes = {
     '__radd__', '__rsub__', '__rmul__', '__rmatmul__', '__rtruediv__', '__rfloordiv__',
     '__rmod__', '__rdivmod__', '__rpow__', '__rlshift__', '__rrshift__', '__rand__', '__rxor__', '__ror__',
 }
+
+allowed_dunder_attributes = {'__annotations__', '__name__'}
 
 
 def validate_expression_security(code, gdict=None):
@@ -62,6 +64,8 @@ def validate_expression_security(code, gdict=None):
                 raise UnsafeCodeError(node.id)
 
         if isinstance(node, ast.Attribute):
+            if node.attr in allowed_dunder_attributes:
+                continue
             if node.attr in dangerous_attributes or node.attr.startswith('_'):
                 raise UnsafeCodeError(node.attr)
 
@@ -69,8 +73,11 @@ def validate_expression_security(code, gdict=None):
             func = node.func
             if isinstance(func, ast.Name) and (func.id in dangerous_keywords or func.id.startswith('__')):
                 raise UnsafeCodeError(func.id)
-            if isinstance(func, ast.Attribute) and (func.attr in dangerous_attributes or func.attr.startswith('_')):
-                raise UnsafeCodeError(func.attr)
+            if isinstance(func, ast.Attribute):
+                if func.attr in allowed_dunder_attributes:
+                    continue
+                if func.attr in dangerous_attributes or func.attr.startswith('_'):
+                    raise UnsafeCodeError(func.attr)
 
         if isinstance(node, ast.Import):
             for alias in node.names:

@@ -1,0 +1,27 @@
+[run]
+branch = True
+cover_pylib = False
+
+omit =
+    */tests/*
+    */test_*.py
+    */migrations/*
+    */.venv/*
+    */venv/*
+    */site-packages/*
+    */__pycache__/*
+    */config.py
+    */config-*.py
+    */_qtest_/*
+    */calculators/*
+
+[report]
+ignore_errors = True
+
+exclude_also =
+    if __name__ == .__main__.:
+    pragma: no cover
+    raise NotImplementedError
+
+[html]
+directory = htmlcov

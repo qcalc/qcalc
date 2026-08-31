@@ -1,11 +1,11 @@
-set DJANGO_SETTINGS_MODULE=config.settings.dev
-coverage run --source=qcore -m unittest tests/test_qty.py
-coverage report -m
-coverage report
-
-
+# discover only unittest
 coverage run -m unittest discover tests
+
+# specific file
+coverage run -m pytest -q tests/test_qcals_exec.py
+
+# discover both unittest and pytest, all files in tests folder (better)
+coverage run -m pytest -q tests
+
 coverage report -m
 coverage report
-
-# coverage run --source=tests -m pytest

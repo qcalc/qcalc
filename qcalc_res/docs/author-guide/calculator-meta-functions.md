@@ -31,7 +31,8 @@
     * [7.3 `inserts`](#73-inserts)
     * [7.4 `template`](#74-template)
   * [8. Parameterized Metadata](#8-parameterized-metadata)
-  * [9. Author Checklist](#9-author-checklist)
+  * [9. DotDict Notation](#9-dotdict-notation)
+  * [10. Author Checklist](#10-author-checklist)
 <!-- TOC -->
 
 Every qCalc calculator is a Python function with a companion metadata function named `<calculator_name>__info()`. When this function exists, qCalc considers the corresponding function (without `__info` in name) as a **calculator**.
@@ -578,8 +579,14 @@ def unit_converter__info(__info=None):
 
 The calculator function may also accept `__info` if it needs the selected mode during calculation.
 
+## 9. DotDict Notation
 
-## 9. Author Checklist
+For an easier and more readable way to create the dictionary returned by `__info()`, calculator authors can use qCalc's `dd()` (`DotDict`) helper. It allows nested information to be defined using dot notation, reducing the need for `{}` and making complex `__info()` structures easier to read. 
+
+> See **[qCalc DotDict notation: Using `dd()` in `__info()`](related-topics/dot-dict-notation.md)** for examples and usage.
+
+
+## 10. Author Checklist
 
 1. Define `<calculator_name>__info()` beside the calculator function.
 2. Add a plain-language `title` and a concise `desc` when the calculation needs context.

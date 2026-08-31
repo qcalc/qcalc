@@ -45,6 +45,11 @@
     "desc": "Reference for using quantities, units, conversions, and dimensional arithmetic in qCalc",
     "order": "2.00.20"
   },
+  "author-guide/related-topics/dot-dict-notation.md": {
+    "title": "qCalc DotDict notation",
+    "desc": "Using dot-dict notation in qCalc __info() functions",
+    "order": "2.00.30"
+  },
   "admin-guide": {
     "order": "0.30"
   },

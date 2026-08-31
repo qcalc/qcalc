@@ -521,12 +521,15 @@ QCALC_HOST = domain_parts[0].replace("www.", "")
 ALLOWED_HOSTS = [
     "127.0.0.1",
     "localhost",
+    "testserver",
 ]
 CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1",
     "http://localhost",
+    "http://testserver",
     "http://127.0.0.1:8000",
     "http://localhost:8000",
+    "http://testserver:8000",
 ]
 
 # 1. Populate ALLOWED_HOSTS (Strictly domain names, NO protocols/ports)

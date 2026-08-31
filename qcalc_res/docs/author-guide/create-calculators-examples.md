@@ -170,7 +170,7 @@ def wall_paint2__info():
         'autofill': {
             'brand': {
                 'fields': ['coverage', 'tin_size'],
-                'autofill': {
+                'values': {
                     'standard': ['350', '1.0'],
                     'premium': ['600', '1.5'],
                 },

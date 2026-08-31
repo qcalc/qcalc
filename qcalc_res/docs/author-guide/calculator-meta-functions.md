@@ -293,8 +293,8 @@ Use `autofill` when a selected product, material, or preset supplies known value
 'autofill': {
     'brand': { # autofill when brand is changed
         'fields': ['coverage', 'tin_size'], # autofill these fields
-        'autofill': {
-            'standard': ['350', '1'], # autofill with these values
+        'values': {
+            'standard': ['350', '1'], # autofill with these values when brand is standard
             'premium': ['425', '1'], # values are in field order
         },
     },

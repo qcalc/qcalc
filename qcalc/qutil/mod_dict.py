@@ -3,14 +3,10 @@
 
 class DotDict(dict):
 
-    def __init__(self, data=None, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__()
 
-        if data:
-            for key, value in data.items():
-                self[key] = self._convert(value)
-
-        for key, value in kwargs.items():
+        for key, value in dict(*args, **kwargs).items():
             self[key] = self._convert(value)
 
     @classmethod

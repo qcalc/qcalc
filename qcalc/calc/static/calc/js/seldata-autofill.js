@@ -67,7 +67,8 @@
             var value = entry[1] || {};
             var selectedId = idPrefix + key;
             var autofillFields = value.fields || [];
-            var autofillData = value.autofill || {};
+            // accept 'values' as the preferred key, falling back to legacy 'autofill'
+            var autofillData = value.values || value.autofill || {};
 
             bindAutofillEvent(cid + "::" + key, selectedId, autofillFields, autofillData, idPrefix);
         });

@@ -6,8 +6,7 @@ import json
 import pandas as pd
 from .mod_qfile import QFile
 from .qc_qty import Qty
-from qutil import HtmxHttpRequest
-
+from qutil import HtmxHttpRequest, pretty_json
 
 # Short character input field up to 50 characters.
 class qchar(str):  # char 50
@@ -66,14 +65,14 @@ class qfunc(str):  # qcalc function
 
 
 # Hidden field, pass the value to function call but do not display the field, e.g. func, __info
-class qhide(str):  
+class qhide(str):
     def __init__(self):
         pass
 
 
 # Hidden field whose value is omitted from the function call.
 # Do not pass the value to function call and do not display the field, e.g. --#
-class qhidex(str):  
+class qhidex(str):
     def __init__(self):
         pass
 
@@ -265,6 +264,14 @@ class QScreen:
 
     def write(self, *args):
         print(*args, file=self.out)
+
+    # def write(self, *args):
+    #     formatted_args = [
+    #         # pretty_json(arg) if isinstance(arg, dict) else arg
+    #         qpretty_json(arg) if isinstance(arg, dict) else arg
+    #         for arg in args
+    #     ]
+    #     print(*formatted_args, file=self.out)
 
     def flush(self):
         contents = qpage(self.out.getvalue())

@@ -3,7 +3,7 @@
 qCalc is designed to run with a locked set of dependency and asset versions.
 These versions are part of the app's compatibility contract:
 - the Python packages in requirements.txt are pinned to exact working releases,
-- and the static vendor resources already bundled in qcalc/static/vendor match the versions the app expects.
+- and the static vendor resources already bundled in `qcalc/static/vendor` match the versions the app expects.
 Changing them without a deliberate migration can break templates, JavaScript/CSS behavior,
 Django compatibility, and other runtime assumptions.
 
@@ -13,7 +13,7 @@ use the project’s stored static assets and pinned dependency list as the autho
 
 ## VENDOR JAVASCRIPT AND CSS
 
-Required versions are already locally available and linked to qcalc/static/vendor
+Required versions are already locally available and linked to `qcalc/static/vendor`
 
 **tabulator:**
 
@@ -76,7 +76,7 @@ Required versions are already locally available and linked to qcalc/static/vendo
 
 **google font:** 
 
-roboto (qcalc/static/vendor/fonts/google/)
+roboto (`qcalc/static/vendor/fonts/google/`)
 
 
 ## CORE SOFTWARE

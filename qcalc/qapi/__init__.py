@@ -18,7 +18,7 @@ from qcore import (
     qtc2, qtext, qtexta, qtexte, qtime, qt, qt2, qtx, quom, quom2, quomx,
     qurl, qvstr
 )
-from qutil import QDateTime, iif, DotDict
+from qutil import QDateTime, iif, DotDict, list_symbols
 from .mod_np import np_names, np
 from .mod_qtbl import *
 
@@ -51,7 +51,7 @@ __qtypes__ = [
 __evacon__ = [
     "is_qty", "is_unit", "base_units", "base_dims", "unit_desc", "prefixes", "unit2lmt",
     "lmt_desc", "str_type", "read_unit", "lmt2cat", "lmt2ulist", "lmt2qlist", "find_unit",
-    "iif", 'minimum',
+    "iif", 'minimum', 'list_symbols',
     "np", "qdf", "qcol", "qrow", "qsum", "qadd", "qsub", "qmul", "qdiv",
     "qlib", "qtypes",
 ]

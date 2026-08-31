@@ -3,7 +3,7 @@
 
 from calc import QPref, QMem
 from calc import QData, QTemp, QKeep, QSave, QIO, QRam, QMeta, QMyCal, QFav
-from qcore import QScreen, quom, color_schemes, legend_locations
+from qcore import QScreen, quom, color_schemes, legend_locations, qpretty_json
 from qutil import nzs, css2strs, truncate, user_process, command_button, QThread
 from qvars import qc_gpref as gs
 from calc import list2options, StdList

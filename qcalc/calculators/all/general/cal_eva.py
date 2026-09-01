@@ -99,8 +99,10 @@ show(y)
     if calout:
         n = len(calout)
         toret = {'': calout} if n > 1 else calout[0]
+
     if stdout:
-        toret.update({'console': stdout})
+        toret = {'':toret, 'console': stdout}
+
     if not toret:
         toret = {'result': 'Output is empty'}
     return toret

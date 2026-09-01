@@ -171,11 +171,10 @@ def qeval(request: HtmxHttpRequest, xpr: str):
         return "Assigned variables cleared", stdout
 
     # command: help
-    if xpr == "help":
+    if xpr in ["?", "help"]:
         help_text = (
             "Commands:\n"
-            "  help <name>        show help on qcalc symbols\n"
-            "  help --<name>      show help on qcalc symbols\n"
+            "  ? | help [<name>]  show this help screen or help on qcalc symbols\n"
             "  find <name>        show qcalc symbols matching a wildcard (*,?) filter\n"
             "  strict [on|off]    disable/enable assignment to any variable\n"
             "  forget             clear stored variables\n"
@@ -185,7 +184,7 @@ def qeval(request: HtmxHttpRequest, xpr: str):
             "  <value> as <unit>  same-unit conversion for display\n"
             "  x = <expr>         assign a value to a variable\n"
             "  qtypes()           to get a list of calculator field types\n"
-            "  qsymbols()         to get a list of qcalc functions\n"
+            "  qsymbols()         to get a list of qcalc symbols\n"
             "  qmodules()         list of importable modules in frontend\n"
             "\n"
             "Examples:\n"
@@ -200,18 +199,17 @@ def qeval(request: HtmxHttpRequest, xpr: str):
             "  y = 35*m/s\n"
             "  x+y to m/s\n"
             "  help bmi\n"
-            "  help --bmi\n"
+            "  find bm*\n"
         )
         stdout = out.flush()
         return help_text, stdout
 
-    if xpr.startswith("help"):
-        rest = xpr[4:].strip()
+    if xpr.startswith("?") or xpr.startswith("help "):
+        rest = xpr[1:].strip() if xpr.startswith("?") else xpr[4:].strip()
         if rest:
-            name = rest[2:] if rest.startswith("--") else rest
-            if ' ' not in name:
+            if ' ' not in rest:
                 from qapi.mod_autil import qsymhelp
-                help_text = qsymhelp(name)
+                help_text = qsymhelp(rest)
                 stdout = out.flush()
                 return help_text, stdout
             stdout = out.flush()

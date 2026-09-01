@@ -411,12 +411,23 @@ class QCals:
         cls.calc_root.sort_by()
         # calc_root.save_tree_to_json("all.json")
 
+        # | start creating qcalc symbol list (qsymbols)
+
+        # | all qfunc_dict items except admin and demo cals, will eventually include pylib_dict and calc_dict
+        # |     when create_standard_cataog_from_packages() are executed
+        # | all _unit_table items that includes units and currencies
+        # | all formal api items from __evacon__
+        # | all auxiliary functions (qcalc/python) from make_symbol_table
+        # | qsymbols = (qfunc_dict - admin cals - demo cals)  + _unit_table + _qty_info + __evacon__ + make_symbols_table
+        # | qfunc_dict = (all calculators + auxiliaries) + (pylib_dict + calc_dict)
+
         # create and validate symbol table for eval()
         assert len(set(cls.qfunc_dict).intersection(_unit_table)) == 0
         qsyms = cls.qfunc_dict.copy()
         # deb@05.09.24 - exclude admin and test calculators from symbol list
         qsyms = {key: qsyms[key] for key in qsyms if key not in cls.qc_admin_list + cls.qc_demo_list}
         qsyms.update({k: Qty(1, v) for k, v in _unit_table.items()})
+        qsyms.update({k: _qty_info[k]['qty'] for k in _qty_info})
         qsyms.update({name: getattr(qapi, name) for name in qapi.__evacon__})
 
         # | ic(set(cls.qsymbol_dict).intersection(make_symbol_table(use_numpy=False)))  # 'min'
@@ -424,6 +435,7 @@ class QCals:
         assert (len(set(qsyms).intersection(psyms)) <= 1)  # 'min'
         # | py symbols first, then qcalc symbols overriding 1 conflict
         cls.qsymbol_dict = {**psyms, **qsyms}
+        # | end creating qcalc symbol list (qsymbols)
 
     @classmethod
     def create_catalog_qty(cls, admin_name='admin', demo_name='demo'):

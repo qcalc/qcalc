@@ -25,10 +25,15 @@
     "desc": "Guide for authors on using the qCalc code editor.",
     "order": "2.15"
   },
+  "author-guide/returning-calculation-results.md": {
+    "title": "Returning calculation results in qCalc",
+    "desc": "Different types of return values and their presentations",
+    "order": "2.20"
+  },
   "author-guide/calculator-meta-functions.md": {
     "title": "Calculator meta functions",
     "desc": "Meta function specification for qCalc calculators.",
-    "order": "2.20"
+    "order": "2.25"
   },
   "author-guide/create-calculators-examples.md": {
     "title": "Create calculators - learn by examples",

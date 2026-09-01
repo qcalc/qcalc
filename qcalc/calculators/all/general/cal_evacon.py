@@ -174,6 +174,9 @@ def qeval(request: HtmxHttpRequest, xpr: str):
     if xpr == "help":
         help_text = (
             "Commands:\n"
+            "  help <name>        show help on qcalc symbols\n"
+            "  help --<name>      show help on qcalc symbols\n"
+            "  find <name>        show qcalc symbols matching a wildcard (*,?) filter\n"
             "  strict [on|off]    disable/enable assignment to any variable\n"
             "  forget             clear stored variables\n"
             "  cls                clear screen\n"
@@ -181,8 +184,10 @@ def qeval(request: HtmxHttpRequest, xpr: str):
             "  <value> to <unit>  convert a quantity to another unit\n"
             "  <value> as <unit>  same-unit conversion for display\n"
             "  x = <expr>         assign a value to a variable\n"
-            "  qlib()             to get a list of qcalc functions\n\n"
-            "  qtypes()           to get a list of calculator field types\n\n"
+            "  qtypes()           to get a list of calculator field types\n"
+            "  qsymbols()         to get a list of qcalc functions\n"
+            "  qmodules()         list of importable modules in frontend\n"
+            "\n"
             "Examples:\n"
             "  ft to inch\n"
             "  (2+3*5-12)/3\n"
@@ -193,10 +198,42 @@ def qeval(request: HtmxHttpRequest, xpr: str):
             "  3.5*m as yd, ft, inch\n"
             "  x = 60*ft/s\n"
             "  y = 35*m/s\n"
-            "  x+y to m/s"
+            "  x+y to m/s\n"
+            "  help bmi\n"
+            "  help --bmi\n"
         )
         stdout = out.flush()
         return help_text, stdout
+
+    if xpr.startswith("help"):
+        rest = xpr[4:].strip()
+        if rest:
+            name = rest[2:] if rest.startswith("--") else rest
+            if ' ' not in name:
+                from qapi.mod_autil import qsymhelp
+                help_text = qsymhelp(name)
+                stdout = out.flush()
+                return help_text, stdout
+            stdout = out.flush()
+            return "Usage: help <name>  or  help --<name>", stdout
+
+    if xpr.startswith("find"):
+        rest = xpr[4:].strip()
+        if rest:
+            if ' ' not in rest:
+                from qapi.mod_autil import qsymbols, qsymhelp
+                matches = qsymbols('all', rest)
+                stdout = out.flush()
+                if not matches:
+                    return f"No qCalc symbols matched '{rest}'", stdout
+                if len(matches) == 1:
+                    return qsymhelp(rest), stdout
+                else:
+                    return matches, stdout
+            stdout = out.flush()
+            return "Usage: find <name>", stdout
+        stdout = out.flush()
+        return "Usage: find <name>", stdout
 
     def validate_and_aeval(expr):
         validate_expression_security(expr, syms)

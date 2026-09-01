@@ -92,57 +92,6 @@ def fid2help_file(func_id):
     return help_file
 
 
-def list_symbols(name_filter=None, calcs='exclude'):
-    """
-    List callables reachable from eva()/console (qeval)/mycal() code, since all
-    three build their execution symbol table from calc.QCals.qsymbol_dict
-    (py builtins + calculator functions + qapi.__evacon__ names; Qty consts
-    are excluded as they aren't callables). name_filter, if given, is a DOS
-    dir-style wildcard (case-insensitive, * = any chars, ? = one char),
-    e.g. 'add*', '*len*', matched against the full name via fnmatch. Prefix
-    with '~' to negate, e.g. '~*info' lists names NOT ending in 'info'
-    ('!' is avoided since preprocess_expression() rewrites it to '/').
-    calcs controls how calculator functions (names present in
-    QCals.qfunc_dict) are treated:
-      'exclude' (default) - drop them, leaving only py builtins/qapi helpers
-      'include' - keep them alongside everything else
-      'exclusive' - search only within them, dropping everything else
-      'noncalc' - search only within non-calculator callables (py builtins/qapi helpers)
-    """
-    from calc import QCals  # local import: calc imports qutil, avoid circular import
-    import fnmatch
-
-    if calcs not in ('exclude', 'include', 'exclusive', 'noncalc'):
-        raise ValueError("calcs must be 'exclude', 'include', 'exclusive', or 'noncalc'")
-
-    negate = False
-    if name_filter:
-        name_filter = name_filter.lower()
-        if name_filter.startswith('~'):
-            negate = True
-            name_filter = name_filter[1:]
-
-    entries = []
-    for name, obj in QCals.qsymbol_dict.items():
-        if not callable(obj):
-            continue
-        if '__' in name:  # skip __info/__modify/__command/etc. calculator helpers
-            continue
-        is_calc = name in QCals.qfunc_dict and f"{name}__info" in QCals.qfunc_dict
-        is_noncalc = name in QCals.qfunc_dict and f"{name}__info" not in QCals.qfunc_dict
-        if calcs == 'exclude' and is_calc:
-            continue
-        if calcs == 'exclusive' and not is_calc:
-            continue
-        if calcs == 'noncalc' and not is_noncalc:
-            continue
-        if name_filter and fnmatch.fnmatch(name.lower(), name_filter) == negate:
-            continue
-        entries.append(name)
-    entries.sort()
-    return entries
-
-
 def preprocess_expression(qexpr, disp=False):  # deb@13.08.23, @25.11.23
     expr_unit = qexpr
     if not disp:  # Before Calculation

@@ -44,7 +44,8 @@ show(y)
     def show(*args):
         if len(calout) > rlimit:
             raise Exception(f'Error (EVR): Range limit [{rlimit}] for show() exceeded')
-        calout.append(args)
+        n = len(args)
+        calout.append(args if n>1 else args[0])
 
     out = QScreen()
     syms = QCals.qsymbol_dict.copy()
@@ -96,10 +97,10 @@ show(y)
     stdout = out.flush()
     toret = {}
     if calout:
-        toret = {'': calout}
+        n = len(calout)
+        toret = {'': calout} if n > 1 else calout[0]
     if stdout:
         toret.update({'console': stdout})
     if not toret:
         toret = {'result': 'Output is empty'}
     return toret
-

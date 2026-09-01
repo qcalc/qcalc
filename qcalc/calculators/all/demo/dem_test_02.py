@@ -34,6 +34,12 @@ def demo_qt1(x: qt = '1 m', y: qt = '5 m, 15 cm'):
     y = Qty(y)
     return x + y
 
+def demo_qt2__info():
+    return {
+        'schema': {
+            'x': {'help_text': 'Enter a quantity x(qtc2)'},
+        },
+    }
 
 def demo_qt2(x: qtc2 = '1 m', y: qtc2 = '5 m, 15 cm'):
     x = Qty(x)

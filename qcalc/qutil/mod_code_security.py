@@ -3,12 +3,14 @@
 
 import ast
 import importlib
+
 import qconst
 
 preloaded_modules = ['qapi', 'math', 'statistics']
 
 # Optional: allow-list of standard-library modules suitable for calculators.
 allowed_modules = [
+    # Python modules
     'array', 'base64', 'binascii', 'bisect', 'calendar', 'cmath',
     'collections', 'csv', 'datetime', 'decimal', 'fractions', 'functools',
     'heapq', 'itertools', 'json', 'math', 'operator', 'random', 're',

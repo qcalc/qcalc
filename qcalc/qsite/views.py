@@ -2,7 +2,7 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 from . import __version__
-from calc import QCals, QCache, QPref, get_help_path, cur_as_of
+from calc import QCals, QCache, QPref, get_help_path, cur_loader
 from .mod_docs import get_doc_path, build_docs_tree, fix_doc_links
 from qutil import HtmxHttpRequest, get_page, q1139_request_init
 from django.conf import settings
@@ -82,7 +82,7 @@ def about_data(request: HtmxHttpRequest):
         'instance_info': qenv.get_worker_info(),
         'debug': settings.DEBUG,
         'demo': gs['demo_mode'],
-        'as_of': cur_as_of(),
+        'as_of': cur_loader.cur_as_of(),
         'qcals_user': QCals.qc_user_list,
         'qcals_demo': QCals.qc_demo_list,
         'qcals_admin': QCals.qc_admin_list,

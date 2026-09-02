@@ -22,7 +22,7 @@ class IgnoreDisallowedHostMiddleware:
         try:
             return self.get_response(request)
         except DisallowedHost as e:
-            logger.error(f">>> IDH: DisallowedHost exception: {e}")
+            logger.warning(f">>> IDH: DisallowedHost exception: {e}")
             return HttpResponseBadRequest("Bad Request: Host not allowed")
 
 

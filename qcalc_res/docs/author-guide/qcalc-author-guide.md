@@ -179,13 +179,13 @@ def sample_calc(value: qtexta = "42/7", unit: quomx = "ft", rows: qtable = pd.Da
 
 `__info()` returns a dictionary used to build form behavior and rendering.
 
-Important keys include:
+[Important keys include:
 - `title`, `desc`, `calculate`
 - `schema`: per-field properties (type, choices, attrs, validators, help_text, etc.)
 - `autofill`, `related`, `showhide`, `anyof`
-- Layout keys: `row`, `col`, `newcol`, `endcol`, `newrow`, `inrowb`, `inrowe`, `endrow`, `outcol`
+- Layout keys: `row`, `col`, `outcol`
 - Frontend keys: `script`, `onsubmit`, `inserts`
-- Flow keys: `step2`, `xpr`, `url`, `loop`, `cost`, `table_in`, `table_out`
+- Flow keys: `step2`, `xpr`, `url`, `loop`, `cost`]()
 
 
 ### 5.2 Dynamic `__info`

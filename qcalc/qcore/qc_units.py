@@ -892,9 +892,7 @@ altcur = {'TRY': 'TRL', 'CUP': 'CPS', 'ALL': 'LEK'}
 
 # Turkish Lira, Cuban Peso, Albanian Lek
 
-def add_currencies(curlist, curdesc):
-    base = curlist["base"]
-    rates = curlist["rates"]
+def add_currencies(rates, base, curdesc):
     _usd = rates["USD"]
     factr = 1.0
     if base != _usd:

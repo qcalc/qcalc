@@ -407,6 +407,9 @@ AI_MODELS_DIR = str(env("AI_MODELS_DIR", default=env.NOTSET)).replace("{PROJ_DIR
 TEMPLATES[0]["DIRS"] += [HELP_FILES_DIR, DOCS_FILES_DIR]
 
 # API keys
+EXRATE_API_KEY = env("EXRATE_API_KEY", default="")
+EXRATE_API_URL = env("EXRATE_API_URL", default="")
+
 FIXER_API_KEY = env("FIXER_API_KEY", default="")
 FIXER_API_URL = env("FIXER_API_URL", default="")
 

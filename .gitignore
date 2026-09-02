@@ -230,7 +230,9 @@ robots*.txt
 gpref.json
 *.log
 .editorconfig
-latest.json
+latest_exrate.json
+latest_fixer.json
+*-backup-*.json
 robots.txt
 _*_/
 Dockerfile

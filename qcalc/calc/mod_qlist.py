@@ -1,17 +1,16 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
-import json
-import os
-import urllib.request
-from qutil import makeid, check_setting, is_obsolete, timestamp_to_dt
-from qcore import add_measurement_units, add_currencies, add_quantities
 import sys
-from django.conf import settings
+from qcore import add_measurement_units, add_quantities
 from qvars import qfunc_info, qty_info, unit_info
+from qutil import load_json
+from .mod_currency import CurrencyLoader
 import logging
 
 logger = logging.getLogger(__name__)
+
+cur_loader = CurrencyLoader()
 
 activity_choice = {
     'type': 'choice',
@@ -52,92 +51,6 @@ show_choice = {
 }
 
 
-def load_json(json_file_name, path=None):
-    if path is None:
-        filepath = os.path.join(settings.JSON_FILES_DIR, json_file_name)
-    else:
-        filepath = os.path.join(path, json_file_name)
-
-    try:
-        json_data = open(filepath)
-        j_list = json.load(json_data)
-        json_data.close()
-    except FileNotFoundError:
-        logger.error(f'>>> LDJ: File {filepath} does not exist')
-        j_list = {}
-    return j_list
-
-
-def load_currency(update_now=False, backup=False):
-    def check_curlist(j_list):
-        notfound = False
-        obsolete = False
-
-        success = 'success' in j_list and j_list['success']
-        if j_list == {}:
-            notfound = True
-        elif success:
-            obsolete = is_obsolete(j_list["timestamp"], 18000)  # 5 hr
-        else:
-            logger.error(">>> LDC: " + j_list["error"]["info"])
-
-        return notfound, obsolete, success
-
-    latest_json_file = "latest.json"
-    latest_filepath = os.path.join(settings.JSON_FILES_DIR, latest_json_file)
-    default_json_file = "latest.json" if os.path.exists(latest_filepath) else "latest-default.json"
-    notfound, obsolete, success = True, True, False
-    j_list = None
-
-    if not update_now:
-        try:
-            j_list = load_json(default_json_file)
-            notfound, obsolete, success = check_curlist(j_list)
-        except Exception as e:
-            pass
-
-    if notfound or obsolete or update_now or not success:
-        try:
-            fixer_api_key = check_setting(settings.FIXER_API_KEY, "FIXER_API_KEY", optional=True)
-            if fixer_api_key == '':
-                success = False
-                logger.warning(f"!!! LC: Currency API key missing from settings.FIXER_API_KEY")
-            else:
-                fixer_api_url = check_setting(settings.FIXER_API_URL, "FIXER_API_URL")
-                url = fixer_api_url + fixer_api_key
-                with urllib.request.urlopen(url, timeout=15) as response:
-                    jdata = json.loads(response.read())
-                json_object = json.dumps(jdata)  # | simple JSON dumps
-                if (not notfound) and success and backup:  # rename existing latest.json
-                    os.rename(latest_filepath, os.path.join(
-                        settings.JSON_FILES_DIR,
-                        latest_json_file.replace('.json', f'-{j_list["date"]}-{makeid()}.json')))
-                with open(latest_filepath, "w") as outfile:  # write current JSON dumps to latest.json
-                    outfile.write(json_object)
-                j_list = load_json(latest_json_file)
-                notfound, obsolete, success = check_curlist(j_list)
-        except Exception as e:
-            logger.error(f">>> LC: {e}")
-            success = False
-
-        if not success:
-            try:
-                j_list = load_json(default_json_file)
-                logger.warning(f"!!! LC: Using Standard Currency rates from {default_json_file}")
-            except Exception as e:
-                logger.error(f">>> LC: {e}")
-
-    return j_list
-
-
-def update_currency(update_now=False):
-    cl = load_currency(update_now=update_now)
-    StdList.currency_list.update(cl)  # update the global list
-    add_currencies(StdList.currency_list, StdList.currency_desc)
-    update_msg = "Currency updated as of: " + cur_as_of()
-    return update_msg
-
-
 def list2options(lst, **kwargs):
     for key, value in kwargs.items():
         lst[key] = value
@@ -152,8 +65,6 @@ class StdList:
     autofill2data_list = {}
     related1_list = {}
     related1data_list = {}
-    currency_list: dict = {}
-    currency_desc = {}
     text_list = {}
     theme_list = {}
     timezone_list = {}
@@ -174,13 +85,8 @@ class StdList:
         logger.info('*** Units added')
         add_quantities()
         logger.info('*** Qtys added')
-        cls.currency_list = load_currency()
-        cls.currency_desc = load_json("currency.json")
-        add_currencies(cls.currency_list, cls.currency_desc)
-
-        logger.info('*** Currencies added')
-        # qc_gpref.update(load_json("gpref.json", settings.ROOT_DIR))
-        # lprint(qc_gpref)
+        msg = cur_loader.update_currency()
+        logger.info(f'*** {msg}')
         qfunc_info.update(load_json("qfunc_info.json"))
         logger.info('*** Func info updated')
         qty_info.update(load_json("qty_info.json"))
@@ -214,7 +120,3 @@ class QList:
         for key, value in kwargs.items():
             lst[key] = value
         return lst
-
-
-def cur_as_of():
-    return timestamp_to_dt(StdList.currency_list['timestamp'])

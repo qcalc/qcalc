@@ -3,7 +3,7 @@
 
 from qcore import Qty, qhtml
 from qutil import nzv
-from calc import QCals, cur_as_of
+from calc import QCals, cur_loader
 
 
 def cur__info():
@@ -28,7 +28,7 @@ def cur(amount: str = '1.0', from_currency='USD', to_currency='UNC'):
     ycur = xcur.to(to_currency)
     return {
         'Converted Amount': ycur,
-        'Currency Rate as of': qhtml(cur_as_of())
+        'Currency Rate as of': qhtml(cur_loader.cur_as_of())
     }
 
 
@@ -74,10 +74,6 @@ def curx(
     qbuy_amt2 = Qty(qsale_amt).to(buy_currency)
     # important: qbuy_amt2 = qsale_amt followed by qbuy_amt2.to will also convert qsale_amt
 
-    # qamtx = ''
-    # if express_in_currencies != '':
-    #     inunits = css2strs(express_in_currencies)
-    #     qamtx = qamt.in_units_of(*inunits)
     diff = round((qbuy_amt.val - qbuy_amt2.val) * 100 / qbuy_amt2.val, 2)
     lg = 'loss' if diff < 0 else 'gain'
     return {
@@ -85,7 +81,7 @@ def curx(
         # 'Expressed Currency': qamtx,
         'If Purchased at qCalc Rate': qbuy_amt2,
         'qCalc Rate is': qhtml(f'1 {buy_currency.upper()} = {xrate} {sale_currency.upper()}'),
-        'qCalc Rate as of': qhtml(cur_as_of()),
+        'qCalc Rate as of': qhtml(cur_loader.cur_as_of()),
         'Difference': qhtml(f'{abs(diff)}% ({lg})'),
         'Sold Amount': qsale_amt,
     }

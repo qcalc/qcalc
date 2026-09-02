@@ -225,7 +225,8 @@ def qeval(request: HtmxHttpRequest, xpr: str):
                 if not matches:
                     return f"No qCalc symbols matched '{rest}'", stdout
                 if len(matches) == 1:
-                    return qsymhelp(rest), stdout
+                    help_text = qsymhelp(matches[0])
+                    return f"Match: {matches[0]}\n{help_text}", stdout
                 else:
                     return matches, stdout
             stdout = out.flush()

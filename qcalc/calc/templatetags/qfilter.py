@@ -11,7 +11,7 @@ from qvars import qc_gpref as gs
 from qsite import STATIC_VERSION
 from django.utils.html import format_html
 from django.conf import settings
-from calc import QCals, StdList, get_html, ancestors, QPref, QInput, cur_as_of
+from calc import QCals, StdList, get_html, ancestors, QPref, QInput, cur_loader
 import re
 
 register = template.Library()
@@ -165,7 +165,7 @@ def ucal_name(func_id):
 
 @register.simple_tag
 def cur_asof():
-    return cur_as_of()
+    return cur_loader.cur_as_of()
 
 
 @register.filter

@@ -9,6 +9,7 @@ from .mod_openai import *
 from .mod_qcals import QCals
 # mod_qcals_security
 from .mod_qlist import *
+from .mod_currency import *
 from .mod_redis import *
 from .mod_redis_act import *
 from .mod_result import result_values
@@ -21,8 +22,6 @@ import logging
 from qapi import qlib_dict
 
 calc_dict = {
-    # 'datetime': datetime.datetime, 'date': datetime.date, 'time': datetime.time,
-    # 'QGeo': QGeo, 'geo': QGeo,
     # 'QCals': QCals, 'UCals': UCals, 'QFav': QFav,
     'call': QCals.addr,
 }

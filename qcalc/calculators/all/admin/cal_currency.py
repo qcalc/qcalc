@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
-from calc import update_currency, redis_publish_action
+from calc import cur_loader, redis_publish_action
 
 
 def upcur__info():
@@ -9,7 +9,7 @@ def upcur__info():
 
 
 def upcur():
-    update_msg = update_currency(update_now=True)
+    update_msg = cur_loader.update_currency(update_now=True)
     redis_publish_action(
         channel="qcalc_channel",
         action="update_currency",

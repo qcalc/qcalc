@@ -106,22 +106,29 @@ def qc_datetime_to_str(dtime: datetime | date | dt_time | None):  # qc date/time
 def qc_str_to_datetime(sdatetime_iso_qc: str):
     return QDateTime(sdatetime_iso_qc).val
 
+
 def qc_str_to_date_and_time(sdatetime_iso_qc: str):
     return QDateTime(sdatetime_iso_qc).date_time()
+
 
 def is_str_date(sdatetime_iso_qc: str) -> bool:
     return QDateTime(sdatetime_iso_qc).is_date
 
 
 def is_obsolete(past_timestamp: float, delta_secs: float = 86400.0):
+    """Check if a past timestamp is obsolete based on the current time and a delta in seconds."""
     cur_datetime = datetime.now()
     past_datetime = datetime.fromtimestamp(past_timestamp)
     return past_datetime + timedelta(seconds=delta_secs) < cur_datetime
 
 
 def timestamp_to_dt(timestamp: float) -> str:
+    """Convert a timestamp to a datetime string in YYYY-MM-DD HH:MM:SS UTC+0000 format."""
     return qc_datetime_to_str(datetime.fromtimestamp(timestamp, tz=timezone.utc))
 
+def timestamp_to_date(timestamp: float) -> str:
+    """Convert a timestamp to a date string in YYYY-MM-DD."""
+    return qc_datetime_to_str(datetime.fromtimestamp(timestamp, tz=timezone.utc))[:10]
 
 def qc_timezone_ll(latitude: float, longitude: float):
     tf = TimezoneFinder()
@@ -136,7 +143,7 @@ def qc_timezone(time_zone: str) -> None | timezone:
         return timezone.utc
 
     # match = re.match(r"^(UTC[+-]\d{2}:?\d{2})\s*(.+)$", value)
-    match = re.match(r"^(UTC[+-]\d{2}:?\d{2})(?:\s*(.+))?$", value) # 'UTC+6:00' is valid
+    match = re.match(r"^(UTC[+-]\d{2}:?\d{2})(?:\s*(.+))?$", value)  # 'UTC+6:00' is valid
 
     if match:
         # Slice from index 3 to skip "UTC" and get "+0530" or "+05:30"

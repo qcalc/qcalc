@@ -118,6 +118,7 @@ def mycal__info():
                 command_button('mycal', 'Validate Input', '__command', args=['validate']),
         },
         'calculate': 'Save',
+        'kins': 'eva',
     }
 
 

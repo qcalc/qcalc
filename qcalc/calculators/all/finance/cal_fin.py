@@ -47,6 +47,7 @@ def fincal__info():
             'known_parameters': {'type': 'checkboxselectmultiple', 'choices': finp_choices},
         },
         'calculate': 'Recommend',
+        'kins': 'cur',
     }
 
 

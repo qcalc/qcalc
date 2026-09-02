@@ -1,7 +1,11 @@
 {
+    "debt_invest": {
+        "tags": "financial, investment, debt",
+        "desc": "The Debt Paydown vs Investment calculator helps you compare two ways of using available cash: Pay down debt and Invest the cash"
+    },
     "gold": {
         "tags": "ornaments, investment, jewelry",
-        "desc": "Estimate the cost of gold jewelry including VAT and making charge. Get the total price breakdown in a pie chart."
+        "desc": "Estimate the cost of gold jewelry including VAT and making charge."
     },
     "sunrise": {
         "tags": "solar system, calendar",

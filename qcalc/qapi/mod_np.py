@@ -17,7 +17,7 @@ _NP_ALLOWED = dict.fromkeys([
     'amin', 'amax', 'median',
     # Array / matrix operations
     'dot', 'matmul', 'concatenate', 'stack', 'vstack', 'hstack',
-    'reshape', 'transpose', 'ravel', 'flatten', 'where', 'clip',
+    'reshape', 'transpose', 'ravel', 'where', 'clip', # , 'flatten'
     # Constants
     'pi', 'e',
 ], True)

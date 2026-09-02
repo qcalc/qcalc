@@ -21,7 +21,8 @@ def eva__info():
         'desc': 'Evaluate arbitrary expressions and functions',
         'inserts': {
             'form_top': command_button('eva', 'Format Code', '__modify', kwargs={'code': 'format'})
-        }
+        },
+        'kins': 'mycal',
     }
 
 

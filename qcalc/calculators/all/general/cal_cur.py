@@ -9,7 +9,8 @@ from calc import QCals, cur_loader
 def cur__info():
     return {
         'title': 'Simple Currency Converter',
-        'schema': {'amount': {'type': 'textarea'}}
+        'schema': {'amount': {'type': 'textarea'}},
+        'kins': 'fincal',
     }
 
 

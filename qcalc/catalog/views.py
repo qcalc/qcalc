@@ -208,7 +208,7 @@ def qty_dir(request: HtmxHttpRequest, **kwargs):
         "category": node,
         "request": request,
     }
-    help_path = get_help_path(f'qty/{scat}')
+    help_path = get_help_path(scat, qty=True)
     context['help_html'] = help_path.as_posix() if help_path.exists() else "nohelp_qty.html"
     return ut.get_page(request, template, context, scat)
 

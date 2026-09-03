@@ -28,16 +28,24 @@ def ancestors(page_id, page_type='c'):
     return aids
 
 
-def get_help_path(func_id):
-    help_file = fid2help_file(func_id)  # considers user catalog name and demo function
-    help_path = Path(settings.HELP_FILES_DIR) / help_file
-    # if .html help does not exist check also .md file
-    # if .md file exists then returns it otherwise return the non-existent .html file path
-    # as currently .html help file can be edited online by 'super' user
-    if not help_path.exists():  # which is a .html file
-        help_path_md = help_path.with_suffix('.md')
-        help_path = help_path_md if help_path_md.exists() else help_path
-    return help_path
+def get_help_path(func_id, qty=False):
+    help_file, help_file_opt = fid2help_file(func_id, qty)  # considers user catalog name and demo function
+    def check_help_file(help_file):
+        help_path = Path(settings.HELP_FILES_DIR) / help_file
+        # | if .html help does not exist check also .md file
+        # | if .md file exists then returns it otherwise return the non-existent .html file path
+        # | currently .html help file can be edited online by 'super' user
+        if not help_path.exists():  # which is a .html file
+            help_path_md = help_path.with_suffix('.md')
+            help_path = help_path_md if help_path_md.exists() else None
+        return help_path
+
+    help_path = check_help_file(help_file)
+    if not help_path:
+        help_path = check_help_file(help_file_opt)
+
+    # Return the primary HTML path even if it does not exist.
+    return help_path or Path(settings.HELP_FILES_DIR) / help_file
 
 
 def val_de_quote(val):

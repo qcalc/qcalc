@@ -15,12 +15,12 @@
   <p>{{ input.doc.info.desc | safe }}</p>
   <!--p> input.doc.help | safe </p-->
   {% if input.doc.help == 'y' %}
-  <p>Click on Help icon
-    <a class="card-help" href="/calc/help/{{ input.doc.name }}/"
+  <p>Click here to
+    <a class="" href="/calc/help/{{ input.doc.name }}/"
        hx-get="/calc/help/{{ input.doc.name }}/?part=1&token={{ request.token}}"
        hx-target="closest .calc" hx-swap="afterend" hx-trigger="click[get_card_once('{{ input.doc.name }}_help__page')]">
-    </a>
-    to open the help page on a separate window.</p>
+    <i class="icon-question4"></i> Learn more about: {{ input.doc.info.title }}</a>
+  </p>
   {% else %}
   {% include 'nohelp.html' %}
   {% endif %}

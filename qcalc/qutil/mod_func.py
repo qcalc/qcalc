@@ -63,6 +63,11 @@ def names2fid(catalog_name, cal_name):
 
 
 def fid2names(fid):
+    """
+    Example, ext catalog: gold-ext => catalog=ext, func_name=gold
+    Example, all catalog: gold => catalog=all, func_name=gold
+    Example, user catalog: gold-super => catalog=super, func_name=gold
+    """
     names = fid.split(fid_separator)
     catalog_name = names[1] if len(names) > 1 else "all"
     func_name_ = names[0]
@@ -79,17 +84,29 @@ def fid2owner(func_id):
     return cal_id, cal_name, owner
 
 
-def fid2help_file(func_id):
-    catalog, func_name_ = fid2names(func_id)
+def fid2help_file(func_id, qty=False):
+    """
+    Example, ext catalog: gold-ext => ext/gold_help.html, ext/g/gold_help.html
+    Example, all catalog: gold => all/gold_help.html, all/g/gold_help.html
+    Example, user catalog: gold-super => super/gold_help.html, super/g/gold_help.html
+    """
+    if not qty:
+        catalog, func_name_ = fid2names(func_id)
+    else:
+        catalog = "qty"
+        func_name_ = func_id
+
     help_path = func_name_
     if func_name_.startswith('demo_'):
         help_path = os.path.join('demo', func_name_)
 
-    if catalog != 'all':
-        help_file = os.path.join(catalog, f"{help_path}_help.html")
-    else:
-        help_file = f"{help_path}_help.html"
-    return help_file
+    # if catalog != 'all':
+    help_file = os.path.join(catalog, f"{help_path}_help.html")
+    help_file_opt = os.path.join(catalog, func_name_[0], f"{help_path}_help.html")
+    # else:
+    #     help_file = f"{help_path}_help.html"
+    #     help_file_opt = os.path.join(func_name_[0], f"{help_path}_help.html")
+    return help_file, help_file_opt
 
 
 def preprocess_expression(qexpr, disp=False):  # deb@13.08.23, @25.11.23

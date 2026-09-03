@@ -2,15 +2,15 @@
 {% extends base %}
 {% load qfilter %}
 {% block cardtitle %}Help - {{ info.title }} ({{ info.name }}){% endblock %}
-{% block extra_header %}<meta name="robots" content="noindex, nofollow">{% endblock %}
 {% block page_profile %}
-{% concat '/calc/' info.name '/' as canonical %}
+{% concat '/calc/help/' info.name '/' as canonical %}
 {% add_head info.title info.desc canonical %}
 {% endblock %}
 <!-- /calc/help/sfunc content is same as /calc/sfunc, so no need for robots to visit -->
 {% block _card %}{% endblock %}
 {% block content %}
-<p>{{ info.desc|safe }}</p>
+<!--p>{{ info.desc|safe }}</p-->
+<p>Click here to open the calculator: {% callink info.name info.title '' 'icon-calculator' 'b' %}</p>
 <!--p> help|safe </p-->
 {% if help_html %}
 {% include help_html %}

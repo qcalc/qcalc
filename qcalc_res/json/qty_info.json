@@ -75,7 +75,7 @@
         "desc": "Electrical conductance is a measure of a material's ability to conduct electric current, typically measured in siemens (S)."
     },
     "electrical-conductivity": {
-        "desc": "\"Electrical conductivity is a measure of a material's ability to conduct electric current.\""
+        "desc": "Electrical conductivity is a measure of a material's ability to conduct electric current."
     },
     "electrical-resistivity": {
         "desc": "Electrical resistivity is a measure of a material's ability to resist the flow of electric current."
@@ -138,7 +138,7 @@
         "desc": "Luminous energy density is the amount of light energy per unit volume, measured in lumens per cubic meter."
     },
     "luminous-exposure": {
-        "desc": "\"Luminous exposure measures the total amount of light received by a surface over a period of time, expressed in lux seconds.\""
+        "desc": "Luminous exposure measures the total amount of light received by a surface over a period of time, expressed in lux seconds."
     },
     "luminous-flux": {
         "desc": "Luminous flux, also known as luminous power, measures the total amount of visible light emitted by a source in all directions."
@@ -195,7 +195,7 @@
         "desc": "Plane angle measures rotation between two intersecting lines, often in degrees or radians."
     },
     "pop": {
-        "desc": "\"Pop is a unit of measurement used to quantify the amount of sound pressure in a given space, commonly used in the field of acoustics.\""
+        "desc": "Pop is a unit of measurement used to quantify the amount of sound pressure in a given space, commonly used in the field of acoustics."
     },
     "power": {
         "desc": "Power, radiant flux, is the rate at which radiant energy is emitted, transmitted, or received per unit time."
@@ -258,7 +258,7 @@
         "desc": "Thermal conductance measures the ability of a material to conduct heat, expressed in watts per kelvin."
     },
     "thermal-conductivity": {
-        "desc": "\"Thermal conductivity measures a material's ability to conduct heat, determining how quickly heat energy can transfer through it.\""
+        "desc": "Thermal conductivity measures a material's ability to conduct heat, determining how quickly heat energy can transfer through it."
     },
     "thermal-resistance": {
         "desc": "Thermal resistance measures a material's ability to resist heat flow, expressed in units of degrees Celsius per watt."
@@ -273,7 +273,7 @@
         "desc": "Time is a fundamental physical quantity measuring the duration of events. Half-life is the time taken for a substance to decay by half. Labour refers to the physical and mental effort exerted in the production of goods and services."
     },
     "unitless": {
-        "desc": "\"Unitless\" is a physical quantity that does not have any specific unit of measurement, typically used for ratios, angles, and pure numbers."
+        "desc": "Unitless is a physical quantity that does not have any specific unit of measurement, typically used for ratios, angles, and pure numbers."
     },
     "velocity": {
         "desc": "Velocity is a measurement of the speed and direction of an object's motion. It is a vector quantity with units of meters per second (m/s)."

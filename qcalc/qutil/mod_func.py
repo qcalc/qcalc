@@ -119,11 +119,26 @@ def doc_title(name):
     return var
 
 
+# def variable_to_title(var):
+#     var = re.sub(r'__r[a-z]?', '', var).replace('_', ' ').replace('--', ': ')
+#     var = titlecase(var)
+#     return var
+
+# titlecase automatically considers some minor words
+# but not all minor words, e.g. "per"
+MINOR_WORDS = {"per"}
+
+
 def variable_to_title(var):
     var = re.sub(r'__r[a-z]?', '', var).replace('_', ' ').replace('--', ': ')
     var = titlecase(var)
-    return var
 
+    words = var.split()
+    for i in range(1, len(words)):
+        if words[i].lower() in MINOR_WORDS:
+            words[i] = words[i].lower()
+
+    return ' '.join(words)
 
 def vlist2titles(func) -> list:
     # generate a dict with variable title and name from a variable list

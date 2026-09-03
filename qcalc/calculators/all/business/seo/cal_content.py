@@ -9,6 +9,9 @@ from qcore.mod_anno import *
 from qutil import word_count, text2words, url2text, qaddr
 import pandas as pd
 
+example_text = "Data science and data analysis help us understand big data through data visualization and data cleaning. "\
+        "Modern data science relies on powerful Python code, libraries, and specialized Python tools to extract deep insights. "\
+        "Furthermore, modern analysis requires clean code to build accurate machine learning models and predictive models."
 
 def word_freq__info():
     return {
@@ -16,7 +19,7 @@ def word_freq__info():
     }
 
 
-def word_freq(text: qtexta = 'hello world, hello!', url: qurl = qaddr(), top=20):
+def word_freq(text: qtexta = example_text, url: qurl = qaddr(), top=20):
     def cal_pct(sorted_count_list, word_cnt):
         for i in range(len(sorted_count_list)):
             sorted_count_list[i] = list(sorted_count_list[i])
@@ -74,7 +77,10 @@ def word_cloud__info():
     }
 
 
-def word_cloud(text: qtexta = 'hello world, hello!', url: qurl = qaddr()):
+def word_cloud(
+    text:qtexta = example_text,
+    url: str = qaddr()
+):
     if text:
         text_content = text
     elif url:
@@ -118,7 +124,7 @@ def keywords__info():
     }
 
 
-def keywords(text: qtexta = 'hello world, hello!', top=20, language: qchar = 'en'):
+def keywords(text: qtexta = example_text, top=20, language: qchar = 'en'):
     kw_extractor = yake.KeywordExtractor(lan=language, top=top)
     """
     kw_extractor = yake.KeywordExtractor(

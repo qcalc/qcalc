@@ -1,7 +1,13 @@
 <!-- template:_gulp-calculator-partial -->
 {% extends base %}
 {% load qfilter %}
+{% load static %}
 {% block cardtitle %}Help - {{ info.title }} ({{ info.name }}){% endblock %}
+{% block extra_header_script %}
+  <link href="{% static 'vendor/katex/0.11.1/katex.min.css' %}" rel="stylesheet" type="text/css">
+  <script src="{% static 'vendor/katex/0.11.1/katex.min.js' %}"></script>
+  <script src="{% static 'vendor/katex/0.11.1/contrib/mathtex-script-type.min.js' %}" defer></script>
+{% endblock %}
 {% block page_profile %}
 {% concat '/calc/help/' info.name '/' as canonical %}
 {% add_head info.title info.desc canonical %}

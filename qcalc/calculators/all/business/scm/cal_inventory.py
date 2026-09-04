@@ -3,7 +3,7 @@
 
 from qcore import Qty, quom, ucur
 import numpy as np
-from calc import fchart, show_choice
+from calc import results2chart, show_choice
 
 
 def purcost__info(): return {
@@ -139,7 +139,7 @@ def invlevel(
                 "Reorder Point": reorder_point,
                 "Stock Promised": stock_promised})
     # print(results)
-    return fchart(
+    return results2chart(
         results=results, chart_x_axis='Day', chart_columns=chart_columns,
-        chart_units=chart_units, show=show, aspect=0.6, title='Inventory Levels Over Time'
+        chart_units=chart_units, show=show, title='Inventory Levels Over Time'
     )

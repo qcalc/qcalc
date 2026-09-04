@@ -10,7 +10,13 @@ CODE_TAB = 4
 ALLOW_UNSAFE_USER_CALCULATOR_IMPORTS = False
 # 'toc' adds slug ids to headings (e.g. #1-getting-started) so in-doc TOC/bookmark links resolve
 MARKDOWN_EXTENSIONS = extensions=['extra', 'fenced_code', 'tables', 'mdx_math', 'toc']
-
+"""
+extra:  footnotes, abbreviations, and definition lists
+fenced_code: multiline code blocks by wrapping them in three backticks (```) instead of forcing a four-space indentation.
+tables: standard data grids using traditional pipe and dash separators (| and -).
+mdx_math: Intercepts math syntax (like $ .. $ and $$ .. $$) so LaTeX math equations can be prepared for browser rendering.
+toc: to generate a dynamic, hyperlinked Table of Contents.
+"""
 # catalog properties
 name_separator = '-'
 separator_display = ' > '

@@ -5,7 +5,7 @@ from calc import show_choice
 from qutil import replace_words
 from qcore import qchar
 from calculators.all.general.utility.cal_range import valid_range
-from calc import fchart
+from calc import results2chart
 from calculators.all.general.cal_eva import eva
 
 
@@ -35,4 +35,4 @@ def redo(xpr="sine('x deg')", variable: qchar = 'x',
         result = eva(code=replace_words(xpr, [variable], str(var)))
         # print(var, result)
         results.append(result)
-    return fchart(results, xvals, result_columns, result_units, variable, chart_columns, chart_units, show)
+    return results2chart(results, xvals, result_columns, result_units, variable, chart_columns, chart_units, show)

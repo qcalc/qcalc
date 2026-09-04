@@ -24,6 +24,9 @@ from qapi import qlib_dict
 calc_dict = {
     # 'QCals': QCals, 'UCals': UCals, 'QFav': QFav,
     'call': QCals.addr,
+    'df2chart': df2chart,
+    'df2chart_data': df2chart_data,
+    'results2chart': results2chart,
 }
 
 logger = logging.getLogger(__name__)

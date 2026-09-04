@@ -43,5 +43,6 @@
   <script src="{% static 'vendor/filesaver/FileSaver.min.js' %}"></script>
   <script src="{% static_ver 'qsite/js/qcalc.js' %}"></script>
   <!-- /qCalc JS files -->
+  {% block extra_header_script %}{% endblock %}
 </head>
 {% endlineless %}

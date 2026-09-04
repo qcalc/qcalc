@@ -3,7 +3,7 @@
 
 from calc import QPref, QMem
 from calc import QData, QTemp, QKeep, QSave, QIO, QRam, QMeta, QMyCal, QFav
-from qcore import QScreen, quom, color_schemes, legend_locations, qpretty_json
+from qcore import QScreen, quom, color_schemes, legend_locations
 from qutil import nzs, css2strs, truncate, user_process, command_button, QThread
 from qvars import qc_gpref as gs
 from calc import list2options, StdList
@@ -49,7 +49,9 @@ $(document).ready(function() {
 def pref__input(_kwargs):  # alternative to func__info() 'schema':{}'
     # dynamic assignment of arg initials, every time before creation of form
     us = gs.copy()
-    us.update(QPref.getp())  # User's Session Defaults
+    req = QThread.get_req()
+    if req.recall:  # if refresh button is clicked, recall will False
+        us.update(QPref.getp())  # User's Session Defaults
     return {  # pref-02
         # 'request': '__req__',
         'theme': us['theme'],
@@ -167,10 +169,12 @@ def mem(functions='', json_format=True, clear_memory=False):
         resp.update(mem_dict)
         return resp
 
+
 sesn_objs = {'qd': QData, 'qmr': QMem, 'qt': QTemp, 'qk': QKeep, 'qs': QSave, 'qi': QIO, 'qr': QRam,
              'qmy': QMyCal, 'qm': QMeta,
              'qf': QFav
              }
+
 
 def temp__command(fkwargs, extra):
     result = ''
@@ -223,7 +227,7 @@ def temp__info():
 
 def temp(data='all'):
     selected_keys = sesn_objs.keys() if data == 'all' else [data]
-    if data == 'qmy+qm': # List calculators and directory together
+    if data == 'qmy+qm':  # List calculators and directory together
         selected_keys = ['qmy', 'qm']
     out = QScreen()
     out.write(user_process())

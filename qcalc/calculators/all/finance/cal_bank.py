@@ -1,12 +1,11 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
-# import sett
 import pandas as pd
 from datetime import datetime
-from qcore import qfunc, QChart
+from qcore import qfunc, QChart, Qty
 from calculators.all.general.file.cal_file import csv_reader
-from calc import df_qchart_data_yy
+from calc import df2chart_data
 from qutil import demo_url
 
 
@@ -39,10 +38,6 @@ def calculate_periodic_interest(df, initial_balance, debit_rate, credit_rate, da
     df['DR Interest'] = df['DR Interest'].apply(lambda x: f"{x:.2f}")
     df['CR Interest'] = df['CR Interest'].apply(lambda x: f"{x:.2f}")
 
-    # df.at['Total', 'DR Interest'] = dr_interest
-    # df.at['Total', 'CR Interest'] = cr_interest
-    # # | Change the data type of the last row to object and fill it with empty strings for NaN values
-    # df.iloc[-1] = df.iloc[-1].astype(object).fillna('')
     return {
         'Total DR Interest': round(dr_interest, 2),
         'Total CR Interest': round(cr_interest, 2),
@@ -119,8 +114,8 @@ def amort(loan_amount: float = 100000.0, annual_interest_rate: float = 5.0, loan
     ]
     df = pd.DataFrame(amortization_schedule, columns=columns)
 
-    chdata = df_qchart_data_yy(
-        df, rkeys=["Total Principal", "Total Interest", "Total Payment", "Remaining Principal"])
+    chdata = df2chart_data(
+        df, y_columns=["Total Principal", "Total Interest", "Total Payment", "Remaining Principal"])
     chart = QChart(aspect=1)
     chart.legend_loc_best = 'upper center'
     chart.render_lines(**chdata)
@@ -132,6 +127,62 @@ def amort(loan_amount: float = 100000.0, annual_interest_rate: float = 5.0, loan
     return {
         "Amortization Schedule": df,
         "Amortization Chart": chart
+    }
+
+
+def real_return__info():
+    return {
+        'title': 'Real Return After Inflation and Tax',
+        'desc': (
+            'Calculate the investment return after tax and inflation, '
+            'and compare nominal, after-tax and real returns.'
+        ),
+    }
+
+
+def real_return(
+    nominal_return='8 pct/yr',
+    tax_rate='15 pct',
+    inflation_rate='3 pct/yr',
+):
+    q_nominal_return = Qty(nominal_return)
+    q_tax_rate = Qty(tax_rate)
+    q_inflation_rate = Qty(inflation_rate)
+
+    nominal = q_nominal_return.to('pct/yr').val / 100.0
+    tax = q_tax_rate.to('pct').val / 100.0
+    inflation = q_inflation_rate.to('pct/yr').val / 100.0
+
+    # Return remaining after tax.
+    after_tax_return = nominal * (1.0 - tax)
+
+    # Real return after inflation.
+    real_return_after_tax = (
+                                (1.0 + after_tax_return) /
+                                (1.0 + inflation)
+                            ) - 1.0
+
+    # Real return before tax.
+    real_return_before_tax = (
+                                 (1.0 + nominal) /
+                                 (1.0 + inflation)
+                             ) - 1.0
+
+    # Reduction caused by tax.
+    tax_impact = nominal - after_tax_return
+
+    # Reduction from after-tax nominal return to real after-tax return.
+    inflation_impact = (
+        after_tax_return -
+        real_return_after_tax
+    )
+
+    return {
+        'After-Tax Return': Qty(after_tax_return * 100, 'pct/yr'),
+        'Real Return Before Tax': Qty(real_return_before_tax * 100, 'pct/yr'),
+        'Real Return After Tax': Qty(real_return_after_tax * 100, 'pct/yr'),
+        'Tax Impact': Qty(tax_impact * 100, 'pct/yr'),
+        'Inflation Impact': Qty(inflation_impact * 100, 'pct/yr'),
     }
 
 

@@ -266,7 +266,7 @@ def stack_chart(
 
     chart = QChart(xtype=xtype)
     chart.render_stack(
-        xvals=xvals_, yvals2d=yvals_, labels=labels_,
+        xvals=xvals_, yvalsm=yvals_, ylabels=labels_,
         xlabel=xlabel, ylabel=ylabel, title=title
     )
     return {'chart': chart}
@@ -626,5 +626,5 @@ def streamgraph(
     yvals_ = yvals.to_numpy(dtype=float)
     labels_ = css2strs(labels)
     chart = QChart(xtype=xtype)
-    chart.render_streamgraph(xvals=xvals_, yvals2d=yvals_, labels=labels_, xlabel=xlabel, ylabel=ylabel, title=title)
+    chart.render_streamgraph(xvals=xvals_, yvalsm=yvals_, labels=labels_, xlabel=xlabel, ylabel=ylabel, title=title)
     return {'chart': chart}

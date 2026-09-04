@@ -200,7 +200,7 @@ class QChart:
         if self.legend_labels and self.legend_loc != 'none': self.show_legend()
         self.fig2b64()
 
-    def render_surface3d(self, xvals: list = None, yvals: list = None, zvals2d: list = None,
+    def render_surface3d(self, xvals: list | None = None, yvals: list | None = None, zvals2d: list | None = None,
                          xlabel='x', ylabel='y', zlabel='z', title='z vs x,y', surface_type='Surface'):
         """Render a 3D surface plot."""
         if xvals is None: xvals = []
@@ -225,7 +225,7 @@ class QChart:
         self.set_labels(xlabel, ylabel, zlabel, title, grid=True)
         self.render_done()
 
-    def render_line3d(self, xvals: list = None, yvals: list = None, zvals: list = None,
+    def render_line3d(self, xvals: list | None = None, yvals: list | None = None, zvals: list | None = None,
                       xlabel='x', ylabel='y', zlabel='z', title='z vs x,y'):
         """Render a 3D line plot."""
         if xvals is None: xvals = []
@@ -237,30 +237,69 @@ class QChart:
         self.set_labels(xlabel, ylabel, zlabel, title, grid=True)
         self.render_done()
 
-    def render_lines(self, xvals: list = None, yvalsm: list = None, xlabel='x', ylabelm: list = None,
-                     title='y vs x'):
+    def render_lines(self, xvals: list | None = None, yvalsm: list | None = None,
+                     xlabel='x', ylabels: list | None = None, ylabel='y', title='y vs x'):
         """Render line chart(s)."""
         if xvals is None: xvals = []
         if yvalsm is None: yvalsm = []
-        if ylabelm is None: ylabelm = ['y']
+        if ylabels is None: ylabels = ['y']
 
         fig, ax = self.create_figure()
         i = 0
         for yvals in yvalsm:
-            ax.plot(xvals, yvals, label=ylabelm[i])
+            ax.plot(xvals, yvals, label=ylabels[i])
             i += 1
 
-        self.set_labels(xlabel=xlabel, title=title, grid=True)
-        if ylabelm: self.set_legend(ylabelm)
+        self.set_labels(xlabel=xlabel, ylabel=ylabel, title=title, grid=True)
+        if ylabels: self.set_legend(ylabels)
         self.render_done()
 
-    def render_scatter(self, xvals, yvals, names, xlabel='x', ylabel='y', title='y vs x'):
-        """Render a scatter plot."""
+    def render_stack(self, xvals: list | None = None, yvalsm: list | None = None,
+                     xlabel='x', ylabels: list | None = None, ylabel='y', title='Stack Plot'):
+        """Render a stack plot."""
+        if xvals is None: xvals = []
+        if yvalsm is None: yvalsm = []
+
         fig, ax = self.create_figure()
-        ax.scatter(xvals, yvals, color='red')
-        for i, name in enumerate(names):
-            ax.text(xvals[i], yvals[i], name, fontsize=10, ha='left', va='top', color='black')
-        self.set_labels(xlabel=xlabel, ylabel=ylabel, title=title, grid=True)
+        ax.stackplot(xvals, yvalsm, labels=ylabels, colors=self.get_colors(len(yvalsm)))
+        self.set_labels(xlabel=xlabel, ylabel=ylabel, title=title)
+        if ylabels: self.set_legend(ylabels)
+        self.render_done()
+
+    def render_bars(self, xvals: list | None = None, yvalsm: list | None = None,
+                    xlabel='x', ylabels: list | None = None, ylabel='y', title='Bar Chart', vertical=True):
+        """Render a bar chart."""
+        if xvals is None: xvals = []
+        if yvalsm is None: yvalsm = []
+
+        fig, ax = self.create_figure()
+        n_series = len(yvalsm)
+        width = 0.8 / n_series
+        colors = self.get_colors(n_series)
+
+        if vertical:
+            x = np.arange(len(xvals))
+            for i, values in enumerate(yvalsm):
+                offset = (i - (n_series - 1) / 2) * width
+                ax.bar(x + offset, values, width=width, color=colors[i],
+                       label=ylabels[i] if ylabels else None)
+
+            ax.set_xticks(x)
+            ax.set_xticklabels(xvals)
+            self.set_labels(xlabel=xlabel, ylabel=ylabel, title=title)
+
+        else:
+            y = np.arange(len(xvals))
+            for i, values in enumerate(yvalsm):
+                offset = (i - (n_series - 1) / 2) * width
+                ax.barh(y + offset, values, height=width, color=colors[i],
+                        label=ylabels[i] if ylabels else None)
+
+            ax.set_yticks(y)
+            ax.set_yticklabels(xvals)
+            self.set_labels(xlabel=ylabel, ylabel=xlabel, title=title)
+
+        if ylabels: ax.legend()
         self.render_done()
 
     def render_bar(self, labels, vals, label='y', title='Bar Chart', vertical=True):
@@ -274,6 +313,15 @@ class QChart:
             ax.barh(labels, vals, color=colors)
             self.set_labels(xlabel=label, title=title)
 
+        self.render_done()
+
+    def render_scatter(self, xvals, yvals, names, xlabel='x', ylabel='y', title='y vs x'):
+        """Render a scatter plot."""
+        fig, ax = self.create_figure()
+        ax.scatter(xvals, yvals, color='red')
+        for i, name in enumerate(names):
+            ax.text(xvals[i], yvals[i], name, fontsize=10, ha='left', va='top', color='black')
+        self.set_labels(xlabel=xlabel, ylabel=ylabel, title=title, grid=True)
         self.render_done()
 
     def render_pie(self, labels, vals, title='Pie Chart', show_pct=True, shadow=False, radius=1.0,
@@ -423,14 +471,6 @@ class QChart:
         self.set_labels(title=title)
         self.render_done()
 
-    def render_stack(self, xvals, yvals2d, labels=None, xlabel='x', ylabel='y', title='Stack Plot'):
-        """Render a stack plot."""
-        fig, ax = self.create_figure()
-        ax.stackplot(xvals, yvals2d, labels=labels, colors=self.get_colors(len(yvals2d)))
-        self.set_labels(xlabel=xlabel, ylabel=ylabel, title=title)
-        if labels: self.set_legend(labels)
-        self.render_done()
-
     def render_contour3d(self, xvals, yvals, zvals, xlabel='x', ylabel='y', zlabel='z', title='3D Contour'):
         """Render a 3D contour plot."""
         xvals_ = np.array(xvals, dtype=self.dtype_x)
@@ -456,14 +496,6 @@ class QChart:
         stats.probplot(data, dist="norm", plot=ax)
         self.set_labels(title=title)
         self.render_done()
-
-    # def render_density(self, data, xlabel='Values', ylabel='Density', title='Density Plot'):
-    #     """Render a density plot."""
-    #     import seaborn as sns
-    #     fig, ax = self.create_figure()
-    #     sns.kdeplot(data, ax=ax, color='blue')
-    #     ax.set(xlabel=xlabel, ylabel=ylabel, title=title)
-    #     self.fig2b64(fig)
 
     def render_gantt(self, tasks, start_dates, end_dates, title='Gantt Chart'):
         """Render a Gantt chart."""
@@ -508,14 +540,6 @@ class QChart:
         self.set_labels(title=title)
         self.render_done()
 
-    # def render_pairplot(self, df, hue=None, title='Pairplot'):
-    #     """Render a pairplot."""
-    #     import seaborn as sns
-    #     fig = plt.figure(figsize=self.figsize)
-    #     sns.pairplot(df, hue=hue)
-    #     plt.suptitle(title, y=1.02)
-    #     self.fig2b64(fig)
-
     def render_dendrogram(self, linkage_matrix, xlabel, ylabel, title='Dendrogram'):
         """Render a dendrogram."""
         from scipy.cluster.hierarchy import dendrogram
@@ -523,19 +547,6 @@ class QChart:
         dendrogram(np.array(linkage_matrix, dtype=float), ax=ax)
         self.set_labels(xlabel=xlabel, ylabel=ylabel, title=title)
         self.render_done()
-
-    # def render_choropleth(self, geo_data, values, title='Choropleth Map'):
-    #     """Render a choropleth map."""
-    #     import geopandas as gpd
-    #     import matplotlib.colors as mcolors
-    #
-    #     fig, ax = self.create_figure()
-    #     gdf = gpd.read_file(geo_data)
-    #     gdf['values'] = values
-    #     gdf.plot(column='values', ax=ax, legend=True, cmap=self.color_scheme,
-    #              norm=mcolors.Normalize(vmin=min(values), vmax=max(values)))
-    #     ax.set_title(title)
-    #     self.fig2b64(fig)
 
     def render_surface3d_error(self, xvals, yvals, zvals2d, zerror, xlabel='x', ylabel='y', zlabel='z',
                                title='3D Surface with Error', surface_type='Surface'):
@@ -646,10 +657,10 @@ class QChart:
         ax.set_axis_off()
         self.render_done()
 
-    def render_streamgraph(self, xvals, yvals2d, labels=None, xlabel='x', ylabel='y', title='Streamgraph'):
+    def render_streamgraph(self, xvals, yvalsm, labels=None, xlabel='x', ylabel='y', title='Streamgraph'):
         """Render a streamgraph."""
         fig, ax = self.create_figure()
-        ax.stackplot(xvals, yvals2d, labels=labels, baseline='wiggle', colors=self.get_colors(len(yvals2d)))
+        ax.stackplot(xvals, yvalsm, labels=labels, baseline='wiggle', colors=self.get_colors(len(yvalsm)))
         self.set_labels(xlabel=xlabel, ylabel=ylabel, title=title)
         if labels: self.set_legend(labels)
         self.render_done()

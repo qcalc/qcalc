@@ -105,6 +105,14 @@ class _Df:
     def __len__(self):
         return len(self.__df)
 
+    @property
+    def columns(self):
+        return self._call('columns')
+
+    @property
+    def index(self):
+        return self._call('index')
+
 
 def _make_df_method(name):
     def method(self, *args, **kwargs):
@@ -114,8 +122,11 @@ def _make_df_method(name):
     return method
 
 
+# 'columns'/'index' are properties above so they read the same way as on a
+# pd.DataFrame (no callable-vs-attribute distinction for callers to check).
 for _name in _DF_METHODS:
-    setattr(_Df, _name, _make_df_method(_name))
+    if _name not in ('columns', 'index'):
+        setattr(_Df, _name, _make_df_method(_name))
 
 del _name
 

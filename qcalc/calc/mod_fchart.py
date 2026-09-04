@@ -8,49 +8,53 @@ from qcore import Qty, QChart
 from qutil import css2strs, variable_to_title, title_to_variable, idx2names
 
 
-def df_kchart_data_yy(df: pd.DataFrame, x_title='', rkeys=None):
+def df2chart(df: pd.DataFrame, x_column='', y_columns: list | None = None,
+             ylabel='y', chart_title='y vs x', chart_type='lines'):
+    """Draw lines or stack chart from DataFrame or qdf columns.
+
+    The X values come from the DataFrame index when ``x_column`` is empty;
+    otherwise they come from the named column. Each remaining numeric-like
+    column becomes a Y series. String and datetime columns are skipped, while
+    one-item lists and ``Qty`` values are converted to scalar numeric values.
+
+    Args:
+        df: DataFrame or qdf containing the X and Y data.
+        x_column: Display name of the column to use for X values, or an empty
+            string to use the DataFrame index.
+        y_columns: Optional list of columns to inspect. All DataFrame columns are
+            inspected when omitted or empty.
+        chart_type: can be 'lines', 'bars', 'hbars' or 'stack'.
+
+    Returns:
+        A QChart
+    """
+    chart_data = df2chart_data(df, x_column, y_columns)
+    chart = QChart()
+    if chart_type == 'lines':
+        chart.render_lines(**chart_data, ylabel=ylabel, title=chart_title)
+    elif chart_type == 'bars':
+        chart.render_bars(**chart_data, ylabel=ylabel, title=chart_title, vertical=True)
+    elif chart_type == 'hbars':
+        chart.render_bars(**chart_data, ylabel=ylabel, title=chart_title, vertical=False)
+    else:  # chart_type == 'stack'
+        chart.render_stack(**chart_data, ylabel=ylabel, title=chart_title)
+    return chart
+
+
+def df2chart_data(df, x_column='', y_columns: list | None = None):
     # df = {x:[],y:[]}
-    if rkeys is None:
-        rkeys = []
-    ch_data = []
-    if not rkeys:
-        rkeys = df.columns.tolist()
-
-    for rkey in rkeys:
-        yvals = df[rkey]
-        skip = False
-        if isinstance(yvals[0], list):
-            yvals = [y[0] for y in yvals]
-        elif isinstance(yvals[0], Qty):
-            yvals = [y.value for y in yvals]
-        elif isinstance(yvals[0], datetime.datetime) or isinstance(yvals[0], str):
-            skip = True
-
-        if x_title == rkey:
-            skip = True
-
-        if not skip:
-            if x_title == '':
-                ch_data.append({'name': rkey, 'data': yvals.to_dict()})
-            else:
-                ch_data.append({'name': rkey, 'data': dict(zip(df[x_title], yvals))})
-    return ch_data
-
-
-def df_qchart_data_yy(df: pd.DataFrame, x_title='', rkeys=None):
-    # df = {x:[],y:[]}
-    if rkeys is None:
-        rkeys = []
-    ch_data = {'yvalsm': [], 'ylabelm': [], 'xlabel': x_title}
-    if x_title == '':
-        ch_data['xvals'] = df.index
+    if y_columns is None:
+        y_columns = []
+    ch_data = {'yvalsm': [], 'ylabels': [], 'xlabel': x_column}
+    if x_column == '':
+        ch_data['xvals'] = list(df.index)
     else:
-        ch_data['xvals'] = df[x_title]
+        ch_data['xvals'] = df[x_column]
 
-    if not rkeys:
-        rkeys = df.columns.tolist()
+    if not y_columns:
+        y_columns = list(df.columns)
 
-    for rkey in rkeys:
+    for rkey in y_columns:
         yvals = df[rkey]
         skip = False
         if isinstance(yvals[0], list):
@@ -60,33 +64,55 @@ def df_qchart_data_yy(df: pd.DataFrame, x_title='', rkeys=None):
         elif isinstance(yvals[0], datetime.datetime) or isinstance(yvals[0], str):
             skip = True
 
-        if x_title == rkey:
+        if x_column == rkey:
             skip = True
 
         if not skip:
             ch_data['yvalsm'].append(yvals)
-            ch_data['ylabelm'].append(rkey)
+            ch_data['ylabels'].append(rkey)
     return ch_data
 
 
-def df_kchart_data_y(df: pd.DataFrame, y=''):
-    # df = {x:[]}
-    if y == '':
-        y = df.columns[0]
-    ch_data = [{'name': y, 'data': df[y].to_dict()}]
-    return ch_data
+def results2chart(
+    results, xvals=None, result_columns='', result_units: str = '',
+    chart_x_axis: str = '', chart_columns: str = '', chart_units: str = '', show='both',
+    title='', chart_type='line'):
+    """Build a result table and/or chart (lines or stack) from calculated LIST or array of results
+    from repeated run of the same calculator/function.
 
+    Results may be scalars, lists, dictionaries, or quantity values. Result
+    values are normalized with ``result_values``; quantity columns retain
+    their units in the displayed labels. Column filters accept comma-separated
+    display names or one-based column indexes.
 
-def df_qchart_data_y(df: pd.DataFrame, y=''):
-    # df = {x:[]}
-    if y == '':
-        y = df.columns[0]
-    ch_data = {'yvals': df[y], 'ylabel': y}
-    return ch_data
+    ``result_columns`` and ``result_units`` control columns shown in the
+    table. ``chart_x_axis`` selects an existing result column for the X axis,
+    while ``xvals`` supplies explicit X values. ``chart_columns`` and
+    ``chart_units`` control the plotted Y series. When no chart filters are
+    supplied, all chart-compatible result columns are plotted.
 
+    Args:
+        results: Non-empty sequence of calculated result values.
+        xvals: Optional explicit X-axis values. If supplied without
+            ``chart_x_axis``, they are added as a column named ``X``.
+        result_columns: Comma-separated result column names or one-based
+            indexes to include in the table.
+        result_units: Comma-separated units whose columns should be included
+            in the table.
+        chart_x_axis: Result column name used for the X axis when ``xvals`` is
+            not supplied.
+        chart_columns: Comma-separated result column names or one-based
+            indexes to plot.
+        chart_units: Comma-separated units whose columns should be plotted.
+        show: ``'table'``, ``'chart'``, or ``'both'``.
+        aspect: Chart height-to-width ratio passed to ``QChart``.
+        title: Chart title.
 
-def fchart(results, xvals=None, result_columns='', result_units: str = '', chart_x_axis: str = '',
-           chart_columns: str = '', chart_units: str = '', show='both', aspect=1.0, title=''):
+    Returns:
+        A dictionary containing a pandas ``DataFrame`` under ``'table'``, a
+        ``QChart`` under ``'chart'``, or both, according to ``show``. An
+        unsupported ``show`` value returns ``None``.
+    """
     # create line chart(s) from calculated result and optional xaxis values
     # allowing filtering of table columns based on result column list or units
     # allowing filtering of chartable columns based on chart column list or units
@@ -100,9 +126,9 @@ def fchart(results, xvals=None, result_columns='', result_units: str = '', chart
     if xvals is None:
         xvals = []
     if result_columns != '':
-        rkeys = idx2names(result_columns, result_all_columns)
+        y_columns = idx2names(result_columns, result_all_columns)
     else:
-        rkeys = []
+        y_columns = []
 
     if result_units != '':
         ukeys = css2strs(result_units)
@@ -119,14 +145,14 @@ def fchart(results, xvals=None, result_columns='', result_units: str = '', chart
     else:
         cukeys = []
 
-    rkeys = [title_to_variable(rkey.strip()) for rkey in rkeys]
+    y_columns = [title_to_variable(rkey.strip()) for rkey in y_columns]
     ukeys = [ukey.strip() for ukey in ukeys]
     ckeys = [title_to_variable(ckey.strip()) for ckey in ckeys]
     cukeys = [cukey.strip() for cukey in cukeys]
 
     empty_tbl_filter = True
     empty_cht_filter = True
-    if len(rkeys) + len(ukeys) + len(ckeys) + len(cukeys) > 0:
+    if len(y_columns) + len(ukeys) + len(ckeys) + len(cukeys) > 0:
         empty_tbl_filter = False
     if len(ckeys) + len(cukeys) > 0:
         empty_cht_filter = False
@@ -139,30 +165,30 @@ def fchart(results, xvals=None, result_columns='', result_units: str = '', chart
     data2c_changed_title = []
 
     rvalues, ruoms = result_values(results[0])  # title to variable
-    all_rkeys = list(rvalues.keys())
+    all_y_columns = list(rvalues.keys())
 
     data = {}
     data2c = {}
     x_name = title_to_variable(chart_x_axis)
-    x_title = variable_to_title(x_name)
+    x_column = variable_to_title(x_name)
     if len(xvals) > 0:  # xvals given
         if chart_x_axis == '':
             x_name = 'x'
-            x_title = 'X'
+            x_column = 'X'
         data[x_name] = xvals
         data2c[x_name] = xvals
-        data_changed_title.append(x_title)
-        data2c_changed_title.append(x_title)
+        data_changed_title.append(x_column)
+        data2c_changed_title.append(x_column)
     else:  # xvals not specified
         if chart_x_axis == '':
-            if len(all_rkeys) > 1:
-                chart_x_axis = all_rkeys[0]
+            if len(all_y_columns) > 1:
+                chart_x_axis = all_y_columns[0]
                 x_name = title_to_variable(chart_x_axis)
             # else chart_axis='' is index
 
-    for rkey in all_rkeys:
+    for rkey in all_y_columns:
         if not empty_tbl_filter:
-            rkey_ok = rkey in rkeys
+            rkey_ok = rkey in y_columns
             ukey_ok = rkey in ruoms and ruoms[rkey] in ukeys
             ckey_ok = rkey in ckeys
             cukey_ok = rkey in ruoms and ruoms[rkey] in cukeys
@@ -212,10 +238,7 @@ def fchart(results, xvals=None, result_columns='', result_units: str = '', chart
     if show == 'both' or show == 'chart':
         df2c = pd.DataFrame(data2c)
         df2c.columns = data2c_changed_title
-
-        chdata = df_qchart_data_yy(df2c, x_title)
-        chart = QChart(aspect=aspect)
-        chart.render_lines(**chdata, title=title)
+        chart = df2chart(df2c, x_column, y_columns=None, chart_title=title, chart_type=chart_type)
 
     res = None
     if show == 'both':

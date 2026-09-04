@@ -108,7 +108,7 @@ def line_chart(
     xnums, xtype = css2values(x_values, time2val='hr')
     ynums = css2floats(y_values)
     chart = QChart(xtype=xtype)
-    chart.render_lines(xvals=xnums, yvalsm=[ynums], xlabel=x_label, ylabelm=[y_label], title=title)
+    chart.render_lines(xvals=xnums, yvalsm=[ynums], xlabel=x_label, ylabel=y_label, title=title)
     return {'chart': chart}
 
 
@@ -125,6 +125,7 @@ def line2_chart(
     y_values2: qtexta = '12, 10, 4, -5, 3, 9, 23, 12, 12, 5',
     x_label='x',
     y_labels='y1, y2',
+    y_label='y',
     title='y vs x'
 ):
     # xnums = css2floats(x_values)
@@ -132,7 +133,8 @@ def line2_chart(
     ynums = css2floats(y_values)
     ynums2 = css2floats(y_values2)
     chart = QChart(xtype=xtype)
-    chart.render_lines(xvals=xnums, yvalsm=[ynums, ynums2], xlabel=x_label, ylabelm=css2strs(y_labels), title=title)
+    chart.render_lines(xvals=xnums, yvalsm=[ynums, ynums2], xlabel=x_label, ylabels=css2strs(y_labels), ylabel=y_label,
+                       title=title)
     return {'chart': chart}
 
 
@@ -362,8 +364,7 @@ def fx2(
         y_expressions = replace_words(y_expressions, [const_3], f'({const_3_part})')
 
     y_xpr_list = [line.strip() for line in y_expressions.split('\n')]
-    ylabelm = css2strs(y_labels) if y_labels else y_xpr_list
-    # yvals = [QCals.safe_eval(replace_words(y_expressions, [variable], f'({val})')) for val in xvals]
+    ylabels = css2strs(y_labels) if y_labels else y_xpr_list
     yvalsm = [[QCals.safe_eval(replace_words(expr, [variable], f'({val})')) for val in xvals]
               for expr in y_xpr_list]
 
@@ -373,7 +374,7 @@ def fx2(
         asp = 0
 
     chart = QChart(aspect=asp)
-    chart.render_lines(xvals=xvals, yvalsm=yvalsm, xlabel=x_label, ylabelm=ylabelm, title=title)
+    chart.render_lines(xvals=xvals, yvalsm=yvalsm, xlabel=x_label, ylabels=ylabels, title=title)
     return {'chart': chart}
 
 

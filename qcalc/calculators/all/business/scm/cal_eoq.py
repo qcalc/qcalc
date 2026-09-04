@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
-from qcore import Qty, ucur
+from qcore import Qty
 import numpy as np
 
 
@@ -15,22 +15,12 @@ def eoq__info():
     }
 
 
-def eoq__input(_kwargs):
-    return {
-        'demand': '1200 unit/yr',
-        'transaction_cost': ucur('100 USD'),
-        'unit_cost': ucur('5 USD/unit'),
-        'cost_of_capital': ucur('0.2 peryr'),
-        'cost_of_excess': ucur('1 USD/unit/yr'),
-    }
-
-
 def eoq(
-    demand,
-    transaction_cost,
-    unit_cost,
-    cost_of_capital,
-    cost_of_excess,  # optionall
+    demand='1200 unit/yr',
+    transaction_cost='100 USD',
+    unit_cost='5 USD/unit',
+    cost_of_capital='0.2 peryr',
+    cost_of_excess='1 USD/unit/yr',  # optionall
 ):
     demand_v = Qty(demand, 'unit/yr').val
     transaction_cost_q = Qty(transaction_cost)

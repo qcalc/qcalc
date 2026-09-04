@@ -1,9 +1,8 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
-from qcore import Qty, ucur
+from qcore import Qty
 from qutil import nzv
-from calc import QPref
 
 
 def applepie__info(): return {'title': 'Ingredients of Apple Pie Recipe'}
@@ -39,16 +38,9 @@ def gold__info():
     }
 
 
-def gold__input(_kwargs):
-    pref = QPref.getp()
-    return {
-        'gold_price': ucur('79.0 unc', pref=pref)
-    }
-
-
 def gold(
     gold_weight_intl='10.0 g', gold_weight_india='@vori, @anna, @roti, @point',
-    gold_price='79.0 UNC', gold_price_per='g', vat_pct=5.0, making_charge_pct=6.0
+    gold_price='150 USD', gold_price_per='g', vat_pct=5.0, making_charge_pct=6.0
 ):
     vat_pct = nzv(vat_pct)
     making_charge_pct = nzv(making_charge_pct)
@@ -61,8 +53,8 @@ def gold(
     else:
         qgold_weight = qgold_weight_india
     qgold_value = qgold_price * qgold_weight
-    price_in = Qty(gold_price).uom
-    qgold_value = qgold_value.to(price_in)
+    to_cur = Qty(gold_price).uom
+    qgold_value = qgold_value.to(to_cur)
     qvat_on_gold = qgold_value * (vat_pct / 100.0)
     qmaking_charge = qgold_value * (making_charge_pct / 100.0)
     qgrand_total = qgold_value + qvat_on_gold + qmaking_charge

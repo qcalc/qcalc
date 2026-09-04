@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
-from qcore import Qty, ucur
+from qcore import Qty
 import numpy as np
 from calc import results2chart, show_choice
 

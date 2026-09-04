@@ -221,20 +221,20 @@ def _qbinary(a, b, op):
 
 
 def qadd(a, b):
-    """Subtract two quantities."""
+    """Subtract two values or quantities or sequences of values or quantities."""
     return _qbinary(a, b, operator.add)
 
 
 def qsub(a, b):
-    """Subtract two quantities."""
+    """Subtract two values or quantities or sequences of values or quantities."""
     return _qbinary(a, b, operator.sub)
 
 
 def qmul(a, b):
-    """Multiply two quantities."""
+    """Multiply two values or quantities or sequences of values or quantities."""
     return _qbinary(a, b, operator.mul)
 
 
 def qdiv(a, b):
-    """Divide two quantities."""
+    """Divide two values or quantities or sequences of values or quantities."""
     return _qbinary(a, b, operator.truediv)

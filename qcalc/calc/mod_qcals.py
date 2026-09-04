@@ -413,13 +413,13 @@ class QCals:
 
         # | start creating qcalc symbol list (qsymbols)
 
-        # | all qfunc_dict items except admin and demo cals, will eventually include pylib_dict and calc_dict
+        # | all qfunc_dict items except admin and demo cals, will eventually include pylib_dict (qlib_dict + calc_dict)
         # |     when create_standard_cataog_from_packages() are executed
         # | all _unit_table items that includes units and currencies
         # | all formal api items from __evacon__
         # | all auxiliary functions (qcalc/python) from make_symbol_table
         # | qsymbols = (qfunc_dict - admin cals - demo cals)  + _unit_table + _qty_info + __evacon__ + make_symbols_table
-        # | qfunc_dict = (all calculators + auxiliaries) + (pylib_dict + calc_dict)
+        # | qfunc_dict = (all calculators + auxiliaries) + (qlib_dict + calc_dict)
 
         # create and validate symbol table for eval()
         assert len(set(cls.qfunc_dict).intersection(_unit_table)) == 0

@@ -3,6 +3,7 @@
 
 import numpy as _np
 import pandas as _pd
+import inspect
 from qutil import css2strs
 
 
@@ -36,8 +37,8 @@ def qsymbols(scope='api', name_filter=None):
       'all' - search all functions and symbols
       scope can also be a comma separated list of scope names: e.g. 'api, aux'
     """
-    from calc import QCals  # local import: calc imports qutil, avoid circular import
-    from . import _qapis
+    from calc import QCals, qapis  # local import: calc imports qutil, avoid circular import
+    # from . import _qapis
     from qcore import _unit_table, _qty_info
     import fnmatch
 
@@ -66,7 +67,7 @@ def qsymbols(scope='api', name_filter=None):
 
     names = set()
     if 'api' in scope_names or 'all' in scope_names:
-        names |= _qapis()
+        names |= qapis()
     if 'cal' in scope_names or 'all' in scope_names:
         names |= {
             name
@@ -81,7 +82,7 @@ def qsymbols(scope='api', name_filter=None):
             name
             for name, obj in QCals.qsymbol_dict.items()
             if callable(obj)
-               and name not in _qapis()
+               and name not in qapis()
                and '__' not in name
                and f"{name}__info" not in QCals.qfunc_dict
         }
@@ -149,13 +150,14 @@ def qsymhelp(name):
             desc = (getattr(node, 'desc', '') or '').strip()
 
             if title:
-                parts.append(title)
+                parts.append(f"Title: {title}")
             if desc:
-                parts.append(desc)
+                parts.append(f"Description: {desc}")
 
-            help_text = (
-                '\n'.join(parts) if parts else ""
-            )
+            help_text = '\n'.join(parts) if parts else ""
+            if root_name == 'calc_root':
+                obj = getattr(QCals, 'qfunc_dict', {}).get(name)
+                help_text += "\n" + sig_doc(obj)
 
             return f"*** {name} ***\n{help_text}"
 
@@ -171,9 +173,21 @@ def qsymhelp(name):
         except ImportError:
             obj = None
 
-    help_text = getattr(obj, '__doc__', None)
-    if help_text:
-        help_text = help_text.strip()
-        return f"*** {name} ***\n{help_text}"
+    help_text = sig_doc(obj)
+    if not help_text:
+        return f"Help not found for: {name}"
 
-    return f"Help not found for: {name}"
+    return f"*** {name} ***\n{help_text}"
+
+
+def sig_doc(obj):
+    if not callable(obj):
+        return ""
+
+    func_sig = inspect.signature(obj)
+    help_text = f"\nFunction: {obj.__name__}{func_sig}"
+    docstring = inspect.getdoc(obj)
+    if docstring:
+        help_text += f"\n\nNote: {docstring}"
+
+    return help_text

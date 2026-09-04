@@ -19,7 +19,7 @@ from .mod_whoosh import QSearch, print_search_result, search_result_nodes
 import os
 import signal
 import logging
-from qapi import qlib_dict
+from qapi import qlib_dict, _qapis
 
 calc_dict = {
     # 'QCals': QCals, 'UCals': UCals, 'QFav': QFav,
@@ -30,6 +30,11 @@ calc_dict = {
 }
 
 logger = logging.getLogger(__name__)
+
+
+def qapis():
+    """Formally exposed qCalc functions"""
+    return set(_qapis()) | set(calc_dict)
 
 
 def _shutdown_current_process(exit_code=1):

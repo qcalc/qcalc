@@ -70,8 +70,8 @@ __evacon__ = [
 
 def _qapis():
     names = set(qlib_dict) | set(__evacon__)
-    names |= qdf_names()
-    names |= np_names()
+    # names |= qdf_names()
+    # names |= np_names()
     return names
 
 

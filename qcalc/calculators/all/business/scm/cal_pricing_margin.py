@@ -3,6 +3,7 @@
 
 from qcore import Qty
 
+
 def pricing_margin__info():
     return {
         'title': 'Pricing and Margin Calculator',
@@ -24,6 +25,7 @@ def pricing_margin(
     variable_cost='60 USD',
 ):
     q_selling_price = Qty(selling_price)
+    to_cur = q_selling_price.uom
     q_unit_cost = Qty(unit_cost)
     q_target_margin = Qty(target_margin)
     q_target_price = Qty(target_price)
@@ -31,13 +33,13 @@ def pricing_margin(
     q_fixed_cost = Qty(fixed_cost)
     q_variable_cost = Qty(variable_cost)
 
-    price = q_selling_price.to('USD').val
-    cost = q_unit_cost.to('USD').val
+    price = q_selling_price.to(to_cur).val
+    cost = q_unit_cost.to(to_cur).val
     target_margin_pct = q_target_margin.to('pct').val / 100.0
-    target_price_value = q_target_price.to('USD').val
+    target_price_value = q_target_price.to(to_cur).val
     discount_pct = q_discount.to('pct').val / 100.0
-    fixed = q_fixed_cost.to('USD').val
-    variable = q_variable_cost.to('USD').val
+    fixed = q_fixed_cost.to(to_cur).val
+    variable = q_variable_cost.to(to_cur).val
     qty = float(quantity)
 
     gross_profit = price - cost
@@ -67,13 +69,13 @@ def pricing_margin(
     )
 
     return {
-        'Gross Profit': Qty(gross_profit, 'USD'),
+        'Gross Profit': Qty(gross_profit, to_cur),
         'Gross Margin': Qty(gross_margin * 100, 'pct') if gross_margin is not None else None,
         'Markup': Qty(markup * 100, 'pct') if markup is not None else None,
-        'Required Price': Qty(required_price, 'USD') if required_price is not None else None,
-        'Maximum Cost': Qty(maximum_cost, 'USD'),
-        'Discounted Price': Qty(discounted_price, 'USD'),
+        'Required Price': Qty(required_price, to_cur) if required_price is not None else None,
+        'Maximum Cost': Qty(maximum_cost, to_cur),
+        'Discounted Price': Qty(discounted_price, to_cur),
         'Margin After Discount': Qty(margin_after_discount * 100, 'pct') if margin_after_discount is not None else None,
-        'Break-even Price': Qty(break_even_price, 'USD') if break_even_price is not None else None,
-        'Profit at Quantity': Qty(profit_at_quantity, 'USD'),
+        'Break-even Price': Qty(break_even_price, to_cur) if break_even_price is not None else None,
+        'Profit at Quantity': Qty(profit_at_quantity, to_cur),
     }

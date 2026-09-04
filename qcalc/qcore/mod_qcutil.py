@@ -122,15 +122,18 @@ def to_ucur(qty: Qty, cur='UNC', pref=None):
     return Qty(val, uname)
 
 
-def _test():
-    qtystr = '120km/inr'
-    print(ucur(qtystr, 'INR'))
-    print(to_ucur(Qty(qtystr), 'INR'))
-    print(ucur('@ft/BDT', 'bdt'))
-    qty = Qty('@bdt/s')
-    print(replace_cur(qty.val, qty.uom, 'BDT'))
+
 
 
 if __name__ == '__main__':
-    # import sett
+    import qsett
+    qsett.init()
+    def _test():
+        qtystr = '120km/inr'
+        print(ucur(qtystr, 'INR'))
+        print(to_ucur(Qty(qtystr), 'INR'))
+        print(ucur('@ft/BDT', 'bdt'))
+        qty = Qty('@bdt/s')
+        print(replace_cur(qty.val, qty.uom, 'BDT'))
+
     _test()

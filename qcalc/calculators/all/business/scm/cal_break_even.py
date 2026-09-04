@@ -21,14 +21,15 @@ def break_even(
     scenario_units=500,
 ):
     q_fixed_costs = Qty(fixed_costs)
+    to_cur = q_fixed_costs.uom
     q_variable_cost = Qty(variable_cost_per_unit)
     q_selling_price = Qty(selling_price_per_unit)
     q_target_profit = Qty(target_profit)
 
-    fixed = q_fixed_costs.to('USD').val
-    variable = q_variable_cost.to('USD').val
-    price = q_selling_price.to('USD').val
-    target = q_target_profit.to('USD').val
+    fixed = q_fixed_costs.to(to_cur).val
+    variable = q_variable_cost.to(to_cur).val
+    price = q_selling_price.to(to_cur).val
+    target = q_target_profit.to(to_cur).val
     units = float(scenario_units)
 
     contribution = price - variable
@@ -55,27 +56,27 @@ def break_even(
                 ],
                 [
                     'Revenue',
-                    Qty(break_even_revenue, 'USD'),
-                    Qty(target_revenue, 'USD'),
-                    Qty(scenario_revenue, 'USD'),
+                    Qty(break_even_revenue, to_cur),
+                    Qty(target_revenue, to_cur),
+                    Qty(scenario_revenue, to_cur),
                 ],
                 [
                     'Variable Cost',
-                    Qty(break_even_units * variable, 'USD'),
-                    Qty(target_units * variable, 'USD'),
-                    Qty(scenario_variable_cost, 'USD'),
+                    Qty(break_even_units * variable, to_cur),
+                    Qty(target_units * variable, to_cur),
+                    Qty(scenario_variable_cost, to_cur),
                 ],
                 [
                     'Fixed Cost',
-                    Qty(fixed, 'USD'),
-                    Qty(fixed, 'USD'),
-                    Qty(fixed, 'USD'),
+                    Qty(fixed, to_cur),
+                    Qty(fixed, to_cur),
+                    Qty(fixed, to_cur),
                 ],
                 [
                     'Profit',
-                    Qty(0, 'USD'),
-                    Qty(target, 'USD'),
-                    Qty(scenario_profit, 'USD'),
+                    Qty(0, to_cur),
+                    Qty(target, to_cur),
+                    Qty(scenario_profit, to_cur),
                 ],
             ],
             'columns': [
@@ -86,20 +87,20 @@ def break_even(
             ],
         },
         'contribution_margin_per_unit': Qty(
-            contribution, 'USD'
+            contribution, to_cur
         ),
         'contribution_margin_pct': Qty(
             contribution_pct * 100, 'pct'
         ),
         'break_even_quantity': break_even_units,
         'break_even_revenue': Qty(
-            break_even_revenue, 'USD'
+            break_even_revenue, to_cur
         ),
         'target_profit_quantity': target_units,
         'target_profit_revenue': Qty(
-            target_revenue, 'USD'
+            target_revenue, to_cur
         ),
         'scenario_profit': Qty(
-            scenario_profit, 'USD'
+            scenario_profit, to_cur
         ),
     }

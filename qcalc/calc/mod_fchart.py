@@ -76,7 +76,7 @@ def df2chart_data(df, x_column='', y_columns: list | None = None):
 def results2chart(
     results, xvals=None, result_columns='', result_units: str = '',
     chart_x_axis: str = '', chart_columns: str = '', chart_units: str = '', show='both',
-    title='', chart_type='line'):
+    title='', chart_type='lines'):
     """Build a result table and/or chart (lines or stack) from calculated LIST or array of results
     from repeated run of the same calculator/function.
 

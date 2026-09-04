@@ -4,17 +4,16 @@
 from qcore import Qty
 from qutil import css2ints
 
+
 def debt_invest__info():
     return {
         'title': 'Debt Paydown vs Investment',
         'calculate': 'Compare',
         'schema': {
             'available_cash': {
-                'label': 'Available Cash',
                 'help_text': 'Cash available either to pay down debt or invest.',
             },
             'debt_remaining': {
-                'label': 'Debt Remaining',
                 'help_text': 'Current outstanding debt balance.',
             },
             'debt_rate': {
@@ -30,7 +29,6 @@ def debt_invest__info():
                 'help_text': 'Expected annual investment return before tax.',
             },
             'investment_tax': {
-                'label': 'Investment Tax',
                 'help_text': 'Tax rate applied to investment returns.',
             },
             'inflation': {
@@ -46,18 +44,19 @@ def debt_invest__info():
 
 
 def debt_invest(
-    available_cash = '20000 USD',
-    debt_remaining = '100000 USD',
-    debt_rate = '9 pct/yr',
+    available_cash='20000 USD',
+    debt_remaining='100000 USD',
+    debt_rate='9 pct/yr',
     debt_term_years: int = 20,
-    investment_return = '8 pct/yr',
-    investment_tax = '15 pct',
-    inflation = '3 pct/yr',
+    investment_return='8 pct/yr',
+    investment_tax='15 pct',
+    inflation='3 pct/yr',
     periods: str = '5,10,20',
 ):
     # Normalize inputs.
-    cash = Qty(available_cash, 'USD')
-    debt = Qty(debt_remaining, 'USD')
+    cash = Qty(available_cash)
+    to_cur = cash.uom
+    debt = Qty(debt_remaining, to_cur)
     debt_rate = Qty(debt_rate, 'pct/yr')
     investment_return = Qty(investment_return, 'pct/yr')
     investment_tax = Qty(investment_tax, 'pct')
@@ -125,22 +124,15 @@ def debt_invest(
     # Monthly payment difference available for investment
     # under the debt-paydown strategy.
     monthly_saving = original_payment - reduced_payment
-
     # Investment return after tax.
-    after_tax_investment_rate = (
-        investment_rate_value * (1 - tax_value)
-    )
-
-    monthly_investment_rate = (
-        after_tax_investment_rate / 12
-    )
+    after_tax_investment_rate = investment_rate_value * (1 - tax_value)
+    monthly_investment_rate = after_tax_investment_rate / 12
 
     # Build comparison table.
     rows = []
 
     for years in periods:
         months = years * 12
-
         # ---------------------------------------------------------
         # Strategy 1: INVEST
         #
@@ -176,10 +168,7 @@ def debt_invest(
 
         # The debt balance after the lump-sum payment.
         if monthly_debt_rate == 0:
-            debt_balance_paydown = max(
-                0,
-                debt_after_paydown - reduced_payment * months
-            )
+            debt_balance_paydown = max(0, debt_after_paydown - reduced_payment * months)
         else:
             debt_balance_paydown = (
                 debt_after_paydown
@@ -202,32 +191,15 @@ def debt_invest(
             )
 
         # Net wealth relative to the debt.
-        net_wealth_invest = (
-            investment_value - debt_balance_invest
-        )
-
-        net_wealth_paydown = (
-            savings_investment - debt_balance_paydown
-        )
-
-        wealth_difference = (
-            net_wealth_invest - net_wealth_paydown
-        )
+        net_wealth_invest = investment_value - debt_balance_invest
+        net_wealth_paydown = savings_investment - debt_balance_paydown
+        wealth_difference = net_wealth_invest - net_wealth_paydown
 
         # Inflation adjustment.
         inflation_factor = (1 + inflation_value) ** years
-
-        net_wealth_invest_real = (
-            net_wealth_invest / inflation_factor
-        )
-
-        net_wealth_paydown_real = (
-            net_wealth_paydown / inflation_factor
-        )
-
-        wealth_difference_real = (
-            wealth_difference / inflation_factor
-        )
+        net_wealth_invest_real = net_wealth_invest / inflation_factor
+        net_wealth_paydown_real = net_wealth_paydown / inflation_factor
+        wealth_difference_real = wealth_difference / inflation_factor
 
         if wealth_difference > 0:
             better = 'Invest'
@@ -238,16 +210,16 @@ def debt_invest(
 
         rows.append([
             years,
-            Qty(investment_value, 'USD'),
-            Qty(debt_balance_invest, 'USD'),
-            Qty(net_wealth_invest, 'USD'),
-            Qty(savings_investment, 'USD'),
-            Qty(debt_balance_paydown, 'USD'),
-            Qty(net_wealth_paydown, 'USD'),
-            Qty(wealth_difference, 'USD'),
-            Qty(net_wealth_invest_real, 'USD'),
-            Qty(net_wealth_paydown_real, 'USD'),
-            Qty(wealth_difference_real, 'USD'),
+            Qty(investment_value, to_cur),
+            Qty(debt_balance_invest, to_cur),
+            Qty(net_wealth_invest, to_cur),
+            Qty(savings_investment, to_cur),
+            Qty(debt_balance_paydown, to_cur),
+            Qty(net_wealth_paydown, to_cur),
+            Qty(wealth_difference, to_cur),
+            Qty(net_wealth_invest_real, to_cur),
+            Qty(net_wealth_paydown_real, to_cur),
+            Qty(wealth_difference_real, to_cur),
             better,
         ])
 
@@ -271,32 +243,15 @@ def debt_invest(
 
     # Break-even investment return.
     if tax_value < 1:
-        break_even_return = (
-            debt_rate_value / (1 - tax_value)
-        )
+        break_even_return = debt_rate_value / (1 - tax_value)
     else:
         break_even_return = 0
 
     return {
         'Comparison': table,
-        'Original Monthly Debt Payment': Qty(
-            original_payment,
-            'USD/mo',
-        ),
-        'Reduced Monthly Debt Payment': Qty(
-            reduced_payment,
-            'USD/mo',
-        ),
-        'Monthly Payment Saving': Qty(
-            monthly_saving,
-            'USD/mo',
-        ),
-        'After-Tax Investment Return': Qty(
-            after_tax_investment_rate * 100,
-            'pct/yr',
-        ),
-        'Break-Even Investment Return': Qty(
-            break_even_return * 100,
-            'pct/yr',
-        ),
+        'Original Monthly Debt Payment': Qty(original_payment, 'USD/mo'),
+        'Reduced Monthly Debt Payment': Qty(reduced_payment, 'USD/mo'),
+        'Monthly Payment Saving': Qty(monthly_saving, 'USD/mo'),
+        'After-Tax Investment Return': Qty(after_tax_investment_rate * 100, 'pct/yr'),
+        'Break-Even Investment Return': Qty(break_even_return * 100, 'pct/yr'),
     }

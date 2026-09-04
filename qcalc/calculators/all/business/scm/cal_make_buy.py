@@ -25,6 +25,7 @@ def make_buy(
     buy_unit_cost='18 USD',
 ):
     q_make_fixed = Qty(make_fixed_cost)
+    to_cur = q_make_fixed.uom
     q_make_unavoidable = Qty(make_unavoidable_fixed_cost)
     q_make_variable = Qty(make_variable_cost)
 
@@ -34,13 +35,13 @@ def make_buy(
 
     quantity = float(annual_quantity)
 
-    make_fixed = q_make_fixed.to('USD').val
-    make_unavoidable = q_make_unavoidable.to('USD').val
-    make_variable = q_make_variable.to('USD').val
+    make_fixed = q_make_fixed.val
+    make_unavoidable = q_make_unavoidable.to(to_cur).val
+    make_variable = q_make_variable.to(to_cur).val
 
-    buy_fixed = q_buy_fixed.to('USD').val
-    buy_unavoidable = q_buy_unavoidable.to('USD').val
-    buy_unit = q_buy_unit.to('USD').val
+    buy_fixed = q_buy_fixed.to(to_cur).val
+    buy_unavoidable = q_buy_unavoidable.to(to_cur).val
+    buy_unit = q_buy_unit.to(to_cur).val
 
     # Full cost
     make_variable_total = quantity * make_variable
@@ -120,35 +121,27 @@ def make_buy(
             'data': [
                 [
                     'Fixed Cost',
-                    Qty(make_fixed, 'USD'),
-                    Qty(buy_fixed, 'USD'),
-                    Qty(buy_fixed - make_fixed, 'USD'),
+                    Qty(make_fixed, to_cur),
+                    Qty(buy_fixed, to_cur),
+                    Qty(buy_fixed - make_fixed, to_cur),
                 ],
                 [
                     'Variable Cost',
-                    Qty(make_variable_total, 'USD'),
-                    Qty(buy_variable_total, 'USD'),
-                    Qty(
-                        buy_variable_total -
-                        make_variable_total,
-                        'USD',
-                    ),
+                    Qty(make_variable_total, to_cur),
+                    Qty(buy_variable_total, to_cur),
+                    Qty(buy_variable_total - make_variable_total, to_cur),
                 ],
                 [
                     'Total Cost',
-                    Qty(make_full_cost, 'USD'),
-                    Qty(buy_full_cost, 'USD'),
-                    Qty(full_cost_difference, 'USD'),
+                    Qty(make_full_cost, to_cur),
+                    Qty(buy_full_cost, to_cur),
+                    Qty(full_cost_difference, to_cur),
                 ],
                 [
                     'Effective Unit Cost',
-                    Qty(make_full_unit_cost, 'USD'),
-                    Qty(buy_full_unit_cost, 'USD'),
-                    Qty(
-                        buy_full_unit_cost -
-                        make_full_unit_cost,
-                        'USD',
-                    ),
+                    Qty(make_full_unit_cost, to_cur),
+                    Qty(buy_full_unit_cost, to_cur),
+                    Qty(buy_full_unit_cost - make_full_unit_cost, to_cur),
                 ],
             ],
             'columns': ['Metric', 'Make', 'Buy', 'Buy − Make'],
@@ -158,39 +151,27 @@ def make_buy(
             'data': [
                 [
                     'Relevant Fixed Cost',
-                    Qty(make_relevant_fixed, 'USD'),
-                    Qty(buy_relevant_fixed, 'USD'),
-                    Qty(
-                        buy_relevant_fixed -
-                        make_relevant_fixed,
-                        'USD',
-                    ),
+                    Qty(make_relevant_fixed, to_cur),
+                    Qty(buy_relevant_fixed, to_cur),
+                    Qty(buy_relevant_fixed - make_relevant_fixed, to_cur),
                 ],
                 [
                     'Variable Cost',
-                    Qty(make_variable_total, 'USD'),
-                    Qty(buy_variable_total, 'USD'),
-                    Qty(
-                        buy_variable_total -
-                        make_variable_total,
-                        'USD',
-                    ),
+                    Qty(make_variable_total, to_cur),
+                    Qty(buy_variable_total, to_cur),
+                    Qty(buy_variable_total - make_variable_total, to_cur),
                 ],
                 [
                     'Relevant Cost',
-                    Qty(make_relevant_cost, 'USD'),
-                    Qty(buy_relevant_cost, 'USD'),
-                    Qty(relevant_cost_difference, 'USD'),
+                    Qty(make_relevant_cost, to_cur),
+                    Qty(buy_relevant_cost, to_cur),
+                    Qty(relevant_cost_difference, to_cur),
                 ],
                 [
                     'Effective Unit Cost',
-                    Qty(make_relevant_unit_cost, 'USD'),
-                    Qty(buy_relevant_unit_cost, 'USD'),
-                    Qty(
-                        buy_relevant_unit_cost -
-                        make_relevant_unit_cost,
-                        'USD',
-                    ),
+                    Qty(make_relevant_unit_cost, to_cur),
+                    Qty(buy_relevant_unit_cost, to_cur),
+                    Qty(buy_relevant_unit_cost - make_relevant_unit_cost, to_cur),
                 ],
             ],
             'columns': ['Metric', 'Make', 'Buy', 'Buy − Make'],
@@ -199,7 +180,7 @@ def make_buy(
         'break_even_quantity': break_even_quantity,
         'cost_savings': Qty(
             abs(relevant_cost_difference),
-            'USD',
+            to_cur,
         ),
         'preferred_option': preferred_option,
     }

@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
-from qcore import Qty, quom, ucur
+from qcore import Qty, ucur
 import numpy as np
 from calc import results2chart, show_choice
 
@@ -15,56 +15,46 @@ def purcost__info(): return {
 }
 
 
-def purcost__input(_kwargs):
-    return {
-        'demand': '1200 unit/yr',
-        'transaction_cost': ucur('100 UNC'),
-        'unit_cost': ucur('5 UNC/unit'),
-        'cost_of_capital': ucur('0.2 UNC/UNC/yr'),
-        'cost_of_excess': ucur('1 UNC/unit/yr'),
-        'order_quantity': '300 unit',
-    }
-
-
 def purcost(
-    demand,
-    transaction_cost,
-    unit_cost,
-    cost_of_capital,
-    cost_of_excess,  # optional
-    order_quantity,
+    demand='1200 unit/yr',
+    transaction_cost='100 USD',
+    unit_cost='5 USD/unit',
+    cost_of_capital='0.2 peryr',
+    cost_of_excess='1 USD/unit/yr',  # optional
+    order_quantity='300 unit',
 ):
     demand_v = Qty(demand, 'unit/yr').val
-    currency = Qty(transaction_cost).uom
-    transaction_cost_v = Qty(transaction_cost, 'UNC').val
-    unit_cost_v = Qty(unit_cost, 'UNC/unit').val  # can be posted with null value
+    transaction_cost_q = Qty(transaction_cost)
+    to_cur = transaction_cost_q.uom
+    transaction_cost_v = transaction_cost_q.val
+    unit_cost_v = Qty(unit_cost, f'{to_cur}/unit').val  # can be posted with null value
     if unit_cost_v is None:
-        cost_of_excess_v = Qty(cost_of_excess, 'UNC/unit/yr').val
+        cost_of_excess_v = Qty(cost_of_excess, f'{to_cur}/unit/yr').val
     else:
-        cost_of_excess_v = unit_cost_v * Qty(cost_of_capital, 'UNC/UNC/yr').val
+        cost_of_excess_v = unit_cost_v * Qty(cost_of_capital, 'peryr').val
 
     order_quantity_v = Qty(order_quantity, 'unit').val  # unit
     num_tran = demand_v / order_quantity_v  # 1/yr
     interval = 12 / num_tran  # mo
-    inv_cost = order_quantity_v / 2 * cost_of_excess_v  # UNC/yr
-    tran_cost = transaction_cost_v * num_tran  # UNC/yr
-    operational_cost = inv_cost + tran_cost  # UNC/yr
+    inv_cost = order_quantity_v / 2 * cost_of_excess_v  # USD/yr
+    tran_cost = transaction_cost_v * num_tran  # USD/yr
+    operational_cost = inv_cost + tran_cost  # USD/yr
     if unit_cost_v is None:
         material_cost = None
         total_cost = None
     else:
         material_cost = num_tran * order_quantity_v * unit_cost_v
-        total_cost = material_cost + inv_cost + tran_cost  # UNC/yr
+        total_cost = material_cost + inv_cost + tran_cost  # USD/yr
 
     eco_order_qty = np.sqrt(2 * transaction_cost_v * demand_v / cost_of_excess_v)  # unit
 
     return {
         'Order Interval': Qty(interval, 'mo'),
-        'Material Cost Total': Qty(material_cost, f'{currency}/yr'),
-        'Inventory Cost Total': Qty(inv_cost, f'{currency}/yr'),
-        'Transaction Cost Total': Qty(tran_cost, f'{currency}/yr'),
-        'Operational Cost Total': Qty(operational_cost, f'{currency}/yr'),
-        'Total Cost': Qty(total_cost, f'{currency}/yr'),
+        'Material Cost Total': Qty(material_cost, f'{to_cur}/yr'),
+        'Inventory Cost Total': Qty(inv_cost, f'{to_cur}/yr'),
+        'Transaction Cost Total': Qty(tran_cost, f'{to_cur}/yr'),
+        'Operational Cost Total': Qty(operational_cost, f'{to_cur}/yr'),
+        'Total Cost': Qty(total_cost, f'{to_cur}/yr'),
         'Number of Transactions': Qty(num_tran, '1/yr'),
         'Economic Order Quantity': Qty(eco_order_qty, 'unit')
     }

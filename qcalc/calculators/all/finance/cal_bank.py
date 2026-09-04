@@ -122,7 +122,6 @@ def amort(loan_amount: float = 100000.0, annual_interest_rate: float = 5.0, loan
 
     for c in range(1, 8):
         df[columns[c]] = df[columns[c]].apply('{:,.2f}'.format)
-    # df.set_index("Payment Number", inplace=True)
 
     return {
         "Amortization Schedule": df,
@@ -157,16 +156,10 @@ def real_return(
     after_tax_return = nominal * (1.0 - tax)
 
     # Real return after inflation.
-    real_return_after_tax = (
-                                (1.0 + after_tax_return) /
-                                (1.0 + inflation)
-                            ) - 1.0
+    real_return_after_tax = ((1.0 + after_tax_return) / (1.0 + inflation)) - 1.0
 
     # Real return before tax.
-    real_return_before_tax = (
-                                 (1.0 + nominal) /
-                                 (1.0 + inflation)
-                             ) - 1.0
+    real_return_before_tax = ((1.0 + nominal) / (1.0 + inflation)) - 1.0
 
     # Reduction caused by tax.
     tax_impact = nominal - after_tax_return

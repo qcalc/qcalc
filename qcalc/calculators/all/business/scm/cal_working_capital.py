@@ -13,20 +13,8 @@ def working_capital__info():
             'changes in customer and supplier payment terms.'
         ),
         'schema': {
-            'annual_sales': {
-                'label': 'Annual Sales'
-            },
             'annual_cogs': {
                 'label': 'Annual COGS'
-            },
-            'average_inventory': {
-                'label': 'Average Inventory'
-            },
-            'average_receivables': {
-                'label': 'Average Receivables'
-            },
-            'average_payables': {
-                'label': 'Average Payables'
             },
             'current_customer_terms': {
                 'label': 'Current Customer Payment Terms'
@@ -58,11 +46,12 @@ def working_capital(
     # ------------------------------------------------------------
     # Normalize inputs
     # ------------------------------------------------------------
-    q_sales = Qty(annual_sales).to('USD/yr')
-    q_cogs = Qty(annual_cogs).to('USD/yr')
-    q_inventory = Qty(average_inventory).to('USD')
-    q_receivables = Qty(average_receivables).to('USD')
-    q_payables = Qty(average_payables).to('USD')
+    q_sales = Qty(annual_sales)
+    to_cur = q_sales.uom[:3]
+    q_cogs = Qty(annual_cogs).to(f'{to_cur}/yr')
+    q_inventory = Qty(average_inventory).to(to_cur)
+    q_receivables = Qty(average_receivables).to(to_cur)
+    q_payables = Qty(average_payables).to(to_cur)
 
     sales = q_sales.val
     cogs = q_cogs.val
@@ -188,12 +177,12 @@ def working_capital(
                  Qty(ccc_change, 'day')],
 
                 ['Operating Working Capital Requirement',
-                 Qty(current_wc, 'USD'),
-                 Qty(scenario_term_wc, 'USD'),
-                 Qty(term_change_wc, 'USD')],
+                 Qty(current_wc, to_cur),
+                 Qty(scenario_term_wc, to_cur),
+                 Qty(term_change_wc, to_cur)],
             ],
             'columns': ['Metric', 'Actual', 'Scenario', 'Change'],
         },
         'Additional Financing Required': Qty(
-            additional_financing, 'USD'
+            additional_financing, to_cur
         )}

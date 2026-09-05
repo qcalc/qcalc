@@ -21,10 +21,9 @@ def result_values(result):
             ojson_uoms[name] = value.uom
         elif isinstance(value, pd.DataFrame):
             pass
-        elif str(type(value)).lower().find('chart') > -1:  # class 'chartkick.django.LineChart'
+        elif str(type(value)).lower().find('chart') > -1:
             pass
         else:
-            # print(type(value))
             ojson_data[name] = value
         return
 

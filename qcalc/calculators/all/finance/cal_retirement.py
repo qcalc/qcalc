@@ -163,4 +163,5 @@ def retirement_sustainability__info():
             'finance, retirement, investment, withdrawal, '
             'portfolio, sustainability'
         ),
+        'outcol': ['depletion_year__r','chart__r']
     }

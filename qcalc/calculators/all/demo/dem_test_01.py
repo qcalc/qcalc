@@ -390,14 +390,7 @@ def demo_fchart__info():
 
 
 def demo_fchart():
-    # chart = PieChart({'Blueberry': 44, 'Strawberry': 23}, width='200px', height='200px')
-    # data = [
-    #     {'name': 'Workout', 'data': {'2021-01-01': 3, '2021-01-02': 4}},
-    #     {'name': 'Call parents', 'data': {'2021-01-01': 5, '2021-01-02': 3}}
-    # ]
-    # chart = LineChart(data, width='100%')
     chart = line2_chart('20210101, 20210102', '3, 4', '2, 3')
-    # print(type(chart)) # class 'chartkick.django.LineChart'
     return chart
 
 

@@ -517,9 +517,9 @@ def q1141_read_func_meta(func_id, __info=None, scope='qpots'):
         'onsubmit': '',
         'script': '',  # string e.g. 'function cfn(v){return v>100;}'
         # 'quom2': False,
-        'qsel2': False, # internal use
-        'qlist': False, # internal use
-        'table_out': False, # internal use - auto calculated if it is an output table
+        'qsel2': False,  # internal use
+        'qlist': False,  # internal use
+        'table_out': False,  # internal use - auto calculated if it is an output table
         'table_in': False,  # internal use - auto calculated if it is an input table
         'kins': '',  # comma separated cal list meant to be sepcified through qfunc_info.json
         'tags': '',  # comma separated tag list meant to be specified through qfunc_info.json
@@ -527,7 +527,7 @@ def q1141_read_func_meta(func_id, __info=None, scope='qpots'):
         'url': True,
         'loop': True,
         'step2': [],
-        'cost': False, # internal use
+        'cost': False,  # internal use
         'inserts': {},
     }  # variable_to_title(fn.__name__)
 
@@ -758,7 +758,7 @@ def q1145_result_to_form_schema(request: HtmxHttpRequest, func_id, cid, result):
         name = ut.title_to_variable(arg_name, '__r')
         if isPQ(value):  # quantity
             request.json_doc['info']['cost'] = True
-            name = name + 'q'
+            # name = name + 'q' #@05.09.26
             fv, fuom = qformat(value.val, value.unit, pref=us)
             request.ojson_data[name] = fv
             request.ojson_data_type.append('oval-q')
@@ -767,8 +767,6 @@ def q1145_result_to_form_schema(request: HtmxHttpRequest, func_id, cid, result):
         elif isinstance(value, pd.DataFrame):  # table
             request.json_doc['info']['loop'] = False
             table_id = f"{cid}_{name}"
-            # value.index = np.arange(1, len(value) + 1)  # 0 based index
-            # value.index = range(1, len(value) + 1)  # will also do
             value = value.apply(lambda col: col.map(df_formatter))  # apply format for table-out
             request.ojson_data[name] = qhtml(
                 value.to_html(
@@ -778,23 +776,14 @@ def q1145_result_to_form_schema(request: HtmxHttpRequest, func_id, cid, result):
                     # float_format=qformatter().format,
                     index=False
                 ))  # datatable-basic {cid}
-            # cast using qhtml() to exclude it from output data section
-            # ic(request.ojson_data[name])
             request.ojson_data_type.append('html')
             request.ojson_doc['table_out'] = True
-        elif str(type(value)).lower().find('chartkick') > -1:
-            request.json_doc['info']['loop'] = False
-            request.ojson_data[name] = qhtml(value)
-            # cast using qhtml() to exclude it from output data section
-            request.ojson_data_type.append('html')
-        # elif str(type(value)).lower().find('qchart') > -1:
         elif isinstance(value, QChart) or isinstance(value, QMap):
             request.json_doc['info']['loop'] = False
             request.ojson_data[name] = \
                 qhtml(wrap_actions(f"<img class='img-plot qhtml' src='data:image/png;base64,{value.chart()}'>"))
             # cast using qhtml() to exclude it from output data section
             request.ojson_data_type.append('html')
-        # elif str(type(value)).lower().find('qimage') > -1:
         elif isinstance(value, QImage):
             request.json_doc['info']['loop'] = False
             request.ojson_data[name] = \
@@ -807,11 +796,11 @@ def q1145_result_to_form_schema(request: HtmxHttpRequest, func_id, cid, result):
             # cast using qhtml() to exclude it from output data section
             request.ojson_data_type.append('html')
         elif isinstance(value, float):
-            name = name + 'f'
+            # name = name + 'f' #@05.09.26
             request.ojson_data[name] = qformat(value, pref=us)
             request.ojson_data_type.append('char')
         elif isinstance(value, int):
-            name = name + 'i'
+            # name = name + 'i' #@05.09.26
             request.ojson_data[name] = qformat(value, pref=us)
             request.ojson_data_type.append('char')
         elif isinstance(value, qvstr):

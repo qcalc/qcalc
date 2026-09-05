@@ -495,12 +495,11 @@ def q11441b_update_req_pref(request: HtmxHttpRequest):
     xt_idec = request.extra.get('ignoredec', '')  # '0', '1' or ''
     if xt_idec != '':
         us['ignore_decimal_format'] = xt_idec == '1'
-        QPref.setp1('ignore_decimal_format', us['ignore_decimal_format'])
+        # QPref.setp1('ignore_decimal_format', us['ignore_decimal_format'])
 
-    xt_interactive = request.extra.get('interactive', '')  # '0', '1' or ''
+    xt_interactive = request.extra.get('interactive_enabled', '')  # '0', '1' or ''
     if xt_interactive != '':
-        us['interactive'] = xt_interactive == '1'
-        QPref.setp1('interactive', us['interactive'])
+        request.interactive_enabled = xt_interactive == '1'
 
     request.pref.update(us)  # User Request Preference, Defaults for this request of the user
 

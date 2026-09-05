@@ -10,6 +10,17 @@
         button.classList.toggle('active', enabled);
     }
 
+    function updateInteractiveTarget(form, enabled) {
+        var cid = form.id.replace('form-', '');
+        form.setAttribute('data-interactive', 'true');
+        form.setAttribute('hx-sync', 'this:replace');
+        form.setAttribute('hx-target', '#interactive-output-' + cid);
+        form.setAttribute('hx-swap', 'outerHTML');
+        if (window.htmx) {
+            htmx.process(form);
+        }
+    }
+
     window.qcalc_ToggleInteractive = function(button) {
         var form = button ? button.closest('form') : null;
         if (!form) {
@@ -18,10 +29,11 @@
 
         var enabled = form.dataset.interactiveEnabled !== 'true';
         form.dataset.interactiveEnabled = enabled ? 'true' : 'false';
+        updateInteractiveTarget(form, enabled);
         updateInteractiveButton(button, enabled);
         if (window.updateExtra) {
             updateExtra(form.id.replace('form-', ''), {
-                interactive: enabled ? '1' : '0'
+                interactive_enabled: enabled ? '1' : '0'
             });
         }
 

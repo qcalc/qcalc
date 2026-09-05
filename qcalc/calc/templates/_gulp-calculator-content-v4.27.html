@@ -45,6 +45,7 @@
     {% if 'result' in input.doc.info.outcol %}
   </div>
   <div class="col">{% endif %}
+  <div id="interactive-output-{{ input.cid }}">
     <!-- hr -->
   {% if 'out_top' in input.doc.info.inserts %}
   <br>
@@ -76,6 +77,7 @@
     {% if input.doc.info.outcol|length > 0 %}
   </div>
 </div>{% endif %}
+  </div>
 <br>
 {% isdebug as dbg %}
 {% if user.is_staff or dbg %}@@include('insert-calculator-section-ioinfo.html'){% endif %}

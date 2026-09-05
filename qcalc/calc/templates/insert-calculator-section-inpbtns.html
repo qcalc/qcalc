@@ -10,10 +10,12 @@
       class="btn btn-primary btncal mr-2" aria-label="calculate"
       title="Calculate"
     >
-    <i class="icon-enter5 calimg"></i><span class="notxt">{{ input.doc.info.calculate }}</span>
-    <div class="htmx-indicator">
+    <span class="calculate-content">
+      <i class="icon-enter5 calimg"></i><span class="notxt">{{ input.doc.info.calculate }}</span>
+    </span>
+    <span class="htmx-indicator calculate-spinner">
       <div class="spinner"></div>
-    </div>
+    </span>
     </button>
   </p>
   <p>

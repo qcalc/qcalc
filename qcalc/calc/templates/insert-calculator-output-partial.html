@@ -1,0 +1,34 @@
+{% load qfilter %}
+{% if input.doc.info.outcol|length > 0 %}
+<div class="row input">
+  <div class="col">
+{% endif %}
+  {% if 'out_top' in input.doc.info.inserts %}
+  <br>
+  {{ input.doc.info.inserts.out_top | safe }}
+  {% endif %}
+  <div class="section-output1">
+    {% for field in output.form %}
+    {% if field.name not in input.doc.info.outcol %}
+    {% include 'insert-calculator-section-output.html' %}
+    {% endif %}
+    {% endfor %}
+  </div>
+  <br>
+  {% include 'insert-calculator-section-outbtns.html' %}
+  <div id="status-{{ input.cid }}" class="status"></div>
+{% if input.doc.info.outcol|length > 0 %}
+  </div>
+  <div class="col">
+{% endif %}
+  <div class="section-output2">
+    {% for field in output.form %}
+    {% if field.name in input.doc.info.outcol %}
+    {% include 'insert-calculator-section-output.html' %}
+    {% endif %}
+    {% endfor %}
+  </div>
+{% if input.doc.info.outcol|length > 0 %}
+  </div>
+</div>
+{% endif %}

@@ -536,6 +536,30 @@ label {
   display: inline;
 }
 
+.btncal {
+  position: relative;
+}
+
+.btncal .calculate-content {
+  visibility: visible;
+}
+
+.btncal .calculate-spinner {
+  position: absolute;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.htmx-request .btncal .calculate-content {
+  visibility: hidden;
+}
+
+.htmx-request .btncal .calculate-spinner {
+  display: flex;
+}
+
 div.calc {
   min-width: 375px;
 }

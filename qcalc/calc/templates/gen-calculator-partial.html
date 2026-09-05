@@ -103,6 +103,7 @@
       class="validate {{ input.cid }}"
       {% if request.pref.interactive and input.doc.info.interactive %}
       data-interactive="true" hx-sync="this:replace"
+      hx-target="#interactive-output-{{ input.cid }}" hx-swap="outerHTML"
       {% endif %}>
 {% load static %}
 {% load qfilter %}

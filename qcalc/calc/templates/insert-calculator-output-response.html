@@ -1,0 +1,9 @@
+{% load static %}
+{% load qfilter %}
+<div id="interactive-output-{{ input.cid }}">
+{% include 'insert-calculator-output-partial.html' %}
+</div>
+{% if output.doc.table_out or input.doc.info.table_out %}
+<script src="{% static_ver 'calc/js/tabulator-out.js' %}"></script>
+{% include 'insert-calculator-init-retry.html' with init_fn='qcalc_InitTabulatorOut' cid=input.cid %}
+{% endif %}

@@ -121,6 +121,15 @@ def q1999_func_to_form(request: HtmxHttpRequest, **dictf):  # main view
 
     try:
         q1199_func_to_form_common(request, **dictf)
+        if (
+            request.method == 'POST'
+            and request.pref.get('interactive')
+            and request.json_doc['info'].get('interactive')
+            and getattr(request, 'cmd', '') not in {
+                'load', 'resize', 'edit', 'display', '__modify',
+            }
+        ):
+            return q1_render(request, 'insert-calculator-output-response.html', request.context)
         return q1_render(request, get_template(part), request.context)
     except Exception as e:
         return q1_render_status(request, str(e), part)

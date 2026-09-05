@@ -1,4 +1,5 @@
 <!-- begin:insert-calculator-section-outbtns -->
+{% load qfilter %}
 <div class="btn-group mt-2 section-nextstep">
 {% if request.success and request.method == 'POST' %}
 {% for fspec in input.doc.info.step2 %}

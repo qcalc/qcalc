@@ -159,6 +159,7 @@ def retirement_sustainability__info():
             'inflation-adjusted withdrawals after tax on investment returns, '
             'and estimate the sustainable annual withdrawal.'
         ),
+        'interactive': True,
         'tags': (
             'finance, retirement, investment, withdrawal, '
             'portfolio, sustainability'

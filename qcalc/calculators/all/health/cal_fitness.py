@@ -34,7 +34,6 @@ def bodyfat__info():
         'schema': {
             'sex': list2options(gender_choice)
         },
-        # 'template': 'v4.21'
     }
 
 
@@ -187,7 +186,6 @@ def bodyfat2__info():
         'showhide': {
             'sex': {'fields': ['hip'], 'callback':"'@'=='F'"}
         },
-        # 'template': 'v4.21',
     }
 
 

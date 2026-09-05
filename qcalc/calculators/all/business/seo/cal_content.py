@@ -120,7 +120,6 @@ def keywords__info():
         'title': 'Keyword Extractor',
         'desc': 'The lower the score, the more relevant the keyword is',
         'kins': 'html_reader, csv_reader',
-        # 'template': 'v4.21'
     }
 
 

@@ -451,6 +451,15 @@ label {
   padding-left: 8px;
 }
 
+.btnimg:disabled,
+.btnimg.disabled,
+.btn[data-interactive-ignore=true]:disabled,
+.btn[data-interactive-ignore=true].disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: grayscale(0.7);
+}
+
 /* sizes - large */
 .chr {
   width: 12rem;

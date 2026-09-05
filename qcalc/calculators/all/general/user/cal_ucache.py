@@ -55,6 +55,7 @@ def pref__input(_kwargs):  # alternative to func__info() 'schema':{}'
     return {  # pref-02
         # 'request': '__req__',
         'theme': us['theme'],
+        'interactive': us['interactive'],
         'ignore_decimal_format': us['ignore_decimal_format'],
         'decimal': us['decimal'],
         'qty_decimal': us['qty_decimal'],
@@ -79,6 +80,7 @@ def pref__input(_kwargs):  # alternative to func__info() 'schema':{}'
 def pref(  # pref-03
     # request: qreq,
     theme,
+    interactive: bool,
     ignore_decimal_format: bool,
     decimal: int,
     qty_decimal: int,
@@ -107,6 +109,7 @@ def pref(  # pref-03
     # user settings
     us = {  # pref-04
         'theme': theme,
+        'interactive': interactive,
         'ignore_decimal_format': ignore_decimal_format,
         'decimal': decimal,
         'qty_decimal': qty_decimal,

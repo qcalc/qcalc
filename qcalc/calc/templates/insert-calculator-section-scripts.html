@@ -52,6 +52,11 @@
 {% include 'insert-calculator-init-retry.html' with init_fn='qcalc_InitTabulatorOut' cid=input.cid %}
 {% endif %}
 
+{% if request.pref.interactive and input.doc.info.interactive %}
+<script src="{% static_ver 'calc/js/interactive.js' %}"></script>
+{% include 'insert-calculator-init-retry.html' with init_fn='qcalc_InitInteractive' cid=input.cid %}
+{% endif %}
+
 {% if 'out_bottom' in input.doc.info.inserts %}
 {{ input.doc.info.inserts.out_bottom | safe }}
 {% endif %}

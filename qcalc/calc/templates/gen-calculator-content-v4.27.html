@@ -90,33 +90,67 @@
 {% endif %}
 <div class="btn-group mt-2 section-inpbtns">
   <p>
-    <button type="submit" class="btn btn-primary btncal mr-2" id="calculate_{{ input.cid }}" aria-label="calculate">
-      <i class="icon-enter5 calimg"></i><span class="notxt">{{ input.doc.info.calculate }}</span>
-      <div class="htmx-indicator">
-        <div class="spinner"></div>
-      </div>
+    <button type="submit" id="calculate_{{ input.cid }}"
+      class="btn btn-primary btncal mr-2" aria-label="calculate"
+      title="Calculate"
+    >
+    <i class="icon-enter5 calimg"></i><span class="notxt">{{ input.doc.info.calculate }}</span>
+    <div class="htmx-indicator">
+      <div class="spinner"></div>
+    </div>
     </button>
   </p>
   <p>
-    <button type="reset" class="btn btn-success btnimg mr-2" aria-label="undo"><i class="icon-undo2 mr-2"></i></button>
+    <button type="reset" id="reset-{{ input.cid }}"
+      class="btn btn-success btnimg mr-2" aria-label="undo"
+      title="Reset/undo input"
+    >
+    <i class="icon-undo2 mr-2"></i></button>
   </p>
   <p>
-    <button type="button" class="btn btn-danger btnimg mr-2" onclick="clearForm(this.form)" aria-label="clear_form"><i
-      class="icon-file-empty2"></i></button>
+    <button type="button" id="clear-{{ input.cid }}"
+      class="btn btn-danger btnimg mr-2" aria-label="clear_form"
+      title="Clear form input"
+      onclick="clearForm(this.form)"
+    >
+    <i class="icon-file-empty2"></i></button>
   </p>
   <p>
-    <button type="button" class="btn btn-success btnimg mr-2"
-            hx-get="/calc/add/?path={{ input.doc.name }}&part=1&cid={{input.cid}}"
-            hx-target="closest .calc" hx-swap="outerHTML" aria-label="default_data"><i class="icon-sync"></i></button>
+    <button type="button" id="refresh-{{ input.cid }}"
+      class="btn btn-success btnimg mr-2" aria-label="default_data"
+      title="Refresh form input with default data"
+      hx-get="/calc/add/?path={{ input.doc.name }}&part=1&cid={{input.cid}}"
+      hx-target="closest .calc" hx-swap="outerHTML"
+    >
+    <i class="icon-sync"></i></button>
   </p><!-- important, path ensures not to recall -->
   <p>
-    <button type="button" id="dec-{{ input.cid }}" onclick='v = toggleIcon(this, "icon-eye2", "icon-eye-blocked2");
-    updateExtra("{{ input.cid }}", {"ignoredec":v==1?"1":"0"});' class="btn btn-info btnimg mr-2" aria-label="precision">
+    <button type="button" id="dec-{{ input.cid }}"
+      class="btn btn-info btnimg mr-2" aria-label="precision"
+      title="Toggle ignore decimal format"
+      onclick='v = toggleIcon(this, "icon-eye2", "icon-eye-blocked2"); updateExtra("{{ input.cid }}", {"ignoredec":v==1?"1":"0"});'
+    >
     <i class="{% ctf request.pref.ignore_decimal_format 'icon-eye2' 'icon-eye-blocked2' %}"></i></button>
   </p>
+  {% if input.doc.info.interactive and request.pref.interactive %}
+  <p>
+    <button type="button" id="interactive-{{ input.cid }}"
+      class="btn btn-info btnimg mr-2" aria-label="toggle interactive calculation"
+      title="Toggle interactive calculation"
+      aria-pressed="{% ctf request.pref.interactive 'true' 'false' %}"
+      onclick='toggleIcon(this, "icon-primitive-dot", "icon-primitive-square"); qcalc_ToggleInteractive(this);'
+    >
+    <i class="{% ctf request.pref.interactive 'icon-primitive-dot' 'icon-primitive-square' %}"></i>
+    </button>
+  </p>
+  {% endif %}
   <div class="btn-group">
-    <button type="button" class="btn btn-info btnimg mr-2 dropdown-toggle" data-toggle="dropdown"
-            aria-haspopup="true" aria-expanded="false" aria-label="calc_menu"><i class="icon-menu"></i>
+    <button type="button" id="menu-{{ input.cid }}"
+      class="btn btn-info btnimg mr-2 dropdown-toggle" aria-label="calc_menu"
+      title="Calculator menu"
+      data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+    >
+    <i class="icon-menu"></i>
     </button>
     <div class="dropdown-menu">
       <a class="dropdown-item" href="javascript:;"
@@ -302,6 +336,11 @@
 {% if output.doc.table_out or input.doc.info.table_out %}
 <script src="{% static_ver 'calc/js/tabulator-out.js' %}"></script>
 {% include 'insert-calculator-init-retry.html' with init_fn='qcalc_InitTabulatorOut' cid=input.cid %}
+{% endif %}
+
+{% if request.pref.interactive and input.doc.info.interactive %}
+<script src="{% static_ver 'calc/js/interactive.js' %}"></script>
+{% include 'insert-calculator-init-retry.html' with init_fn='qcalc_InitInteractive' cid=input.cid %}
 {% endif %}
 
 {% if 'out_bottom' in input.doc.info.inserts %}

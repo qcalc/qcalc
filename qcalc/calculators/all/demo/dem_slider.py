@@ -21,7 +21,6 @@ def demo_jqval(x=5, y=10, z='', u: qurl = '', l='3ft'):
 
 def demo_jqval22__info():
     ji = demo_jqval__info()
-    # ji['template'] = 'v4.22'
     return ji
 
 

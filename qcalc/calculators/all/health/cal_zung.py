@@ -49,7 +49,6 @@ def zung__info():
             'q20': {**options1, **{'label': 'I have nightmares'}},
         },
         'col': ['q01-q10', 'q11-q20'],
-        # 'template': 'v4.22',
     }
 
 

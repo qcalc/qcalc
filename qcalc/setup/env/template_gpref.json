@@ -1,5 +1,6 @@
 {
   "theme": "default",
+  "interactive": false,
   "ignore_decimal_format": false,
   "decimal": 5,
   "qty_decimal": 3,

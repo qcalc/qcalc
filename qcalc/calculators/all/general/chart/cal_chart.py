@@ -295,7 +295,6 @@ def pareq__info():
     ret = {
         'title': 'Parametric Equation',
         # 'outcol': ['chart__r'],
-        # 'template': 'v4.21',
         'col': ['x-title', 'const_1-aspect'],
         # 'row': ['10-11', '12-13','14-15','16-17','18-19']
     }

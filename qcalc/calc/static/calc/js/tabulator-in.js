@@ -169,11 +169,20 @@
         return "id_" + tableId + "_table_update";
     }
 
+    function setUpdateButtonEnabled(tableId, enabled) {
+        $("#id_" + tableId + "_table_update").prop("disabled", !enabled);
+    }
+
     function bindTableButtons(tableId) {
         const updateButton = $("#id_" + tableId + "_table_update");
         if (updateButton.length > 0 && !updateButton.data("qcalc_Bound")) {
             updateButton.on("click", function() {
+                const form = this.closest("form");
+                if (form && form.qcalcSuspendInteractive) {
+                    form.qcalcSuspendInteractive();
+                }
                 updateAllData($(this));
+                $(this).prop("disabled", true);
             });
             updateButton.data("qcalc_Bound", "1");
         }
@@ -181,7 +190,12 @@
         const resizeButton = $("#id_" + tableId + "_table_resize");
         if (resizeButton.length > 0 && !resizeButton.data("qcalc_Bound")) {
             resizeButton.on("click", function() {
+                const form = this.closest("form");
+                if (form && form.qcalcSuspendInteractive) {
+                    form.qcalcSuspendInteractive();
+                }
                 updateAllData($(this), false);
+                setUpdateButtonEnabled(tableId, false);
                 const cid = getCidOf($(this));
                 const extraFieldId = "extra_" + cid;
                 const calcBtnId = "calculate_" + cid;
@@ -194,7 +208,12 @@
         const edButton = $("#id_" + tableId + "_table_ed");
         if (edButton.length > 0 && !edButton.data("qcalc_Bound")) {
             edButton.on("click", function() {
+                const form = this.closest("form");
+                if (form && form.qcalcSuspendInteractive) {
+                    form.qcalcSuspendInteractive();
+                }
                 updateAllData($(this));
+                setUpdateButtonEnabled(tableId, false);
                 const cid = getCidOf($(this));
                 const extraFieldId = "extra_" + cid;
                 const calcBtnId = "calculate_" + cid;
@@ -263,6 +282,17 @@
             clipboardPasteAction: "replace",
         });
 
+        setUpdateButtonEnabled(tableId, false);
+        dataTable.on("cellEdited", function() {
+            setUpdateButtonEnabled(tableId, true);
+        });
+        dataTable.on("rowAdded", function() {
+            setUpdateButtonEnabled(tableId, true);
+        });
+        dataTable.on("rowDeleted", function() {
+            setUpdateButtonEnabled(tableId, true);
+        });
+
         dataTable.on("renderComplete", function() {
             setTimeout(() => {
                 pickData(this);
@@ -297,6 +327,9 @@
 
     document.body.addEventListener("htmx:afterSwap", function(evt) {
         const target = evt && evt.detail ? evt.detail.target : null;
-        initTabulatorIn(target || document);
+        // outerHTML swaps leave detail.target pointing at the removed node;
+        // querying it would rebuild tables against selectors missing from the live DOM.
+        const root = (target && target.isConnected) ? target : document;
+        initTabulatorIn(root);
     });
 })();

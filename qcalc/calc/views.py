@@ -494,6 +494,7 @@ def q1141_read_func_meta(func_id, __info=None, scope='qpots'):
         # 'label', 'label_suffix', 'help_text', 'error_messages', 'validators', 'localize'
         # 'attr':{'size':n, 'readonly':True, ...}
         # input interaction patterns
+        'interactive': False,
         'autofill': {},  # {"arg1":{"fields":["autof1","autof2",...], "autofill":{"arg1v1":[v1,v2,...],...}}, ...}
         'related': {},  # v4.21 {"1":{"fields":{"arg1":i1,"arg2":i2,...},"relation":{}},"2":...}
         # 'min_height': '0px',
@@ -541,6 +542,7 @@ def q1141_read_func_meta(func_id, __info=None, scope='qpots'):
         'calculate',
         # 'variant',
         'schema',
+        'interactive',
         'autofill',
         'related',
         # 'min_height',

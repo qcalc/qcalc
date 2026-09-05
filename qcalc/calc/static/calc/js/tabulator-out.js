@@ -45,7 +45,7 @@
         $tables.each(function() {
             const tableElem = this;
             const tableId = tableElem.id;
-            if (!tableId) {
+            if (!tableId || !tableElem.isConnected) {
                 return;
             }
 
@@ -65,7 +65,7 @@
                 return;
             }
 
-            new Tabulator(selector, {
+            new Tabulator(tableElem, {
                 pagination: "local",
                 paginationSize: 10,
                 paginationSizeSelector: [10, 25, 50, 100],
@@ -86,6 +86,9 @@
 
     document.body.addEventListener('htmx:afterSwap', function(evt) {
         const target = evt && evt.detail ? evt.detail.target : null;
-        initTabulatorOut(target || document);
+        // outerHTML swaps leave detail.target pointing at the removed node;
+        // querying it would rebuild tables against selectors missing from the live DOM.
+        const root = (target && target.isConnected) ? target : document;
+        initTabulatorOut(root);
     });
 })();

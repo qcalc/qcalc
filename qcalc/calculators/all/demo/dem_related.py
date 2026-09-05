@@ -46,7 +46,6 @@ def demo_related2__info():
                     },
                 ),
             },
-        # 'template': 'v4.21'
     }
 
 
@@ -67,7 +66,6 @@ def demo_autofill__info():
                                          fields=['auto_fill_11', 'auto_fill_12', 'auto_fill_13']),
                 'select_2': list2options(StdList.autofill2data_list, fields=['auto_fill_21', 'auto_fill_22'])
             },
-        # 'template': 'v4.21'
     }
 
 
@@ -90,7 +88,6 @@ def demo_anyof__info():
             {
                 'x': {'fields': ['c'], 'callback': '@==100'}
             },
-        # 'template': 'v4.21',
     }
 
 

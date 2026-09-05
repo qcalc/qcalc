@@ -318,23 +318,28 @@ class TabulatorWidget(Widget):
             # float_format=qformatter().format,
             index=False,
         )
+        html = html.replace(
+            '<table ',
+            '<table data-interactive-ignore="true" ',
+            1,
+        )
 
         # if mode == 'edit' and extra_cols == 0:
         #     html = html
 
         ed = 'Display' if mode == 'edit' else 'Edit'
         row_inp = f'<label for="id_{self.cid}_{name}_row">Row:</label>' + \
-                  f'<input type="text" name="{name}_row" value="{row}" id="id_{self.cid}_{name}_row" class="vt mr-2">'
+                  f'<input type="text" name="{name}_row" value="{row}" id="id_{self.cid}_{name}_row" class="vt mr-2" data-interactive-ignore="true">'
         col_inp = f'<label for="id_{self.cid}_{name}_col">Col:</label>' + \
-                  f'<input type="text" name="{name}_col" value="{col}" id="id_{self.cid}_{name}_col" class="vt mr-2">'
+                  f'<input type="text" name="{name}_col" value="{col}" id="id_{self.cid}_{name}_col" class="vt mr-2" data-interactive-ignore="true">'
         rsz_btn = f'<button type="button" name="{name}_table_resize" id="id_{self.cid}_{name}_table_resize" ' + \
-                  f'class="btn btn-info btncmd mr-2" >Resize</button>'
+                  f'class="btn btn-info btncmd mr-2" data-interactive-ignore="true">Resize</button>'
         ed_btn = f'<button type="button" name="{name}_table_ed" id="id_{self.cid}_{name}_table_ed" ' + \
-                 f'class="btn btn-info btncmd tbl-ed">{ed}</button>'
+                 f'class="btn btn-info btncmd tbl-ed" data-interactive-ignore="true">{ed}</button>'
 
         if mode == 'edit':
             upd_btn = f'<button type="button" name="{name}_table_update" id="id_{self.cid}_{name}_table_update" ' + \
-                      f'class="btn btn-info btncmd mr-2" >Update</button>'
+                      f'class="btn btn-info btncmd mr-2" data-interactive-ignore="true" disabled>Update</button>'
             html += f'<span>{upd_btn}{row_inp}{col_inp}{rsz_btn}{ed_btn}</span>'
         else:
             html += f'<span>{row_inp}{col_inp}{rsz_btn}{ed_btn}</span>'

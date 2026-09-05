@@ -8,6 +8,7 @@ def demo_input__info():
     ptrn = r'^\w{3,5}$'
     return {
         'title': 'Testing Various Input Types',
+        'interactive': True,
         'schema': {
             'tbool': {'help_text': 'Boolean input.'},
             'tchar': {

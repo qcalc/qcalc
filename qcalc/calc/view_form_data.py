@@ -491,10 +491,17 @@ def q11441a_get_user_pref(request: HtmxHttpRequest):
 def q11441b_update_req_pref(request: HtmxHttpRequest):
     # | update current request preferences with user's request specific values posted
     us = request.pref  # QPref.getp(request).copy()
-    us_idec = us['ignore_decimal_format']
+
     xt_idec = request.extra.get('ignoredec', '')  # '0', '1' or ''
-    ca_idec = us_idec if xt_idec == '' else (xt_idec == '1')
-    us['ignore_decimal_format'] = ca_idec
+    if xt_idec != '':
+        us['ignore_decimal_format'] = xt_idec == '1'
+        QPref.setp1('ignore_decimal_format', us['ignore_decimal_format'])
+
+    xt_interactive = request.extra.get('interactive', '')  # '0', '1' or ''
+    if xt_interactive != '':
+        us['interactive'] = xt_interactive == '1'
+        QPref.setp1('interactive', us['interactive'])
+
     request.pref.update(us)  # User Request Preference, Defaults for this request of the user
 
 

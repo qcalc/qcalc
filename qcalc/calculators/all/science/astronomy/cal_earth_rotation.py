@@ -6,7 +6,7 @@ from calculators.all.general.map.cal_location import geo_location
 from qcore import Qty, qfunc, QGeo
 from math import fmod, radians, degrees, sqrt, ceil, acos
 from .cal_coord import *
-from qutil import nzv, qc_tzinfo, julian_date, j2iso
+from qutil import nzv, qc_tzinfo, julian_date, j2iso, QDateTime
 
 
 class EarthRotation:
@@ -102,11 +102,12 @@ def sunrise(location: qfunc = geo_location, on_date=date.today(), consider_eleva
     location_str = location['Location']
     time_zone = location['Time Zone']
     geo = QGeo.from_str(location_str)
+    q_on_date = QDateTime(on_date)  # !important, normalize date input (like we normalize Qty)
     elevation_str = '0.0 m'
     if consider_elevation:
         elevation = geo.elevation()
         if elevation: elevation_str = f'{elevation} m'
-    rtn = EarthRotation(geo.latitude, geo.longitude, elevation_str, on_date, time_zone.replace(':', '/'))
+    rtn = EarthRotation(geo.latitude, geo.longitude, elevation_str, q_on_date.val, time_zone.replace(':', '/'))
     srs = rtn.sunrise_and_sunset()
     toret = {"location": location_str, "time_zone": time_zone, "sunrise": srs[0], "sunset": srs[1],
              "day_length": Qty(srs[2], 'h'), "night_length": Qty(srs[3], 'h')}
@@ -136,7 +137,8 @@ def moonphase(on_date=date.today()):
     # http://individual.utoronto.ca/kalendis/lunar/#FALC
     jday_20000106 = 2451549.5
     lunar_cycle_length = 29.53058770576
-    julian_day_dict = jday(on_date)
+    q_on_date = QDateTime(on_date).val # normalize so it also work with eval()
+    julian_day_dict = jday(q_on_date)
     julian_day = list(julian_day_dict.values())[0]
     # lprint('Julian day number', julian_day)
     day_since_new = julian_day - jday_20000106

@@ -11,6 +11,6 @@ def age__info(): return {'title': 'Calculate Age from Date of Birth'}
 
 def age(date_of_birth='1999-12-31'):
     tody = date.today()
-    delta = tody - QDateTime(date_of_birth).val
+    delta = tody - QDateTime(date_of_birth).val # normalize
     # return Qty(delta.days, 'd').in_units_of('yr', 'mo', 'd')
     return Qty(delta.days, 'd').as_units('yr, mo, d')

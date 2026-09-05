@@ -1,6 +1,7 @@
 # Returning Calculation Results in qCalc
 <!-- TOC -->
 * [Returning Calculation Results in qCalc](#returning-calculation-results-in-qcalc)
+  * [Return parameter name](#return-parameter-name-)
   * [1. Returning a single value](#1-returning-a-single-value)
     * [Numbers](#numbers)
   * [2. Returning a quantity](#2-returning-a-quantity)
@@ -45,6 +46,29 @@
 A calculator function can return a single value, a quantity, a collection of values, a dictionary, a table, or one of qCalc's special output objects. qCalc automatically converts the returned value into the appropriate output format for display in the calculator result form.
 
 The way a value is displayed depends on both its **Python type** and its **position within a returned structure**.
+
+## Return parameter name 
+
+The result field name is derived from the result name. For an unnamed single result, the default name is `result`.
+
+Result parameter name is represented internally by the converted variable name and a suffix `__r`. 
+For example if a return label is `Total Cost` the resulting output variable will be `total_cost__r`
+As you see, name is in lowercase, space is converted to `_` and a suffix `__r` is added.
+
+Similarly, if a chart label is 'Chart' it's corresponding output variable will be `chart__r`.
+
+The quantity result receives the following internal fields:
+
+* `<name>` — quantity value
+* `<name>_uom` — unit of measurement
+
+For example, a result named `Length` may internally become something similar to:
+
+```text
+length__r
+length__r_uom
+```
+
 
 ## 1. Returning a single value
 
@@ -91,15 +115,6 @@ return 1250.5678
 
 is formatted according to the user's qCalc preferences.
 
-The result field name is derived from the result name. For an unnamed single result, the default name is `result`.
-
-Internally, numeric result names receive a suffix:
-
-* integer → `resulti`
-* float → `resultf`
-
-Calculator authors normally do **not** need to add these suffixes themselves.
-
 ---
 
 ## 2. Returning a quantity
@@ -122,19 +137,6 @@ The result is split into two read-only fields:
 
 The numeric value and unit are formatted according to the user's preferences.
 
-The quantity result receives the following internal fields:
-
-* `<name>q` — quantity value
-* `<name>q_uom` — unit of measurement
-
-For example, a result named `Length` may internally become something similar to:
-
-```text
-length__rq
-length__rq_uom
-```
-
-The exact generated name is handled by qCalc.
 
 ### Important
 

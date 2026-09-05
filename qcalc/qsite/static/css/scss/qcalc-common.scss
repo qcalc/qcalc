@@ -484,6 +484,7 @@ label {
 
 div.calc {
   min-width:375px;
+  container-type: inline-size; /* enables container queries on card width */
   }
 
 /* >= 1568px */
@@ -559,6 +560,13 @@ div.calc {
     width: 28px;
     padding-left: 5px;
     padding-top: 3px;
+  }
+}
+
+/* hide calculator menu button when the card itself is narrow */
+@container (max-width: 375px) {
+  .btnimg.dropdown-toggle {
+    display: none;
   }
 }
 

@@ -1,14 +1,14 @@
-/* qCalc Vibe Theme */
+/* qCalc Variables Common */
 $body-font-size: 0.94rem; /* 0.82rem, 0.906 */
 $sidebar2-font-size: 0.82rem !important;
 $footer-font-size: 0.82rem;
 $font-weight: 400; /* 500 */
 
-$val: 12rem;
+$val: 10rem; /* 12rem; */
 $uom-q: 10rem;
 $val-pq: 9rem;
 $uom-pq: 9rem;
-$ouom-q: $uom-q - 1rem;
+$ouom-q: $uom-q - 2rem; /* -1rem */
 $inp: $val + $uom-q + 0.125rem;
 
 $val-m: $val - 1rem;

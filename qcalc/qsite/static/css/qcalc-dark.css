@@ -1,8 +1,10 @@
 @charset "UTF-8";
 /* qCalc Dark Theme */
-/* qCalc Vibe Theme */
+/* qCalc Variables Common */
 /* 0.82rem, 0.906 */
 /* 500 */
+/* 12rem; */
+/* -1rem */
 /* Dark colors */
 /* Pure black */
 /* Dark grey #333333 */
@@ -59,7 +61,7 @@
 /**/
 /* Scrollable region */
 .scrollable {
-  width: 22.125rem; /* Width of the scrollable area */
+  width: 20.125rem; /* Width of the scrollable area */
   max-height: 200px; /* Maximum height for the scrollable area */
   border: 1px solid #ddd; /* Optional: Add a border */
   padding: 10px;
@@ -486,22 +488,22 @@ label {
 
 /* sizes - large */
 .chr {
-  width: 12rem;
+  width: 10rem;
 } /* short char */
 .uom {
-  width: 12rem;
+  width: 10rem;
 } /* lone uom */
 .val {
-  width: 12rem;
+  width: 10rem;
 } /* lone val */
 .val-p {
-  width: 12rem;
+  width: 10rem;
 } /* val with part - qchar, qfl, qin */
 .val-pp {
   width: 10rem;
 } /* val parts - qchar, qfl, qin _part */
 .val-q {
-  width: 12rem;
+  width: 10rem;
 } /* qty val with uom */
 .uom-q {
   width: 10rem;
@@ -513,16 +515,16 @@ label {
   width: 9rem;
 } /* qty uom part */
 .oval-q {
-  width: 12rem;
+  width: 10rem;
 } /* output qty val with uom */
 .ouom-q {
-  width: 9rem;
+  width: 8rem;
 } /* output qty uom */
 .inp {
-  width: 22.125rem;
+  width: 20.125rem;
 } /* text, str input */
 .texta {
-  width: 22.125rem;
+  width: 20.125rem;
   height: 5rem;
 }
 
@@ -564,6 +566,7 @@ label {
 
 div.calc {
   min-width: 375px;
+  container-type: inline-size; /* enables container queries on card width */
 }
 
 /* >= 1568px */
@@ -591,22 +594,22 @@ div.calc {
   }
   /* sizes - medium */
   .chr {
-    width: 11rem;
+    width: 9rem;
   }
   .uom {
-    width: 11rem;
+    width: 9rem;
   }
   .val {
-    width: 11rem;
+    width: 9rem;
   }
   .val-p {
-    width: 11rem;
+    width: 9rem;
   }
   .val-pp {
     width: 9rem;
   }
   .val-q {
-    width: 11rem;
+    width: 9rem;
   }
   .uom-q {
     width: 9rem;
@@ -618,16 +621,16 @@ div.calc {
     width: 9rem;
   }
   .oval-q {
-    width: 11rem;
+    width: 9rem;
   }
   .ouom-q {
-    width: 8rem;
+    width: 7rem;
   }
   .inp {
-    width: 20.125rem;
+    width: 18.125rem;
   }
   .texta {
-    width: 20.125rem;
+    width: 18.125rem;
     height: 5rem;
   }
   .img-plot {
@@ -641,22 +644,22 @@ div.calc {
   }
   /* sizes small */
   .chr {
-    width: 10rem;
+    width: 8rem;
   }
   .uom {
-    width: 10rem;
+    width: 8rem;
   }
   .val {
-    width: 10rem;
+    width: 8rem;
   }
   .val-p {
-    width: 10rem;
+    width: 8rem;
   }
   .val-pp {
     width: 8rem;
   }
   .val-q {
-    width: 10rem;
+    width: 8rem;
   }
   .uom-q {
     width: 8rem;
@@ -668,16 +671,16 @@ div.calc {
     width: 8rem;
   }
   .oval-q {
-    width: 10rem;
+    width: 8rem;
   }
   .ouom-q {
-    width: 7rem;
+    width: 6rem;
   }
   .inp {
-    width: 18.125rem;
+    width: 16.125rem;
   }
   .texta {
-    width: 18.125rem;
+    width: 16.125rem;
     height: 5rem;
   }
   .btnimg, .btncal {
@@ -685,6 +688,12 @@ div.calc {
     width: 28px;
     padding-left: 5px;
     padding-top: 3px;
+  }
+}
+/* hide calculator menu button when the card itself is narrow */
+@container (max-width: 375px) {
+  .btnimg.dropdown-toggle {
+    display: none;
   }
 }
 span.mark2 {

@@ -237,3 +237,4 @@ robots.txt
 _*_/
 Dockerfile
 docker-compose.yml
+*.css.map

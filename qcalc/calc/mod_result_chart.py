@@ -41,6 +41,16 @@ def df2chart(df: pd.DataFrame, x_column='', y_columns: list | None = None,
     return chart
 
 
+def df2histo(df: pd.DataFrame, bin_count=20, xlabel='x', y_column=None,
+             ylabel='Frequency', chart_title='Histogram'):
+    if y_column is None:
+        return None
+    chart = QChart()
+    yvals = df2histo_data(df, y_column)
+    chart.render_histogram(values=yvals, bin_count=bin_count, xlabel=xlabel, ylabel=ylabel, title=chart_title)
+    return chart
+
+
 def df2chart_data(df, x_column='', y_columns: list | None = None):
     # df = {x:[],y:[]}
     if y_columns is None:
@@ -71,6 +81,20 @@ def df2chart_data(df, x_column='', y_columns: list | None = None):
             ch_data['yvalsm'].append(yvals)
             ch_data['ylabels'].append(rkey)
     return ch_data
+
+
+def df2histo_data(df, y_column: str):
+    # rows can be heterogeneous (e.g. a failed trial contributes None/{} instead
+    # of a number), so filter per-value rather than assuming a uniform column type
+    cleaned = []
+    for v in df[y_column]:
+        if isinstance(v, list):
+            v = v[0] if v else None
+        if isinstance(v, Qty):
+            v = v.val
+        if isinstance(v, (int, float)) and not isinstance(v, bool):
+            cleaned.append(float(v))
+    return cleaned
 
 
 def results2chart(
@@ -152,7 +176,6 @@ def results2chart(
 
     empty_tbl_filter = True
     empty_cht_filter = True
-    # if len(y_columns) + len(ukeys) + len(ckeys) + len(cukeys) > 0:
     if len(y_columns) + len(ukeys) > 0:
         empty_tbl_filter = False
     if len(ckeys) + len(cukeys) > 0:
@@ -224,19 +247,25 @@ def results2chart(
     for rkey in data2c_columns:
         data2c[rkey] = []
 
+    build_table = show in ('both', 'table')
+    build_chart = show in ('both', 'chart')
+
     for result in results:
         rvalues, ruoms = result_values(result)
-        for rkey in data_columns:
-            rvalue = rvalues[rkey]
-            data[rkey].append(rvalue)
-        for rkey in data2c_columns:
-            rvalue = rvalues[rkey]
-            data2c[rkey].append(rvalue)
+        if build_table:
+            for rkey in data_columns:
+                data[rkey].append(rvalues.get(rkey))
+        if build_chart:
+            for rkey in data2c_columns:
+                data2c[rkey].append(rvalues.get(rkey))
 
-    df = pd.DataFrame(data)
-    df.columns = data_changed_title
+    df = None
+    if build_table:
+        df = pd.DataFrame(data)
+        df.columns = data_changed_title
+
     chart = None
-    if show == 'both' or show == 'chart':
+    if build_chart:
         df2c = pd.DataFrame(data2c)
         df2c.columns = data2c_changed_title
         chart = df2chart(df2c, x_column, y_columns=None, chart_title=title, chart_type=chart_type)
@@ -248,4 +277,122 @@ def results2chart(
         res = {'table': df}
     elif show == 'chart':
         res = {'chart': chart}
+    return res
+
+
+def results2histo(
+    results, bin_count=20, result_columns='', result_units: str = '',
+    chart_column: str = '', show='both', title=''):
+    if isinstance(results[0], dict):
+        result_all_columns = list(results[0].keys())
+    elif isinstance(results[0], list):
+        result_all_columns = ['result']
+    else:
+        result_all_columns = ['result']
+
+    if result_columns != '':
+        y_columns = idx2names(result_columns, result_all_columns)
+    else:
+        y_columns = []
+
+    if result_units != '':
+        ukeys = css2strs(result_units)
+    else:
+        ukeys = []
+
+    if chart_column != '':
+        ckeys = idx2names(chart_column, result_all_columns)
+    else:
+        ckeys = []
+
+    y_columns = [title_to_variable(rkey.strip()) for rkey in y_columns]
+    ukeys = [ukey.strip().lower() for ukey in ukeys]
+    ckeys = [title_to_variable(ckey.strip()) for ckey in ckeys]
+
+    empty_tbl_filter = True
+    empty_cht_filter = True
+    if len(y_columns) + len(ukeys) > 0:
+        empty_tbl_filter = False
+    if len(ckeys) > 0:
+        empty_cht_filter = False
+
+    for_table_ok = {}
+    for_chart_ok = {}
+    data_columns = []
+    data2c_columns = []
+    data_changed_title = []
+    data2c_changed_title = []
+
+    rvalues, ruoms = result_values(results[0])  # title to variable
+    all_y_columns = list(rvalues.keys())
+
+    data = {}
+    data2c = {}
+
+    for rkey in all_y_columns:
+        if not empty_tbl_filter:
+            rkey_ok = rkey in y_columns
+            ukey_ok = rkey in ruoms and ruoms[rkey].lower() in ukeys
+            ckey_ok = rkey in ckeys
+            for_table_ok[rkey] = rkey_ok or ukey_ok or ckey_ok
+        else:
+            for_table_ok[rkey] = True
+
+        if not empty_cht_filter:
+            ckey_ok = rkey in ckeys
+            for_chart_ok[rkey] = ckey_ok
+        else:
+            for_chart_ok[rkey] = True
+
+        if for_table_ok[rkey]:
+            data_columns.append(rkey)
+            y = variable_to_title(rkey)
+            if rkey in ruoms:
+                y = y + ' (' + ruoms[rkey] + ')'
+            data_changed_title.append(y)
+
+            if for_chart_ok[rkey]:
+                data2c_columns.append(rkey)
+                data2c_changed_title.append(y)
+
+    for rkey in data_columns:
+        data[rkey] = []
+    for rkey in data2c_columns:
+        data2c[rkey] = []
+
+    build_table = show in ('both', 'table')
+    build_chart = show in ('both', 'chart')
+
+    for result in results:
+        rvalues, ruoms = result_values(result)
+        if build_table:
+            for rkey in data_columns:
+                data[rkey].append(rvalues.get(rkey))
+        for rkey in data2c_columns:
+            data2c[rkey].append(rvalues.get(rkey))
+
+    df = None
+    if build_table:
+        df = pd.DataFrame(data)
+        df.columns = data_changed_title
+
+    df2c = pd.DataFrame(data2c)
+    df2c.columns = data2c_changed_title
+    if len(data2c_changed_title) > 1:
+        raise Exception(
+            f"Multiple chartable columns {data2c_changed_title} found; "
+            "specify chart_column to pick one for the histogram")
+    y_column = data2c_changed_title[0] if data2c_changed_title else None
+    # values (for stats) are cheap to derive and always computed; the chart
+    # (matplotlib render) is the expensive part, only built when requested
+    values = df2histo_data(df2c, y_column) if y_column is not None else []
+    chart = df2histo(df2c, bin_count, xlabel='', y_column=y_column, chart_title=title) if build_chart else None
+
+    res = None
+    if show == 'both':
+        res = {'table': df, 'chart': chart, 'values': values}
+    elif show == 'table':
+        res = {'table': df, 'values': values}
+    elif show == 'chart':
+        res = {'chart': chart, 'values': values}
     return res

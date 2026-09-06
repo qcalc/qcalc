@@ -31,16 +31,10 @@ def stat__info():
 
 # https://docs.python.org/3/library/statistics.html
 def stat(numbers='1,2,3,4,5', weights=''):
-    # arr = numbers.split(',')
-    # print(arr)
-    # nums = [float(x) for x in arr]
     nums = css2floats(numbers)
-    # print(nums)
     avg = fmean(nums)
     havg = harmonic_mean(nums)
     if weights != '':
-        # warr = weights.split(',')
-        # wnums = [float(x) for x in warr]
         wnums = css2floats(weights)
         if len(nums) != len(wnums):
             raise Exception(
@@ -79,9 +73,6 @@ def stat(numbers='1,2,3,4,5', weights=''):
     }
 
 
-# print(mean(array(1,2,3,4,5)))
-# print(mean([1,2,3,4,5]))
-
 def corr__info():
     return {
         'title': 'Correlation and Covariance',
@@ -97,20 +88,11 @@ def corr__info():
 # https://realpython.com/numpy-scipy-pandas-correlation-python/
 def corr(x_numbers='10, 11, 12, 13, 14, 15, 16, 17, 18, 19',
          y_numbers='2, 1, 4, 5, 8, 12, 18, 25, 96, 48'):
-    # arr = x_numbers.split(',')
-    # xnums = [float(x) for x in arr]
     xnums = css2floats(x_numbers)
     x = pd.Series(xnums)
 
-    # arr = y_numbers.split(',')
-    # ynums = [float(x) for x in arr]
     ynums = css2floats(y_numbers)
     y = pd.Series(ynums)
-
-    # pear_r = x.corr(y, method='pearson')
-    # kend_tau = x.corr(y, method='kendall')
-    # spear_roh = x.corr(y, method='spearman')
-    # cov = x.cov(y)
 
     pear_r, pear_p = ss.pearsonr(x, y)
     kend_tau, kend_p = ss.kendalltau(x, y)
@@ -174,7 +156,7 @@ def volatility__info():
         'step2': [
             {
                 'step': 'run',
-                'func': 'monte_carlo', 'caption': 'Predict Future Values',
+                'caption': 'Predict Future Values',
                 'spec': {
                     'starting_price': 'Last Value',
                     'volatility': 'Volatility',
@@ -202,13 +184,13 @@ def volatility(historical_values: qtable = pd.DataFrame(
     }
 
 
-def monte_carlo__info():
+def forecast_fv__info():
     return {
-        'title': 'Forecast Future Values of an Asset based on Monte Cralo Simulation'
+        'title': 'Forecast Future Values of an Asset based on Volatility and Drift'
     }
 
 
-def monte_carlo(starting_price: float = 100, periods: int = 10, volatility: float = 0.05, drift: float = 0.0):
+def forecast_fv(starting_price: float = 100, periods: int = 10, volatility: float = 0.05, drift: float = 0.0):
     periodic_returns = np.exp(drift + volatility * np.random.randn(periods))
     price_series = [starting_price]
     for i in range(1, periods):

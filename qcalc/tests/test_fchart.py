@@ -12,7 +12,7 @@ import qsett
 
 qsett.init()
 
-from calc.mod_fchart import df2chart_data, results2chart
+from calc.mod_result_chart import df2chart_data, results2chart
 
 
 class TestResults2Chart(unittest.TestCase):

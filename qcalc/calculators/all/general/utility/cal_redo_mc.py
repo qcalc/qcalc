@@ -28,6 +28,7 @@ def monte_carlo__info():
         'col': ['1-6', '7-14'],
         'outcol': ['chart__r'],
         'kins': 'redo',
+        'tags': 'monte carlo, simulation',
     }
 
 
@@ -81,6 +82,9 @@ def monte_carlo(xpr: qcode = "sine('x deg')", variable: qchar = 'x',
             continue
         values.append(scalar_values(result))
 
+    if not values:
+        raise Exception("No numeric results were produced; check the expression")
+
     # results2histo now always returns 'values' regardless of 'show', so the
     # expensive chart render is skipped whenever it isn't actually requested
     histo = results2histo(
@@ -94,8 +98,6 @@ def monte_carlo(xpr: qcode = "sine('x deg')", variable: qchar = 'x',
 
     numeric_values = histo.pop('values', [])
     failed += len(values) - len(numeric_values)
-    if not numeric_values:
-        raise Exception("No numeric results were produced; check the expression")
 
     return {
         'trials_used': len(numeric_values),

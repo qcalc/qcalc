@@ -317,7 +317,7 @@
     "molecule": {
         "desc": "Calculate molecular mass and composition of an element. Get the Hill and Empirical notation, average, nominal, and isotopic mass, atoms, charge, and composition of a molecule."
     },
-    "monte_carlo": {
+    "forecast_fv": {
         "desc": "Forecast future values of an asset using Monte Carlo simulation. Predicts price series based on starting price, periods, volatility, and drift."
     },
     "moonphase": {

@@ -23,6 +23,7 @@ def redo__info():
         'col': ['1-6', '7-13'],
         'outcol': ['chart__r'],
         'kins': 'monte_carlo',
+        'tags': 'sensitivity, parameter sweep, simulation',
     }
 
 

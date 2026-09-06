@@ -126,8 +126,8 @@ def q1999_func_to_form(request: HtmxHttpRequest, **dictf):  # main view
             and request.pref.get('interactive')
             and request.json_doc['info'].get('interactive')
             and getattr(request, 'cmd', '') not in {
-                'load', 'resize', 'edit', 'display', '__modify',
-            }
+            'load', 'resize', 'edit', 'display', '__modify',
+        }
         ):
             return q1_render(request, 'insert-calculator-output-response.html', request.context)
         return q1_render(request, get_template(part), request.context)
@@ -535,7 +535,7 @@ def q1141_read_func_meta(func_id, __info=None, scope='qpots'):
         'tags': '',  # comma separated tag list meant to be specified through qfunc_info.json
         'xpr': True,
         'url': True,
-        'loop': True,
+        'loop': False,  # True,
         'step2': [],
         'cost': False,  # internal use
         'inserts': {},
@@ -775,34 +775,35 @@ def q1145_result_to_form_schema(request: HtmxHttpRequest, func_id, cid, result):
             request.ojson_data_type.append('oval-q')
             request.ojson_data[name + '_uom'] = fuom
             request.ojson_data_type.append('ouom-q')
+            request.json_doc['info']['loop'] = True
         elif isinstance(value, pd.DataFrame):  # table
-            request.json_doc['info']['loop'] = False
+            # request.json_doc['info']['loop'] = False
             table_id = f"{cid}_{name}"
             value = value.apply(lambda col: col.map(df_formatter))  # apply format for table-out
             request.ojson_data[name] = qhtml(
                 value.to_html(
                     table_id=table_id,
                     classes=f'table table-responsive table-out {cid}',
-                    na_rep='',
+                    na_rep='None',
                     # float_format=qformatter().format,
                     index=False
                 ))  # datatable-basic {cid}
             request.ojson_data_type.append('html')
             request.ojson_doc['table_out'] = True
         elif isinstance(value, QChart) or isinstance(value, QMap):
-            request.json_doc['info']['loop'] = False
+            # request.json_doc['info']['loop'] = False
             request.ojson_data[name] = \
                 qhtml(wrap_actions(f"<img class='img-plot qhtml' src='data:image/png;base64,{value.chart()}'>"))
             # cast using qhtml() to exclude it from output data section
             request.ojson_data_type.append('html')
         elif isinstance(value, QImage):
-            request.json_doc['info']['loop'] = False
+            # request.json_doc['info']['loop'] = False
             request.ojson_data[name] = \
                 qhtml(wrap_actions(f"<img class='img-plot qhtml' src='data:image/png;base64,{value.image()}'>"))
             # cast using qhtml() to exclude it from output data section
             request.ojson_data_type.append('html')
         elif isinstance(value, qpage):  # page of text
-            request.json_doc['info']['loop'] = False
+            # request.json_doc['info']['loop'] = False
             request.ojson_data[name] = qhtml(f"<pre>{mark_safe(value)}</pre>")
             # cast using qhtml() to exclude it from output data section
             request.ojson_data_type.append('html')
@@ -810,15 +811,17 @@ def q1145_result_to_form_schema(request: HtmxHttpRequest, func_id, cid, result):
             # name = name + 'f' #@05.09.26
             request.ojson_data[name] = qformat(value, pref=us)
             request.ojson_data_type.append('char')
+            request.json_doc['info']['loop'] = True
         elif isinstance(value, int):
             # name = name + 'i' #@05.09.26
             request.ojson_data[name] = qformat(value, pref=us)
             request.ojson_data_type.append('char')
+            request.json_doc['info']['loop'] = True
         elif isinstance(value, qvstr):
             request.ojson_data[name] = value
             request.ojson_data_type.append('html')
         elif isinstance(value, qhtml):
-            request.json_doc['info']['loop'] = False
+            # request.json_doc['info']['loop'] = False
             request.ojson_data[name] = mark_safe(value)
             request.ojson_data_type.append('html')
         elif isinstance(value, (date, dt_time)):
@@ -833,7 +836,7 @@ def q1145_result_to_form_schema(request: HtmxHttpRequest, func_id, cid, result):
         elif isinstance(value, oqfunc):
             pass
         elif len(str(value)) > 25:  # long text
-            request.json_doc['info']['loop'] = False
+            # request.json_doc['info']['loop'] = False
             request.ojson_data[name] = value
             request.ojson_data_type.append('textarea')
         else:  # str

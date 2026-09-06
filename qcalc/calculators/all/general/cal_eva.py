@@ -104,6 +104,7 @@ show(y)
     if stdout:
         toret = {'':toret, 'console': stdout}
 
-    if not toret:
-        toret = {'result': 'Output is empty'}
+    # | Don't return this message, as output can be 0 or None too
+    # if not toret:
+    #     toret = {'result': 'Output is empty'}
     return toret

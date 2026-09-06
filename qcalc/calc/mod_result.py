@@ -2,8 +2,45 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 from qutil import title_to_variable
-from qcore import isMeasureQuantity as isPQ
+from qcore import isMeasureQuantity as isPQ, QChart, QMap, QImage, qpage, qhtml, qtext, qtexta, qtexte
 import pandas as pd
+
+def is_scalar(value):
+    return isPQ(value) or isinstance(value, float) or isinstance(value, int) or value is None
+
+def scalar_values(result):
+    if is_scalar(result):
+        return result
+
+    if isinstance(result, set):
+        filtered = set()
+        for value in result:
+            if is_scalar(value):
+                filtered.add(value)
+        return filtered
+
+    if isinstance(result, tuple):
+        filtered = ()
+        for value in result:
+            if is_scalar(value):
+                filtered += (value,)
+        return filtered
+
+    if isinstance(result, list):
+        filtered = []
+        for value in result:
+            if is_scalar(value):
+                filtered.append(value)
+        return filtered
+
+    if isinstance(result, dict):
+        filtered = {}
+        for key, value in result.items():
+            if is_scalar(value):
+                filtered[key] = value
+        return filtered
+
+    return None
 
 
 def result_values(result):
@@ -19,15 +56,32 @@ def result_values(result):
         if isPQ(value):
             ojson_data[name] = value.val
             ojson_uoms[name] = value.uom
-        elif isinstance(value, pd.DataFrame):
-            pass
-        elif str(type(value)).lower().find('chart') > -1:
+        elif (
+            isinstance(value, float) or
+            isinstance(value, int)
+        ):
+            ojson_data[name] = value
+        elif value is None:
+            ojson_data[name] = None
+        elif (
+            isinstance(value, pd.DataFrame) or
+            isinstance(value, QChart) or
+            isinstance(value, QMap) or
+            isinstance(value, QImage) or
+            isinstance(value, qpage) or
+            isinstance(value, qhtml) or
+            isinstance(value, qtext) or
+            isinstance(value, qtexta) or
+            isinstance(value, qtexte)
+        ):
             pass
         else:
-            ojson_data[name] = value
+            pass
         return
 
     def process_result(result, name=''):  # v2
+        if isinstance(result, set):
+            result = list(result)
         if name == '':
             name = 'result'
 

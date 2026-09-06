@@ -314,7 +314,7 @@ class TabulatorWidget(Widget):
         html = df.to_html(
             table_id=f"{self.cid}_{name}",
             classes=f'table table-responsive table-in {self.cid}',  # display, class=hidden
-            na_rep='',
+            na_rep='None',
             # float_format=qformatter().format,
             index=False,
         )

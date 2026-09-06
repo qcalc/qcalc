@@ -293,8 +293,8 @@ def q11449_form_data_postprocess_and_run(request, func_id):  # cid
                         request.json_doc['fxpr'] = fxpr_from_json(func_id, request.json_d4f, json_data_type)
                     if request.json_doc['info']['url']:
                         request.json_doc['furl'] = furl_from_json(func_id, request.json_d4f, json_data_type)
-                    if request.json_doc['info']['loop']:
-                        request.json_doc['floop'] = floop_from_json(func_id, request.json_d4f, json_data_type)
+                    # if request.json_doc['info']['loop']:
+                    request.json_doc['floop'] = floop_from_json(func_id, request.json_d4f, json_data_type)
                     logger.note("CAL: Calculate clicked | user=%s | func=%s", user_name(request), func_id)
             elif request.cmd == 'save_input':
                 # | POST/GET: Save input

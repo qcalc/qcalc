@@ -3,6 +3,7 @@
 
 from qutil import replace_words, QThread
 from qcore.qc_qty import Qty
+import math
 
 
 def uprefs():
@@ -27,7 +28,7 @@ def qformat_v(val, pref=None) -> str:
 
 def qformat(val, unit=None, pref=None) -> None | str | list[str]:
     # | value and quantity formatter
-    if val is None:
+    if val is None or (isinstance(val, float) and math.isnan(val)):
         return val if unit is None else [val, unit.name()]
 
     if pref is None:
@@ -81,7 +82,7 @@ def df_formatter(var):
     elif isinstance(var, float) or isinstance(var, int):
         return qformat_v(var)
     else:
-        return var
+        return var # preserve None
 
 
 def replace_cur(val, uname, cur='UNC', pref=None):

@@ -146,13 +146,14 @@ def results2chart(
         cukeys = []
 
     y_columns = [title_to_variable(rkey.strip()) for rkey in y_columns]
-    ukeys = [ukey.strip() for ukey in ukeys]
+    ukeys = [ukey.strip().lower() for ukey in ukeys]
     ckeys = [title_to_variable(ckey.strip()) for ckey in ckeys]
-    cukeys = [cukey.strip() for cukey in cukeys]
+    cukeys = [cukey.strip().lower() for cukey in cukeys]
 
     empty_tbl_filter = True
     empty_cht_filter = True
-    if len(y_columns) + len(ukeys) + len(ckeys) + len(cukeys) > 0:
+    # if len(y_columns) + len(ukeys) + len(ckeys) + len(cukeys) > 0:
+    if len(y_columns) + len(ukeys) > 0:
         empty_tbl_filter = False
     if len(ckeys) + len(cukeys) > 0:
         empty_cht_filter = False
@@ -189,16 +190,16 @@ def results2chart(
     for rkey in all_y_columns:
         if not empty_tbl_filter:
             rkey_ok = rkey in y_columns
-            ukey_ok = rkey in ruoms and ruoms[rkey] in ukeys
+            ukey_ok = rkey in ruoms and ruoms[rkey].lower() in ukeys
             ckey_ok = rkey in ckeys
-            cukey_ok = rkey in ruoms and ruoms[rkey] in cukeys
+            cukey_ok = rkey in ruoms and ruoms[rkey].lower() in cukeys
             for_table_ok[rkey] = rkey_ok or ukey_ok or ckey_ok or cukey_ok
         else:
             for_table_ok[rkey] = True
 
         if not empty_cht_filter:
             ckey_ok = rkey in ckeys
-            cukey_ok = rkey in ruoms and ruoms[rkey] in cukeys
+            cukey_ok = rkey in ruoms and ruoms[rkey].lower() in cukeys
             for_chart_ok[rkey] = ckey_ok or cukey_ok
         else:
             for_chart_ok[rkey] = True

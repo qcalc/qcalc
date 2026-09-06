@@ -99,6 +99,9 @@ def fid2help_file(func_id, qty=False):
     help_path = func_name_
     if func_name_.startswith('demo_'):
         help_path = os.path.join('demo', func_name_)
+    if catalog=='all' and func_name_.startswith('page_'):
+        catalog = 'page'
+        print('|',help_path)
 
     # if catalog != 'all':
     help_file = os.path.join(catalog, f"{help_path}_help.html")

@@ -23,3 +23,5 @@ separator_display = ' > '
 admin_name = 'admin'
 demo_name = 'demo'
 personal_name = 'personal'
+
+amount_help_text = 'Enter an amount to be converted\nor a simple expression (e.g. 92/3+15)\nto calculate the amount before conversion.'

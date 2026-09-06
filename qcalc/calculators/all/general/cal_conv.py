@@ -7,6 +7,7 @@ from qutil import css2strs, list2table, find_matched_variables, cal_link, calurl
 from calc import QCals
 import itertools
 from qcore.mod_anno import *
+from qconst import amount_help_text
 
 
 def convert_list(ulist):
@@ -22,13 +23,13 @@ def convert_list(ulist):
     return links
 
 
-def conv2__help(__info=None):
-    lmt = 'L' if __info is None else __info.upper()
-    ulist = lmt2ulist(lmt)
-    clist = convert_list(ulist)
-    cid = 'conv2_help__page'
-    tbl = list2table(clist, ["Conversion Options"], cid, 'table')
-    return tbl
+# def conv2__help(__info=None):
+#     lmt = 'L' if __info is None else __info.upper()
+#     ulist = lmt2ulist(lmt)
+#     clist = convert_list(ulist)
+#     cid = 'conv2_help__page'
+#     tbl = list2table(clist, ["Conversion Options"], cid, 'table')
+#     return tbl
 
 
 def conv2__info(__info=None):
@@ -51,7 +52,7 @@ def conv2__info(__info=None):
         }
 
     return {
-        'title': f'Unit Converter: {lmt2categ(lmt)}',
+        'title': f'Unit Converter',
         'desc': '',
         'schema': {
             'quantity': {
@@ -63,6 +64,7 @@ def conv2__info(__info=None):
                     'hx-swap': 'outerHTML', 'hx-indicator': '.htmx-indicator'
                 }
             },
+            'value': {'help_text': amount_help_text},
             'mode': {
                 'type': 'choice', 'choices': mode_list,
             },

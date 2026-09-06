@@ -4,12 +4,17 @@
 from qcore import Qty, qhtml
 from qutil import nzv
 from calc import QCals, cur_loader
-
+from qconst import amount_help_text
 
 def cur__info():
     return {
         'title': 'Simple Currency Converter',
-        'schema': {'amount': {'type': 'textarea'}},
+        'schema': {
+            'amount': {
+                'type': 'textarea',
+                'help_text': amount_help_text,
+            }
+        },
         'kins': 'fincal',
     }
 

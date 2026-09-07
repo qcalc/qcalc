@@ -4,7 +4,7 @@
 from calc.mod_mfunc import func_meta
 from calc import QCals
 from qcore import qhtml, QScreen, qpretty_json
-from calc import get_code, func_guide
+from calc import get_code
 
 
 # https://docs.python.org/2/howto/doanddont.html#from-module-import
@@ -41,18 +41,3 @@ def meta(func_id: str = 'gold'):
     out = QScreen()
     out.write(resp)
     return out.flush()
-
-
-def explain__info():
-    return {
-        'title': 'Explain the Calculator function',
-        'calculate': 'Explain',
-        'kins': 'code, meta'
-    }
-
-
-def explain(qc_name: str = 'gold'):
-    result = {}
-    user_guide = func_guide(qc_name)
-    result.update({'End User Guide': qhtml(user_guide)})
-    return result

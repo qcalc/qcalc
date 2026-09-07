@@ -97,8 +97,11 @@ def circ(interest_rate='12 pct/yr', interest_rate_for='mo'):
     irq = Qty(interest_rate)
     irfq = Qty(1, interest_rate_for)
     irv = irq.val / 100
-    periods = irv / (irq * irfq)
-    pir = 10 ** (log10(1 + irv) / periods) - 1
+    if abs(irq.val) > 1e-10:
+        periods = irv / (irq * irfq)
+        pir = 10 ** (log10(1 + irv) / periods) - 1
+    else:
+        pir = irq.val
     return Qty(pir * 100, 'pct/' + irfq.uom)
 
 
@@ -121,7 +124,7 @@ def fv(present_value: float = 100000.0, pv_part='-1',
        payment_when='1'):
     rate = circ(interest_rate, payment_interval).val / 100
     periods = int(Qty(duration) / Qty(1, payment_interval))
-    if rate != 0.0:
+    if abs(rate) > 1e-10:
         fval = -int(pv_part) * present_value * (1 + rate) ** periods \
                - int(pp_part) * periodic_payment * (1 + rate * int(payment_when)) * ((1 + rate) ** periods - 1) / rate
     else:

@@ -9,7 +9,7 @@ CODE_TAB = 4
 # Local trusted deployments may enable legacy unrestricted user-calculator imports.
 ALLOW_UNSAFE_USER_CALCULATOR_IMPORTS = False
 # 'toc' adds slug ids to headings (e.g. #1-getting-started) so in-doc TOC/bookmark links resolve
-MARKDOWN_EXTENSIONS = extensions=['extra', 'fenced_code', 'tables', 'mdx_math', 'toc']
+MARKDOWN_EXTENSIONS = extensions = ['extra', 'fenced_code', 'tables', 'mdx_math', 'toc']
 """
 extra:  footnotes, abbreviations, and definition lists
 fenced_code: multiline code blocks by wrapping them in three backticks (```) instead of forcing a four-space indentation.
@@ -25,3 +25,4 @@ demo_name = 'demo'
 personal_name = 'personal'
 
 amount_help_text = 'Enter an amount to be converted\nor a simple expression (e.g. 92/3+15)\nto calculate the amount before conversion.'
+delimiter_help_text = "A single delimiter character (e.g. ',' or ';'), or one of:\n'tab' or '\\t'; 'space' or '\\s'; 'whitespace' or '\\ws' (one or more spaces)."

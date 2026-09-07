@@ -63,7 +63,7 @@ def portf(csv_file: qfunc = csv_reader, target_return=0.3, show_input=False):
         constraints=cons
     )
     weights = results['x']
-    df_weights = pd.DataFrame(data={'Stock': stocks, 'Weight': weights, 'Avg Annual Return': df_mean * 250})
+    df_weights = pd.DataFrame(data={'Stock': stocks, 'Weight': weights, 'Avg Annual Return': df_mean})
     port_return = get_port_return(weights)
     out = QScreen()
     out.write(results)

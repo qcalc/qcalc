@@ -47,6 +47,13 @@ def resize_df(df: pd.DataFrame, nrow: int, ncol: int, keep_last_ncol: int = 0) -
     return df
 
 
+DELIMITER_ALIASES = {
+    'tab': '\t', '\\t': '\t',
+    'space': ' ', '\\s': ' ',
+    'whitespace': r'\s+', '\\ws': r'\s+',
+}
+
+
 def to_df(buff_or_url, delimiter=',', quoting='1'):
     if quoting == '9':  # remove anyway
         quoting = '1'
@@ -54,8 +61,13 @@ def to_df(buff_or_url, delimiter=',', quoting='1'):
     else:
         anyway = False
 
+    delimiter = DELIMITER_ALIASES.get(delimiter, delimiter)
+
     if buff_or_url:
-        df = pd.read_csv(buff_or_url, delimiter=delimiter, quotechar='"', quoting=int(quoting), thousands=',')
+        # a regex delimiter (e.g. r'\s+' for "whitespace") needs the python engine
+        engine = 'python' if len(delimiter) > 1 else 'c'
+        df = pd.read_csv(
+            buff_or_url, delimiter=delimiter, quotechar='"', quoting=int(quoting), thousands=',', engine=engine)
         df = df.astype(object)
         df.fillna('', inplace=True)
         # example url: https://raw.githubusercontent.com/npradaschnor/Pima-Indians-Diabetes-Dataset/master/diabetes.csv

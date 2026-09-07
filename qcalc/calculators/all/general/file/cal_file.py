@@ -7,6 +7,7 @@ import requests
 import markdown
 
 import qconst
+from qconst import delimiter_help_text
 from qutil import nzs, to_df, demo_url
 from qcore.mod_anno import *
 
@@ -54,6 +55,9 @@ def csv_reader__info():
                 'type': 'choice', 'choices': {
                     '0': 'Minimal', '1': 'All', '2': 'Non-Numeric', '3': 'None', '9': 'Remove Anyway'
                 }
+            },
+            'delimiter': {
+                'help_text': delimiter_help_text,
             }
         }
     }
@@ -79,6 +83,9 @@ def csv_editor__info():
                 'type': 'choice', 'choices': {
                     '0': 'Minimal', '1': 'All', '2': 'Non-Numeric', '3': 'None', '9': 'Remove Anyway'
                 }
+            },
+            'delimiter': {
+                'help_text': delimiter_help_text,
             }
         },
         'script':

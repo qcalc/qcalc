@@ -319,7 +319,8 @@ def render_help_text(field):
     from django.templatetags.static import static
 
     if hasattr(field, 'help_text'):
-        return mark_safe(f"<a><img src='{static('calc/images/info.png')}' class='info' title='{field.help_text}'></a>")
+        return format_html(
+            "<a><img src='{}' class='info' title='{}'></a>", static('calc/images/info.png'), field.help_text)
     return ''
 
 

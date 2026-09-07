@@ -173,6 +173,30 @@
         $("#id_" + tableId + "_table_update").prop("disabled", !enabled);
     }
 
+    // Interactive mode routes normal submits to an output-only region
+    // (#interactive-output-cid); table structural commands (Update/Resize/Edit)
+    // need the whole form re-rendered, so route this one submit back to the form.
+    function submitWithFullFormSwap(form, calcBtnId) {
+        const interactive = form && form.getAttribute("data-interactive") === "true";
+        const prevTarget = interactive ? form.getAttribute("hx-target") : null;
+        const prevSwap = interactive ? form.getAttribute("hx-swap") : null;
+        if (interactive) {
+            form.setAttribute("hx-target", "this");
+            form.setAttribute("hx-swap", "innerHTML");
+            if (window.htmx) {
+                htmx.process(form);
+            }
+        }
+        $("#" + calcBtnId).trigger("click");
+        if (interactive) {
+            form.setAttribute("hx-target", prevTarget);
+            form.setAttribute("hx-swap", prevSwap);
+            if (window.htmx) {
+                htmx.process(form);
+            }
+        }
+    }
+
     function bindTableButtons(tableId) {
         const updateButton = $("#id_" + tableId + "_table_update");
         if (updateButton.length > 0 && !updateButton.data("qcalc_Bound")) {
@@ -194,13 +218,19 @@
                 if (form && form.qcalcSuspendInteractive) {
                     form.qcalcSuspendInteractive();
                 }
+                const $rowField = $("#id_" + tableId + "_row");
+                const $colField = $("#id_" + tableId + "_col");
+                const clampedRow = Math.max(1, parseInt($rowField.val(), 10) || 1);
+                const clampedCol = Math.max(1, parseInt($colField.val(), 10) || 1);
+                $rowField.val(clampedRow);
+                $colField.val(clampedCol);
                 updateAllData($(this), false);
                 setUpdateButtonEnabled(tableId, false);
                 const cid = getCidOf($(this));
                 const extraFieldId = "extra_" + cid;
                 const calcBtnId = "calculate_" + cid;
                 $("#" + extraFieldId).val(JSON.stringify({"cmd": "resize"}));
-                $("#" + calcBtnId).trigger("click");
+                submitWithFullFormSwap(form, calcBtnId);
             });
             resizeButton.data("qcalc_Bound", "1");
         }
@@ -219,7 +249,7 @@
                 const calcBtnId = "calculate_" + cid;
                 const extra = JSON.stringify({"cmd": this.innerText});
                 $("#" + extraFieldId).val(extra);
-                $("#" + calcBtnId).trigger("click");
+                submitWithFullFormSwap(form, calcBtnId);
             });
             edButton.data("qcalc_Bound", "1");
         }

@@ -5,8 +5,8 @@ import pandas as pd
 
 
 def resize_df(df: pd.DataFrame, nrow: int, ncol: int, keep_last_ncol: int = 0) -> pd.DataFrame:
-    to_be_ncol = max(min(int(ncol), 100), 0)
-    to_be_nrow = max(min(int(nrow), int(10000 / to_be_ncol)), 0)
+    to_be_ncol = max(min(int(ncol), 100), 1)
+    to_be_nrow = max(min(int(nrow), int(10000 / to_be_ncol)), 1)
     as_is_nrow = len(df)
     as_is_ncol = len(df.columns) - keep_last_ncol
     add_row = 0
@@ -21,7 +21,13 @@ def resize_df(df: pd.DataFrame, nrow: int, ncol: int, keep_last_ncol: int = 0) -
     if add_row > 0:
         # add row
         # https://stackoverflow.com/questions/41764226/append-empty-rows-to-dataframe-in-pandas
-        df = df.reindex(df.index.union([r for r in range(as_is_nrow, as_is_nrow + add_row)]))
+        new_row_idx = [r for r in range(as_is_nrow, as_is_nrow + add_row)]
+        df = df.reindex(df.index.union(new_row_idx))
+        # new cells default to NaN, which na_rep='None' would render as the
+        # literal text "None"; blank them out (object dtype avoids a pandas
+        # cast warning/error when writing '' into a numeric column)
+        df = df.astype(object)
+        df.loc[new_row_idx] = df.loc[new_row_idx].fillna('')
     elif add_row < 0:
         # del row
         df = df.drop([r for r in range(as_is_nrow + add_row, as_is_nrow)])
@@ -31,6 +37,8 @@ def resize_df(df: pd.DataFrame, nrow: int, ncol: int, keep_last_ncol: int = 0) -
         # https://stackoverflow.com/questions/30926670/add-multiple-empty-columns-to-pandas-dataframe
         cols = [f'C{c}' for c in range(as_is_ncol + 1, as_is_ncol + add_col + 1)]
         df = pd.concat([df, pd.DataFrame(columns=cols)])
+        # same as above: keep resized columns blank instead of showing "None"
+        df[cols] = df[cols].fillna('')
     elif add_col < 0:
         # del col
         cols = df.columns[[c for c in range(as_is_ncol + add_col, as_is_ncol)]]

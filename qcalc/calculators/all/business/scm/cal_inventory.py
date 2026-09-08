@@ -3,7 +3,7 @@
 
 from qcore import Qty
 import numpy as np
-from calc import results2chart, show_choice
+from calc import QResults, show_choice
 
 
 def purcost__info(): return {
@@ -68,7 +68,7 @@ def invlevel__info():
             'show': show_choice
         },
         'kins': 'eoq, purcost',
-        'outcol': ['chart__r']
+        'outcol': "result",
     }
 
 
@@ -128,8 +128,8 @@ def invlevel(
                 "Goods Received": gr,
                 "Reorder Point": reorder_point,
                 "Stock Promised": stock_promised})
-    # print(results)
-    return results2chart(
-        results=results, chart_x_axis='Day', chart_columns=chart_columns,
-        chart_units=chart_units, show=show, title='Inventory Levels Over Time'
-    )
+    # chart_x_axis='Day'
+    qr = QResults(results, show=show)
+    qr.setup_chart(chart_columns=chart_columns, chart_units=chart_units,
+                   chart_title='Inventory Levels Over Time')
+    return qr.objects()

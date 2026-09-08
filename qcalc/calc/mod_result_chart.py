@@ -3,396 +3,366 @@
 
 import pandas as pd
 import datetime
+
 from .mod_result import result_values
 from qcore import Qty, QChart
 from qutil import css2strs, variable_to_title, title_to_variable, idx2names
 
 
-def df2chart(df: pd.DataFrame, x_column='', y_columns: list | None = None,
-             ylabel='y', chart_title='y vs x', chart_type='lines'):
-    """Draw lines or stack chart from DataFrame or qdf columns.
+class QResults:
+    """Build result tables and charts from calculated results.
 
-    The X values come from the DataFrame index when ``x_column`` is empty;
-    otherwise they come from the named column. Each remaining numeric-like
-    column becomes a Y series. String and datetime columns are skipped, while
-    one-item lists and ``Qty`` values are converted to scalar numeric values.
-
-    Args:
-        df: DataFrame or qdf containing the X and Y data.
-        x_column: Display name of the column to use for X values, or an empty
-            string to use the DataFrame index.
-        y_columns: Optional list of columns to inspect. All DataFrame columns are
-            inspected when omitted or empty.
-        chart_type: can be 'lines', 'bars', 'hbars' or 'stack'.
-
-    Returns:
-        A QChart
-    """
-    chart_data = df2chart_data(df, x_column, y_columns)
-    chart = QChart()
-    if chart_type == 'lines':
-        chart.render_lines(**chart_data, ylabel=ylabel, title=chart_title)
-    elif chart_type == 'bars':
-        chart.render_bars(**chart_data, ylabel=ylabel, title=chart_title, vertical=True)
-    elif chart_type == 'hbars':
-        chart.render_bars(**chart_data, ylabel=ylabel, title=chart_title, vertical=False)
-    else:  # chart_type == 'stack'
-        chart.render_stack(**chart_data, ylabel=ylabel, title=chart_title)
-    return chart
-
-
-def df2histo(df: pd.DataFrame, bin_count=20, xlabel='x', y_column=None,
-             ylabel='Frequency', chart_title='Histogram'):
-    if y_column is None:
-        return None
-    chart = QChart()
-    yvals = df2histo_data(df, y_column)
-    chart.render_histogram(values=yvals, bin_count=bin_count, xlabel=xlabel, ylabel=ylabel, title=chart_title)
-    return chart
-
-
-def df2chart_data(df, x_column='', y_columns: list | None = None):
-    # df = {x:[],y:[]}
-    if y_columns is None:
-        y_columns = []
-    ch_data = {'yvalsm': [], 'ylabels': [], 'xlabel': x_column}
-    if x_column == '':
-        ch_data['xvals'] = list(df.index)
-    else:
-        ch_data['xvals'] = df[x_column]
-
-    if not y_columns:
-        y_columns = list(df.columns)
-
-    for rkey in y_columns:
-        yvals = df[rkey]
-        skip = False
-        if isinstance(yvals[0], list):
-            yvals = [y[0] for y in yvals]
-        elif isinstance(yvals[0], Qty):
-            yvals = [y.value for y in yvals]
-        elif isinstance(yvals[0], datetime.datetime) or isinstance(yvals[0], str):
-            skip = True
-
-        if x_column == rkey:
-            skip = True
-
-        if not skip:
-            ch_data['yvalsm'].append(yvals)
-            ch_data['ylabels'].append(rkey)
-    return ch_data
-
-
-def df2histo_data(df, y_column: str):
-    # rows can be heterogeneous (e.g. a failed trial contributes None/{} instead
-    # of a number), so filter per-value rather than assuming a uniform column type
-    cleaned = []
-    for v in df[y_column]:
-        if isinstance(v, list):
-            v = v[0] if v else None
-        if isinstance(v, Qty):
-            v = v.val
-        if isinstance(v, (int, float)) and not isinstance(v, bool):
-            cleaned.append(float(v))
-    return cleaned
-
-
-def results2chart(
-    results, xvals=None, result_columns='', result_units: str = '',
-    chart_x_axis: str = '', chart_columns: str = '', chart_units: str = '', show='both',
-    title='', chart_type='lines'):
-    """Build a result table and/or chart (lines or stack) from calculated LIST or array of results
-    from repeated run of the same calculator/function.
-
-    Results may be scalars, lists, dictionaries, or quantity values. Result
-    values are normalized with ``result_values``; quantity columns retain
-    their units in the displayed labels. Column filters accept comma-separated
-    display names or one-based column indexes.
-
-    ``result_columns`` and ``result_units`` control columns shown in the
-    table. ``chart_x_axis`` selects an existing result column for the X axis,
-    while ``xvals`` supplies explicit X values. ``chart_columns`` and
-    ``chart_units`` control the plotted Y series. When no chart filters are
-    supplied, all chart-compatible result columns are plotted.
+    An instance wraps a non-empty sequence of calculated result values
+    (scalars, lists, dictionaries, or quantity values) from repeated
+    run(s) of the same calculator/function, along with the table/chart
+    filters shared by ``to_chart`` and ``to_histo``.
 
     Args:
         results: Non-empty sequence of calculated result values.
         xvals: Optional explicit X-axis values. If supplied without
-            ``chart_x_axis``, they are added as a column named ``X``.
-        result_columns: Comma-separated result column names or one-based
+            ``chart_x_axis`` (in ``to_chart``), they are added as a column
+            named ``X``.
+        table_columns: Comma-separated result column names or one-based
             indexes to include in the table.
-        result_units: Comma-separated units whose columns should be included
+        table_units: Comma-separated units whose columns should be included
             in the table.
-        chart_x_axis: Result column name used for the X axis when ``xvals`` is
-            not supplied.
-        chart_columns: Comma-separated result column names or one-based
-            indexes to plot.
-        chart_units: Comma-separated units whose columns should be plotted.
         show: ``'table'``, ``'chart'``, or ``'both'``.
-        aspect: Chart height-to-width ratio passed to ``QChart``.
         title: Chart title.
-
-    Returns:
-        A dictionary containing a pandas ``DataFrame`` under ``'table'``, a
-        ``QChart`` under ``'chart'``, or both, according to ``show``. An
-        unsupported ``show`` value returns ``None``.
     """
-    # create line chart(s) from calculated result and optional xaxis values
-    # allowing filtering of table columns based on result column list or units
-    # allowing filtering of chartable columns based on chart column list or units
-    if isinstance(results[0], dict):
-        result_all_columns = list(results[0].keys())
-    elif isinstance(results[0], list):
-        result_all_columns = ['result']
-    else:
-        result_all_columns = ['result']
 
-    if xvals is None:
-        xvals = []
-    if result_columns != '':
-        y_columns = idx2names(result_columns, result_all_columns)
-    else:
-        y_columns = []
+    def __init__(self, results, xvals=None, variable='',
+                 table_columns: str = '', table_units: str = '',
+                 show='both'):
 
-    if result_units != '':
-        ukeys = css2strs(result_units)
-    else:
-        ukeys = []
+        self.results = results
+        self.xvals = xvals if xvals is not None else []
+        self.variable = variable
 
-    if chart_columns != '':
-        ckeys = idx2names(chart_columns, result_all_columns)
-    else:
-        ckeys = []
+        self.table_columns = table_columns
+        self.table_units = table_units
 
-    if chart_units != '':
-        cukeys = css2strs(chart_units)
-    else:
-        cukeys = []
+        self.chart_columns = ''
+        self.chart_units = ''
+        self.chart_title = ''
+        self.chart_type = 'lines'
 
-    y_columns = [title_to_variable(rkey.strip()) for rkey in y_columns]
-    ukeys = [ukey.strip().lower() for ukey in ukeys]
-    ckeys = [title_to_variable(ckey.strip()) for ckey in ckeys]
-    cukeys = [cukey.strip().lower() for cukey in cukeys]
+        self.chart_column = ''
+        self.bin_count = 20
 
-    empty_tbl_filter = True
-    empty_cht_filter = True
-    if len(y_columns) + len(ukeys) > 0:
-        empty_tbl_filter = False
-    if len(ckeys) + len(cukeys) > 0:
-        empty_cht_filter = False
+        self.show = show
+        # header/shape info derived from the first result, reused by to_chart/to_histo
+        self._all_columns = self._compute_all_columns()
+        self._header_values, self._header_uoms = result_values(results[0])
+        self._all_y_columns = list(self._header_values.keys())
 
-    for_table_ok = {}
-    for_chart_ok = {}
-    data_columns = []
-    data2c_columns = []
-    data_changed_title = []
-    data2c_changed_title = []
+        self.table_df = None
+        self.chart = None
+        self.values = []
+        self._processed = False
 
-    rvalues, ruoms = result_values(results[0])  # title to variable
-    all_y_columns = list(rvalues.keys())
+    def setup_chart(self,
+                    chart_columns: str = '', chart_units: str = '',
+                    chart_title: str = '', chart_type='lines',
+                    ):
+        self.chart_columns = chart_columns
+        self.chart_units = chart_units
+        self.chart_title = chart_title
+        self.chart_type = chart_type
 
-    data = {}
-    data2c = {}
-    x_name = title_to_variable(chart_x_axis)
-    x_column = variable_to_title(x_name)
-    if len(xvals) > 0:  # xvals given
-        if chart_x_axis == '':
-            x_name = 'x'
-            x_column = 'X'
-        data[x_name] = xvals
-        data2c[x_name] = xvals
-        data_changed_title.append(x_column)
-        data2c_changed_title.append(x_column)
-    else:  # xvals not specified
-        if chart_x_axis == '':
-            if len(all_y_columns) > 1:
-                chart_x_axis = all_y_columns[0]
-                x_name = title_to_variable(chart_x_axis)
-            # else chart_axis='' is index
+    def setup_histo(self,
+                    chart_column: str = '', bin_count: int = 20,
+                    chart_title: str = 'Histogram'
+                    ):
+        self.chart_column = chart_column
+        self.chart_columns = chart_column
+        self.bin_count = bin_count
+        self.chart_title = chart_title
+        self.chart_type = 'histo'
 
-    for rkey in all_y_columns:
-        if not empty_tbl_filter:
-            rkey_ok = rkey in y_columns
-            ukey_ok = rkey in ruoms and ruoms[rkey].lower() in ukeys
-            ckey_ok = rkey in ckeys
-            cukey_ok = rkey in ruoms and ruoms[rkey].lower() in cukeys
-            for_table_ok[rkey] = rkey_ok or ukey_ok or ckey_ok or cukey_ok
+    def _compute_all_columns(self):
+        """Raw column names for one-based/name filter resolution (idx2names)."""
+        results = self.results
+        if isinstance(results[0], dict):
+            cols = list(results[0].keys())
+            # the swept variable occupies the first slot for one-based index filters
+            return ([self.variable] + cols) if self.variable else cols
+        elif isinstance(results[0], list):
+            return [f"Result {i}" for i, _ in enumerate(results, 1)]
         else:
-            for_table_ok[rkey] = True
+            return ['Result']
 
-        if not empty_cht_filter:
-            ckey_ok = rkey in ckeys
-            cukey_ok = rkey in ruoms and ruoms[rkey].lower() in cukeys
-            for_chart_ok[rkey] = ckey_ok or cukey_ok
-        else:
-            for_chart_ok[rkey] = True
-
-        if rkey == x_name:
-            for_table_ok[rkey] = True
-            for_chart_ok[rkey] = True
-
-        if for_table_ok[rkey]:
-            data_columns.append(rkey)
-            y = variable_to_title(rkey)
-            if rkey in ruoms:
-                y = y + ' (' + ruoms[rkey] + ')'
-            data_changed_title.append(y)
-
-            if for_chart_ok[rkey]:
-                data2c_columns.append(rkey)
-                data2c_changed_title.append(y)
-
-    for rkey in data_columns:
-        data[rkey] = []
-    for rkey in data2c_columns:
-        data2c[rkey] = []
-
-    build_table = show in ('both', 'table')
-    build_chart = show in ('both', 'chart')
-
-    for result in results:
-        rvalues, ruoms = result_values(result)
-        if build_table:
-            for rkey in data_columns:
+    def _fill_columns(self, columns):
+        """Extract each result's normalized value for the given columns, one row per result."""
+        data = {rkey: [] for rkey in columns}
+        for result in self.results:
+            rvalues, _ = result_values(result)
+            for rkey in columns:
                 data[rkey].append(rvalues.get(rkey))
-        if build_chart:
-            for rkey in data2c_columns:
-                data2c[rkey].append(rvalues.get(rkey))
+        return data
 
-    df = None
-    if build_table:
-        df = pd.DataFrame(data)
-        df.columns = data_changed_title
+    @staticmethod
+    def df2chart(df: pd.DataFrame, x_column='', y_columns: list | None = None,
+                 ylabel='y', chart_title='y vs x', chart_type='lines'):
+        """Draw lines or stack chart from DataFrame or qdf columns.
 
-    chart = None
-    if build_chart:
-        df2c = pd.DataFrame(data2c)
-        df2c.columns = data2c_changed_title
-        chart = df2chart(df2c, x_column, y_columns=None, chart_title=title, chart_type=chart_type)
+        The X values come from the DataFrame index when ``x_column`` is empty;
+        otherwise they come from the named column. Each remaining numeric-like
+        column becomes a Y series. String and datetime columns are skipped, while
+        one-item lists and ``Qty`` values are converted to scalar numeric values.
 
-    res = None
-    if show == 'both':
-        res = {'table': df, 'chart': chart}
-    elif show == 'table':
-        res = {'table': df}
-    elif show == 'chart':
-        res = {'chart': chart}
-    return res
+        Args:
+            df: DataFrame or qdf containing the X and Y data.
+            x_column: Display name of the column to use for X values, or an empty
+                string to use the DataFrame index.
+            y_columns: Optional list of columns to inspect. All DataFrame columns are
+                inspected when omitted or empty.
+            chart_type: can be 'lines', 'bars', 'hbars' or 'stack'.
 
+        Returns:
+            A QChart
+        """
+        chart_data = QResults.df2chart_data(df, x_column, y_columns)
+        chart = QChart()
+        if chart_type == 'lines':
+            chart.render_lines(**chart_data, ylabel=ylabel, title=chart_title)
+        elif chart_type == 'bars':
+            chart.render_bars(**chart_data, ylabel=ylabel, title=chart_title, vertical=True)
+        elif chart_type == 'hbars':
+            chart.render_bars(**chart_data, ylabel=ylabel, title=chart_title, vertical=False)
+        else:  # chart_type == 'stack'
+            chart.render_stack(**chart_data, ylabel=ylabel, title=chart_title)
+        return chart
 
-def results2histo(
-    results, bin_count=20, result_columns='', result_units: str = '',
-    chart_column: str = '', show='both', title=''):
-    if isinstance(results[0], dict):
-        result_all_columns = list(results[0].keys())
-    elif isinstance(results[0], list):
-        result_all_columns = ['result']
-    else:
-        result_all_columns = ['result']
+    @staticmethod
+    def df2histo(df: pd.DataFrame, bin_count=20, xlabel='x', y_column=None,
+                 ylabel='Frequency', chart_title='Histogram'):
+        if y_column is None:
+            return None
+        chart = QChart()
+        yvals = QResults.df2histo_data(df, y_column)
+        chart.render_histogram(values=yvals, bin_count=bin_count, xlabel=xlabel, ylabel=ylabel, title=chart_title)
+        return chart
 
-    if result_columns != '':
-        y_columns = idx2names(result_columns, result_all_columns)
-    else:
-        y_columns = []
-
-    if result_units != '':
-        ukeys = css2strs(result_units)
-    else:
-        ukeys = []
-
-    if chart_column != '':
-        ckeys = idx2names(chart_column, result_all_columns)
-    else:
-        ckeys = []
-
-    y_columns = [title_to_variable(rkey.strip()) for rkey in y_columns]
-    ukeys = [ukey.strip().lower() for ukey in ukeys]
-    ckeys = [title_to_variable(ckey.strip()) for ckey in ckeys]
-
-    empty_tbl_filter = True
-    empty_cht_filter = True
-    if len(y_columns) + len(ukeys) > 0:
-        empty_tbl_filter = False
-    if len(ckeys) > 0:
-        empty_cht_filter = False
-
-    for_table_ok = {}
-    for_chart_ok = {}
-    data_columns = []
-    data2c_columns = []
-    data_changed_title = []
-    data2c_changed_title = []
-
-    rvalues, ruoms = result_values(results[0])  # title to variable
-    all_y_columns = list(rvalues.keys())
-
-    data = {}
-    data2c = {}
-
-    for rkey in all_y_columns:
-        if not empty_tbl_filter:
-            rkey_ok = rkey in y_columns
-            ukey_ok = rkey in ruoms and ruoms[rkey].lower() in ukeys
-            ckey_ok = rkey in ckeys
-            for_table_ok[rkey] = rkey_ok or ukey_ok or ckey_ok
+    @staticmethod
+    def df2chart_data(df, x_column='', y_columns: list | None = None):
+        # df = {x:[],y:[]}
+        if y_columns is None:
+            y_columns = []
+        ch_data = {'yvalsm': [], 'ylabels': [], 'xlabel': x_column}
+        if x_column == '':
+            ch_data['xvals'] = list(df.index)
         else:
-            for_table_ok[rkey] = True
+            ch_data['xvals'] = df[x_column]
 
-        if not empty_cht_filter:
-            ckey_ok = rkey in ckeys
-            for_chart_ok[rkey] = ckey_ok
-        else:
-            for_chart_ok[rkey] = True
+        if not y_columns:
+            y_columns = list(df.columns)
 
-        if for_table_ok[rkey]:
-            data_columns.append(rkey)
-            y = variable_to_title(rkey)
-            if rkey in ruoms:
-                y = y + ' (' + ruoms[rkey] + ')'
-            data_changed_title.append(y)
+        for rkey in y_columns:
+            yvals = df[rkey]
+            skip = False
+            if isinstance(yvals[0], list):
+                yvals = [y[0] for y in yvals]
+            elif isinstance(yvals[0], Qty):
+                yvals = [y.value for y in yvals]
+            elif isinstance(yvals[0], datetime.datetime) or isinstance(yvals[0], str):
+                skip = True
 
-            if for_chart_ok[rkey]:
-                data2c_columns.append(rkey)
-                data2c_changed_title.append(y)
+            if x_column == rkey:
+                skip = True
 
-    for rkey in data_columns:
-        data[rkey] = []
-    for rkey in data2c_columns:
-        data2c[rkey] = []
+            if not skip:
+                ch_data['yvalsm'].append(yvals)
+                ch_data['ylabels'].append(rkey)
+        return ch_data
 
-    build_table = show in ('both', 'table')
-    build_chart = show in ('both', 'chart')
+    @staticmethod
+    def df2histo_data(df, y_column: str):
+        # rows can be heterogeneous (e.g. a failed trial contributes None/{} instead
+        # of a number), so filter per-value rather than assuming a uniform column type
+        cleaned = []
+        for v in df[y_column]:
+            if isinstance(v, list):
+                v = v[0] if v else None
+            if isinstance(v, Qty):
+                v = v.val
+            if isinstance(v, (int, float)) and not isinstance(v, bool):
+                v = float(v)
+                # statistics.stdev/fmean raise "'float' object has no attribute
+                # 'numerator'" when the data contains NaN, so drop it here
+                if v == v:
+                    cleaned.append(v)
+        return cleaned
 
-    for result in results:
-        rvalues, ruoms = result_values(result)
-        if build_table:
-            for rkey in data_columns:
-                data[rkey].append(rvalues.get(rkey))
-        for rkey in data2c_columns:
-            data2c[rkey].append(rvalues.get(rkey))
+    def _table_column_filters(self):
+        """Parse ``self.table_columns``/``self.table_units`` into variable-name keys."""
+        table_columns = self.table_columns
+        table_units = self.table_units
+        y_columns = idx2names(table_columns, self._all_columns) if table_columns != '' else []
+        ukeys = css2strs(table_units) if table_units != '' else []
 
-    df = None
-    if build_table:
-        df = pd.DataFrame(data)
-        df.columns = data_changed_title
+        y_columns = [title_to_variable(rkey.strip()) for rkey in y_columns]
+        ukeys = [ukey.strip().lower() for ukey in ukeys]
+        return y_columns, ukeys
 
-    df2c = pd.DataFrame(data2c)
-    df2c.columns = data2c_changed_title
-    if len(data2c_changed_title) > 1:
-        raise Exception(
-            f"Multiple chartable columns {data2c_changed_title} found; "
-            "specify chart_column to pick one for the histogram")
-    y_column = data2c_changed_title[0] if data2c_changed_title else None
-    # values (for stats) are cheap to derive and always computed; the chart
-    # (matplotlib render) is the expensive part, only built when requested
-    values = df2histo_data(df2c, y_column) if y_column is not None else []
-    chart = df2histo(df2c, bin_count, xlabel='', y_column=y_column, chart_title=title) if build_chart else None
+    def _chart_column_filter(self):
+        """Parse comma-separated chart column/unit filters into variable-name keys.
 
-    res = None
-    if show == 'both':
-        res = {'table': df, 'chart': chart, 'values': values}
-    elif show == 'table':
-        res = {'table': df, 'values': values}
-    elif show == 'chart':
-        res = {'chart': chart, 'values': values}
-    return res
+        ``chart_units`` is unused by histograms, which only ever chart one column.
+        """
+        ckeys = idx2names(self.chart_columns, self._all_columns) if self.chart_columns != '' else []
+        cukeys = css2strs(self.chart_units) if self.chart_units != '' else []
+
+        ckeys = [title_to_variable(ckey.strip()) for ckey in ckeys]
+        cukeys = [cukey.strip().lower() for cukey in cukeys]
+        return ckeys, cukeys
+
+    def _classify_columns(self, y_columns, ukeys, ckeys, cukeys, x_name=None):
+        """Split ``self._all_y_columns`` into table/chart column lists and their display titles.
+
+        A column is kept for the table when it matches a table/chart column or
+        unit filter (or no table/chart filter was given), and additionally kept
+        for the chart when it matches a chart column or unit filter (or no
+        chart filter was given). ``x_name``, when given, is always kept in both.
+        """
+        all_y_columns = self._all_y_columns
+        ruoms = self._header_uoms
+        empty_tbl_filter = not (y_columns or ukeys)
+        empty_cht_filter = not (ckeys or cukeys)
+
+        data_columns = []
+        data2c_columns = []
+        data_changed_titles = []
+        data2c_changed_titles = []
+
+        for rkey in all_y_columns:
+            if not empty_tbl_filter:
+                rkey_ok = rkey in y_columns
+                ukey_ok = rkey in ruoms and ruoms[rkey].lower() in ukeys
+                ckey_ok = rkey in ckeys
+                cukey_ok = rkey in ruoms and ruoms[rkey].lower() in cukeys
+                table_ok = rkey_ok or ukey_ok or ckey_ok or cukey_ok
+            else:
+                table_ok = True
+
+            if not empty_cht_filter:
+                ckey_ok = rkey in ckeys
+                cukey_ok = rkey in ruoms and ruoms[rkey].lower() in cukeys
+                chart_ok = ckey_ok or cukey_ok
+            else:
+                chart_ok = True
+
+            if rkey == x_name:
+                table_ok = True
+                chart_ok = True
+
+            if table_ok:
+                data_columns.append(rkey)
+                y = variable_to_title(rkey)
+                if rkey in ruoms:
+                    y = y + ' (' + ruoms[rkey] + ')'
+                data_changed_titles.append(y)
+
+                if chart_ok:
+                    data2c_columns.append(rkey)
+                    data2c_changed_titles.append(y)
+
+        return data_columns, data2c_columns, data_changed_titles, data2c_changed_titles
+
+    def process(self):
+        """Build a result table and/or chart from ``self.results`` (memoized).
+
+        Results may be scalars, lists, dictionaries, or quantity values. Result
+        values are normalized with ``result_values``; quantity columns retain
+        their units in the displayed labels. Column filters accept comma-separated
+        display names or one-based column indexes.
+
+        ``self.table_columns``/``self.table_units`` control columns shown in the
+        table. ``self.variable`` (if set) selects the result column used for the
+        X axis, while ``self.xvals`` supplies explicit X values. The chart/histogram
+        settings configured via ``setup_chart``/``setup_histo`` control the plotted
+        Y series. When no chart filters are supplied, all chart-compatible result
+        columns are plotted (or, for a histogram, must resolve to exactly one).
+
+        Returns:
+            A ``(table_df, chart)`` tuple, either of which may be ``None``
+            depending on ``self.show``.
+        """
+        # create chart(s) from calculated result and optional xaxis values
+        # allowing filtering of table columns based on result column list or units
+        # allowing filtering of chartable columns based on chart column list or units
+        if self._processed:
+            return self.table_df, self.chart
+        chart_x_axis = self.variable
+        xvals = self.xvals
+
+        if xvals is None:
+            xvals = []
+        y_columns, ukeys = self._table_column_filters()
+        ckeys, cukeys = self._chart_column_filter()
+        all_y_columns = self._all_y_columns
+
+        x_name = title_to_variable(chart_x_axis)
+        x_column = variable_to_title(x_name)
+        prefill = {}
+        if len(xvals) > 0:  # xvals given
+            if chart_x_axis == '':
+                x_name = 'x'
+                x_column = 'X'
+            prefill[x_name] = xvals
+        else:  # xvals not specified
+            if chart_x_axis == '':
+                if len(all_y_columns) > 1:
+                    chart_x_axis = all_y_columns[0]
+                    x_name = title_to_variable(chart_x_axis)
+                # else chart_axis='' is index
+
+        table_columns, _, table_changed_titles, chart_changed_titles = self._classify_columns(
+            y_columns, ukeys, ckeys, cukeys, x_name=x_name)
+        has_y_series = bool(chart_changed_titles)  # before the x column is prepended below
+        if prefill:
+            table_changed_titles = [x_column] + table_changed_titles
+            # a histogram only ever plots the swept variable's own result column(s),
+            # never the x-axis/xvals column used by line/bar/stack charts
+            if self.chart_type != 'histo':
+                chart_changed_titles = [x_column] + chart_changed_titles
+
+        table_data = dict(prefill)
+        table_data.update(self._fill_columns(table_columns))
+        self.table_df = pd.DataFrame(table_data)
+        self.table_df.columns = table_changed_titles
+
+        build_chart = self.show in ('both', 'chart')
+        if has_y_series:
+            chart_df = self.table_df[chart_changed_titles]
+            if self.chart_type == 'histo':
+                if len(chart_changed_titles) > 1:
+                    raise Exception(
+                        f"Multiple chartable columns {chart_changed_titles} found; "
+                        "specify chart_column to pick one for the histogram")
+                y_column = chart_changed_titles[0]
+                # values (for stats) are cheap to derive and always computed; the chart
+                # (matplotlib render) is the expensive part, only built when requested
+                self.values = QResults.df2histo_data(chart_df, y_column)
+                if build_chart:
+                    self.chart = QResults.df2histo(
+                        chart_df, self.bin_count, xlabel=self.variable, y_column=y_column, ylabel='',
+                        chart_title=self.chart_title)
+            elif build_chart:
+                self.chart = QResults.df2chart(
+                    chart_df, x_column, y_columns=None, chart_title=self.chart_title, chart_type=self.chart_type)
+
+        self._processed = True
+        return self.table_df, self.chart
+
+    def objects(self):
+        if not self._processed:
+            self.process()
+        show = self.show
+        res = {}
+        if show == 'both' or show == 'table':
+            res['table'] = self.table_df
+        if show == 'both' or show == 'chart':
+            res['chart'] = self.chart
+        if self.chart_type == 'histo':
+            res['values'] = self.values
+        return res

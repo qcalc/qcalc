@@ -32,7 +32,7 @@ def load_root_json(json_file_name):
 qc_gpref = {  # pref-01
     # user settings
     'theme': 'default',
-    'interactive': True,
+    'interactive': False,
     'ignore_decimal_format': False,
     'decimal': 8,  # 2-16
     'qty_decimal': 5,  # 2-16

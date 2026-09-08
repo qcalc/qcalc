@@ -5,10 +5,8 @@ import re
 
 import numpy as np
 
-from qutil import replace_words
 from qcore import qchar, qcode
-from calc import scalar_values, results2histo, show_choice
-from calculators.all.general.cal_eva import eva
+from calc import scalar_results, QResults, show_choice
 from qvars import qc_gpref as gs
 
 
@@ -35,7 +33,7 @@ def monte_carlo__info():
 def monte_carlo(xpr: qcode = "sine('x deg')", variable: qchar = 'x',
                 distribution='normal', param1=0.0, param2=1.0, param3=None,
                 trials: int = 100, bin_count=20, round_off=4,
-                result_columns: str = '', result_units: str = '', chart_column: str = '',
+                table_columns: str = '', table_units: str = '', chart_column: str = '',
                 show='both', chart_title='Monte Carlo Simulation'):
     # normal: param1=mean, param2=stdev
     # uniform: param1=low, param2=high
@@ -71,33 +69,18 @@ def monte_carlo(xpr: qcode = "sine('x deg')", variable: qchar = 'x',
     else:
         raise Exception(f"Unknown distribution '{distribution}'")
 
-    values = []
-    failed = 0
-    for s in samples:
-        code = replace_words(xpr, [variable], str(round(float(s), round_off)))
-        try:
-            result = eva(code=code)
-        except Exception:
-            failed += 1
-            continue
-        values.append(scalar_values(result))
+    var_vals = [round(float(s), round_off) for s in samples]
+    results, xvals = scalar_results(xpr=xpr, variable=variable, var_vals=var_vals)
 
-    if not values:
-        raise Exception("No numeric results were produced; check the expression")
+    qr = QResults(results, xvals=xvals, variable=variable,
+                  table_columns=table_columns, table_units=table_units, show=show)
+    qr.setup_histo(chart_column=chart_column, bin_count=bin_count, chart_title=chart_title)
 
-    # results2histo now always returns 'values' regardless of 'show', so the
-    # expensive chart render is skipped whenever it isn't actually requested
-    histo = results2histo(
-        results=values,
-        bin_count=bin_count,
-        result_columns=result_columns,
-        result_units=result_units,
-        chart_column=chart_column,
-        show=show,
-        title=chart_title)
-
+    # 'values' is always populated regardless of 'show', so the expensive
+    # chart render is skipped whenever it isn't actually requested
+    histo = qr.objects()
     numeric_values = histo.pop('values', [])
-    failed += len(values) - len(numeric_values)
+    failed = len(var_vals) - len(xvals)
 
     return {
         'trials_used': len(numeric_values),

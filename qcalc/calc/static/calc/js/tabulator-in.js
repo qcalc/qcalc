@@ -110,11 +110,20 @@
         });
     }
 
+    // A resize submit stages its intended shape on the table element; packData
+    // honors it over the (possibly already re-rendered) row/col inputs and
+    // clears it once consumed. This is the single source of truth for a staged
+    // resize shape - nothing else needs to know about it.
+    function stagedShape(tableElem) {
+        const raw = tableElem && tableElem.dataset ? tableElem.dataset.qcalc_StagedShape : null;
+        return raw ? JSON.parse(raw) : null;
+    }
+
     function pickData(dataTable, updateShape = true) {
         const tableId = dataTable.element.id;
         [tableDf[tableId], colNames[tableId]] = adict2list(dataTable.getData());
         colTitles[tableId] = columnTitles(dataTable);
-        if (updateShape) {
+        if (updateShape && !stagedShape(dataTable.element)) {
             const dataFieldId = "id_" + tableId;
             $("#" + dataFieldId + "_row").val(tableDf[tableId].length);
             $("#" + dataFieldId + "_col").val(colTitles[tableId].length);
@@ -129,7 +138,13 @@
         const obj = {};
         obj.data = tableDf[tableId];
         obj.columns = colTitles[tableId];
-        obj.shape = [$("#" + dataFieldId + "_row").val(), $("#" + dataFieldId + "_col").val()];
+        const staged = stagedShape(dataTable.element);
+        if (staged) {
+            obj.shape = staged;
+            delete dataTable.element.dataset.qcalc_StagedShape;
+        } else {
+            obj.shape = [$("#" + dataFieldId + "_row").val(), $("#" + dataFieldId + "_col").val()];
+        }
         obj.mode = mode;
         $("#" + dataFieldId).val(JSON.stringify(obj));
     }
@@ -174,27 +189,11 @@
     }
 
     // Interactive mode routes normal submits to an output-only region
-    // (#interactive-output-cid); table structural commands (Update/Resize/Edit)
-    // need the whole form re-rendered, so route this one submit back to the form.
+    // (#output-part-cid); table structural commands (Update/Resize/Edit)
+    // need the whole form re-rendered, so ask the shared helper for a
+    // full-form submit (qcalc.js handles the swap retarget, server routes it).
     function submitWithFullFormSwap(form, calcBtnId) {
-        const interactive = form && form.getAttribute("data-interactive") === "true";
-        const prevTarget = interactive ? form.getAttribute("hx-target") : null;
-        const prevSwap = interactive ? form.getAttribute("hx-swap") : null;
-        if (interactive) {
-            form.setAttribute("hx-target", "this");
-            form.setAttribute("hx-swap", "innerHTML");
-            if (window.htmx) {
-                htmx.process(form);
-            }
-        }
-        $("#" + calcBtnId).trigger("click");
-        if (interactive) {
-            form.setAttribute("hx-target", prevTarget);
-            form.setAttribute("hx-swap", prevSwap);
-            if (window.htmx) {
-                htmx.process(form);
-            }
-        }
+        window.qcalc_FullFormSubmit(form, calcBtnId);
     }
 
     function bindTableButtons(tableId) {
@@ -226,6 +225,12 @@
                 $colField.val(clampedCol);
                 updateAllData($(this), false);
                 setUpdateButtonEnabled(tableId, false);
+                // stage the intended shape on the table element; packData
+                // honors it over the (possibly already re-rendered) inputs
+                const tableElem = document.getElementById(tableId);
+                if (tableElem) {
+                    tableElem.dataset.qcalc_StagedShape = JSON.stringify([String(clampedRow), String(clampedCol)]);
+                }
                 const cid = getCidOf($(this));
                 const extraFieldId = "extra_" + cid;
                 const calcBtnId = "calculate_" + cid;

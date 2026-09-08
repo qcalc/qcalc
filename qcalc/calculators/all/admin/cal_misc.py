@@ -1,7 +1,8 @@
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from datetime import timedelta
-from calc import Qty, QCals
+from qcore import Qty
+from calc import QCals
 
 
 def ucount__info():

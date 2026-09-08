@@ -123,11 +123,15 @@ def q1999_func_to_form(request: HtmxHttpRequest, **dictf):  # main view
         q1199_func_to_form_common(request, **dictf)
         if (
             request.method == 'POST'
-            and request.pref.get('interactive')
-            and request.json_doc['info'].get('interactive')
+            # ordinary submits refresh only the output region, interactive or
+            # not; structural submits (resize/edit/load/... or the explicit
+            # qcalc_structural_cmd marker from qcalc_FullFormSubmit) need the
+            # full form re-rendered
             and getattr(request, 'cmd', '') not in {
             'load', 'resize', 'edit', 'display', '__modify',
         }
+            and request.headers.get('X-QCalc-Structural-Cmd') != '1'
+            and request.POST.get('qcalc_structural_cmd') != '1'
         ):
             return q1_render(request, 'insert-calculator-output-response.html', request.context)
         return q1_render(request, get_template(part), request.context)

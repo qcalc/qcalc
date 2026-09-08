@@ -7,6 +7,10 @@ from qcore import Qty, SmartCalc
 def emc2__info():
     return {
         'title': "Einstein's Theory of Special relativity",
+        'anyof':
+            {
+                '1': {'fields': ['mass', 'energy']},
+            },
     }
 
 

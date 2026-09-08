@@ -109,7 +109,7 @@ def synonym__info():
     return {'title': 'English Synonym of an Word'}
 
 
-def synonym(word: str):
+def synonym(word: str = "god"):
     synonym_of_the_word = get_synonyms(word)
     return synonym_of_the_word
 

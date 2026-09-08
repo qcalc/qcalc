@@ -1,46 +1,63 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
-from qutil import title_to_variable
-from qcore import isMeasureQuantity as isPQ, QChart, QMap, QImage, qpage, qhtml, qtext, qtexta, qtexte
-import pandas as pd
+from qutil import title_to_variable, replace_words
+from qcore import isMeasureQuantity as isPQ
+
 
 def is_scalar(value):
     return isPQ(value) or isinstance(value, float) or isinstance(value, int) or value is None
 
-def scalar_values(result):
-    if is_scalar(result):
-        return result
 
-    if isinstance(result, set):
-        filtered = set()
-        for value in result:
-            if is_scalar(value):
-                filtered.add(value)
-        return filtered
+def scalar_results(xpr: str, variable: str, var_vals: list):
+    # imported lazily: eva -> cal_eva -> "from calc import QCals" would otherwise
+    # circular-import back into this module while calc/__init__.py is still loading
+    from calculators.all.general.cal_eva import eva
 
-    if isinstance(result, tuple):
-        filtered = ()
-        for value in result:
-            if is_scalar(value):
-                filtered += (value,)
-        return filtered
+    def filter_scalar(result) -> dict | list | None:
+        if is_scalar(result):
+            return [result]
 
-    if isinstance(result, list):
         filtered = []
-        for value in result:
-            if is_scalar(value):
-                filtered.append(value)
-        return filtered
+        if isinstance(result, set) or isinstance(result, tuple) or isinstance(result, list):
+            for value in result:
+                if is_scalar(value):
+                    filtered.append(value)
+            return filtered
 
-    if isinstance(result, dict):
-        filtered = {}
-        for key, value in result.items():
-            if is_scalar(value):
-                filtered[key] = value
-        return filtered
+        if isinstance(result, dict):
+            filtered = {}
+            for key, value in result.items():
+                if is_scalar(value):
+                    filtered[key] = value
+            return filtered
 
-    return None
+        return None
+
+    failed = 0
+    results = []
+    xvals = []
+    for var_val in var_vals:
+        code = replace_words(xpr, [variable], str(var_val))
+        try:
+            result = eva(code=code)
+        except Exception:
+            failed += 1
+            continue
+        sc = filter_scalar(result)
+        if isinstance(sc, (dict, list)) and not sc:
+            # every field was filtered out (e.g. the expression errored for this
+            # trial but eva() returned an error dict/string instead of raising)
+            failed += 1
+            continue
+        if sc is not None:
+            xvals.append(var_val)
+            results.append(sc)
+        else:
+            raise Exception("No numeric results were produced; check the expression")
+    if not results:
+        raise Exception("No numeric results were produced; check the expression")
+    return results, xvals
 
 
 def result_values(result):
@@ -63,18 +80,6 @@ def result_values(result):
             ojson_data[name] = value
         elif value is None:
             ojson_data[name] = None
-        elif (
-            isinstance(value, pd.DataFrame) or
-            isinstance(value, QChart) or
-            isinstance(value, QMap) or
-            isinstance(value, QImage) or
-            isinstance(value, qpage) or
-            isinstance(value, qhtml) or
-            isinstance(value, qtext) or
-            isinstance(value, qtexta) or
-            isinstance(value, qtexte)
-        ):
-            pass
         else:
             pass
         return

@@ -2,9 +2,8 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 from calculators.all.general.chart.cal_chart import pareq
-from qcore import qchar
+from qcore import qchar, QChart
 import numpy as np
-from calc import QChart
 
 
 def lissa__info():

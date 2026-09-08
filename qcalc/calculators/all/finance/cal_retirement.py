@@ -2,7 +2,7 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 from qcore import Qty
-from calc import df2chart
+from calc import QResults
 from qapi import qdf
 
 
@@ -124,7 +124,7 @@ def retirement_sustainability(
 
     df = qdf(projection)
 
-    chart = df2chart(
+    chart = QResults.df2chart(
         df,
         x_column='Year',
         y_columns=['Starting Balance', 'Ending Balance'],

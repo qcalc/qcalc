@@ -14,7 +14,7 @@
         var cid = form.id.replace('form-', '');
         form.setAttribute('data-interactive', 'true');
         form.setAttribute('hx-sync', 'this:replace');
-        form.setAttribute('hx-target', '#interactive-output-' + cid);
+        form.setAttribute('hx-target', '#output-part-' + cid);
         form.setAttribute('hx-swap', 'outerHTML');
         if (window.htmx) {
             htmx.process(form);

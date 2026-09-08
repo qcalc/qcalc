@@ -1,6 +1,6 @@
 {% load static %}
 {% load qfilter %}
-<div id="interactive-output-{{ input.cid }}">
+<div id="output-part-{{ input.cid }}">
 {% include 'insert-calculator-output-partial.html' %}
 </div>
 {% if output.doc.table_out or input.doc.info.table_out %}

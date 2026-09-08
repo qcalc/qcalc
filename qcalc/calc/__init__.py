@@ -1,7 +1,7 @@
 from .mod_cache import QMem, QPref, QCache, QTemp, QKeep, QSave, QIO, QData, QRam, QMeta, QFav
 from .mod_cutil import valid_numq, ancestors, get_help_path, get_fhelp
 from .mod_db import QInput
-from .mod_result_chart import *
+from .mod_result_chart import QResults
 from .mod_head import *
 from .mod_init import *
 # mfunc
@@ -12,7 +12,7 @@ from .mod_qlist import *
 from .mod_currency import *
 from .mod_redis import *
 from .mod_redis_act import *
-from .mod_result import result_values, is_scalar, scalar_values
+from .mod_result import result_values, is_scalar, scalar_results
 from .mod_ucals import UCals
 from .mod_whoosh import QSearch, print_search_result, search_result_nodes
 
@@ -24,9 +24,7 @@ from qapi import qlib_dict, _qapis
 calc_dict = {
     # 'QCals': QCals, 'UCals': UCals, 'QFav': QFav,
     'call': QCals.addr,
-    'df2chart': df2chart,
-    'df2chart_data': df2chart_data,
-    'results2chart': results2chart,
+    'QResults': QResults,
 }
 
 logger = logging.getLogger(__name__)

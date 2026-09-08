@@ -133,10 +133,13 @@ def test_tabulator_widget_resize_grows_table():
     assert 'value="5" id="id_cid1_mytable_row"' in html
 
 
-# --- q1999_func_to_form: server-side gate that keeps structural table commands
-# (Resize/Edit/...) from being answered with the interactive output-only fragment ---
+# --- q1999_func_to_form: server-side routing - ordinary POSTs always get the
+# output-fragment (partial refresh by default, interactive or not); only
+# structural submits (structural cmd set, header, or posted marker) get the
+# full form re-render ---
 
-def _make_view_request(monkeypatch, cmd, interactive_pref=True, interactive_info=True):
+def _make_view_request(monkeypatch, cmd, interactive_pref=True, interactive_info=True,
+                       table_cmd_header=None, structural_post_field=None):
     rendered = {}
 
     def fake_common(request, **dictf):
@@ -149,6 +152,12 @@ def _make_view_request(monkeypatch, cmd, interactive_pref=True, interactive_info
     monkeypatch.setattr(calc_views, "q1199_func_to_form_common", fake_common)
     monkeypatch.setattr(calc_views, "q1_render", fake_render)
 
+    headers = {}
+    if table_cmd_header:
+        headers["X-QCalc-Structural-Cmd"] = table_cmd_header
+    post = {}
+    if structural_post_field:
+        post["qcalc_structural_cmd"] = structural_post_field
     request = SimpleNamespace(
         method="POST",
         GET={},
@@ -156,31 +165,45 @@ def _make_view_request(monkeypatch, cmd, interactive_pref=True, interactive_info
         json_doc={"info": {"interactive": interactive_info}},
         cmd=cmd,
         context={},
+        headers=headers,
+        POST=post,
     )
     calc_views.q1999_func_to_form(request)
     return rendered["template"]
 
 
 @pytest.mark.parametrize("cmd", ["load", "resize", "edit", "display", "__modify"])
-def test_structural_table_commands_bypass_interactive_output_fragment(monkeypatch, cmd):
+def test_structural_table_commands_get_full_form(monkeypatch, cmd):
     template = _make_view_request(monkeypatch, cmd=cmd)
 
     assert template != "insert-calculator-output-response.html"
 
 
-def test_plain_field_change_uses_interactive_output_fragment_when_enabled(monkeypatch):
-    template = _make_view_request(monkeypatch, cmd="")
+@pytest.mark.parametrize("pref_on,info_on", [(True, True), (True, False), (False, True), (False, False)])
+def test_plain_field_change_always_uses_output_fragment(monkeypatch, pref_on, info_on):
+    # the whole point of the refactor: partial refresh is the default for ALL
+    # calculators, not gated on interactive pref / calculator interactive flag
+    template = _make_view_request(monkeypatch, cmd="",
+                                  interactive_pref=pref_on, interactive_info=info_on)
 
     assert template == "insert-calculator-output-response.html"
 
 
-def test_interactive_output_fragment_not_used_when_calculator_not_interactive(monkeypatch):
-    template = _make_view_request(monkeypatch, cmd="", interactive_info=False)
+def test_table_cmd_header_forces_full_form_response(monkeypatch):
+    # X-QCalc-Structural-Cmd is set by qcalc_FullFormSubmit for Resize/Edit
+    # structural submits; the server must answer with the full form so the
+    # resized input table actually reaches the DOM even when interactive mode
+    # is on.
+    template = _make_view_request(monkeypatch, cmd="", table_cmd_header="1")
 
     assert template != "insert-calculator-output-response.html"
 
 
-def test_interactive_output_fragment_not_used_when_pref_disabled(monkeypatch):
-    template = _make_view_request(monkeypatch, cmd="", interactive_pref=False)
+def test_structural_cmd_post_field_forces_full_form_response(monkeypatch):
+    # qcalc_FullFormSubmit also tags the request body via hx-vals
+    # (qcalc_structural_cmd=1) so non-interactive forms - which never load
+    # interactive.js and thus never get the configRequest listener - still
+    # get a full-form response from the server.
+    template = _make_view_request(monkeypatch, cmd="", structural_post_field="1")
 
     assert template != "insert-calculator-output-response.html"

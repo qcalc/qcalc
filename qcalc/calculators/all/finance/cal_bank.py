@@ -5,7 +5,7 @@ import pandas as pd
 from datetime import datetime
 from qcore import qfunc, QChart, Qty
 from calculators.all.general.file.cal_file import csv_reader
-from calc import df2chart_data
+from calc import QResults
 from qutil import demo_url
 
 
@@ -114,11 +114,11 @@ def amort(loan_amount: float = 100000.0, annual_interest_rate: float = 5.0, loan
     ]
     df = pd.DataFrame(amortization_schedule, columns=columns)
 
-    chdata = df2chart_data(
+    chdata = QResults.df2chart_data(
         df, y_columns=["Total Principal", "Total Interest", "Total Payment", "Remaining Principal"])
     chart = QChart(aspect=1)
     chart.legend_loc_best = 'upper center'
-    chart.render_lines(**chdata)
+    chart.render_lines(**chdata, ylabel='Amount', title='Amortization')
 
     for c in range(1, 8):
         df[columns[c]] = df[columns[c]].apply('{:,.2f}'.format)

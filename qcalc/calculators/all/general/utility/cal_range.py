@@ -6,7 +6,7 @@ import pandas as pd
 
 from qcore import Qty, quomx, qtexta
 from qvars import qc_gpref as gs
-from calc import QCals, df2chart
+from calc import QCals, QResults
 from qutil import vals2css
 
 
@@ -43,7 +43,7 @@ def fx(y: qtexta = 'x**2+2*x-5', variable='x', variation_start=1.0, variation_st
         df2['Y'] = df2['Y'].apply(lambda y: str(y))
         toret['Table'] = df2
     if 'Chart' in output_format:
-        chart=df2chart(df,'X')
+        chart = QResults.df2chart(df, 'X')
         toret['Chart'] = chart
     return toret
 
@@ -68,7 +68,7 @@ def vrange(variation_start=100.0, variation_stop=200.0, variation_step=10.0, ste
     if 'Table' in output_format:
         toret['Table'] = df
     if 'Chart' in output_format:
-        chart = df2chart(df)
+        chart = QResults.df2chart(df)
         toret['Chart'] = chart
     return toret
 
@@ -85,5 +85,5 @@ def qrange(variation_start=100.0, variation_stop=200.0, variation_unit: quomx = 
     v_range = valid_range(qvariation_start.val, qvariation_stop.val, qvariation_step.val)
     dfq = pd.DataFrame({"Result": [Qty(x, variation_unit).roundoff(step_round_off) for x in v_range]})
     df = pd.DataFrame({"Result": [round(x, step_round_off) for x in v_range]})
-    chart=df2chart(df)
+    chart = QResults.df2chart(df)
     return {'table': dfq, 'chart': chart}

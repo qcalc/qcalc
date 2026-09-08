@@ -2,6 +2,51 @@
 // Copyright (c) 2024-2026 Debasish C Saha
 
 /* qCalc JavaScript */
+
+// ---- structural (full-form) submit machinery ---------------------------
+// A "structural" submit is one whose response must replace the WHOLE form
+// (e.g. input-table Resize/Edit re-renders the table's own markup), as
+// opposed to a normal submit whose response only refreshes the output
+// region (#output-part-<cid>). This is orthogonal to interactive mode -
+// it applies to any calculator form, interactive or not.
+(function() {
+    document.addEventListener('htmx:configRequest', function(event) {
+        var detail = event.detail || {};
+        var params = detail.parameters || {};
+        if (params['qcalc_structural_cmd'] !== '1') {
+            return;
+        }
+        var form = event.target && event.target.tagName === 'FORM'
+            ? event.target
+            : (event.target && event.target.closest ? event.target.closest('form') : null);
+        if (!form) {
+            return;
+        }
+        detail.headers = detail.headers || {};
+        detail.headers['X-QCalc-Structural-Cmd'] = '1';
+        // the form is about to be replaced; re-allow live calculation on
+        // the replacement form (undoes any earlier qcalcSuspendInteractive)
+        form.dataset.interactiveEnabled = 'true';
+    });
+
+    // After a structural (full-form) swap completes, restore the form's
+    // normal output-part targeting so subsequent ordinary submits go back
+    // to partial refresh (the helper mutated it to hx-target=this).
+    document.addEventListener('htmx:afterSwap', function(event) {
+        var form = event.detail && event.detail.target;
+        if (!form || form.tagName !== 'FORM') {
+            return;
+        }
+        if (form.getAttribute('hx-target') !== 'this') {
+            return;
+        }
+        var cid = form.id.replace('form-', '');
+        form.setAttribute('hx-target', '#output-part-' + cid);
+        form.setAttribute('hx-swap', 'outerHTML');
+        form.removeAttribute('hx-vals');
+    });
+})();
+
 var jsCid = '-';
 function setCid(cid)
 {
@@ -436,6 +481,27 @@ function calClick(cid){
     $('#'+calc_btn_id).trigger('click');
 }
 
+// Submit a calculator form asking the server for a FULL form response
+// (the whole form, not just the output region). Any structural control
+// that re-renders its own input markup (input-table Resize/Edit, future
+// widgets of that kind) should call this instead of a bare calClick().
+// Works for any calculator form, interactive or not. For interactive forms
+// the response re-carries the normal interactive hx-target and
+// interactive.js re-initializes on htmx:afterSwap, restoring interactivity.
+function qcalc_FullFormSubmit(form, calcBtnId){
+    if (!form) {
+        return;
+    }
+    // htmx 1.9.11 resolves the swap target from element attributes at
+    // request-issue time, so setting them here is sufficient - no
+    // htmx.process() (which would abort any in-flight request on this form
+    // before the resize submit lands).
+    form.setAttribute('hx-vals', '{"qcalc_structural_cmd": "1"}');
+    form.setAttribute('hx-target', 'this');
+    form.setAttribute('hx-swap', 'innerHTML');
+    $('#' + calcBtnId).trigger('click');
+}
+
 function calWithCmd(cid, fname, cmd){ // cmd='save_input', 'save_io', 'save_var', 'create_var'
     updateExtra(cid,{"cmd":cmd});
     calClick(cid);
@@ -505,7 +571,6 @@ function fileinput( document, window, index )
 		});
 	});
 }
-//fileinput( document, window, 0 );
 
 document.addEventListener('DOMContentLoaded', function() {
     fileinput(document, window, 0);

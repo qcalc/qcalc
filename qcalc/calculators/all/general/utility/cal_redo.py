@@ -4,11 +4,9 @@
 import re
 
 from calc import show_choice
-from qutil import replace_words
-from qcore import qchar
+from qcore import qchar, QTable
 from calculators.all.general.utility.cal_range import valid_range
-from calc import results2chart, scalar_values
-from calculators.all.general.cal_eva import eva
+from calc import QResults, scalar_results
 from qcore import qcode
 
 
@@ -29,7 +27,7 @@ def redo__info():
 
 def redo(xpr: qcode = "sine('x deg')", variable: qchar = 'x',
          variation_start=0.0, variation_stop=360.0, variation_step=10.0, step_round_off=2,
-         result_columns: str = '', result_units: str = '', chart_columns: str = '', chart_units: str = '', show='both',
+         table_columns: str = '', table_units: str = '', chart_columns: str = '', chart_units: str = '', show='both',
          chart_title: str = '', chart_type='lines'):
     variable = (variable or '').strip()
     if not re.fullmatch(r'[A-Za-z_]\w*', variable):
@@ -40,24 +38,11 @@ def redo(xpr: qcode = "sine('x deg')", variable: qchar = 'x',
         raise Exception("Variation step direction does not match variation start/variation stop range")
 
     v_range = valid_range(variation_start, variation_stop, variation_step)
-    xvals = [round(x, step_round_off) for x in v_range]
-    results = []
-    for var in xvals:
-        code = replace_words(xpr, [variable], str(var))
-        try:
-            result = eva(code=code)
-        except Exception as e:
-            result = {'result': f'Error (RD): {e}'}
-        sc_values = scalar_values(result)
-        results.append(sc_values)
-    return results2chart(
-        results=results,
-        xvals=xvals,
-        result_columns=result_columns,
-        result_units=result_units,
-        chart_x_axis=variable,
-        chart_columns=chart_columns,
-        chart_units=chart_units,
-        show=show,
-        title=chart_title,
-        chart_type=chart_type)
+    var_vals = [round(x, step_round_off) for x in v_range]
+    results, xvals = scalar_results(xpr=xpr, variable=variable, var_vals=var_vals)
+
+    qr = QResults(results, xvals=xvals, variable=variable,
+                  table_columns=table_columns, table_units=table_units, show=show)
+    qr.setup_chart(chart_columns=chart_columns, chart_units=chart_units,
+                   chart_title=chart_title, chart_type=chart_type)
+    return qr.objects()

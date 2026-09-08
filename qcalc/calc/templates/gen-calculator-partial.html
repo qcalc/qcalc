@@ -101,10 +101,9 @@
 <form method=post hx-post="/calc/{{ input.doc.name }}/"
       id="form-{{ input.cid }}" enctype="multipart/form-data"
       class="validate {{ input.cid }}"
-      {% if request.pref.interactive and input.doc.info.interactive %}
-      data-interactive="true" hx-sync="this:replace"
-      hx-target="#interactive-output-{{ input.cid }}" hx-swap="outerHTML"
-      {% endif %}>
+      hx-sync="this:replace"
+      hx-target="#output-part-{{ input.cid }}" hx-swap="outerHTML"
+      {% if request.pref.interactive and input.doc.info.interactive %}data-interactive="true"{% endif %}>
 {% load static %}
 {% load qfilter %}
 {% csrf_token %}

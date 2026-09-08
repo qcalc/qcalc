@@ -43,10 +43,11 @@ class QResults:
 
         self.chart_columns = ''
         self.chart_units = ''
+        self.ylabel = 'y'
         self.chart_title = ''
         self.chart_type = 'lines'
 
-        self.chart_column = ''
+        self.histo_column = ''
         self.bin_count = 20
 
         self.show = show
@@ -62,20 +63,25 @@ class QResults:
 
     def setup_chart(self,
                     chart_columns: str = '', chart_units: str = '',
-                    chart_title: str = '', chart_type='lines',
+                    ylabel='y', chart_title: str = '', chart_type='lines'
                     ):
-        self.chart_columns = chart_columns
+        self.chart_columns = chart_columns  # comma separated
         self.chart_units = chart_units
+        self.ylabel = ylabel
         self.chart_title = chart_title
         self.chart_type = chart_type
 
     def setup_histo(self,
-                    chart_column: str = '', bin_count: int = 20,
-                    chart_title: str = 'Histogram'
+                    histo_column: str = '', bin_count: int = 20,
+                    ylabel='Frequency', chart_title: str = 'Histogram'
                     ):
-        self.chart_column = chart_column
-        self.chart_columns = chart_column
+        self.histo_column = histo_column
         self.bin_count = bin_count
+        self.ylabel = ylabel
+        self.histo_column = histo_column
+        self.chart_columns = histo_column  # single str, not comma separated
+        self.bin_count = bin_count
+        self.ylabel = ylabel
         self.chart_title = chart_title
         self.chart_type = 'histo'
 
@@ -85,7 +91,8 @@ class QResults:
         if isinstance(results[0], dict):
             cols = list(results[0].keys())
             # the swept variable occupies the first slot for one-based index filters
-            return ([self.variable] + cols) if self.variable else cols
+            var_columns = css2strs(self.variable)
+            return (var_columns + cols) if var_columns else cols
         elif isinstance(results[0], list):
             return [f"Result {i}" for i, _ in enumerate(results, 1)]
         else:
@@ -134,13 +141,14 @@ class QResults:
         return chart
 
     @staticmethod
-    def df2histo(df: pd.DataFrame, bin_count=20, xlabel='x', y_column=None,
-                 ylabel='Frequency', chart_title='Histogram'):
+    def df2histo(df: pd.DataFrame, bin_count=20, xlabel='Value', y_column=None,
+                 ylabel='Frequency', chart_title='Histogram', density=True):
         if y_column is None:
             return None
         chart = QChart()
         yvals = QResults.df2histo_data(df, y_column)
-        chart.render_histogram(values=yvals, bin_count=bin_count, xlabel=xlabel, ylabel=ylabel, title=chart_title)
+        chart.render_histogram(values=yvals, bin_count=bin_count, density=density,
+                       xlabel=xlabel, ylabel=ylabel, title=chart_title)
         return chart
 
     @staticmethod
@@ -316,15 +324,15 @@ class QResults:
                     x_name = title_to_variable(chart_x_axis)
                 # else chart_axis='' is index
 
-        table_columns, _, table_changed_titles, chart_changed_titles = self._classify_columns(
+        table_columns, chart_columns, table_changed_titles, chart_changed_titles = self._classify_columns(
             y_columns, ukeys, ckeys, cukeys, x_name=x_name)
         has_y_series = bool(chart_changed_titles)  # before the x column is prepended below
         if prefill:
             table_changed_titles = [x_column] + table_changed_titles
             # a histogram only ever plots the swept variable's own result column(s),
             # never the x-axis/xvals column used by line/bar/stack charts
-            if self.chart_type != 'histo':
-                chart_changed_titles = [x_column] + chart_changed_titles
+            # if self.chart_type != 'histo':
+            #     chart_changed_titles = [x_column] + chart_changed_titles
 
         table_data = dict(prefill)
         table_data.update(self._fill_columns(table_columns))
@@ -335,21 +343,22 @@ class QResults:
         if has_y_series:
             chart_df = self.table_df[chart_changed_titles]
             if self.chart_type == 'histo':
-                if len(chart_changed_titles) > 1:
+                if len(chart_columns) > 1:
                     raise Exception(
                         f"Multiple chartable columns {chart_changed_titles} found; "
-                        "specify chart_column to pick one for the histogram")
+                        "specify histo_column to pick one for the histogram")
                 y_column = chart_changed_titles[0]
                 # values (for stats) are cheap to derive and always computed; the chart
                 # (matplotlib render) is the expensive part, only built when requested
                 self.values = QResults.df2histo_data(chart_df, y_column)
                 if build_chart:
                     self.chart = QResults.df2histo(
-                        chart_df, self.bin_count, xlabel=self.variable, y_column=y_column, ylabel='',
-                        chart_title=self.chart_title)
+                        chart_df, self.bin_count, xlabel=y_column, y_column=y_column,
+                        ylabel=self.ylabel, chart_title=self.chart_title, density=False)
             elif build_chart:
                 self.chart = QResults.df2chart(
-                    chart_df, x_column, y_columns=None, chart_title=self.chart_title, chart_type=self.chart_type)
+                    chart_df, x_column, y_columns=None,
+                    ylabel=self.ylabel, chart_title=self.chart_title, chart_type=self.chart_type)
 
         self._processed = True
         return self.table_df, self.chart

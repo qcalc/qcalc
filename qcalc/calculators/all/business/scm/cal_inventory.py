@@ -129,7 +129,7 @@ def invlevel(
                 "Reorder Point": reorder_point,
                 "Stock Promised": stock_promised})
     # chart_x_axis='Day'
-    qr = QResults(results, show=show)
+    qr = QResults(results, variable='Day', show=show)
     qr.setup_chart(chart_columns=chart_columns, chart_units=chart_units,
-                   chart_title='Inventory Levels Over Time')
+                   ylabel='Inventory Levels', chart_title='Inventory Levels Over Time')
     return qr.objects()

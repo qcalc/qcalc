@@ -364,7 +364,7 @@ class QChart:
         ax2.tick_params('y', colors='r')
         self.render_done()
 
-    def render_histogram(self, values, bin_count, density=True, xlabel='Values', ylabel='Frequeency',
+    def render_histogram(self, values, bin_count, density=True, xlabel='Value', ylabel='Frequency',
                          title='Histogram'):
         """Render a Histogram."""
         fig, ax = self.create_figure()

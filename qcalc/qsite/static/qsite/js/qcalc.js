@@ -45,6 +45,7 @@
         form.setAttribute('hx-swap', 'outerHTML');
         form.removeAttribute('hx-vals');
     });
+
 })();
 
 var jsCid = '-';

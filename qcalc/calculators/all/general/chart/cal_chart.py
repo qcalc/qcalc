@@ -281,7 +281,7 @@ def histogram(
     values='89, 106, 122, 102,  98, 122,  97, 110,  93,  75, 133, 118,  104, 117,  103, 91,  91, 117, 108, 129',
     bin_count=8,
     density=True,
-    x_label='Values',
+    x_label='Value',
     y_label='Frequency',
     title='Simple Histogram'
 ):

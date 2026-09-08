@@ -165,6 +165,25 @@ def replace_words(str_to_replace, words_to_replace, replace_with, case_sensitive
     return replaced_str
 
 
+def replace_variables(str_to_replace, variables_dict, case_sensitive=True):
+    """Replace variables in a string using a dictionary of variable/replacement pairs."""
+    if case_sensitive:
+        lookup = variables_dict
+        flags = 0
+    else:
+        lookup = {k.lower(): v for k, v in variables_dict.items()}
+        flags = re.IGNORECASE
+
+    big_regex = re.compile(r'\b%s\b' % r'\b|\b'.join(map(re.escape, variables_dict)), flags)
+
+    replaced_str = big_regex.sub(
+        lambda m: lookup[m.group(0) if case_sensitive else m.group(0).lower()],
+        str_to_replace
+    )
+
+    return replaced_str
+
+
 def key_val(spath):
     # ref: https://stackoverflow.com/questions/28128942/
     # multiple-url-key-value-pair-parameters-that-are-optional-in-django

@@ -39,6 +39,20 @@ def test_safe_execute_exposes_qapi_annotations_as_globals():
     assert local_dict["result"].__name__ == "qtc2"
 
 
+def test_retirement_sustainability_reports_zero_return_zero_inflation_depletion():
+    from calculators.all.finance.cal_retirement import retirement_sustainability
+
+    result = retirement_sustainability(
+        portfolio='1000 USD',
+        withdrawal='200 USD/yr',
+        investment_return='0 pct/yr',
+        inflation='0 pct/yr',
+        retirement_period='10 yr',
+    )
+
+    assert result['Depletion Period (0% Return, 0% Inflation)'] == Qty('5 yr')
+
+
 def test_safe_execute_allows_legacy_imports_when_explicitly_enabled(monkeypatch):
     monkeypatch.setattr(qconst, "ALLOW_UNSAFE_USER_CALCULATOR_IMPORTS", True)
 

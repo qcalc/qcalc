@@ -26,6 +26,23 @@
   line-height: 1.65;
 }
 
+.md-content .katex-display {
+  max-width: 100%;
+  margin: 1.25rem 0;
+  padding: 0.25rem 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.md-content .katex-display > .katex {
+  min-width: max-content;
+}
+
+.md-content .equation {
+  width: 100%;
+  text-align: center;
+}
+
 .md-content pre {
   position: relative;
   background: var(--qmd-pre-bg);

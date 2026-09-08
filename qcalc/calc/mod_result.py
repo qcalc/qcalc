@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
-from qutil import title_to_variable, replace_words
+from qutil import title_to_variable, replace_words, replace_variables
 from qcore import isMeasureQuantity as isPQ
 
 
@@ -38,7 +38,10 @@ def scalar_results(xpr: str, variable: str, var_vals: list):
     results = []
     xvals = []
     for var_val in var_vals:
-        code = replace_words(xpr, [variable], str(var_val))
+        if isinstance(var_val, dict):
+            code = replace_variables(xpr, var_val)
+        else:
+            code = replace_words(xpr, [variable], str(var_val))
         try:
             result = eva(code=code)
         except Exception:
@@ -51,7 +54,8 @@ def scalar_results(xpr: str, variable: str, var_vals: list):
             failed += 1
             continue
         if sc is not None:
-            xvals.append(var_val)
+            if not isinstance(var_val, dict):
+                xvals.append(var_val)
             results.append(sc)
         else:
             raise Exception("No numeric results were produced; check the expression")

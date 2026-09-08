@@ -451,7 +451,7 @@ def q1_add_func_help(request: HtmxHttpRequest, **kwargs):
     template = 'calculator-help-partial.html'
 
     try:
-        context = q1141_read_func_meta(func_id, __info=None)
+        context = q1141_read_func_meta(func_id, __info=__info)
         dyn_html = get_fhelp(func_id, __info)
         context['dyn_html'] = dyn_html
         help_path = get_help_path(func_id)

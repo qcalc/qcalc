@@ -66,6 +66,12 @@ class TestQtyBasics(unittest.TestCase):
         print(bolt_avo, gas_c)
         self.assertTrue(abs(bolt_avo.val-gas_c.val)<1e-6)
 
+    def test_qty_is_hashable_by_base_value_and_dimension(self):
+        quantities = {Qty('1 m'), Qty('100 cm'), Qty('5 ft'), Qty('60 inch')}
+        self.assertEqual(Qty('5 ft'), Qty('60 inch'))
+        self.assertFalse(Qty('5 ft') != Qty('60 inch'))
+        self.assertEqual(len(quantities), 2)
+
 
 if __name__ == '__main__':
     unittest.main()

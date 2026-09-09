@@ -88,14 +88,21 @@ def command_button(sfunc, caption, cmd, args=None, kwargs=None):  # , position='
     # | to execute calculator callback command
     # | 'if', '' = inside form, default
     # | 'rc' = anywhere inside card, replace card
-    # | hx-swap="innerHTML" is the default
     args = [] if args is None else args
     kwargs = {} if kwargs is None else kwargs
     htm = '<button type="submit" class="btn btn-info btncmd" '  # POST
 
-    htm += f'hx-post="/calc/{sfunc}/?part=2" hx-target="closest form" '
+    # | hx-swap must be explicit: the form itself carries hx-swap="outerHTML"
+    # | (for its own #output-part target) and hx-swap is inheritable, so
+    # | without this the swap would delete the <form> element itself instead
+    # | of just replacing its contents
+    htm += f'hx-post="/calc/{sfunc}/?part=2" hx-target="closest form" hx-swap="innerHTML" '
 
-    extra = {"extra": {"cmd": cmd, "args": args, "kwargs": kwargs}}
+    # | this button expects the FULL form back (its whole purpose is to
+    # | update input, e.g. Format Code/Load Code/Check Syntax) - the server's
+    # | default response for an ordinary POST is now the output-only
+    # | fragment, so mark this submit as structural
+    extra = {"extra": {"cmd": cmd, "args": args, "kwargs": kwargs}, "qcalc_structural_cmd": "1"}
     htm += "hx-vals='" + json.dumps(extra) + "'>"
     htm += f'{caption}</button>'
     return htm

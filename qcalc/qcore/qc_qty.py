@@ -63,11 +63,27 @@ class Qty(MQty):
     def __str__(self):
         return f'{self.val} {self.uom}'
 
+    def _base_key(self):
+        value = None if self.value is None else round(self.value * self.unit.factor, 12)
+        return value, tuple(self.unit.powers)
+
     def __cmp__(self, other):
         if other == '' or other is None:
             return 1
         else:
             return super().__cmp__(other)
+
+    def __eq__(self, other):
+        if not isMeasureQuantity(other):
+            return False
+        return self._base_key() == (None if other.value is None else round(other.value * other.unit.factor, 12),
+                                    tuple(other.unit.powers))
+
+    def __ne__(self, other):
+        return not self == other
+
+    def __hash__(self):
+        return hash(self._base_key())
 
     @property
     def val(self):

@@ -207,3 +207,29 @@ def test_structural_cmd_post_field_forces_full_form_response(monkeypatch):
     template = _make_view_request(monkeypatch, cmd="", structural_post_field="1")
 
     assert template != "insert-calculator-output-response.html"
+
+
+# --- command_button(): input-updating command buttons (Format Code, Load Code,
+# Check Syntax, ...) must also request a full-form response, since they target
+# "closest form" directly and the server's default response is now the
+# output-only fragment ---
+
+def test_command_button_marks_request_as_structural():
+    from qutil.mod_links import command_button
+
+    html = command_button("mycal", "Check Syntax", "__command", args=["syntax"])
+
+    assert 'hx-target="closest form"' in html
+    assert '"qcalc_structural_cmd": "1"' in html
+
+
+def test_command_button_sets_explicit_inner_swap():
+    # hx-swap is inheritable in htmx; the calculator form itself carries
+    # hx-swap="outerHTML" for its own #output-part target, so without an
+    # explicit hx-swap="innerHTML" here a command_button's swap would
+    # delete the <form> element itself instead of just its contents.
+    from qutil.mod_links import command_button
+
+    html = command_button("mycal", "Format Code", "__modify", kwargs={"code": "format"})
+
+    assert 'hx-swap="innerHTML"' in html

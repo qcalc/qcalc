@@ -176,6 +176,10 @@ cheaper-to-hold, orders.
     Cost** are not available, since the purchase price of the item is
     unknown; only the ordering-and-holding cost (**Operational Cost
     Total**) can be determined.
+-   To specifically evaluate a supplier's **minimum order quantity (MOQ)**
+    against the EOQ - including the extra cost the MOQ imposes when it
+    exceeds the EOQ - use the **moq** calculator, which builds on this same
+    cost model.
 -   Results are a cost estimate based on the inputs provided, not a
     guarantee of actual costs, which will vary with real-world demand
     fluctuations and pricing changes.

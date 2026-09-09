@@ -134,7 +134,8 @@ before stock would be depleted.
     not model seasonal or random demand variation.
 -   Orders are placed at most once per day and always for the full
     **Reorder Quantity** — there is no minimum order quantity check or
-    capacity limit.
+    capacity limit. For the annual cost impact of a supplier-imposed
+    minimum order quantity, see the **moq** calculator instead.
 -   The simulation does not report a stockout warning explicitly; if
     **Current Stock** falls below zero in the results, demand exceeded
     available stock before the next order arrived.

@@ -360,9 +360,10 @@ def q11469_form_data_create_dynaform_and_fill(request, json_schema, json_data, j
     # | mode 0=input,1=output
     sname = json_doc['name']
     post_data = request.POST.dict() if request.method == 'POST' and mode == 0 else {}
+    proper_dict = json_doc['info']['proper']
     # print('json_schema, cid, json_data', json_schema, cid, json_data)
-    form_class = q11461_create_dynaform_class(sname, json_schema, cid, json_s2f, post_data)
-    form_class.required_css_class = 'required'
+    form_class = q11461_create_dynaform_class(sname, json_schema, cid, json_s2f, post_data, proper_dict)
+    # form_class.required_css_class = 'required'
     data = json_data
     form = None
     if request.method == 'POST' and request.cmd not in ['load', '__modify']:
@@ -393,9 +394,9 @@ def q11469_form_data_create_dynaform_and_fill(request, json_schema, json_data, j
     return context
 
 
-def q11461_create_dynaform_class(sname, json_schema, cid, json_s2f, post_data):
+def q11461_create_dynaform_class(sname, json_schema, cid, json_s2f, post_data, proper_dict):
     # | Create "DynaForm" from database stored json_schema
-    fh = QFieldHandler(sname, json_schema, cid, json_s2f, post_data)
+    fh = QFieldHandler(sname, json_schema, cid, json_s2f, post_data, proper_dict)
     return type('DynaForm', (forms.Form,), fh.formfields)
 
 

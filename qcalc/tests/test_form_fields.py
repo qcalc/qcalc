@@ -26,7 +26,7 @@ def test_qty_field_keeps_help_text():
         },
     }]
 
-    handler = QFieldHandler('x', schema, 'cid', [{'type': 'c'}], {})
+    handler = QFieldHandler('x', schema, 'cid', [{'type': 'c'}], {}, {})
     field = handler.formfields['qty']
 
     assert field.help_text == 'Enter a quantity'

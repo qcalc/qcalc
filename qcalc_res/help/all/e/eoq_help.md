@@ -169,7 +169,10 @@ USD/yr, for this demand and cost profile.
 -   It does not account for quantity discounts, storage capacity limits,
     supplier minimum order quantities, lead time, or stockout risk. For a
     view of stock levels over time given a reorder policy, see the related
-    inventory-level calculator.
+    inventory-level calculator (**invlevel**). For the cost impact of a
+    supplier's minimum order quantity specifically, see the **moq**
+    calculator; for the cost of any other arbitrary order quantity, see
+    **purcost**.
 -   Results are a cost-minimizing estimate based on the inputs provided, not
     a guarantee of actual costs, which will vary with real-world demand
     fluctuations and pricing changes.

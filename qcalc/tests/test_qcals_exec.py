@@ -1,6 +1,7 @@
 import pytest
 
 import qconst
+from qcore import Qty
 from qutil import safe_execute
 
 

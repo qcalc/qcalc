@@ -11,7 +11,7 @@ def purcost__info(): return {
     'anyof': {'1': {'fields': ['unit_cost', 'cost_of_excess']},
               '2': {'fields': ['cost_of_capital', 'cost_of_excess']}
               },
-    'kins': 'eoq, invlevel',
+    'kins': 'eoq, invlevel, moq',
 }
 
 
@@ -67,7 +67,7 @@ def invlevel__info():
         'schema': {
             'show': show_choice
         },
-        'kins': 'eoq, purcost',
+        'kins': 'eoq, purcost, moq',
         'outcol': "result",
     }
 

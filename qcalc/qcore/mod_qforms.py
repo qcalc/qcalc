@@ -12,10 +12,11 @@ class QFieldHandler:
 
     # Create "DynaForm" input/output fields from json_schema
 
-    def __init__(self, sname, json_schema, cid, json_s2f, post_data):
+    def __init__(self, sname, json_schema, cid, json_s2f, post_data, proper_dict):
         self.sname = sname
         self.cid = cid
         self.list_added = {}  # dict of list
+        self.proper_dict = proper_dict
 
         i = -1
         for field_meta in json_schema:
@@ -50,7 +51,7 @@ class QFieldHandler:
         # | such as name and type. Other parameters are same as django field options
         options = {
             'required': bool(field_meta.get('required', False)),
-            'label': field_meta.get('label', variable_to_title(field_meta.get('name'))),
+            'label': field_meta.get('label', variable_to_title(field_meta.get('name'),self.proper_dict)),
             'label_suffix': field_meta.get('label_suffix', None),
             'initial': field_meta.get('initial', None),
             'widget': field_meta.get('widget', None),

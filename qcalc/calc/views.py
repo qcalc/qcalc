@@ -543,12 +543,14 @@ def q1141_read_func_meta(func_id, __info=None, scope='qpots'):
         'step2': [],
         'cost': False,  # internal use
         'inserts': {},
-    }  # variable_to_title(fn.__name__)
+        # comma separated list of words with proper case that needs to be unchanged
+        # during title case conversion for this calculator function
+        'proper': '',
+    }
 
     # run func_info() and then supersede by qfunc_info.json
     # that is higest precedence: 1 __info() < 1.5 qfunc_info.json
     func_info = QCals.run_func_info(func_id, __info, scope)
-
     for key in [
         'title',
         'desc',
@@ -582,6 +584,7 @@ def q1141_read_func_meta(func_id, __info=None, scope='qpots'):
         'step2',
         'cost',
         'inserts',
+        'proper',
     ]:
         if key in func_info:
             json_doc['info'][key] = func_info[key]
@@ -625,6 +628,9 @@ def q1141_read_func_meta(func_id, __info=None, scope='qpots'):
             for cal in cal_list]
     else:
         json_doc['info']['kins'] = []
+
+    proper = json_doc['info']['proper']
+    json_doc['info']['proper'] = ut.css2proper_dict(proper)
 
     return json_doc
 
@@ -683,7 +689,8 @@ def q1149_func_to_form_context(request: HtmxHttpRequest, func_id, cid, kwargs):
 
     result = q11449_form_data_postprocess_and_run(request, func_id)  # , cid
     # update ojson_data, ojson_schema
-    q1145_result_to_form_schema(request, func_id, cid, result)
+    proper_dict = request.json_doc['info']['proper']
+    q1145_result_to_form_schema(request, func_id, cid, result, proper_dict)
 
     io_dict = {
         'function': func_id,
@@ -703,9 +710,9 @@ def q1149_func_to_form_context(request: HtmxHttpRequest, func_id, cid, kwargs):
 
     q1146_result_transfer(request, func_id)
     if settings.DEBUG: qvars.last_dump = ut.request_dump(request)
-    # print(request.ojson_schema, request.ojson_data, request.ojson_doc)
 
     request.ojson_doc['name'] = func_id
+    request.ojson_doc.update({'info':{'proper': proper_dict}})
     request.context['output'] = q11469_form_data_create_dynaform_and_fill(
         request, request.ojson_schema, request.ojson_data, None,
         request.ojson_doc, cid, 1)  # data, form, doc[table|chart]
@@ -752,7 +759,7 @@ def get_file(request, sfunc, sfld, value):
         request.json_d4f[sfld] = QFile.load_content(sfunc, content) if content else None
 
 
-def q1145_result_to_form_schema(request: HtmxHttpRequest, func_id, cid, result):
+def q1145_result_to_form_schema(request: HtmxHttpRequest, func_id, cid, result, proper_dict):
     us = request.pref  # User's Request Pref
     request.ojson_schema = []  # schema for form
     request.ojson_data = {}  # data for form
@@ -868,7 +875,7 @@ def q1145_result_to_form_schema(request: HtmxHttpRequest, func_id, cid, result):
             elif all(isinstance(v, (float, Qty, int, str, bool, date, datetime, dt_time)) for v in
                      result):  # output as table
                 df = pd.DataFrame(
-                    {ut.variable_to_title(name): [df_formatter(cell) for cell in result]}  # apply format for result
+                    {ut.variable_to_title(name, proper_dict): [df_formatter(cell) for cell in result]}  # apply format for result
                 )
                 rs_item(request, name, df)
             else:  # output as variables

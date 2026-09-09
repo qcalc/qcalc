@@ -39,4 +39,4 @@ def cdtime(date_time: str, time_zone):
         dtz_remark += "; Date Time OK"
 
     result = qc_datetime_to_str(translated_date_time_tz)
-    return {"Current Time": result, "Remark": dtz_remark}
+    return {"Converted Date Time": result, "Remark": dtz_remark}

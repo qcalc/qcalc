@@ -9,7 +9,7 @@ import keyword
 import tokenize
 import inspect
 import qconst
-import qvars
+from qutil import css2strs
 
 fid_separator = '-'  # | '.' doesn't work with select2 field, can't be '_' as need to identify parts
 
@@ -147,14 +147,14 @@ def doc_title(name):
 #     words = var.split()
 #     for i in range(1, len(words)):
 #         word = words[i].lower()
-#         if word in SPECIAL_TITLE_WORDS.keys():
-#             words[i] = SPECIAL_TITLE_WORDS.keys(word)
+#         if word in PROPER_WORDS.keys():
+#             words[i] = PROPER_WORDS.keys(word)
 #
 #     return ' '.join(words)
 
 # titlecase automatically considers some special words
 # but not all special words, e.g. "per" ref: curx()
-SPECIAL_TITLE_WORDS = {
+PROPER_WORDS: dict = {
     'per': 'per',
     'is': 'is',
     'of': 'of',
@@ -162,12 +162,15 @@ SPECIAL_TITLE_WORDS = {
 }
 
 
-def variable_to_title(var):
+def css2proper_dict(css: str) -> dict:
+    return {word.lower(): word for word in css2strs(css)} if css else {}
+
+
+def variable_to_title(var, pdict: dict | None = None):
+    word_dict = PROPER_WORDS if pdict is None else {**PROPER_WORDS, **pdict}
     var = re.sub(r'__r[a-z]?', '', var).replace('_', ' ').replace('--', ': ')
-    return ' '.join(
-        SPECIAL_TITLE_WORDS.get(word.lower(), word)
-        for word in titlecase(var).split()
-    )
+    words = [str(word_dict.get(word.lower(), word)) for word in titlecase(var).split()]
+    return ' '.join(words)
 
 
 def vlist2titles(func) -> list:

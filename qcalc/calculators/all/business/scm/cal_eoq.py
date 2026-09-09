@@ -7,11 +7,12 @@ import numpy as np
 
 def eoq__info():
     return {
-        'title': 'Economic Order Quantity and Total Cost',
+        'title': 'Economic Order Quantity (EOQ) and Total Cost',
         'anyof': {'1': {'fields': ['unit_cost', 'cost_of_excess']},
                   '2': {'fields': ['cost_of_capital', 'cost_of_excess']}
                   },
-        'kins': 'purcost, invlevel',
+        'kins': 'purcost, invlevel, moq',
+        'proper': 'EOQ',
     }
 
 

@@ -211,9 +211,10 @@ class QFieldHandler:
         return CodeField(id_, **{'initial': options['initial']})  # ??
 
     # noinspection PyMethodMayBeStatic
-    def create_rchoice_field(self, _field_meta, options):  # tested, related choices, created by deb@13.09.23
+    def create_rchoice_field(self, field_meta, options):  # tested, related choices, created by deb@13.09.23
         # source: https://stackoverflow.com/questions/53840628/
         # django-disable-form-select-field-validation-for-a-drop-down
+        options['choices'] = fchoices(field_meta['choices'])
         return ChoiceFieldNoValidation(**options)
 
     # noinspection PyMethodMayBeStatic
@@ -228,7 +229,8 @@ class QFieldHandler:
         return forms.ChoiceField(**options)  # ??
 
     # noinspection PyMethodMayBeStatic
-    def create_typedchoice_field(self, _field_meta, options):
+    def create_typedchoice_field(self, field_meta, options):
+        options['choices'] = fchoices(field_meta['choices'])
         return forms.TypedChoiceField(**options)
 
     # noinspection PyMethodMayBeStatic
@@ -295,7 +297,8 @@ class QFieldHandler:
         return forms.MultipleChoiceField(**options)
 
     # noinspection PyMethodMayBeStatic
-    def create_typedmultiplechoice_field(self, _field_meta, options):
+    def create_typedmultiplechoice_field(self, field_meta, options):
+        options['choices'] = fchoices(field_meta['choices'])
         return forms.TypedMultipleChoiceField(**options)
 
     # noinspection PyMethodMayBeStatic

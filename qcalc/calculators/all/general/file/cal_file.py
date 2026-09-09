@@ -29,7 +29,7 @@ def file_reader(
 
 def md_reader__info():
     return {
-        'title': 'Mark Down File Reader'
+        'title': 'Mark Down File Reader',
     }
 
 

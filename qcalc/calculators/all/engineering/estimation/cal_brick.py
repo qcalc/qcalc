@@ -50,6 +50,7 @@ def ccwork(work_thickness='3 inch', work_length='10.0 ft', work_width='15 inch',
 def brickwork__info():
     return {
         'title': 'Estimate Brick, Cement and Sand for Brickwork',
+        'interactive': True,
         'step2': [
             {'step': 'cost', 'caption': 'Calculate Cost of Materials',
              'spec': {'exclude': ['Brick Work Volume']}

@@ -187,7 +187,7 @@ class QJField:  # 11422
         elif arg_type in ['checkbox', 'boolean']:
             self.jf['type'] = arg_type
             self.jf['required'] = False
-        elif arg_type in ['choice', 'multiplechoice']:
+        elif arg_type in ['choice', 'multiplechoice', 'typedchoice', 'typedmultiplechoice']:
             self.jf['type'] = arg_type
             self.jf['attrs']['class'] = 'inp'
         elif arg_type in ['checkboxselectmultiple']:

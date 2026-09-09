@@ -129,6 +129,94 @@ def amort(loan_amount: float = 100000.0, annual_interest_rate: float = 5.0, loan
     }
 
 
+def loan_prepay__info():
+    return {
+        'title': 'Loan Prepayment Savings',
+        'desc': 'Estimate the interest and payoff time saved by adding an extra amount to every monthly payment.',
+        'calculate': 'Calculate Savings',
+        'schema': {
+            'loan_amount': {'help_text': 'Original loan principal.'},
+            'annual_interest_rate': {'help_text': 'Fixed annual interest rate.'},
+            'loan_term_years': {'help_text': 'Original repayment term in years.'},
+            'extra_monthly_payment': {
+                'label': 'Extra Monthly Payment',
+                'help_text': 'Additional principal paid with every scheduled monthly payment.',
+            },
+        },
+        'outcol': ['Interest Saved', 'Time Saved'],
+        'kins': 'loan,amort',
+        'tags': 'loan,mortgage,prepayment,interest,savings',
+    }
+
+
+def _loan_payoff(loan_value, monthly_rate, monthly_payment, extra_payment=0):
+    balance = loan_value
+    total_interest = 0
+    months = 0
+
+    while balance > 1e-8:
+        interest = balance * monthly_rate
+        payment = min(balance + interest, monthly_payment + extra_payment)
+        principal = payment - interest
+        if principal <= 0:
+            raise ValueError('Monthly payment must be greater than the monthly interest.')
+        balance = max(0, balance - principal)
+        total_interest += interest
+        months += 1
+
+    return months, total_interest
+
+
+def loan_prepay(
+    loan_amount='300000 USD',
+    annual_interest_rate='6 pct/yr',
+    loan_term_years: int = 30,
+    extra_monthly_payment='200 USD',
+):
+    loan = Qty(loan_amount)
+    currency = loan.uom
+    rate = Qty(annual_interest_rate, 'pct/yr')
+    extra_payment = Qty(extra_monthly_payment, currency)
+
+    if loan.val <= 0:
+        raise ValueError('Loan amount must be greater than zero.')
+    if loan_term_years <= 0:
+        raise ValueError('Loan term must be greater than zero.')
+    if rate.val < 0:
+        raise ValueError('Annual interest rate cannot be negative.')
+    if extra_payment.val < 0:
+        raise ValueError('Extra monthly payment cannot be negative.')
+
+    total_months = loan_term_years * 12
+    monthly_rate = rate.val / 1200
+    if monthly_rate == 0:
+        monthly_payment = loan.val / total_months
+    else:
+        monthly_payment = (
+            loan.val * monthly_rate
+            / (1 - (1 + monthly_rate) ** -total_months)
+        )
+
+    original_months, original_interest = _loan_payoff(
+        loan.val, monthly_rate, monthly_payment
+    )
+    prepay_months, prepay_interest = _loan_payoff(
+        loan.val, monthly_rate, monthly_payment, extra_payment.val
+    )
+    saved_months = original_months - prepay_months
+    saved_years, remaining_months = divmod(saved_months, 12)
+
+    return {
+        'Scheduled Monthly Payment': Qty(monthly_payment, currency),
+        'Original Total Interest': Qty(original_interest, currency),
+        'Prepayment Total Interest': Qty(prepay_interest, currency),
+        'Interest Saved': Qty(original_interest - prepay_interest, currency),
+        'Original Payoff Time': f'{original_months} months',
+        'Prepayment Payoff Time': f'{prepay_months} months',
+        'Time Saved': f'{saved_months} months ({saved_years} years, {remaining_months} months)',
+    }
+
+
 def real_return__info():
     return {
         'title': 'Real Return After Inflation and Tax',

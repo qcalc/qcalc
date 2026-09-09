@@ -6,6 +6,7 @@ from qutil import nzv
 from calc import QCals, cur_loader
 from qconst import amount_help_text
 
+
 def cur__info():
     return {
         'title': 'Simple Currency Converter',
@@ -44,6 +45,14 @@ def curx__info():
         'anyof': {
             '1': {'fields': ['one_buy_currency_equals', 'one_sale_currency_equals']},
             '2': {'fields': ['buy_amount', 'sale_amount']}
+        },
+        'schema': {
+            'one_buy_currency_equals': {'help_text': 'One buy currency equals how much sale currency?', },
+            'one_sale_currency_equals': {'help_text': 'One sale currency equals how much buy currency?', },
+            'buy_amount': {'help_text': 'Amount of currency to be bought.', },
+            'sale_amount': {'help_text': 'Amount of currency to be sold.', },
+            'buy_currency': {'help_text': 'Currency to be bought or received.', },
+            'sale_currency': {'help_text': 'Currency to be sold or paid.', },
         },
         'row': ['1-2', '3-4', '5-6']
     }

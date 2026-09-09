@@ -99,16 +99,12 @@ def fid2help_file(func_id, qty=False):
     help_path = func_name_
     if func_name_.startswith('demo_'):
         help_path = os.path.join('demo', func_name_)
-    if catalog=='all' and func_name_.startswith('page_'):
+    if catalog == 'all' and func_name_.startswith('page_'):
         catalog = 'page'
-        print('|',help_path)
 
-    # if catalog != 'all':
     help_file = os.path.join(catalog, f"{help_path}_help.html")
     help_file_opt = os.path.join(catalog, func_name_[0], f"{help_path}_help.html")
-    # else:
-    #     help_file = f"{help_path}_help.html"
-    #     help_file_opt = os.path.join(func_name_[0], f"{help_path}_help.html")
+    # print('|', help_file)
     return help_file, help_file_opt
 
 
@@ -144,21 +140,35 @@ def doc_title(name):
 #     var = titlecase(var)
 #     return var
 
-# titlecase automatically considers some minor words
-# but not all minor words, e.g. "per"
-MINOR_WORDS = {"per"}
+# def variable_to_title(var):
+#     var = re.sub(r'__r[a-z]?', '', var).replace('_', ' ').replace('--', ': ')
+#     var = titlecase(var)
+#
+#     words = var.split()
+#     for i in range(1, len(words)):
+#         word = words[i].lower()
+#         if word in SPECIAL_TITLE_WORDS.keys():
+#             words[i] = SPECIAL_TITLE_WORDS.keys(word)
+#
+#     return ' '.join(words)
+
+# titlecase automatically considers some special words
+# but not all special words, e.g. "per" ref: curx()
+SPECIAL_TITLE_WORDS = {
+    'per': 'per',
+    'is': 'is',
+    'of': 'of',
+    'qcalc': 'qCalc',
+}
 
 
 def variable_to_title(var):
     var = re.sub(r'__r[a-z]?', '', var).replace('_', ' ').replace('--', ': ')
-    var = titlecase(var)
+    return ' '.join(
+        SPECIAL_TITLE_WORDS.get(word.lower(), word)
+        for word in titlecase(var).split()
+    )
 
-    words = var.split()
-    for i in range(1, len(words)):
-        if words[i].lower() in MINOR_WORDS:
-            words[i] = words[i].lower()
-
-    return ' '.join(words)
 
 def vlist2titles(func) -> list:
     # generate a dict with variable title and name from a variable list

@@ -338,9 +338,6 @@ def pareq(
 def fx2__info():
     return {
         'title': 'Plot Multiple Equations',
-        'newcol': ['y', 'const_1'],
-        'endcol': ['title', 'aspect'],
-        'outcol': ['chart__r']
     }
 
 
@@ -380,7 +377,6 @@ def fx2(
 def mesh__info():
     return {
         'title': 'Simple Network Diagram or 2D Mesh',
-        'outcol': ['chart__r']
     }
 
 

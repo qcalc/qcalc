@@ -331,8 +331,8 @@ class QResults:
             table_changed_titles = [x_column] + table_changed_titles
             # a histogram only ever plots the swept variable's own result column(s),
             # never the x-axis/xvals column used by line/bar/stack charts
-            # if self.chart_type != 'histo':
-            #     chart_changed_titles = [x_column] + chart_changed_titles
+            if self.chart_type != 'histo':
+                chart_changed_titles = [x_column] + chart_changed_titles
 
         table_data = dict(prefill)
         table_data.update(self._fill_columns(table_columns))

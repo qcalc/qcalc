@@ -92,11 +92,6 @@ def demo_multipart(length='@yd, @ft, @inch'):
 
 def demo_estfrm__info():
     return {
-        'newcol': ['m1', 'm4'],
-        'endcol': ['m3', 'm6'],
-        'newrow': ['x', 'vtext', 'vcheck', 'vchoice'],
-        'inarow': ['y', 'vfloat'],
-        'endrow': ['z', 'vinteger', 'vfalse', 'vradio'],
         'schema': {
             'wt_uom_type': {'type': 'uom', 'initial': 'kg'},
             'length_uom_type': {'type': 'uom', 'initial': 'ft'},

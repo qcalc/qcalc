@@ -27,7 +27,8 @@ disallowed_modules = [
 dangerous_keywords = [
     'exec', 'eval', 'open', 'compile', 'globals', 'locals', 'vars', 'dir', 'help',
     'getattr', 'setattr', 'delattr', 'hasattr', 'type', 'super', '__builtins__',
-    'QThread', 'qreq'
+    'QThread',
+    #'qreq',
 ]
 
 allowed_keywords = ['__info'] # parameter to __info()

@@ -11,6 +11,7 @@ def ucount__info():
         'desc': 'Count and list of users logged in during a period of time',
     }
 
+
 def ucount(time_period='1d'):
     User = get_user_model()
 
@@ -22,14 +23,16 @@ def ucount(time_period='1d'):
     users = User.objects.filter(last_login__gte=time_threshold)
     user_list = list(users.values_list('username', flat=True))
     return {
-        'logged_in_count': users.count(),
-        'list_of_users': ", ".join(user_list)
+        'Logged in Count': users.count(),
+        'List of Users': ", ".join(user_list)
     }
+
 
 def symlist__info():
     return {
         'title': 'Symbol List except calculators and units',
     }
+
 
 def symlist():
     all_symbols = list(QCals.qfunc_dict.keys())
@@ -37,4 +40,3 @@ def symlist():
     not_have__ = [key for key in all_symbols if '__' not in key]
     valid = sorted([key for key in not_have__ if key not in have__])
     return ', '.join(valid)
-

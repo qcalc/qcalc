@@ -16,6 +16,8 @@ class DotDict(dict):
         return value
 
     def __getattr__(self, key):
+        # it will create if key is missing
+        # to allow assignment to nonexistent key
         if key not in self:
             self[key] = DotDict()
         return self[key]
@@ -24,6 +26,7 @@ class DotDict(dict):
         self[key] = self._convert(value)
 
     def key(self, key):
+        # supports keys that can't use dot notation
         if key not in self:
             self[key] = DotDict()
         return self[key]

@@ -97,9 +97,9 @@ class QJField:  # 11422
         elif arg_type in [qregex, 'regex', 'qregex']:
             self.jf['type'] = 'regex'
             self.jf['attrs']['class'] = 'inp'
-        elif arg_type in [qreq, 'qreq']:  # | should not be used
-            self.jf['initial'] = "__req__"
-            self.jf['type'] = 'hidden'
+        # elif arg_type in [qreq, 'qreq']:  # | should not be used
+        #     self.jf['initial'] = "__req__"
+        #     self.jf['type'] = 'hidden'
         elif arg_type in [str, 'text', 'str', qtext, 'qtext']:
             self.jf['type'] = 'text'
             self.jf['attrs']['class'] = 'inp'

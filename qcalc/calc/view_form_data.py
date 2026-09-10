@@ -9,10 +9,12 @@ import json
 from .mod_mfunc import *
 import pandas as pd
 from qvars import qc_gpref as gs
+from django.conf import settings
 from django.forms import forms
 from django.http import JsonResponse
 import time
 import logging
+import traceback
 
 logger = logging.getLogger(__name__)
 
@@ -515,11 +517,11 @@ def q11442_func_call_by_name(request: HtmxHttpRequest, func_id, arg_dict=None): 
     # | https://yizhiyue.me/2022/03/27/call-functions-with-dynamic-parameters-in-python
     # | check if first argument is a request or not
     arg_dict2run = arg_dict.copy()
-    if len(arg_dict) > 0:
-        rky = list(arg_dict.keys())[0]
-        req = list(arg_dict.values())[0]
-        if isinstance(req, str) and req == '__req__':
-            arg_dict2run[rky] = request
+    # if len(arg_dict) > 0:
+    #     rky = list(arg_dict.keys())[0]
+    #     req = list(arg_dict.values())[0]
+    #     # if isinstance(req, str) and req == '__req__':
+    #     #     arg_dict2run[rky] = request
 
     try:
         unflat_args = q0162_dictify_fargs(arg_dict2run)
@@ -528,19 +530,19 @@ def q11442_func_call_by_name(request: HtmxHttpRequest, func_id, arg_dict=None): 
         # QPref.getp(request) is Session Pref
         pref = request.pref  # Request Pref
         # *******
-        # timeout1 = QThread.get_pref('execution_timeout', 60)
         timeout = pref.get('execution_timeout', 60)
         try:
             timeout = float(timeout)
         except (TypeError, ValueError):
             timeout = 60
         timeout = min(900, max(1, int(timeout)))
-        # print('1', timeout1, type(timeout1), '2', timeout, type(timeout))
         result = q0164_execute_qfunc(func_id, unflat_args, timeout=timeout, pref=pref, request=request)
         if request.remember and pref.get('memory', 7) > 0:
             QMem.setf(func_id, arg_dict)  # save to memory
     except Exception as e:
         request.success &= False
+        if settings.DEBUG:
+            traceback.print_exc()
         result = f'Error (FCBN): {e}'
     request.times['func (ms)'] = int((time.time() - request.times['func starts']) * 1000)
     return arg_dict, result  # better deb@17.10.2023

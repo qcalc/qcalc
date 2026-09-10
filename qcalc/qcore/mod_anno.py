@@ -247,11 +247,11 @@ class qpage(str):  # page of text
         pass
 
 
-# HTTP request field for HTMX requests; reserved and generally unused.
-class qreq(HtmxHttpRequest):  # | should not be used
-    def __init__(self):
-        super().__init__()
-        pass
+# # HTTP request field for HTMX requests; reserved and generally unused.
+# class qreq(HtmxHttpRequest):  # | should not be used
+#     def __init__(self):
+#         super().__init__()
+#         pass
 
 
 class QScreen:

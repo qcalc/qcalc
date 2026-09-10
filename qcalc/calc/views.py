@@ -500,8 +500,6 @@ def q1141_read_func_meta(func_id, __info=None, scope='qpots'):
         'title': 'Calculate ' + ut.variable_to_title(func_id),  # string
         'desc': '',  # string
         'calculate': 'Calculate',  # calculate button caption
-        # 'variant': 0,
-        # arg spec
         'schema': {},  # {"arg1":{props}, "arg2":{props}, ... }
         # where props are 'type', 'initial', 'choices', 'attr', 'widget', 'required', 'disabled',
         # 'label', 'label_suffix', 'help_text', 'error_messages', 'validators', 'localize'
@@ -510,7 +508,6 @@ def q1141_read_func_meta(func_id, __info=None, scope='qpots'):
         'interactive': False,
         'autofill': {},  # {"arg1":{"fields":["autof1","autof2",...], "autofill":{"arg1v1":[v1,v2,...],...}}, ...}
         'related': {},  # v4.21 {"1":{"fields":{"arg1":i1,"arg2":i2,...},"relation":{}},"2":...}
-        # 'min_height': '0px',
         'showhide': {},
         # v4.21 {"arg1":{"fields":['shf1','shf2',...], "callback":'fname' or '@ condn' or not mentioned/'' },...}
         'anyof': {},  # v4.21 {"1":{"fields":['aof1','aof2',...]},...}
@@ -518,19 +515,18 @@ def q1141_read_func_meta(func_id, __info=None, scope='qpots'):
         'images': {},  # {'top':['img1',...],'bottom':['img1',...],'left':['img1',...],'right':['img1',...]}
         # layout
         'row': [],  # ['arg1-argN',...]
-        'col': [],  # ['arg1-argN',...]
-        'newcol': [],  # internal use - auto calculated from row, col spec
-        'endcol': [],  # internal use - auto calculated from row, col spec
-        'newrow': [],  # internal use - auto calculated from row, col spec, template v4.21
-        'inrowb': [],  # internal use - auto calculated from row, col spec, template v4.21
-        'inrowe': [],  # internal use - auto calculated from row, col spec, template v4.21
-        'endrow': [],  # internal use - auto calculated from row, col spec, template v4.21
+        'col': [],  # number or ['arg1-argN',...]
+        # 'newcol': [],  # internal use - auto calculated from row, col spec
+        # 'endcol': [],  # internal use - auto calculated from row, col spec
+        # 'newrow': [],  # internal use - auto calculated from row, col spec, template v4.21
+        # 'inrowb': [],  # internal use - auto calculated from row, col spec, template v4.21
+        # 'inrowe': [],  # internal use - auto calculated from row, col spec, template v4.21
+        # 'endrow': [],  # internal use - auto calculated from row, col spec, template v4.21
         'outcol': [],  # ['chart','table','result','page','image']
         'template': '',  # string e.g. 'v4.21'
         # extra front end logic
         'onsubmit': '',
         'script': '',  # string e.g. 'function cfn(v){return v>100;}'
-        # 'quom2': False,
         'qsel2': False,  # internal use
         'qlist': False,  # internal use
         'table_out': False,  # internal use - auto calculated if it is an output table
@@ -555,29 +551,26 @@ def q1141_read_func_meta(func_id, __info=None, scope='qpots'):
         'title',
         'desc',
         'calculate',
-        # 'variant',
         'schema',
         'interactive',
         'autofill',
         'related',
-        # 'min_height',
         'showhide',
         'anyof',
         'row',
         'col',
-        'newcol',
-        'endcol',
-        'newrow',
-        'inrowb',
-        'inrowe',
-        'endrow',
+        # 'newcol',
+        # 'endcol',
+        # 'newrow',
+        # 'inrowb',
+        # 'inrowe',
+        # 'endrow',
         'outcol',
         'template',
         'onsubmit',
         'script',
         'kins',
         'tags',
-        # 'beside',
         'xpr',
         'url',
         'loop',

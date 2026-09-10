@@ -76,7 +76,6 @@ def pref__input(_kwargs):  # alternative to func__info() 'schema':{}'
 
 
 def pref(  # pref-03
-    # request: qreq,
     theme,
     interactive: bool,
     ignore_decimal_format: bool,

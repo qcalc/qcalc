@@ -47,15 +47,11 @@ class qemail(str):
 # File upload field with a 2 MB limit.
 class qfile(QFile):  # file 2 MB
     pass
-    # def __init__(self):
-    #     pass
 
 
 # Image upload field with a 2 MB limit.
 class qimage(QFile):  # file 2 MB
     pass
-    # def __init__(self):
-    #     pass
 
 
 # qCalc function field.

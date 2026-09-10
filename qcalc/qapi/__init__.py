@@ -23,7 +23,7 @@ from qcore import (
     QImage, qf2img, nparray_to_bio,
     QChart, QGeo, QMap, SmartCalc
 )
-from qutil import QDateTime, DotDict, user_name, user_process, \
+from qutil import QDateTime, DotDict, user_name, user_process, user_ip, \
     page_link, calurl, cal_link, command_button, addcal_button, \
     iif, joinx, css2floats, css2ints, css2values, css2strs, vals2css
 from .mod_np import np_names, np
@@ -64,7 +64,8 @@ __evacon__ = [
     "QFile", "qf2bio",
     "QImage", "qf2img", "nparray_to_bio",
     "QChart", "QGeo", "QMap", "SmartCalc",
-    "user_name", "user_process", "page_link", "calurl", "cal_link", "command_button", "addcal_button",
+    "user_name", "user_process", "user_ip",
+    "page_link", "calurl", "cal_link", "command_button", "addcal_button",
 ]
 
 

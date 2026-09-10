@@ -10,8 +10,6 @@
   "exponent_threshold_max": 1.0e9,
   "defa_currency": "USD",
   "memory": 7,
-  "fuzzy_search": false,
-  "semantic_search": false,
   "chart_color_scheme": "tab20",
   "chart_width": 620,
   "chart_height": 620,

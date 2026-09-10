@@ -43,8 +43,6 @@ qc_gpref = {  # pref-01
     # 'number_format': '{:,.8f}',  # precision 2-16
     'defa_currency': 'USD',
     'memory': 10,  # 10
-    'fuzzy_search': False,
-    'semantic_search': False,
     'chart_color_scheme': 'tab20',
     'chart_width': 620,
     'chart_height': 620,

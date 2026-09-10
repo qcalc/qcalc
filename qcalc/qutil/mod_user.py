@@ -24,6 +24,14 @@ def user_name(request=None):
         return request.session['hash']
 
 
+def user_ip(request=None):
+    request = request or QThread.get_req()
+    forwarded = request.META.get('HTTP_X_FORWARDED_FOR')
+    if forwarded:
+        return forwarded.split(',')[0].strip()
+    return request.META.get('REMOTE_ADDR')
+
+
 def is_loggedin(request):
     if request:
         return request.user.is_authenticated

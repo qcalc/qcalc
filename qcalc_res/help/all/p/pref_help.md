@@ -54,9 +54,10 @@ Set how many calculator inputs qCalc can remember, from 0 to 100. Setting this
 value to `0` clears the currently stored calculator memory when you save the
 preferences.
 
-### Fuzzy Search and Semantic Search
+### Search
 
-Enable or disable the corresponding search options in qCalc.
+Fuzzy matching for typos is applied automatically when an exact search
+returns no results, so there is no separate preference for it.
 
 ## Chart Settings
 

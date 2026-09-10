@@ -1,19 +1,17 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
-# import sett
 from whoosh.fields import Schema, TEXT, ID, KEYWORD, STORED
 from whoosh.index import create_in, open_dir
 from whoosh.filedb.filestore import RamStorage
 from whoosh.analysis import StemmingAnalyzer
 import os
+import re
 from django.conf import settings
 from .mod_qcals import QCals
-# from calc.mod_qcals import QCals
-from whoosh.qparser import QueryParser, FuzzyTermPlugin, DisMaxParser
+from whoosh.qparser import QueryParser, FuzzyTermPlugin, DisMaxParser, QueryParserError
 from qcore import QScreen
 from whoosh import scoring
-from qutil import QThread
 
 
 class QSearch:
@@ -62,6 +60,10 @@ class QSearch:
 
     @classmethod
     def perform_search(cls, query_string: str, idonly=False):
+        query_string = (query_string or '').strip()
+        if not query_string:
+            return []
+
         # with cls.ix.searcher() as searcher:
         # with cls.ix.searcher(weighting=scoring.BM25F()) as searcher:
         # Use BM25F for relevance scoring, with field boosting
@@ -76,19 +78,44 @@ class QSearch:
         with cls.ix.searcher(weighting=scoring.BM25F(field_B=fieldboosts)) as searcher:
             if idonly:
                 parser = QueryParser("id", schema=cls.ix.schema)
+                parsed_string = query_string
             else:
                 parser = DisMaxParser(fieldboosts, schema=cls.ix.schema)  # MultifieldParser, fields, group=OrGroup
-                fuzzy = QThread.get_pref('fuzzy_search', False)
-                # Add fuzzy search (~1) to handle minor typos
-                if fuzzy:
-                    parser.add_plugin(FuzzyTermPlugin())
-                    query_string = ' '.join([f'{word}~1/1' for word in query_string.split()])
-                    # print('f', query_string)
-            query = parser.parse(query_string)
-            results = searcher.search(query, limit=20)  # Limit results to top 20 for performance
-            # | Convert results to a list of dictionaries to use outside searcher
-            results_list = [dict(result) for result in results]
+                parsed_string = query_string
+
+            results_list, results = cls._run_query(searcher, parser, parsed_string)
+
+            # | Free-text search terms may collide with Whoosh query syntax (quotes,
+            # | colons, wildcards, unbalanced parens) - fall back to an escaped,
+            # | plain-text query instead of letting a QueryParserError bubble up.
+            if results is None:
+                escaped = re.sub(r'[^\w\s]', ' ', query_string).strip()
+                results_list, results = cls._run_query(searcher, parser, escaped, safe=True)
+
+            # | Zero-hit exact search - retry once with fuzzy matching so minor
+            # | typos still surface results.
+            if not idonly and not results_list:
+                fuzzy_parser = DisMaxParser(fieldboosts, schema=cls.ix.schema)
+                fuzzy_parser.add_plugin(FuzzyTermPlugin())
+                fuzzy_string = ' '.join([f'{word}~1/1' for word in query_string.split()])
+                results_list, results = cls._run_query(searcher, fuzzy_parser, fuzzy_string, safe=True)
+
         return results_list
+
+    @classmethod
+    def _run_query(cls, searcher, parser, parsed_string, safe=False):
+        # | Returns (results_list, results) - results is None only when the
+        # | initial (non-safe) parse itself failed, signalling the caller to retry.
+        try:
+            query = parser.parse(parsed_string)
+        except QueryParserError:
+            if safe:
+                return [], []
+            return [], None
+        results = searcher.search(query, limit=20)  # Limit results to top 20 for performance
+        # | Convert results to a list of dictionaries (+ relevance score) to use outside searcher
+        results_list = [{**dict(result), 'score': result.score} for result in results]
+        return results_list, results
 
 
 def search_result_nodes(results, scope='cx'):

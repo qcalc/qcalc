@@ -3,7 +3,7 @@
 
 from calc import QMem, QPref, QCache, QKeep, QSave, QInput
 from .mod_cutil import *
-from qutil import HtmxHttpRequest, to_df, user_name, is_loggedin
+from qutil import HtmxHttpRequest, to_df, user_name, is_loggedin, user_ip
 from qcore import qhidex, qtable, qtbl, QFile, qlist_types, QFieldHandler, QEncoderBase, QJField, convert_to_type
 import json
 from .mod_mfunc import *
@@ -295,7 +295,8 @@ def q11449_form_data_postprocess_and_run(request, func_id):  # cid
                         request.json_doc['furl'] = furl_from_json(func_id, request.json_d4f, json_data_type)
                     # if request.json_doc['info']['loop']:
                     request.json_doc['floop'] = floop_from_json(func_id, request.json_d4f, json_data_type)
-                    logger.note("CAL: Calculate clicked | user=%s | func=%s", user_name(request), func_id)
+                    logger.note("CAL: Calculate clicked | user=%s | ip=%s | func=%s", user_name(request),
+                                user_ip(request), func_id)
             elif request.cmd == 'save_input':
                 # | POST/GET: Save input
                 q11441_data_for_function(request)

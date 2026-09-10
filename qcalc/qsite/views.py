@@ -2,7 +2,7 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 from . import __version__
-from calc import QCals, QCache, QPref, get_help_path, cur_loader
+from calc import QCals, QCache, get_help_path, cur_loader
 from .mod_docs import get_doc_path, build_docs_tree, fix_doc_links
 from qutil import HtmxHttpRequest, get_page, q1139_request_init
 from django.conf import settings
@@ -90,8 +90,6 @@ def about_data(request: HtmxHttpRequest):
         'cache': 'Active' if QCache.isactive() else 'Not Active',
         'paths': [settings.APP_DIR, settings.HELP_FILES_DIR,
                   settings.JSON_FILES_DIR],
-        'prefs': [QPref.getp1('fuzzy_search'),
-                  QPref.getp1('semantic_search')],
         'ptime': int((time.time() - st) * 1000),
     }
 

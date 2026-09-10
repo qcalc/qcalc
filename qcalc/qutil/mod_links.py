@@ -84,7 +84,7 @@ def cal_link(calurl, caption='', link_class='', icon_class='', target='a', cid='
         return f'<div class="col mb-4">{link_card}</div>'
 
 
-def command_button(sfunc, caption, cmd, args=None, kwargs=None):  # , position=''
+def command_button(sfunc, caption, cmd, args=None, kwargs=None):
     # | to execute calculator callback command
     # | 'if', '' = inside form, default
     # | 'rc' = anywhere inside card, replace card

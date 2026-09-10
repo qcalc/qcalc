@@ -24,9 +24,6 @@ class QFile:
         self.file_bytes = self.file_mem.read()
         # self.temp_file_name: str = fdata.file.name
 
-        # print(ffld, fdata.name, self.file_mem.file.name)
-        # print(settings.QCALC_TEMP_PATH)
-
     def __str__(self):
         return f'File {self.file_name}'
 

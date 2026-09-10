@@ -208,7 +208,8 @@ class QFieldHandler:
 
     # noinspection PyMethodMayBeStatic
     def create_codeedit_field(self, field_meta, options):  # tested
-        id_ = f"{self.cid}_{field_meta['attrs']['id']}"
+        # id_ = f"{self.cid}_{field_meta['attrs']['id']}"
+        id_ = field_meta['attrs']['id']
         return CodeField(id_, **{'initial': options['initial']})  # ??
 
     # noinspection PyMethodMayBeStatic

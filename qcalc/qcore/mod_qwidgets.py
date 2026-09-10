@@ -83,7 +83,6 @@ class CodeWidget_codemirror(Widget):
                 height: 250px;
                 min-height: 100px;
                 resize: vertical;
-                overflow: auto;
             }
             .CodeMirror-lines {
                 position: relative;

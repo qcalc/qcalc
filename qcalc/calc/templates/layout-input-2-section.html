@@ -1,0 +1,49 @@
+{% load static %}
+{% load qfilter %}
+<div id="input-part-{{ input.cid }}" class="row">
+    {% if 'left' in input.doc.info.images %}
+    <div class="col section-left">
+      {% for image in input.doc.info.images.left %}
+      <p><img class="image" src="{% static image %}"></p>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+<div class="col section-input1">
+{% for field in input.form %}
+{% if field.name|field_root in input.doc.info.inp1 %}
+@@include('insert-calculator-section-input.html')
+{% endif %}
+{% endfor %}
+</div>
+
+    {% if 'bottom' in input.doc.info.images %}
+    <div class="section-bottom">
+    {% for image in input.doc.info.images.bottom %}
+    <p><img class="image" src="{% static image %}"></p>
+    {% endfor %}
+    </div>
+    {% endif %}
+
+<div class="col section-input2">
+{% for field in input.form %}
+{% if field.name|field_root not in input.doc.info.inp1 %}
+{% include 'insert-calculator-section-input.html' %}
+{% endif %}
+{% endfor %}
+
+    {% if 'right' in input.doc.info.images %}
+    <div class="col section-right">
+      {% for image in input.doc.info.images.right %}
+      <p><img class="image" src="{% static image %}"></p>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+<input type="hidden" name="cid" value="{{ input.cid }}">
+<input type="hidden" name="extra" value="{{ input.extra }}" id="extra_{{ input.cid }}">
+<input type="hidden" name="input_id" value="{{ request.input_id }}">
+@@include('insert-calculator-section-inpbtns.html')
+
+</div>
+</div>

@@ -178,7 +178,7 @@ def demo_arr(x: qlist = [10, 20, 30]):
 def demo_arr2__info():
     return {
         'title': 'Testing Array2',
-        'outcol': 'result',
+        'interactive': True,
     }
 
 

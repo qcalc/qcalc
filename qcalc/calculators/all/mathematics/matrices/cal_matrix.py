@@ -49,7 +49,9 @@ def bmatrix__info():
                 'type': 'choice',
                 'choices': ['Add', 'Subtract', 'Multiply', 'Divide', 'Expression']
             },
-        }
+        },
+        'layout': 't2b',
+        'inp1': '~y',
     }
 
 

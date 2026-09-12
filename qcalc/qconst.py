@@ -4,6 +4,7 @@
 # COMBINE_FINF = {dict,   dict,       dict,      dict,       dict,    list,      dict,    value}
 COMBINE_FINF = {'schema', 'autofill', 'related', 'showhide', 'anyof', 'fargs', 'script'}
 KNOWN_METAS = ['__info', '__input', '__modify', '__command', '__help']
+QCALC_LAYOUTS = ['l2r', 'lr', 'lr2', 't2b', 't2b2', 'tb', 'tb2']
 CODE_TAB = 4
 
 # Local trusted deployments may enable legacy unrestricted user-calculator imports.

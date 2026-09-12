@@ -117,7 +117,6 @@ def demo_input__info():
                 'help_text': 'UUID input configured through schema.',
             },
         },
-        'outcol': 'result'
     }
 
 

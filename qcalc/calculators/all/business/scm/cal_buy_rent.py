@@ -30,17 +30,20 @@ def buy_rent(
     q_purchase = Qty(purchase_price)
     to_cur = q_purchase.uom
     q_residual = Qty(residual_value).to(to_cur)
-    q_ownership = Qty(annual_ownership_cost).to(f'{to_cur}/yr')
+    q_ownership = Qty(annual_ownership_cost).to(f'{to_cur}/mo')
     q_rent = Qty(monthly_rent).to(f'{to_cur}/mo')
     q_escalation = Qty(rent_escalation).to('pct/yr')
     q_return = Qty(opportunity_return).to('pct/yr')
 
     purchase = q_purchase.val
     residual = q_residual.val
-    annual_ownership = q_ownership.val
+    monthly_ownership = q_ownership.val
     monthly_rent_val = q_rent.val
 
-    years = Qty(use_period,'yr')
+    period_months = Qty(use_period).to('mo').val
+    months = int(round(period_months))
+    if months <= 0 or abs(period_months - months) > 1e-9:
+        raise ValueError('Use period must be a positive whole number of months.')
 
     rent_escalation_rate = q_escalation.val / 100.0
     opportunity_rate = q_return.val / 100.0
@@ -56,16 +59,17 @@ def buy_rent(
     )
 
     # ------------------------------------------------------------
-    # Present value of annual ownership costs
+    # Present value of monthly ownership costs
     #
-    # Ownership costs are assumed to occur at the end of each year.
+    # Annual ownership costs are prorated to monthly payments at the end
+    # of each month.
     # ------------------------------------------------------------
     pv_ownership = 0.0
 
-    for year in range(1, years + 1):
+    for month in range(1, months + 1):
         pv_ownership += (
-            annual_ownership
-            / (1.0 + opportunity_rate) ** year
+            monthly_ownership
+            / (1.0 + monthly_discount) ** month
         )
 
     # ------------------------------------------------------------
@@ -75,7 +79,7 @@ def buy_rent(
     # ------------------------------------------------------------
     pv_residual = (
         residual
-        / (1.0 + opportunity_rate) ** years
+        / (1.0 + monthly_discount) ** months
     )
 
     # ------------------------------------------------------------
@@ -94,7 +98,6 @@ def buy_rent(
     # Rent increases once per year.
     # ------------------------------------------------------------
     pv_rent = 0.0
-    months = years * 12
 
     for month in range(1, months + 1):
         year_index = (month - 1) // 12

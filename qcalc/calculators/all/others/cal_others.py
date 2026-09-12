@@ -35,6 +35,9 @@ def gold__info():
         },
         'anyof': {"1": {'fields': ['gold_weight_intl', 'gold_weight_india']}},
         # 'outcol': ['chart__r']
+        'layout': 't2b2',
+        'inp1': ['gold_weight_intl', 'gold_weight_india'],
+        'out1': ['gold_weight', 'grand_total'],
     }
 
 

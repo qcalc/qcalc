@@ -18,7 +18,6 @@ def supdisc__info():
         'tags': 'business, procurement, supplier, discount, inventory, eoq',
         'proper': 'Supplier Discount Analysis',
         'kins': 'eoq, purcost, moq, invlevel',
-        'outcol': 'result',
     }
 
 

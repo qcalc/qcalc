@@ -1,15 +1,14 @@
+{% load static %}
 {% load qfilter %}
-{% if input.doc.info.outcol|length > 0 %}
-<div class="row input">
-  <div class="col">
-{% endif %}
+<div id="output-part-{{ input.cid }}">
+{% load qfilter %}
   {% if 'out_top' in input.doc.info.inserts %}
   <br>
   {{ input.doc.info.inserts.out_top | safe }}
   {% endif %}
   <div class="section-output1">
     {% for field in output.form %}
-    {% if field.name not in input.doc.info.outcol %}
+    {% if field.name in input.doc.info.outcol %}
     {% include 'insert-calculator-section-output.html' %}
     {% endif %}
     {% endfor %}
@@ -19,16 +18,23 @@
   <div id="status-{{ input.cid }}" class="status"></div>
 {% if input.doc.info.outcol|length > 0 %}
   </div>
-  <div class="col">
+</div>
 {% endif %}
+<div class="row">
   <div class="section-output2">
     {% for field in output.form %}
-    {% if field.name in input.doc.info.outcol %}
+    {% if field.name not in input.doc.info.outcol %}
     {% include 'insert-calculator-section-output.html' %}
     {% endif %}
     {% endfor %}
   </div>
-{% if input.doc.info.outcol|length > 0 %}
-  </div>
 </div>
+{% if input.doc.info.outcol|length > 0 %}
+</div>{% endif %}
+<br>
+
+{% if output.doc.table_out or input.doc.info.table_out %}
+<script src="{% static_ver 'calc/js/tabulator-out.js' %}"></script>
+{% include 'insert-calculator-init-retry.html' with init_fn='qcalc_InitTabulatorOut' cid=input.cid %}
 {% endif %}
+</div>

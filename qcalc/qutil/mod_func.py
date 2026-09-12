@@ -2,12 +2,14 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 from titlecase import titlecase
+import math
 import re
 import os
 import io
 import keyword
 import tokenize
 import inspect
+import fnmatch
 import qconst
 from qutil import css2strs
 
@@ -191,6 +193,145 @@ def path_to_title(path, separator='/', sep_display=' > '):
     path = path.replace('_', ' ').replace(separator, sep_display)
     path = titlecase(path)
     return path
+
+
+def specified_args(func_or_args, spec):
+    if isinstance(func_or_args, str):
+        all_args = css2strs(func_or_args)
+    elif isinstance(func_or_args, (list, tuple)):
+        all_args = list(func_or_args)
+    else:
+        all_args = inspect.getfullargspec(func_or_args).args
+
+    if spec is None:
+        return list(all_args)
+
+    if isinstance(spec, str):
+        spec = css2strs(spec) # '*'-> ['*'], '1,2,3'->['1'],['2'],['3']
+
+    if isinstance(spec, (list, tuple)) and "*" in spec:
+        return list(all_args)
+
+    n = len(all_args)
+
+    if isinstance(spec, (int, float)):
+        if 0 < spec < 1:
+            return all_args[:math.ceil(n * spec)]
+        raise ValueError("Numeric spec must be between 0 and 1")
+
+    selected = []
+    excluded = set()
+
+    all_args_lower = [a.lower() for a in all_args]
+    all_args_t2v = [title_to_variable(variable_to_title(a)) for a in all_args]
+
+    def find_arg_index(name):
+        if name in all_args:
+            return all_args.index(name)
+
+        name_lower = name.lower()
+        if name_lower in all_args_lower:
+            return all_args_lower.index(name_lower)
+
+        t2v = title_to_variable(variable_to_title(name))
+        if t2v in all_args_t2v:
+            return all_args_t2v.index(t2v)
+
+        return -1
+
+    def resolve_token(tok):
+        """Return 0-based index for an integer string or argument name, or None."""
+        if isinstance(tok, int):
+            return tok - 1
+        if tok.isdigit():
+            return int(tok) - 1
+        idx = find_arg_index(tok)
+        if idx != -1:
+            return idx
+        return None
+
+    def indexes(item):
+        """Return zero-based indexes represented by item."""
+        if isinstance(item, int):
+            return [item - 1]
+
+        if item.isdigit():
+            return [int(item) - 1]
+
+        idx = find_arg_index(item)
+        if idx != -1:
+            return [idx]
+
+        if "*" in item:
+            item_lower = item.lower()
+            matches = []
+            for i, arg in enumerate(all_args):
+                cands = {
+                    arg.lower(),
+                    all_args_lower[i],
+                    all_args_t2v[i].lower(),
+                    variable_to_title(arg).lower(),
+                }
+                if any(fnmatch.fnmatch(cand, item_lower) for cand in cands):
+                    matches.append(i)
+            if matches:
+                return matches
+
+        if "-" in item:
+            dash_indices = [i for i, char in enumerate(item) if char == "-"]
+            for idx_dash in dash_indices:
+                left_str = item[:idx_dash]
+                right_str = item[idx_dash + 1:]
+                left_idx = resolve_token(left_str)
+                right_idx = resolve_token(right_str)
+                if left_idx is not None and right_idx is not None:
+                    step = 1 if left_idx <= right_idx else -1
+                    return list(range(left_idx, right_idx + step, step))
+
+        # | raise ValueError(f"Invalid argument specification: {item!r}")
+        return []
+
+    for item in spec:
+        if not isinstance(item, str):
+            # | raise TypeError(f"Invalid spec item: {item!r}")
+            continue
+
+        if item.startswith("~"):
+            excluded.update(indexes(item[1:]))
+        else:
+            selected.extend(indexes(item))
+
+    # | If nothing was explicitly selected, start with all arguments.
+    if not selected:
+        selected = list(range(n))
+
+    # | Remove exclusions, preserve order, remove duplicates.
+    result = []
+    seen = set()
+
+    for i in selected:
+        if 0 <= i < n and i not in excluded and i not in seen:
+            result.append(all_args[i])
+            seen.add(i)
+
+    return result
+
+
+def unspecified_args(func_or_args, spec):
+    if spec is None:
+        return []
+
+    specified = specified_args(func_or_args, spec)
+
+    if isinstance(func_or_args, str):
+        all_args = css2strs(func_or_args)
+    elif isinstance(func_or_args, (list, tuple)):
+        all_args = list(func_or_args)
+    else:
+        all_args = inspect.getfullargspec(func_or_args).args
+
+    specified_set = set(specified)
+    return [arg for arg in all_args if arg not in specified_set]
 
 
 if __name__ == '__main__':

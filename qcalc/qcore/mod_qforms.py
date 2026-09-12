@@ -216,7 +216,10 @@ class QFieldHandler:
     def create_rchoice_field(self, field_meta, options):  # tested, related choices, created by deb@13.09.23
         # source: https://stackoverflow.com/questions/53840628/
         # django-disable-form-select-field-validation-for-a-drop-down
-        options['choices'] = fchoices(field_meta['choices'])
+        choices = field_meta.get('choices')
+        if choices is None:
+            choices = [options['initial']] if options.get('initial') is not None else []
+        options['choices'] = fchoices(choices)
         return ChoiceFieldNoValidation(**options)
 
     # noinspection PyMethodMayBeStatic

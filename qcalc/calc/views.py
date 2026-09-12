@@ -106,9 +106,9 @@ def fill_input_data(request, **kwargs):  # not required, not used
 def q1999_func_to_form(request: HtmxHttpRequest, **dictf):  # main view
     def get_template(part):
         return {
-            '0': 'gen-calculator.html',
-            '1': 'gen-calculator-partial.html',
-            '2': 'insert-calculator-form-partial.html'
+            '0': 'gen-calculator.html',  # full page e.g. browser url
+            '1': 'gen-calculator-partial.html',  # calculator partial e.g. add cal, open json, command button
+            '2': 'insert-calculator-form-partial.html',  # form partial e.g. variant, command button, structural
         }.get(part, 'gen-calculator-partial.html')
 
     part = '1'
@@ -121,20 +121,28 @@ def q1999_func_to_form(request: HtmxHttpRequest, **dictf):  # main view
 
     try:
         q1199_func_to_form_common(request, **dictf)
-        if (
-            request.method == 'POST'
-            # ordinary submits refresh only the output region, interactive or
-            # not; structural submits (resize/edit/load/... or the explicit
-            # qcalc_structural_cmd marker from qcalc_FullFormSubmit) need the
-            # full form re-rendered
-            and getattr(request, 'cmd', '') not in {
+
+        # Ordinary POST → output only.
+        # Structural POST → re-render the requested form/calculator part.
+        structural = (
+            getattr(request, 'cmd', '') in {
             'load', 'resize', 'edit', 'display', '__modify',
         }
-            and request.headers.get('X-QCalc-Structural-Cmd') != '1'
-            and request.POST.get('qcalc_structural_cmd') != '1'
-        ):
-            return q1_render(request, 'insert-calculator-output-response.html', request.context)
-        return q1_render(request, get_template(part), request.context)
+            or request.headers.get('X-QCalc-Structural-Cmd') == '1'
+            or request.POST.get('qcalc_structural_cmd') == '1'
+        )
+        if request.method == 'POST' and not structural:
+            layout = request.json_doc['info']['layout']
+            if layout == '':
+                template = 'insert-calculator-section-output-layout.html'
+            elif layout in ['l2r', 'lr', 't2b', 'tb']:
+                template = 'layout-output-1-section.html'
+            else:  # layout in ['lr2', 'tb2']
+                template = 'layout-output-2-section.html'
+        else:
+            template = get_template(part)
+
+        return q1_render(request, template, request.context)
     except Exception as e:
         return q1_render_status(request, str(e), part)
 
@@ -492,8 +500,8 @@ def q1_run_func(request: HtmxHttpRequest, **dictf):
 
 def q1141_read_func_meta(func_id, __info=None, scope='qpots'):
     json_doc = {}
-    json_doc['help'] = 'y' if get_help_path(func_id).exists() else 'nohelp.html'
-    json_doc['clean'] = False  # if form has clean_data or not
+    json_doc['help'] = 'y' if get_help_path(func_id).exists() else 'nohelp.html'  # internal
+    json_doc['clean'] = False  # if form has clean_data or not # internal
 
     json_doc['info'] = {  # if func__info() exists it should return following dict
         'name': func_id,  # string, auto
@@ -514,16 +522,19 @@ def q1141_read_func_meta(func_id, __info=None, scope='qpots'):
         # visual aids
         'images': {},  # {'top':['img1',...],'bottom':['img1',...],'left':['img1',...],'right':['img1',...]}
         # layout
-        'row': [],  # ['arg1-argN',...]
-        'col': [],  # number or ['arg1-argN',...]
+        'row': [],  # ['arg1-argN',...] #legacy
+        'col': [],  # number or ['arg1-argN',...] # legacy
+        'outcol': [],  # or css string, legacy
         # 'newcol': [],  # internal use - auto calculated from row, col spec
         # 'endcol': [],  # internal use - auto calculated from row, col spec
         # 'newrow': [],  # internal use - auto calculated from row, col spec, template v4.21
         # 'inrowb': [],  # internal use - auto calculated from row, col spec, template v4.21
         # 'inrowe': [],  # internal use - auto calculated from row, col spec, template v4.21
         # 'endrow': [],  # internal use - auto calculated from row, col spec, template v4.21
-        'outcol': [],  # ['chart','table','result','page','image']
-        'template': '',  # string e.g. 'v4.21'
+        'inp1': ['*'],  # or css string. parameter filtering
+        'out1': ['*'],  # or css string, parameter filtering
+        'layout': 'lr',  # ['l2r', 'lr', 'lr2', 't2b', 't2b2', 'tb', 'tb2']
+        'template': '',  # string e.g. 'v4.21' # legacy
         # extra front end logic
         'onsubmit': '',
         'script': '',  # string e.g. 'function cfn(v){return v>100;}'
@@ -559,13 +570,16 @@ def q1141_read_func_meta(func_id, __info=None, scope='qpots'):
         'anyof',
         'row',
         'col',
+        'outcol',  # legacy
         # 'newcol',
         # 'endcol',
         # 'newrow',
         # 'inrowb',
         # 'inrowe',
         # 'endrow',
-        'outcol',
+        'inp1',
+        'out1',
+        'layout',
         'template',
         'onsubmit',
         'script',
@@ -581,6 +595,9 @@ def q1141_read_func_meta(func_id, __info=None, scope='qpots'):
     ]:
         if key in func_info:
             json_doc['info'][key] = func_info[key]
+
+    if json_doc['info']['layout'] not in qconst.QCALC_LAYOUTS:
+        json_doc['info']['layout'] = 'lr'
 
     if 'images' in func_info:
         images = func_info['images']
@@ -672,6 +689,7 @@ def q1149_func_to_form_context(request: HtmxHttpRequest, func_id, cid, kwargs):
     #     print('__info from recall', __info, kwargs)
     #     kwargs.update({'__info': __info})
     request.json_doc = q1141_read_func_meta(func_id, __info)
+    request.json_doc['info']['inp1'] = ut.specified_args(func_addr, request.json_doc['info']['inp1'])
     q11429_func_to_form_schema(request, func_addr, func_id, cid, kwargs)
     q1143_create_form_layout(request, func_addr)
     request.context['input'] = q11469_form_data_create_dynaform_and_fill(
@@ -679,6 +697,7 @@ def q1149_func_to_form_context(request: HtmxHttpRequest, func_id, cid, kwargs):
         request.json_doc, cid, 0)  # data, form, doc[info]
     if request.method == 'POST':
         if not request.json_doc['clean']: request.success &= False
+    # print('|',request.json_s2f, request.json_c4f)
 
     result = q11449_form_data_postprocess_and_run(request, func_id)  # , cid
     # update ojson_data, ojson_schema
@@ -705,7 +724,7 @@ def q1149_func_to_form_context(request: HtmxHttpRequest, func_id, cid, kwargs):
     if settings.DEBUG: qvars.last_dump = ut.request_dump(request)
 
     request.ojson_doc['name'] = func_id
-    request.ojson_doc.update({'info':{'proper': proper_dict}})
+    request.ojson_doc.update({'info': {'proper': proper_dict}})
     request.context['output'] = q11469_form_data_create_dynaform_and_fill(
         request, request.ojson_schema, request.ojson_data, None,
         request.ojson_doc, cid, 1)  # data, form, doc[table|chart]
@@ -868,7 +887,8 @@ def q1145_result_to_form_schema(request: HtmxHttpRequest, func_id, cid, result, 
             elif all(isinstance(v, (float, Qty, int, str, bool, date, datetime, dt_time)) for v in
                      result):  # output as table
                 df = pd.DataFrame(
-                    {ut.variable_to_title(name, proper_dict): [df_formatter(cell) for cell in result]}  # apply format for result
+                    {ut.variable_to_title(name, proper_dict): [df_formatter(cell) for cell in result]}
+                    # apply format for result
                 )
                 rs_item(request, name, df)
             else:  # output as variables
@@ -926,7 +946,19 @@ def q1145_result_to_form_schema(request: HtmxHttpRequest, func_id, cid, result, 
             request.ojson_schema[i]['attrs']['class'] = 'uom'
 
         i += 1
-    # print(request.ojson_data, request.ojson_schema, result, type(result))
+
+    try:
+        result_list = list(request.ojson_data.keys())
+        if request.json_doc['info']['outcol']:  # legacy and takes priority over 'out1'
+            specified_labels = ut.unspecified_args(result_list, request.json_doc['info']['outcol'])
+        else:  # modern 'out1'
+            specified_labels = ut.specified_args(result_list, request.json_doc['info']['out1'])
+        # print('|', result_list)
+        # print('|', specified_labels)
+        request.json_doc['info']['out1'] = specified_labels
+
+    except Exception as e:
+        logger.note(e)
     return
 
 

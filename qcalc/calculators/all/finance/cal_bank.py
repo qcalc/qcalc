@@ -143,7 +143,6 @@ def loan_prepay__info():
                 'help_text': 'Additional principal paid with every scheduled monthly payment.',
             },
         },
-        'outcol': ['Interest Saved', 'Time Saved'],
         'kins': 'loan,amort',
         'tags': 'loan,mortgage,prepayment,interest,savings',
     }

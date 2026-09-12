@@ -25,8 +25,9 @@ def monte_carlo__info():
                                     'defaults to midpoint of param1/param2 if left blank'},
             # 'histo_column': {'required': True},
         },
-        'col': ['1-6', '7-14'],
-        'outcol': ['chart__r'],
+        'inp1': ['1-6'], #, '7-14'
+        'out1': ['~chart'],
+        'layout': 't2b2',
         'kins': 'redo',
         'tags': 'monte carlo, simulation',
     }
@@ -85,15 +86,21 @@ def monte_carlo(xpr: qcode = "sine('x deg')", variable: qchar = 'x',
     failed = len(var_vals) - len(xvals)
 
     return {
-        'trials_used': len(numeric_values),
-        'trials_failed': failed,
-        'mean': round(float(np.mean(numeric_values)), round_off),
-        'stdev': round(float(np.std(numeric_values, ddof=1)), round_off) if len(numeric_values) > 1 else 0.0,
-        'min': round(float(np.min(numeric_values)), round_off),
-        'max': round(float(np.max(numeric_values)), round_off),
-        'p5': round(float(np.percentile(numeric_values, 5)), round_off),
-        'p50': round(float(np.percentile(numeric_values, 50)), round_off),
-        'p95': round(float(np.percentile(numeric_values, 95)), round_off),
+        'Statistics': {
+            'columns': ['Metric', 'Value'],
+            'data': [
+                ['Trials used', len(numeric_values)],
+                ['Trials failed', failed],
+                ['Mean', round(float(np.mean(numeric_values)), round_off)],
+                ['Stdev', round(float(np.std(numeric_values, ddof=1)), round_off)
+                 if len(numeric_values) > 1 else 0.0],
+                ['Min', round(float(np.min(numeric_values)), round_off)],
+                ['Max', round(float(np.max(numeric_values)), round_off)],
+                ['P5', round(float(np.percentile(numeric_values, 5)), round_off)],
+                ['P50', round(float(np.percentile(numeric_values, 50)), round_off)],
+                ['P95', round(float(np.percentile(numeric_values, 95)), round_off)],
+            ],
+        },
         **histo
     }
 
@@ -128,11 +135,13 @@ def monte_carlo2__info():
                 'with an optional correlated pair',
         'schema': {
             'show': show_choice,
-            'distributions': {'help_text': 'One distribution per variable, separated by comma\n options: normal, uniform, triangular, lognormal',},
-            'param1s': {'help_text': 'One mean/low/mu value per variable, separated by comma',},
-            'param2s': {'help_text': 'One stdev/high/sigma value per variable, separated by comma',},
-            'param3s': {'help_text': 'Optional triangular mode values, separated by comma',},
-            'correlated_variables': {'help_text': 'Optional pair, for example inflation, interest, separated by comma',},
+            'distributions': {
+                'help_text': 'One distribution per variable, separated by comma\n options: normal, uniform, triangular, lognormal', },
+            'param1s': {'help_text': 'One mean/low/mu value per variable, separated by comma', },
+            'param2s': {'help_text': 'One stdev/high/sigma value per variable, separated by comma', },
+            'param3s': {'help_text': 'Optional triangular mode values, separated by comma', },
+            'correlated_variables': {
+                'help_text': 'Optional pair, for example inflation, interest, separated by comma', },
             'correlation': {'help_text': 'Correlation for the optional pair, from -1 to 1'},
             # 'histo_column': {'required': True},
         },
@@ -221,21 +230,28 @@ def monte_carlo2(
         for trial in range(trials)
     ]
     results, xvals = scalar_results(xpr=xpr, variable=variables, var_vals=trial_values)
-    qr = QResults(results, xvals=xvals, variable=variables, table_columns=table_columns, table_units=table_units, show=show)
+    qr = QResults(results, xvals=xvals, variable=variables, table_columns=table_columns, table_units=table_units,
+                  show=show)
     qr.setup_histo(histo_column=histo_column, bin_count=bin_count, chart_title=chart_title)
     histo = qr.objects()
     numeric_values = histo.pop('values', [])
     failed = trials - len(numeric_values)
 
     return {
-        'trials_used': len(numeric_values),
-        'trials_failed': failed,
-        'mean': round(float(np.mean(numeric_values)), round_off),
-        'stdev': round(float(np.std(numeric_values, ddof=1)), round_off) if len(numeric_values) > 1 else 0.0,
-        'min': round(float(np.min(numeric_values)), round_off),
-        'max': round(float(np.max(numeric_values)), round_off),
-        'p5': round(float(np.percentile(numeric_values, 5)), round_off),
-        'p50': round(float(np.percentile(numeric_values, 50)), round_off),
-        'p95': round(float(np.percentile(numeric_values, 95)), round_off),
+        'Statistics': {
+            'columns': ['Metric', 'Value'],
+            'data': [
+                ['Trials used', len(numeric_values)],
+                ['Trials failed', failed],
+                ['Mean', round(float(np.mean(numeric_values)), round_off)],
+                ['Stdev', round(float(np.std(numeric_values, ddof=1)), round_off)
+                 if len(numeric_values) > 1 else 0.0],
+                ['Min', round(float(np.min(numeric_values)), round_off)],
+                ['Max', round(float(np.max(numeric_values)), round_off)],
+                ['P5', round(float(np.percentile(numeric_values, 5)), round_off)],
+                ['P50', round(float(np.percentile(numeric_values, 50)), round_off)],
+                ['P95', round(float(np.percentile(numeric_values, 95)), round_off)],
+            ],
+        },
         **histo
     }

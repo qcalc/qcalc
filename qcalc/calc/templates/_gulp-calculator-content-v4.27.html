@@ -42,7 +42,8 @@
       <input type="hidden" name="input_id" value="{{ request.input_id }}">
       @@include('insert-calculator-section-inpbtns.html')
     <!--/table-->
-    {% if 'result' in input.doc.info.outcol %}
+    <!-- if 'result' in input.doc.info.outcol -->
+    {% if input.doc.info.outcol|length > 0 %}
   </div>
   <div class="col">{% endif %}
   <div id="output-part-{{ input.cid }}">

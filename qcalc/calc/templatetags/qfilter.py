@@ -90,6 +90,28 @@ def lineless_ex(parser, token):
 
 
 # | end of lineless ------------------
+
+
+@register.filter
+def field_root(value):
+    """
+    Return the root field name.
+
+    x                 -> x
+    x_uom             -> x
+    x_part            -> x
+    x_part_uom        -> x
+
+    x_1_part          -> x
+    x_1_part_uom      -> x
+    x_2_part          -> x
+    x_2_part_uom      -> x
+    """
+    if not value:
+        return value
+    return re.sub(r'_(?:\d+_)?part(?:_uom)?$|_uom$', '', value)
+
+
 @register.simple_tag
 def setting(name):
     return getattr(settings, name)
@@ -159,9 +181,11 @@ def uinfo(request=None):
 def upinfo():
     return user_process()
 
+
 @register.filter
 def ucal_name(func_id):
     return func_id.split('-')[0]
+
 
 @register.simple_tag
 def cur_asof():
@@ -193,7 +217,7 @@ def ctf(cond, tv, fv):
 @register.simple_tag
 def cal_var_url(calc_id, input_id: int, encode=True, run=True, shareable_only=True, is_public=True, core=False):
     execute = '&run' if run else ''
-    calc_core ='calc/core' if core else 'calc'
+    calc_core = 'calc/core' if core else 'calc'
     calc_id, cal_name, calc_owner = fid2owner(calc_id)
 
     var_info = QInput.get_var_info(input_id)
@@ -371,8 +395,8 @@ def is_visible(node, request):
 def uleafcount(node, user):
     # check is_visible rules in mode_tree.py
     if settings.DEBUG:
-        return node.leafcount #- node.democount + \
-            # iif(gs['demo_mode'], node.democount, 0)
+        return node.leafcount  # - node.democount + \
+        # iif(gs['demo_mode'], node.democount, 0)
     else:
         return node.leafcount - node.democount - node.admincount + \
             iif(gs['demo_mode'] and user.is_active, node.democount, 0) + \

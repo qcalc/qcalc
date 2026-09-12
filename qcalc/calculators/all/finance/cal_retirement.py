@@ -176,5 +176,4 @@ def retirement_sustainability__info():
             'finance, retirement, investment, withdrawal, '
             'portfolio, sustainability'
         ),
-        'outcol': 'result'
     }

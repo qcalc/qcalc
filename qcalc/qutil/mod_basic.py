@@ -17,15 +17,15 @@ def iif(condition: bool, truev, falsev):
     return truev if condition else falsev
 
 
-def idx2names(id_or_names: str, all_args: list[str]) -> list:
-    # idx2name('x,y,3,4,z,?',['a','b','c','d','x','y','z']) = ['x','y','c','d','z','?']
-    j = 0
-    spec_arg_list = css2strs(id_or_names)
-    for arg_or_sl in spec_arg_list:
-        if arg_or_sl.isdigit():
-            spec_arg_list[j] = all_args[int(arg_or_sl) - 1]
-        j += 1
-    return spec_arg_list
+# def idx2names(id_or_names: str, all_args: list[str]) -> list: # use specified_args() instead
+#     # idx2name('x,y,3,4,z,?',['a','b','c','d','x','y','z']) = ['x','y','c','d','z','?']
+#     j = 0
+#     spec_arg_list = css2strs(id_or_names)
+#     for arg_or_sl in spec_arg_list:
+#         if arg_or_sl.isdigit():
+#             spec_arg_list[j] = all_args[int(arg_or_sl) - 1]
+#         j += 1
+#     return spec_arg_list
 
 
 def truncate(txt: str, n: int):
@@ -298,7 +298,7 @@ if __name__ == '__main__':
         print(fchoices([{'name': 'a', 'value': 1}, {'name': 'b', 'value': 2}, {'name': 'c', 'value': 3}]))
         print(fchoices(['a', 'b', 'c']))
         print(fchoices({'a', 'b', 'c'}))
-        print(idx2names('x,y,3,4,z,?', ['a', 'b', 'c', 'd', 'x', 'y', 'z']))
+        # print(idx2names('x,y,3,4,z,?', ['a', 'b', 'c', 'd', 'x', 'y', 'z']))
         # ['x', 'y', 'c', 'd', 'z', '?']
         print(replace_words('km/usd', ['USD'], 'bdt'))
         print(replace_words('km/uSd', ['USD'], 'bdt', False))

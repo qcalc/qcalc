@@ -116,7 +116,7 @@
 }
 
 body {
-  font-family: "Roboto", "Open Sans", "Lato", "Montserrat", Arial, sans-serif;
+  font-family: "Roboto", "Open Sans", "Lato", Arial, sans-serif;
   font-weight: 400;
   font-size: 0.94rem;
   line-height: 1.6;
@@ -163,12 +163,22 @@ label.required::after {
   padding-bottom: 1rem;
 }
 
+.section-input1 {
+  background-color: GhostWhite;
+  padding-top: 0.25rem;
+  padding-bottom: 1rem;
+}
+
+.section-input2 {
+  background-color: GhostWhite;
+  padding-top: 0.25rem;
+  padding-bottom: 1rem;
+}
+
 .section-output1 {
   background-color: white;
   padding-top: 0.25rem;
   padding-bottom: 1rem;
-  margin-right: -0.625rem;
-  margin-left: -0.625rem;
   padding-right: 0.625rem;
   padding-left: 0.625rem;
 }
@@ -177,8 +187,6 @@ label.required::after {
   background-color: white;
   padding-top: 0.25rem;
   padding-bottom: 1rem;
-  margin-right: -0.625rem;
-  margin-left: -0.625rem;
   padding-right: 0.625rem;
   padding-left: 0.625rem;
 }

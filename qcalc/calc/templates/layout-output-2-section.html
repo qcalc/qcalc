@@ -1,0 +1,31 @@
+{% load qfilter %}
+<div id="output-part-{{ input.cid }}" class="row">
+<div class="col section-output1">
+    {% if 'out_top' in input.doc.info.inserts %}
+    <br>
+    {{ input.doc.info.inserts.out_top | safe }}
+    {% endif %}
+
+{% for field in output.form %}
+{% if field.name|field_root in input.doc.info.out1 %}
+{% include 'insert-calculator-section-output.html' %}
+{% endif %}
+{% endfor %}
+
+{% include 'insert-calculator-section-outbtns.html' %}
+<div id="status-{{ input.cid }}" class="status"></div>
+</div>
+
+<div class="col section-output2">
+{% for field in output.form %}
+{% if field.name|field_root not in input.doc.info.out1 %}
+{% include 'insert-calculator-section-output.html' %}
+{% endif %}
+{% endfor %}
+</div>
+
+{% if output.doc.table_out or input.doc.info.table_out %}
+<script src="{% static_ver 'calc/js/tabulator-out.js' %}"></script>
+{% include 'insert-calculator-init-retry.html' with init_fn='qcalc_InitTabulatorOut' cid=input.cid %}
+{% endif %}
+</div>

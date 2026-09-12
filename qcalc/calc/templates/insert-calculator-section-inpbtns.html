@@ -2,9 +2,9 @@
 {% load qfilter %}
 {% if 'form_bottom' in input.doc.info.inserts %}
 {{ input.doc.info.inserts.form_bottom | safe }}
-<br>
+
 {% endif %}
-<div class="btn-group mt-2 section-inpbtns">
+<div class="btn-group mt-2 section-inpbtns w-100">
   <p>
     <button type="submit" id="calculate_{{ input.cid }}"
       class="btn btn-primary btncal mr-2" aria-label="calculate"

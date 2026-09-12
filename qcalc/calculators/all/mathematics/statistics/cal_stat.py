@@ -25,7 +25,6 @@ def stat__info():
             'numbers': {'type': 'textarea'},
             'weights': {'type': 'textarea', 'label': 'Weights (optional)'}
         },
-        'outcol': ['result']
     }
 
 

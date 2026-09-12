@@ -18,8 +18,8 @@ def redo__info():
             'show': show_choice,
             'chart_type': {'type': 'choice', 'choices': ['lines', 'bars', 'stack']},
         },
-        'col': ['1-6', '7-13'],
-        'outcol': 'result',
+        # 'col': ['1-6', '7-13'],
+        'outcol': ['*'],
         'kins': 'monte_carlo',
         'tags': 'sensitivity, parameter sweep, simulation',
     }

@@ -65,7 +65,6 @@ def tco__info():
             'escalation. Leave any irrelevant cost row as zero.'
         ),
         'tags': 'business, procurement, tco, supplier, comparison, finance',
-        'outcol': 'result',
         'proper': 'TCO',
     }
 

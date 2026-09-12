@@ -61,7 +61,7 @@ def image_upscale__info():
         'related': {
             'r1': {
                 "fields": {
-                    "option": "Fast and accurate (FSRCNN)",
+                    "option": "Fast and accurate: FSRCNN",
                     "scale": '2',
                 },
                 "relation": {

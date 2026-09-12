@@ -1,0 +1,17 @@
+{% load qfilter %}
+{% if 'form_top' in input.doc.info.inserts %}
+{{ input.doc.info.inserts.form_top | safe }}
+{% endif %}
+<div class="container-fluid">
+  <div class="row">
+    <div class="col">
+      @@include('layout-input-2-section.html')
+    </div>
+    <div class="col">
+      @@include('layout-output-1-section.html')
+    </div>
+  </div>
+</div>
+{% isdebug as dbg %}
+{% if user.is_staff or dbg %}@@include('insert-calculator-section-ioinfo.html'){% endif %}
+@@include('insert-calculator-section-scripts.html')

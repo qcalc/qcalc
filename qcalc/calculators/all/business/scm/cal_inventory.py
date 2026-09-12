@@ -68,7 +68,7 @@ def invlevel__info():
             'show': show_choice
         },
         'kins': 'eoq, purcost, moq',
-        'outcol': "result",
+        'layout':  'lr',
     }
 
 

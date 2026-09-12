@@ -1,0 +1,36 @@
+{% load qfilter %}
+    <!--table-->
+      <div class="row">
+        {% if 'left' in input.doc.info.images %}
+        <div class="col section-left">
+          {% for image in input.doc.info.images.left %}
+          <p><img class="image" src="{% static image %}"></p>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        {% include('insert-calculator-section-input-layout.html') %}
+
+      </div>
+
+      {% if 'right' in input.doc.info.images %}
+      <div class="col section-right">
+        {% for image in input.doc.info.images.right %}
+        <p><img class="image" src="{% static image %}"></p>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% if 'bottom' in input.doc.info.images %}
+      <div class="section-bottom">
+      {% for image in input.doc.info.images.bottom %}
+      <p><img class="image" src="{% static image %}"></p>
+      {% endfor %}
+      </div>
+      {% endif %}
+
+      <input type="hidden" name="cid" value="{{ input.cid }}">
+      <input type="hidden" name="extra" value="{{ input.extra }}" id="extra_{{ input.cid }}">
+      <input type="hidden" name="input_id" value="{{ request.input_id }}">
+      @@include('insert-calculator-section-inpbtns.html')
+    <!--/table-->

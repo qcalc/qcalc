@@ -30,3 +30,24 @@ def test_qty_field_keeps_help_text():
     field = handler.formfields['qty']
 
     assert field.help_text == 'Enter a quantity'
+
+
+def test_rchoice_field_without_explicit_choices():
+    schema = [
+        {
+            'name': 'option',
+            'type': 'rchoice',
+            'choices': ['Fastest and ok: FSRCNN-small', 'Fast and accurate: FSRCNN'],
+            'initial': 'Fast and accurate: FSRCNN',
+        },
+        {
+            'name': 'scale',
+            'type': 'rchoice',
+            'initial': '2',
+        },
+    ]
+
+    handler = QFieldHandler('image_upscale', schema, 'cid', [{'type': 's'}, {'type': 's'}], {}, {})
+    assert 'option' in handler.formfields
+    assert 'scale' in handler.formfields
+    assert handler.formfields['scale'].choices == [('2', '2')]

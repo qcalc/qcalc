@@ -35,7 +35,8 @@ def pref__info():
         },
         'calculate': 'Save',
         # 'col': ["1-9", "10-17"],
-        'col': 2,
+        'inp1': 0.5,
+        'layout': 't2b',
         'script':
             """
 $(document).ready(function() {

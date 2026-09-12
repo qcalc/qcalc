@@ -16,7 +16,10 @@ The calculator assumes the purchase is made with cash.
 
 ### Use Period
 
-The number of years you expect to use the asset.
+The duration for which you expect to use the asset, entered as a time
+quantity such as **5 yr**, **60 mo**, or **18 mo**. The duration is converted
+to a whole number of months because rent and ownership costs are modeled as
+monthly cash flows.
 
 Both buying and renting are compared over this same period.
 
@@ -132,10 +135,12 @@ The resulting **Economic Cost (PV)** provides a more meaningful comparison than 
 This calculator assumes:
 
 - The purchase is made with cash rather than a loan.
-- Ownership costs occur annually.
+- Ownership costs are based on the annual input and prorated into monthly
+	payments.
 - Rent is paid monthly.
 - Rent increases annually according to the specified escalation rate.
-- The residual value is received at the end of the use period.
+- The residual value is received at the end of the use period and discounted
+	from the exact final month.
 - The specified opportunity return is an appropriate discount rate.
 - The asset provides equivalent use or benefit whether purchased or rented.
 

@@ -1,35 +1,24 @@
-<!-- template:_gulp-calculator-content-v4.26 -->
-{% load static %}
 {% load qfilter %}
-<!-- top, connect, variants -->
 {% if 'form_top' in input.doc.info.inserts %}
 {{ input.doc.info.inserts.form_top | safe }}
 {% endif %}
-{% if input.doc.info.outcol|length > 0 %}
-<div class="row input">
-  <div class="col">{% endif %}
-    <!--table-->
-      <div class="row">
-        {% if 'left' in input.doc.info.images %}
-        <div class="col section-left">
-          {% for image in input.doc.info.images.left %}
-          <p><img class="image" src="{% static image %}"></p>
-          {% endfor %}
-        </div>
-        {% endif %}
+<div class="container-fluid">
+  <div class="row">
+    <div class="col">
+      {% load static %}
+{% load qfilter %}
+<div id="input-part-{{ input.cid }}" class="row">
+    {% if 'left' in input.doc.info.images %}
+    <div class="col section-left">
+      {% for image in input.doc.info.images.left %}
+      <p><img class="image" src="{% static image %}"></p>
+      {% endfor %}
+    </div>
+    {% endif %}
 
-                <!-- begin:insert-calculator-section-input-layout -->
-        <div class="col section-input"><!-- col -->
-          {% for field in input.form %}
-          {% if input.doc.info.newcol|length > 0 and field.name == input.doc.info.newcol|first %}
-          <div class="row"><!-- col-row -->{% endif %}
-            {% if field.name in input.doc.info.newcol %}
-            <div class="col"><!-- col-row-col -->{% endif %}
-              {% if field.name in input.doc.info.newrow %}
-              <div class="row"><!-- col-row-col-row -->{% endif %}
-                {% if field.name in input.doc.info.newrow or field.name in input.doc.info.inrowb %}
-                <div class="col"><!-- col-row-col-row-col -->{% endif %}
-                  {% load qfilter %}
+<div class="col section-input1">
+{% for field in input.form %}
+{% load qfilter %}
 
                   {% if field|showlabel %}
                     <div class="mt-1">{{ field.label_tag }}
@@ -46,44 +35,28 @@
                     {% endfor %}</ul></span>
                   {% endif %}
 
-                  {% if field.name in input.doc.info.inrowe or field.name in input.doc.info.endrow %}
-                </div><!-- col-row-col-row-col -->
-                {% endif %}
-                {% if field.name in input.doc.info.endrow %}
-              </div><!-- col-row-col-row -->
-              {% endif %}
-              {% if field.name in input.doc.info.endcol %}
-            </div><!-- col-row-col -->
-            {% endif %}
-            {% if input.doc.info.newcol|length > 0 and field.name == input.doc.info.endcol|last %}
-          </div><!-- col-row -->
-          {% endif %}
-          {% endfor %}
-        </div><!-- col -->
-        <!-- end:insert-calculator-section-input-layout -->
+{% endfor %}
 
+    {% if 'bottom' in input.doc.info.images %}
+    <div class="section-bottom">
+    {% for image in input.doc.info.images.bottom %}
+    <p><img class="image" src="{% static image %}"></p>
+    {% endfor %}
+    </div>
+    {% endif %}
 
-      </div>
-
-      {% if 'right' in input.doc.info.images %}
-      <div class="col section-right">
-        {% for image in input.doc.info.images.right %}
-        <p><img class="image" src="{% static image %}"></p>
-        {% endfor %}
-      </div>
-      {% endif %}
-
-      {% if 'bottom' in input.doc.info.images %}
-      <div class="section-bottom">
-      {% for image in input.doc.info.images.bottom %}
+    {% if 'right' in input.doc.info.images %}
+    <div class="col section-right">
+      {% for image in input.doc.info.images.right %}
       <p><img class="image" src="{% static image %}"></p>
       {% endfor %}
-      </div>
-      {% endif %}
-      <input type="hidden" name="cid" value="{{ input.cid }}">
-      <input type="hidden" name="extra" value="{{ input.extra }}" id="extra_{{ input.cid }}">
-      <input type="hidden" name="input_id" value="{{ request.input_id }}">
-      <!-- begin:insert-calculator-section-inpbtns -->
+    </div>
+    {% endif %}
+
+<input type="hidden" name="cid" value="{{ input.cid }}">
+<input type="hidden" name="extra" value="{{ input.extra }}" id="extra_{{ input.cid }}">
+<input type="hidden" name="input_id" value="{{ request.input_id }}">
+<!-- begin:insert-calculator-section-inpbtns -->
 {% load qfilter %}
 {% if 'form_bottom' in input.doc.info.inserts %}
 {{ input.doc.info.inserts.form_bottom | safe }}
@@ -167,125 +140,47 @@
 </div>
 <!-- end:insert-calculator-section-inpbtns -->
 
-    <!--/table-->
-    <!-- if 'result' in input.doc.info.outcol -->
-    {% if input.doc.info.outcol|length > 0 %}
-  </div>
-  <div class="col">{% endif %}
-  <div id="output-part-{{ input.cid }}">
-    <!-- hr -->
-  {% if 'out_top' in input.doc.info.inserts %}
-  <br>
-  {{ input.doc.info.inserts.out_top | safe }}
-  {% endif %}
 
-    <!--table-->
-  <div class="section-output1">
-    {% for field in output.form %}
-    {% if field.name not in input.doc.info.outcol %}
-    <!-- begin:insert-calculator-section-output -->
-{% load qfilter %}
-{% if field|showlabel %}
-<div class="mt-1">{{ field.label_tag }}</div>
-{% endif %}
-{{ field | safe }}
-{% if '_uom' in field.name %}
-<a href="/calc/conv/"
-   hx-get="/calc/add/?path=conv/value/{{field.name|qtyval:output.form}}/from_unit/{{field.value|deslash}}/unit_cost/-/---/"
-   hx-target="#card-space" hx-swap="beforebegin">
-  <i class="icon-balance qty-s"></i>
-</a>
-{% endif %}
-<span class="helptext">{{ field.help_text }}</span>
-<!-- end:insert-calculator-section-output -->
+</div>
+</div>
 
+    </div>
+    <div class="col">
+      {% load qfilter %}
+<div id="output-part-{{ input.cid }}" class="row">
+<div class="col section-output1">
+    {% if 'out_top' in input.doc.info.inserts %}
+    <br>
+    {{ input.doc.info.inserts.out_top | safe }}
     {% endif %}
-    {% endfor %}
-  </div>
-  <br>
-  <!-- begin:insert-calculator-section-outbtns -->
-{% load qfilter %}
-<div class="btn-group mt-2 section-nextstep w-100">
-{% if request.success and request.method == 'POST' %}
-{% for fspec in input.doc.info.step2 %}
-<p><button type="button" class="btn btn-info btncmd" href="/calc/step2/"
-           hx-get="/calc/step2/?step={{ fspec.step }}&func={{ fspec.func }}&src_cid={{ input.cid }}&spec={{fspec.spec | jdumps}}"
-           hx-target="#card-space" hx-swap="beforebegin" aria-label="step2">{{ fspec.caption }}
-</button></p>
+
+{% for field in output.form %}
+{% if field.name|field_root in input.doc.info.out1 %}
+{% include 'insert-calculator-section-output.html' %}
+{% endif %}
 {% endfor %}
+
+{% include 'insert-calculator-section-outbtns.html' %}
+<div id="status-{{ input.cid }}" class="status"></div>
+</div>
+
+<div class="col section-output2">
+{% for field in output.form %}
+{% if field.name|field_root not in input.doc.info.out1 %}
+{% include 'insert-calculator-section-output.html' %}
+{% endif %}
+{% endfor %}
+</div>
+
+{% if output.doc.table_out or input.doc.info.table_out %}
+<script src="{% static_ver 'calc/js/tabulator-out.js' %}"></script>
+{% include 'insert-calculator-init-retry.html' with init_fn='qcalc_InitTabulatorOut' cid=input.cid %}
 {% endif %}
 </div>
-<br>
-<div class="btn-group mt-2 section-outbtns w-100">
-{% if request.ojson_keep_dumps != '{}' %}
-<p><a class="btn p-2 d-inline-flex flex-column align-items-center"
-      href="/calc/{{ input.doc.name }}/"
-      hx-get="/calc/cart/?cid={{ input.cid }}&keep={{ request.ojson_keep_dumps }}"
-      hx-target="#status-{{ input.cid }}" hx-swap="innerHTML" title="Collect to aggregate">
-  <i class="icon-cart-add"></i><span class="notxt">Collect</span></a></p>
-{% endif %}
-{% if input.doc.info.url and input.doc.furl %}
-<p><a class="btn p-2 d-inline-flex flex-column align-items-center"
-      href="{{ input.doc.furl | safe }}" target="_blank" title="Browse and bookmark">
-  <i class="icon-link2"></i><span class="notxt">Browse</span></a></p>
-{% endif %}
-{% if input.doc.info.xpr and input.doc.fxpr %}
-<p><a class="btn p-2 d-inline-flex flex-column align-items-center"
-      href="/calc/eva/" hx-get="/calc/add/?path=eva/code/{{ input.doc.fxpr | safe }}"
-      hx-target="#card-space" hx-swap="beforebegin" title="Evaluate further">
-  <i class="icon-embed2"></i><span class="notxt">Express</span></a></p>
-{% if user.is_staff %}
-<p><a class="btn p-2 d-inline-flex flex-column align-items-center"
-      href="/calc/xtime/" hx-get="/calc/add/?path=xtime/xpr/{{ input.doc.fxpr | safe }}"
-      hx-target="#card-space" hx-swap="beforebegin">
-  <i class="icon-watch2"></i><span class="notxt">Time</span></a></p>
-{% endif %}
-{% endif %}
-{% if input.doc.info.loop and input.doc.floop %}
-<p><a class="btn p-2 d-inline-flex flex-column align-items-center"
-      href="/calc/redo/" hx-get="/calc/add/?path=redo/xpr/{{ input.doc.floop | safe }}"
-      hx-target="#card-space" hx-swap="beforebegin" title="Perform sensitivity analysis">
-  <i class="icon-loop"></i><span class="notxt">Redo</span></a></p>
-<p><a class="btn p-2 d-inline-flex flex-column align-items-center"
-      href="/calc/monte_carlo/" hx-get="/calc/add/?path=monte_carlo/xpr/{{ input.doc.floop | safe }}"
-      hx-target="#card-space" hx-swap="beforebegin" title="Monte Carlo simulation">
-  <i class="icon-cogs"></i><span class="notxt">Simulate</span></a></p>
-{% endif %}
+
+    </div>
+  </div>
 </div>
-<!-- end:insert-calculator-section-outbtns -->
-
-  <div id="status-{{ input.cid }}" class="status"></div>
-    <!--/table-->
-    {% if input.doc.info.outcol|length > 0 %}
-  </div>
-  <div class="col">{% endif %}
-  <div class="section-output2">
-    {% for field in output.form %}
-    {% if field.name in input.doc.info.outcol %}
-    <!-- begin:insert-calculator-section-output -->
-{% load qfilter %}
-{% if field|showlabel %}
-<div class="mt-1">{{ field.label_tag }}</div>
-{% endif %}
-{{ field | safe }}
-{% if '_uom' in field.name %}
-<a href="/calc/conv/"
-   hx-get="/calc/add/?path=conv/value/{{field.name|qtyval:output.form}}/from_unit/{{field.value|deslash}}/unit_cost/-/---/"
-   hx-target="#card-space" hx-swap="beforebegin">
-  <i class="icon-balance qty-s"></i>
-</a>
-{% endif %}
-<span class="helptext">{{ field.help_text }}</span>
-<!-- end:insert-calculator-section-output -->
-
-    {% endif %}
-    {% endfor %}
-  </div>
-    {% if input.doc.info.outcol|length > 0 %}
-  </div>
-</div>{% endif %}
-  </div>
-<br>
 {% isdebug as dbg %}
 {% if user.is_staff or dbg %}<!-- begin:insert-calculator-section-ioinfo -->
 {% load qfilter %}
@@ -388,4 +283,5 @@ $(document).ready(function(){
 </script>
 <!-- end:insert-calculator-section-scripts -->
 
-<!-- social -->
+
+

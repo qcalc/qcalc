@@ -90,7 +90,7 @@
   }
 
 body {
-  font-family: 'Roboto', 'Open Sans', 'Lato', 'Montserrat', Arial, sans-serif;
+  font-family: 'Roboto', 'Open Sans', 'Lato', Arial, sans-serif;
   font-weight: v.$font-weight;
   font-size: v.$body-font-size;
   line-height: 1.6;
@@ -135,12 +135,22 @@ label.required::after {
   padding-bottom: 1rem;
   }
 
+.section-input1 {
+  background-color: v.$background-section-input;
+  padding-top: 0.25rem;
+  padding-bottom: 1rem;
+  }
+
+.section-input2 {
+  background-color: v.$background-section-input;
+  padding-top: 0.25rem;
+  padding-bottom: 1rem;
+  }
+
 .section-output1 {
   background-color: v.$background-section-output1;
   padding-top: 0.25rem;
   padding-bottom: 1rem;
-  margin-right: -.625rem;
-  margin-left: -.625rem;
   padding-right: 0.625rem;
   padding-left: 0.625rem;
   }
@@ -149,8 +159,6 @@ label.required::after {
   background-color: v.$background-section-output2;
   padding-top: 0.25rem;
   padding-bottom: 1rem;
-  margin-right: -.625rem;
-  margin-left: -.625rem;
   padding-right: 0.625rem;
   padding-left: 0.625rem;
   }

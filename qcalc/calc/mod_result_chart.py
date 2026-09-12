@@ -6,7 +6,7 @@ import datetime
 
 from .mod_result import result_values
 from qcore import Qty, QChart
-from qutil import css2strs, variable_to_title, title_to_variable, idx2names
+from qutil import css2strs, variable_to_title, title_to_variable, specified_args
 
 
 class QResults:
@@ -205,7 +205,8 @@ class QResults:
         """Parse ``self.table_columns``/``self.table_units`` into variable-name keys."""
         table_columns = self.table_columns
         table_units = self.table_units
-        y_columns = idx2names(table_columns, self._all_columns) if table_columns != '' else []
+        # y_columns = idx2names(table_columns, self._all_columns) if table_columns != '' else []
+        y_columns = specified_args(self._all_columns, table_columns) if table_columns != '' else []
         ukeys = css2strs(table_units) if table_units != '' else []
 
         y_columns = [title_to_variable(rkey.strip()) for rkey in y_columns]
@@ -217,7 +218,8 @@ class QResults:
 
         ``chart_units`` is unused by histograms, which only ever chart one column.
         """
-        ckeys = idx2names(self.chart_columns, self._all_columns) if self.chart_columns != '' else []
+        # ckeys = idx2names(self.chart_columns, self._all_columns) if self.chart_columns != '' else []
+        ckeys = specified_args(self._all_columns, self.chart_columns) if self.chart_columns != '' else []
         cukeys = css2strs(self.chart_units) if self.chart_units != '' else []
 
         ckeys = [title_to_variable(ckey.strip()) for ckey in ckeys]

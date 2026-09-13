@@ -119,6 +119,7 @@ def mycal__info():
         },
         'calculate': 'Save',
         'kins': 'eva',
+        'layout': 'tb',
     }
 
 

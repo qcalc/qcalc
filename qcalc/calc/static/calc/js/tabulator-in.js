@@ -192,8 +192,8 @@
     // (#output-part-cid); table structural commands (Update/Resize/Edit)
     // need the whole form re-rendered, so ask the shared helper for a
     // full-form submit (qcalc.js handles the swap retarget, server routes it).
-    function submitWithFullFormSwap(form, calcBtnId) {
-        window.qcalc_FullFormSubmit(form, calcBtnId);
+    function submitWithFullFormSwap(cid) {
+        window.qcalc_FullFormSubmit(cid);
     }
 
     function bindTableButtons(tableId) {
@@ -233,9 +233,8 @@
                 }
                 const cid = getCidOf($(this));
                 const extraFieldId = "extra_" + cid;
-                const calcBtnId = "calculate_" + cid;
                 $("#" + extraFieldId).val(JSON.stringify({"cmd": "resize"}));
-                submitWithFullFormSwap(form, calcBtnId);
+                submitWithFullFormSwap(cid);
             });
             resizeButton.data("qcalc_Bound", "1");
         }
@@ -251,10 +250,9 @@
                 setUpdateButtonEnabled(tableId, false);
                 const cid = getCidOf($(this));
                 const extraFieldId = "extra_" + cid;
-                const calcBtnId = "calculate_" + cid;
                 const extra = JSON.stringify({"cmd": this.innerText});
                 $("#" + extraFieldId).val(extra);
-                submitWithFullFormSwap(form, calcBtnId);
+                submitWithFullFormSwap(cid);
             });
             edButton.data("qcalc_Bound", "1");
         }

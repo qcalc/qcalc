@@ -94,15 +94,11 @@ $(document).ready(function() {
     load_button_id = 'id_' + getCid() + '_@load';
     $("#"+load_button_id).on("click", function() {
         cid = getCidOf($(this));
-        extra_field_id = "extra_" + cid;
-        calc_btn_id = "calculate_" + cid;
-        table_id = this.id.replace("_@load", "").replace("id_","");
-        extra = JSON.stringify({
+        updateExtra(cid, {
             "cmd":"load", "from": "@upload_csv", "to": "@csv_table",
             "delimiter":"@delimiter", "quoting": "@quoting", "url": "@csv_url"
             });
-        $("#"+extra_field_id).val(extra); //should update instead of asigning
-        $("#"+calc_btn_id).trigger("click");
+        qcalc_FullFormSubmit(cid);
     });
 });
             """

@@ -227,8 +227,8 @@ def q11422_form_data_modify_after_post(request, func_id, sig_type, arg_name, arg
         elif request.cmd == '__modify' and (
             arg_name in request.extra.get('args', []) or arg_name in request.extra.get('kwargs', {})):
             # | start callback point __modify (q11422, view_form_data.py, line 197)
-            # | func__modify(request, argname, argvalue, action), request.POST[] available
-            # | modify input value of a specific arguement after posting
+            # | func__modify(argname, argvalue, action), request.POST[] available
+            # | modify input value of a specific argument after posting
             cfunc = func_id + '__modify'
             if QCals.func_exists(cfunc):
                 modify_callback = QCals.addr(cfunc)

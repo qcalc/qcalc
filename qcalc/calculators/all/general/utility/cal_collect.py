@@ -7,7 +7,7 @@ from calc import QKeep, valid_numq, QData
 import json
 from qutil import find_matched_variables, addcal_button
 from calculators.all.general.chart.cal_chart import pie_chart
-from qcore import qhtml, qtable, Qty, _unit_tree, qformat_q
+from qcore import qhtml, qtable, Qty, _unit_tree, qformat_q, qformat_qstr
 
 
 def collect__input(_kwargs):  # | kwargs required
@@ -88,6 +88,15 @@ def collect(output: qtable = pd.DataFrame({"SL": [1, 2], "Value": [
 #             raise Exception('No Rates loaded. Click on [Open Rates] to update and load')
 #     return arg_value
 
+def cost__input(kwargs):
+    # probably it is better to restrict invoking __input() during GET only
+    items = kwargs.get('items') # kwargs data available only during GET
+    if isinstance(items, pd.DataFrame): # can't have if items, truth value of df is ambiguous
+        items['Quantity'] = items['Quantity'].apply(qformat_qstr) # format data
+        return {'items': items}
+
+    return {}
+
 def cost__modify(arg_name, arg_value, _action):  # _action not used but required
     if arg_name == 'items':
         items = arg_value
@@ -115,14 +124,15 @@ def cost__modify(arg_name, arg_value, _action):  # _action not used but required
 
     return arg_value
 
+
 def cost__info():
     return {
         'title': 'Calculate Cost',
         'inserts': {
             'form_bottom': addcal_button('rates', 'Schedule of Rates') +
-                      '<button type="button" class="btn btn-info btncmd ml-2 cmd-rates" '
-                      'name="apply_rate">Apply Rates</button>'
-            # cmd_btn('cost','callback',['items'],'Apply Rates 2') # not good for scripting
+                           '<button type="button" class="btn btn-info btncmd ml-2 cmd-rates" '
+                           'name="apply_rate">Apply Rates</button>'
+            # command_button() # not good for scripting
         },
         'step2': [
             {'step': 'chart', 'caption': 'Modify Chart', 'spec': {'field': 'Chart'}}
@@ -132,9 +142,8 @@ $(document).ready(function() {
     $(".cmd-rates").on("click", function() {
         updateAllData($(this));
         cid = getCidOf($(this));
-        calc_btn_id = "calculate_" + cid;
-        updateExtra(cid, {"cmd":"__modify", "args":["@items"]})
-        $("#"+calc_btn_id).trigger("click");
+        updateExtra(cid, {"cmd":"__modify", "args":["@items"]});
+        qcalc_FullFormSubmit(cid);
     });
 });
         '''

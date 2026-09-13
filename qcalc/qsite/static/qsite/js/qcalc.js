@@ -7,8 +7,7 @@
 // A "structural" submit is one whose response must replace the WHOLE form
 // (e.g. input-table Resize/Edit re-renders the table's own markup), as
 // opposed to a normal submit whose response only refreshes the output
-// region (#output-part-<cid>). This is orthogonal to interactive mode -
-// it applies to any calculator form, interactive or not.
+// region (#output-part-<cid>).
 (function() {
     document.addEventListener('htmx:configRequest', function(event) {
         var detail = event.detail || {};
@@ -489,7 +488,8 @@ function calClick(cid){
 // Works for any calculator form, interactive or not. For interactive forms
 // the response re-carries the normal interactive hx-target and
 // interactive.js re-initializes on htmx:afterSwap, restoring interactivity.
-function qcalc_FullFormSubmit(form, calcBtnId){
+function qcalc_FullFormSubmit(cid){
+    const form = document.getElementById('form-' + cid);
     if (!form) {
         return;
     }
@@ -500,7 +500,7 @@ function qcalc_FullFormSubmit(form, calcBtnId){
     form.setAttribute('hx-vals', '{"qcalc_structural_cmd": "1"}');
     form.setAttribute('hx-target', 'this');
     form.setAttribute('hx-swap', 'innerHTML');
-    $('#' + calcBtnId).trigger('click');
+    $('#calculate_' + cid).trigger('click');
 }
 
 function calWithCmd(cid, fname, cmd){ // cmd='save_input', 'save_io', 'save_var', 'create_var'

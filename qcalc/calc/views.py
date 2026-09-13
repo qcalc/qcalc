@@ -262,6 +262,8 @@ def q1199_func_to_form_common(request: HtmxHttpRequest, **dictf):  # main view
         q1149_func_to_form_context(request, sfunc, cid, kwargs)
     except Exception as e:
         request.success &= False
+        if settings.DEBUG:
+            traceback.print_exc()
         e.args = (f"Error (FTFC) {str(e)}",)
         raise e
 

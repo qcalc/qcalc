@@ -189,18 +189,21 @@ label.required::after {
   background-color: rgba(255, 255, 255, 0.85);
   padding-top: 0.25rem;
   padding-bottom: 1rem;
+  min-width: 300px;
 }
 
 .section-input1 {
   background-color: rgba(255, 255, 255, 0.85);
   padding-top: 0.25rem;
   padding-bottom: 1rem;
+  min-width: 300px;
 }
 
 .section-input2 {
   background-color: rgba(255, 255, 255, 0.85);
   padding-top: 0.25rem;
   padding-bottom: 1rem;
+  min-width: 300px;
 }
 
 .section-output1 {
@@ -209,6 +212,7 @@ label.required::after {
   padding-bottom: 1rem;
   padding-right: 0.625rem;
   padding-left: 0.625rem;
+  min-width: 300px;
 }
 
 .section-output2 {
@@ -217,6 +221,7 @@ label.required::after {
   padding-bottom: 1rem;
   padding-right: 0.625rem;
   padding-left: 0.625rem;
+  min-width: 300px;
 }
 
 .btncmd {
@@ -577,7 +582,7 @@ label {
 }
 
 div.calc {
-  min-width: 300px;
+  min-width: 332px;
   container-type: inline-size; /* enables container queries on card width */
   container-name: calc;
 }

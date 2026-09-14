@@ -7,7 +7,7 @@ __version_info__ = tuple(
         for num in __version__.replace("-", ".", 1).split(".")
     ]
 )
-STATIC_VERSION = '1.3.16'
+STATIC_VERSION = '1.3.17'
 sitemap_lastmod = {
     "page": "2024-08-03",
     "doc": "2026-09-09",

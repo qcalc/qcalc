@@ -88,6 +88,9 @@ def csv_editor__info():
                 'help_text': delimiter_help_text,
             }
         },
+        # Prefix calculator arguments with @ so this script can call the
+        # calculator function correctly when reused from another calculator.
+        # The prefix is resolved by flatten_finfo() before the script is rendered.
         'script':
             """
 $(document).ready(function() {

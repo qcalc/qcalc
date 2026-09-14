@@ -50,11 +50,24 @@
                 },
                 body: JSON.stringify({ command: command })
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Request failed (${response.status})`);
+                }
+                return response.json();
+            })
             .then(data => {
                 const responseLine = document.createElement('div');
                 responseLine.style.whiteSpace = 'pre-wrap';
                 responseLine.textContent = data.response;
+                qconsole.insertBefore(responseLine, commandLine.nextSibling);
+                commandLine = appendNewCommandLine();
+                qconsole.scrollTop = qconsole.scrollHeight;
+            })
+            .catch(error => {
+                const responseLine = document.createElement('div');
+                responseLine.style.whiteSpace = 'pre-wrap';
+                responseLine.textContent = `Console error: ${error.message}`;
                 qconsole.insertBefore(responseLine, commandLine.nextSibling);
                 commandLine = appendNewCommandLine();
                 qconsole.scrollTop = qconsole.scrollHeight;

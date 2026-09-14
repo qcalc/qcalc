@@ -3,7 +3,7 @@
 
 import unittest
 import qsett
-from calculators.all.others.cal_others import gold
+from calculators.all.family.cal_others import gold
 qsett.init()
 
 class TestGoldFunction(unittest.TestCase):

@@ -567,39 +567,70 @@ label {
 }
 
 div.calc {
-  min-width: 375px;
+  min-width: 300px;
   container-type: inline-size; /* enables container queries on card width */
+  container-name: calc;
 }
 
-/* >= 1568px */
+/* On wide viewports, preserve enough width for comfortable calculator use. */
 @media screen and (min-width: 1568px) {
   div.calc {
     min-width: 500px;
   }
 }
-/* >= 410px */
-@media screen and (min-width: 421px) {
+@container calc (min-width: 350px) {
   .calimg {
     display: none;
   }
+  .caltxt {
+    display: inline-block;
+  }
 }
-/* <= 409px */
-@media screen and (max-width: 420px) {
-  .notxt {
-    /* hide caption on small screen */
+@container calc (max-width: 351px) {
+  .calimg {
+    display: inline-block;
+  }
+  .caltxt {
     display: none;
   }
+  /*
   .btncal {
-    height: 36px;
-    width: 36px;
-    padding-left: 8px;
+    height: 28px;
+    width: 28px;
+    padding-left: 5px;
+    padding-top: 3px;
   }
+  */
+}
+.outbtn {
+  padding: 6px !important;
+  font-size: 0.82rem;
+  display: inline-flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+}
+
+/* Card is narrow */
+@container calc (max-width: 420px) {
+  /*
+    .btncal {
+      height: 36px;
+      width: 36px;
+      padding-left: 8px;
+    }
+  */
   /* sizes - medium */
   .chr {
     width: 9rem;
   }
   .uom {
     width: 9rem;
+  }
+  .uom {
+    width: 9rem;
+  }
+  .uom + .select2-container {
+    width: 9rem !important;
   }
   .val {
     width: 9rem;
@@ -616,17 +647,26 @@ div.calc {
   .uom-q {
     width: 9rem;
   }
+  .uom-q + .select2-container {
+    width: 9rem !important;
+  }
   .val-pq {
     width: 9rem;
   }
   .uom-pq {
     width: 9rem;
   }
+  .uom-pq + .select2-container {
+    width: 9rem !important;
+  }
   .oval-q {
     width: 9rem;
   }
   .ouom-q {
     width: 7rem;
+  }
+  .ouom-q + .select2-container {
+    width: 7rem !important;
   }
   .inp {
     width: 18.125rem;
@@ -639,17 +679,17 @@ div.calc {
     min-width: 200px !important;
   }
 }
-/* <= 369px */
-@media screen and (max-width: 375px) {
-  div.calc {
-    min-width: 300px;
-  }
+/* Very narrow card */
+@container calc (max-width: 375px) {
   /* sizes small */
   .chr {
     width: 8rem;
   }
   .uom {
     width: 8rem;
+  }
+  .uom + .select2-container {
+    width: 8rem !important;
   }
   .val {
     width: 8rem;
@@ -666,17 +706,26 @@ div.calc {
   .uom-q {
     width: 8rem;
   }
+  .uom-q + .select2-container {
+    width: 8rem !important;
+  }
   .val-pq {
     width: 8rem;
   }
   .uom-pq {
     width: 8rem;
   }
+  .uom-pq + .select2-container {
+    width: 8rem !important;
+  }
   .oval-q {
     width: 8rem;
   }
   .ouom-q {
     width: 6rem;
+  }
+  .ouom-q + .select2-container {
+    width: 6rem !important;
   }
   .inp {
     width: 16.125rem;
@@ -685,17 +734,24 @@ div.calc {
     width: 16.125rem;
     height: 5rem;
   }
-  .btnimg, .btncal {
-    height: 28px;
-    width: 28px;
-    padding-left: 5px;
-    padding-top: 3px;
-  }
-}
-/* hide calculator menu button when the card itself is narrow */
-@container (max-width: 375px) {
+  /*
+    .btnimg {
+      height: 28px;
+      width: 28px;
+      padding-left: 5px;
+      padding-top: 3px;
+    }
+  */
   .btnimg.dropdown-toggle {
     display: none;
+  }
+  .notxt {
+    /* hide caption on small screen */
+    display: none;
+  }
+  .outbtn {
+    display: inline-block !important;
+    padding: 0.4375rem 0.875rem !important;
   }
 }
 span.mark2 {

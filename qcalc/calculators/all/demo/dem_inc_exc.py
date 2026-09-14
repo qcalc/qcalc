@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
-from calculators.all.others.cal_others import gold
+from calculators.all.family.cal_others import gold
 from qcore import qfunc
 
 

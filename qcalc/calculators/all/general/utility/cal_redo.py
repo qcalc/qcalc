@@ -15,6 +15,11 @@ def redo__info():
         'title': 'Redo Calculation',
         'desc': 'Repeat calculation by changing value of a variable',
         'schema': {
+            'variation_target': {
+                'type': 'choice',
+                'choices': {'p': 'Parameters', 'v': 'Variables'},
+                'help_text': 'Select what to vary: parameters of a function or variables of an expression',
+            },
             'show': show_choice,
             'chart_type': {'type': 'choice', 'choices': ['lines', 'bars', 'stack']},
         },
@@ -25,7 +30,7 @@ def redo__info():
     }
 
 
-def redo(xpr: qcode = "sine('x deg')", variable: qchar = 'x',
+def redo(variation_target='v', xpr: qcode = "sine('x deg')", variable: qchar = 'x',
          variation_start=0.0, variation_stop=360.0, variation_step=10.0, step_round_off=2,
          table_columns: str = '', table_units: str = '', chart_columns: str = '', chart_units: str = '', show='both',
          chart_title: str = '', chart_type='lines'):
@@ -39,7 +44,9 @@ def redo(xpr: qcode = "sine('x deg')", variable: qchar = 'x',
 
     v_range = valid_range(variation_start, variation_stop, variation_step)
     var_vals = [round(x, step_round_off) for x in v_range]
-    results, xvals = scalar_results(xpr=xpr, variable=variable, var_vals=var_vals)
+    results, xvals = scalar_results(
+        xpr=xpr, variable=variable, var_vals=var_vals, variation_target=variation_target
+    )
 
     qr = QResults(results, xvals=xvals, variable=variable,
                   table_columns=table_columns, table_units=table_units, show=show)

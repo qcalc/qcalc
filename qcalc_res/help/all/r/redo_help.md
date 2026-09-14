@@ -51,6 +51,18 @@ retirement_sustainability(
 )
 ```
 
+### Vary By
+
+Select what the sweep changes:
+
+- `Parameters` (`p`) replaces a named parameter value inside a calculator
+    call, such as `inflation='x pct/yr'`.
+- `Variables` (`v`) replaces a standalone expression variable, such as `x`
+    in `x + 10`.
+
+Use `Parameters` for calculator or function arguments and `Variables` for
+direct expression variables. The default is `Parameters`.
+
 ### Variable
 
 The variable name to replace at each sweep point. For the examples above, use:

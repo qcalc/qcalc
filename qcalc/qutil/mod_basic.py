@@ -183,6 +183,129 @@ def replace_variables(str_to_replace, variables_dict, case_sensitive=True):
 
     return replaced_str
 
+import re
+
+
+def replace_parameter_values(
+    xpr_to_replace: str,
+    parameters_dict: dict,
+    case_sensitive: bool = False,
+) -> str:
+    """
+    Replace parameter values in a calculator expression.
+
+    Examples:
+        xpr = (
+            "ac_running_cost("
+            "power='1.3 kW', "
+            "usage='150.0 hr/mo', "
+            "electricity_rate='10.0 BDT/kWh', "
+            "operating_factor=0.8, "
+            "days='30.0 day'"
+            ")"
+        )
+
+        parameters = {
+            "power": 1.25,
+            "operating_factor": 0.75,
+        }
+
+        result:
+            ac_running_cost(
+                power='1.25 kW',
+                usage='150.0 hr/mo',
+                electricity_rate='10.0 BDT/kWh',
+                operating_factor=0.75,
+                days='30.0 day'
+            )
+    """
+
+    flags = 0 if case_sensitive else re.IGNORECASE
+
+    # Matches:
+    #   parameter='1.3 kW'
+    #   parameter="1.3 kW"
+    #   parameter=0.8
+    #   parameter=-12
+    #   parameter=1.25
+    pattern = re.compile(
+        r"""
+        (?P<name>[A-Za-z_]\w*)
+        (\s*=\s*)
+        (?:
+            (?P<quote>['"])
+            (?P<quantity>
+                [+-]?(?:\d+(?:\.\d*)?|\.\d+)
+                \s+
+                [^'"]+
+            )
+            (?P=quote)
+          |
+            (?P<number>
+                [+-]?(?:\d+(?:\.\d*)?|\.\d+)
+            )
+        )
+        """,
+        re.VERBOSE | flags,
+    )
+
+    def replace(match):
+        name = match.group("name")
+
+        # Find the actual dictionary key, respecting case_sensitive.
+        if case_sensitive:
+            if name not in parameters_dict:
+                return match.group(0)
+            key = name
+        else:
+            key = next(
+                (
+                    k
+                    for k in parameters_dict
+                    if k.lower() == name.lower()
+                ),
+                None,
+            )
+            if key is None:
+                return match.group(0)
+
+        value = parameters_dict[key]
+
+        # Preserve the original unit for quoted quantities.
+        if match.group("quantity") is not None:
+            quantity = match.group("quantity")
+
+            unit_match = re.search(
+                r"""
+                [+-]?(?:\d+(?:\.\d*)?|\.\d+)
+                (?P<space>\s+)
+                (?P<unit>.+)
+                """,
+                quantity,
+                re.VERBOSE,
+            )
+
+            if not unit_match:
+                return match.group(0)
+
+            unit = unit_match.group("unit")
+
+            return (
+                f"{name}"
+                f"{match.group(2)}"
+                f"{match.group('quote')}"
+                f"{value} {unit}"
+                f"{match.group('quote')}"
+            )
+
+        # Plain numeric parameter.
+        return (
+            f"{name}"
+            f"{match.group(2)}"
+            f"{value}"
+        )
+
+    return pattern.sub(replace, xpr_to_replace)
 
 def key_val(spath):
     # ref: https://stackoverflow.com/questions/28128942/

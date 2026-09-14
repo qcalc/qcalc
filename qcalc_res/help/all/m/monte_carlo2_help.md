@@ -60,6 +60,18 @@ The default expression is:
 x + y
 ```
 
+### Vary By
+
+Select what the sampled values change:
+
+- `Parameters` (`p`) replaces named parameter values inside a calculator
+  call.
+- `Variables` (`v`) replaces standalone variables in an expression, such as
+  `x + y`.
+
+Use `Parameters` for calculator or function arguments and `Variables` for
+direct expression variables. The default is `Parameters`.
+
 For a multi-variable calculation, every variable that should be sampled must
 be represented by its name in the expression. For example:
 

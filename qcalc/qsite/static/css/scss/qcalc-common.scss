@@ -491,49 +491,81 @@ label {
   }
 
 div.calc {
-  min-width:375px;
+  min-width:300px;
   container-type: inline-size; /* enables container queries on card width */
-  }
+  container-name: calc;
+}
 
-/* >= 1568px */
+
+/* On wide viewports, preserve enough width for comfortable calculator use. */
 @media screen and (min-width: 1568px) {
   div.calc {
     min-width:500px;
   }
 }
-/* >= 410px */
-@media screen and (min-width: 421px) {
+
+
+@container calc (min-width: 350px) {
   .calimg {
     display: none;
   }
+  .caltxt {
+    display: inline-block;
+  }
 }
 
-/* <= 409px */
-@media screen and (max-width: 420px){
-
-  .notxt {
-    /* hide caption on small screen */
+@container calc (max-width: 351px) {
+  .calimg {
+    display: inline-block;
+  }
+  .caltxt {
     display: none;
   }
+  /*
+  .btncal {
+    height: 28px;
+    width: 28px;
+    padding-left: 5px;
+    padding-top: 3px;
+  }
+  */
+}
 
+.outbtn {
+  padding: 6px !important;
+  font-size: v.$footer-font-size;
+  // Equivalent to d-inline-flex flex-column align-items-center
+  display: inline-flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+}
+
+/* Card is narrow */
+@container calc (max-width: 420px){
+/*
   .btncal {
     height: 36px;
     width: 36px;
     padding-left: 8px;
   }
-
+*/
   /* sizes - medium */
   .chr    {width: v.$val-m;}
   .uom    {width: v.$val-m;}
+  .uom    {width: v.$val-m;}
+  .uom + .select2-container {width: v.$val-m !important;}
   .val    {width: v.$val-m;}
   .val-p  {width: v.$val-m;}
   .val-pp {width: v.$uom-q-m;}
   .val-q  {width: v.$val-m;}
   .uom-q  {width: v.$uom-q-m;}
+  .uom-q + .select2-container {width: v.$uom-q-m !important;}
   .val-pq {width: v.$val-pq-m;}
   .uom-pq {width: v.$uom-pq-m;}
+  .uom-pq + .select2-container {width: v.$uom-pq-m !important;}
   .oval-q {width: v.$val-m;}
   .ouom-q {width: v.$ouom-q-m;}
+  .ouom-q + .select2-container {width: v.$ouom-q-m !important;}
   .inp    {width: v.$inp-m;}
   .texta  {width: v.$inp-m; height: 5rem;}
 
@@ -542,39 +574,48 @@ div.calc {
   }
 }
 
-/* <= 369px */
-@media screen and (max-width: 375px) {
-  div.calc {
-    min-width:300px;
-  }
+
+/* Very narrow card */
+@container calc (max-width: 375px) {
 
   /* sizes small */
   .chr    {width: v.$val-s;}
   .uom    {width: v.$val-s;}
+  .uom + .select2-container {width: v.$val-s !important;}
   .val    {width: v.$val-s;}
   .val-p  {width: v.$val-s;}
   .val-pp {width: v.$uom-q-s;}
   .val-q  {width: v.$val-s;}
   .uom-q  {width: v.$uom-q-s;}
+  .uom-q + .select2-container {width: v.$uom-q-s !important;}
   .val-pq {width: v.$val-pq-s;}
   .uom-pq {width: v.$uom-pq-s;}
+  .uom-pq + .select2-container {width: v.$uom-pq-s !important;}
   .oval-q {width: v.$val-s;}
   .ouom-q {width: v.$ouom-q-s;}
+  .ouom-q + .select2-container {width: v.$ouom-q-s !important;}
   .inp    {width: v.$inp-s;}
   .texta  {width: v.$inp-s; height: 5rem;}
-
-  .btnimg, .btncal {
+/*
+  .btnimg {
     height: 28px;
     width: 28px;
     padding-left: 5px;
     padding-top: 3px;
   }
-}
-
-/* hide calculator menu button when the card itself is narrow */
-@container (max-width: 375px) {
+*/
   .btnimg.dropdown-toggle {
     display: none;
+  }
+
+  .notxt {
+    /* hide caption on small screen */
+    display: none;
+  }
+
+  .outbtn {
+    display: inline-block !important;
+    padding: 0.4375rem 0.875rem !important;
   }
 }
 

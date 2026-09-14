@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
-from qutil import title_to_variable, replace_words, replace_variables
+from qutil import title_to_variable, replace_words, replace_variables, replace_parameter_values
 from qcore import isMeasureQuantity as isPQ
 
 
@@ -9,9 +9,10 @@ def is_scalar(value):
     return isPQ(value) or isinstance(value, float) or isinstance(value, int) or value is None
 
 
-def scalar_results(xpr: str, variable: str, var_vals: list):
+def scalar_results(xpr: str, variable: str, var_vals: list, variation_target: str = 'p'):
     # imported lazily: eva -> cal_eva -> "from calc import QCals" would otherwise
     # circular-import back into this module while calc/__init__.py is still loading
+    # variation target can be 'p' (parameters in a function/calculator) or 'v' (variables in an expression)
     from calculators.all.general.cal_eva import eva
 
     def filter_scalar(result) -> dict | list | None:
@@ -39,9 +40,16 @@ def scalar_results(xpr: str, variable: str, var_vals: list):
     xvals = []
     for var_val in var_vals:
         if isinstance(var_val, dict):
-            code = replace_variables(xpr, var_val)
+            if variation_target == 'p':
+                code = replace_parameter_values(xpr, var_val)
+            else: # 'v'
+                code = replace_variables(xpr, var_val)
         else:
-            code = replace_words(xpr, [variable], str(var_val))
+            if variation_target == 'p':
+                code = replace_parameter_values(xpr, {variable: var_val})
+            else: # 'v'
+                code = replace_variables(xpr, {variable: str(var_val)})
+                # code = replace_words(xpr, [variable], str(var_val))
         try:
             result = eva(code=code)
         except Exception:

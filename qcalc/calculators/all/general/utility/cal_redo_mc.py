@@ -17,6 +17,11 @@ def monte_carlo__info():
         'desc': 'Repeat a calculation many times while sampling a variable from a probability '
                 'distribution, then chart the resulting distribution of outcomes',
         'schema': {
+            'variation_target': {
+                'type': 'choice',
+                'choices': {'p': 'Parameters', 'v': 'Variables'},
+                'help_text': 'Select what to vary: parameters of a function or variables of an expression',
+            },
             'show': show_choice,
             'distribution': {'type': 'choice', 'choices': ['normal', 'uniform', 'triangular', 'lognormal']},
             'param1': {'help_text': 'normal: mean; uniform/triangular: low; lognormal: mu (of underlying normal)'},
@@ -33,7 +38,7 @@ def monte_carlo__info():
     }
 
 
-def monte_carlo(xpr: qcode = "sine('x deg')", variable: qchar = 'x',
+def monte_carlo(variation_target='v', xpr: qcode = "sine('x deg')", variable: qchar = 'x',
                 distribution='normal', param1=0.0, param2=1.0, param3=None,
                 trials: int = 100, bin_count=20, round_off=4,
                 table_columns: str = '', table_units: str = '', histo_column: str = '',
@@ -73,7 +78,9 @@ def monte_carlo(xpr: qcode = "sine('x deg')", variable: qchar = 'x',
         raise Exception(f"Unknown distribution '{distribution}'")
 
     var_vals = [round(float(s), round_off) for s in samples]
-    results, xvals = scalar_results(xpr=xpr, variable=variable, var_vals=var_vals)
+    results, xvals = scalar_results(
+        xpr=xpr, variable=variable, var_vals=var_vals, variation_target=variation_target
+    )
 
     qr = QResults(results, xvals=xvals, variable=variable,
                   table_columns=table_columns, table_units=table_units, show=show)
@@ -134,6 +141,11 @@ def monte_carlo2__info():
         'desc': 'Repeat a calculation while sampling multiple variables independently, '
                 'with an optional correlated pair',
         'schema': {
+            'variation_target': {
+                'type': 'choice',
+                'choices': {'p': 'Parameters', 'v': 'Variables'},
+                'help_text': 'Select what to vary: parameters of a function or variables of an expression',
+            },
             'show': show_choice,
             'distributions': {
                 'help_text': 'One distribution per variable, separated by comma\n options: normal, uniform, triangular, lognormal', },
@@ -153,6 +165,7 @@ def monte_carlo2__info():
 
 
 def monte_carlo2(
+    variation_target='v',
     xpr: qcode = 'x + y',
     variables: qtexta = 'x, y',
     distributions: str = 'normal, normal',
@@ -229,7 +242,9 @@ def monte_carlo2(
         {name: str(round(float(samples[name][trial]), round_off)) for name in names}
         for trial in range(trials)
     ]
-    results, xvals = scalar_results(xpr=xpr, variable=variables, var_vals=trial_values)
+    results, xvals = scalar_results(
+        xpr=xpr, variable=variables, var_vals=trial_values, variation_target=variation_target
+    )
     qr = QResults(results, xvals=xvals, variable=variables, table_columns=table_columns, table_units=table_units,
                   show=show)
     qr.setup_histo(histo_column=histo_column, bin_count=bin_count, chart_title=chart_title)

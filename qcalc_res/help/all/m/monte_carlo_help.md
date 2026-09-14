@@ -40,6 +40,18 @@ The default expression is:
 sine('x deg')
 ```
 
+### Vary By
+
+Select what each sampled value changes:
+
+- `Parameters` (`p`) replaces a named parameter inside a calculator call,
+    such as `inflation='x pct/yr'`.
+- `Variables` (`v`) replaces a standalone expression variable, such as `x`
+    in `x * 120` or `sine('x deg')`.
+
+Use `Parameters` for calculator or function arguments and `Variables` for
+direct expression variables. The default is `Parameters`.
+
 ### Variable
 
 The variable name to replace with a randomly sampled value on each trial, for example:

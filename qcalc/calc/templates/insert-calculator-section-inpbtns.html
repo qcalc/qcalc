@@ -1,8 +1,9 @@
 <!-- begin:insert-calculator-section-inpbtns -->
 {% load qfilter %}
 {% if 'form_bottom' in input.doc.info.inserts %}
+<div class="w-100">
 {{ input.doc.info.inserts.form_bottom | safe }}
-
+</div>
 {% endif %}
 <div class="btn-group mt-2 section-inpbtns w-100">
   <p>
@@ -11,7 +12,7 @@
       title="Calculate"
     >
     <span class="calculate-content">
-      <i class="icon-enter5 calimg"></i><span class="notxt">{{ input.doc.info.calculate }}</span>
+      <i class="icon-enter5 calimg"></i><span class="caltxt">{{ input.doc.info.calculate }}</span>
     </span>
     <span class="htmx-indicator calculate-spinner">
       <div class="spinner"></div>

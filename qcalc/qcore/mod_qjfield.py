@@ -73,7 +73,7 @@ class QJField:  # 11422
         elif arg_type in [qfl, 'qfl']:
             self.jf['type'] = 'float'
             self.jf['attrs']['class'] = 'val-p'
-        elif arg_type in [qfunc, 'qfunc', qhide, 'qhide']: # | pass the value to function call, e.g. __info
+        elif arg_type in [qfunc, 'qfunc', qhide, 'qhide']:  # | pass the value to function call, e.g. __info
             self.jf['type'] = 'hidden'
         elif arg_type in [qhidex, 'qhidex']:
             self.jf['type'] = 'hidden'
@@ -363,7 +363,7 @@ class QJField:  # 11422
             self.jf['initial'] = value
         else:
             # | a potential iso datetime string can be between 5-32 characters
-            qdate = QDateTime(value)
+            qdate = QDateTime(value)  # risk
             if qdate.dt_value is None:
                 self.jf['type'] = 'text'  # type='char'
                 self.jf['attrs']['class'] = 'unknown'

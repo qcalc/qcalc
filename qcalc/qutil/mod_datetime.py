@@ -39,28 +39,43 @@ class QDateTime:
         return (not cls._looks_like_time_only(value)) and (not cls._has_explicit_time(value))
 
     def __init__(self, sdatetime_iso_qc: str | date | datetime | dt_time):
+        self.dt_value = None
+
         try:
             if isinstance(sdatetime_iso_qc, str):
-                # Normalize custom " UTC..." tokens to ISO-style offsets for dateutil.
-                cleaned = re.sub(r'\sUTC([+-]\d{2}:?\d{2})\b', r' \1', sdatetime_iso_qc)
+                value = sdatetime_iso_qc.strip()
+
+                # Do not allow numeric strings to be interpreted as dates
+                # by dateutil.parser.
+                #
+                # Examples:
+                #   "1"        -> invalid
+                #   "2024"     -> invalid
+                #   "230721"   -> invalid
+                #   "20230721" -> invalid
+                if value.isdigit():
+                    return
+
+                # Normalize custom UTC notation to an offset understood
+                # by dateutil:
+                #
+                #   UTC       -> +0000
+                #   UTC+06:00 -> +06:00
+                #   UTC-05:30 -> -05:30
+                cleaned = re.sub(r'\sUTC([+-]\d{2}:?\d{2})\b', r' \1', value)
                 cleaned = re.sub(r'\sUTC\b', ' +0000', cleaned)
                 parsed = parser.parse(cleaned)
 
-                if self._looks_like_time_only(sdatetime_iso_qc):
+                if self._looks_like_time_only(value):
                     self.dt_value = parsed.timetz() if parsed.tzinfo else parsed.time()
                 elif self._has_explicit_date_only(sdatetime_iso_qc):
                     self.dt_value = parsed.date()
                 else:
                     self.dt_value = parsed
-            elif isinstance(sdatetime_iso_qc, date) and not isinstance(sdatetime_iso_qc, datetime):
+            elif isinstance(sdatetime_iso_qc, (date, dt_time)):
                 self.dt_value = sdatetime_iso_qc
-            elif isinstance(sdatetime_iso_qc, datetime):
-                self.dt_value = sdatetime_iso_qc
-            elif isinstance(sdatetime_iso_qc, dt_time):
-                self.dt_value = sdatetime_iso_qc
-            else:
-                self.dt_value = None
-        except ValueError:
+
+        except (ValueError, OverflowError, TypeError):
             self.dt_value = None
 
     def __str__(self):
@@ -70,6 +85,7 @@ class QDateTime:
     def val(self) -> None | date | datetime | dt_time:
         return self.dt_value  # DateTime or None
 
+    @property
     def date_time(self) -> datetime | None:
         if self.dt_value is None:
             return None
@@ -109,15 +125,15 @@ def qc_datetime_to_str(dtime: datetime | date | dt_time | None):  # qc date/time
     return dtime.strftime(QC_DATETIME_FORMAT)
 
 
-def qc_str_to_datetime(sdatetime_iso_qc: str):
+def qc_str_to_datetime(sdatetime_iso_qc: str): # risk
     return QDateTime(sdatetime_iso_qc).val
 
 
-def qc_str_to_date_and_time(sdatetime_iso_qc: str):
-    return QDateTime(sdatetime_iso_qc).date_time()
+def qc_str_to_date_and_time(sdatetime_iso_qc: str): # risk
+    return QDateTime(sdatetime_iso_qc).date_time
 
 
-def is_str_date(sdatetime_iso_qc: str) -> bool:
+def is_str_date(sdatetime_iso_qc: str) -> bool: # risk
     return QDateTime(sdatetime_iso_qc).is_date
 
 
@@ -202,68 +218,5 @@ def j2iso(jdy: float, tz: tzinfo):
 
 
 if __name__ == '__main__':
-    x = [QDateTime('1.07.1967').dt_value,
-         QDateTime('07.21.2023').dt_value,
-         QDateTime('21.07.2023').dt_value,
-         QDateTime('2023.07.21').dt_value,
-         QDateTime('21-jul-23').dt_value,
-         QDateTime('xx.05.2023').dt_value,
-         QDateTime('2023-07-21').dt_value,  # iso
-         QDateTime('20230721').dt_value,  # iso
-         QDateTime('230721').dt_value]
-    for i in range(len(x)):
-        print(i, x[i])
-    print(qc_str_to_datetime('2023-01-01'), is_str_date('2023-01-01'))
-
-    # Example usage:
-    qdate = QDateTime("2024-09-23")
-    assert qdate.is_date
-    assert (not qdate.is_datetime)
-    assert (not qdate.is_time)
-
-    qdatetime = QDateTime("2024-09-23T10:30:00")
-    assert (not qdatetime.is_date)
-    assert qdatetime.is_datetime
-    assert (not qdatetime.is_time)
-
-    qtime = QDateTime("10:30:01")
-    assert (not qtime.is_date)
-    # assert (not qtime.is_datetime)
-    assert qtime.is_time
-
-    a = QDateTime('2024-09-23')
-    b = QDateTime('18:06')
-    c = QDateTime('18:06:30')
-    d = QDateTime('2024-09-23 18:06:30+06:00')
-    e = QDateTime('2024-09-23 18:06:30.123456+06:00')
-    qc = QDateTime('2024-09-23 18:06:30 UTC+06:00')
-    assert a.is_date
-    assert b.is_time
-    assert c.is_time
-    assert d.is_datetime
-    assert e.is_datetime
-    assert qc.is_datetime
-    print('a', str(a))
-    print('b', str(b))
-    print('c', str(c))
-    print('d', str(d))
-    print('e', str(e))
-    print('qc', str(qc))
-    a = QDateTime(a.val)
-    b = QDateTime(b.val)
-    c = QDateTime(c.val)
-    d = QDateTime(d.val)
-    e = QDateTime(e.val)
-    qc = QDateTime(qc.val)
-    assert a.is_date
-    assert b.is_time
-    assert c.is_time
-    assert d.is_datetime
-    assert e.is_datetime
-    assert qc.is_datetime
-    print('1', str(a))
-    print('2', str(b))
-    print('3', str(c))
-    print('4', str(d))
-    print('5', str(e))
-    print('qc', str(qc))
+    from tests.test_qdatetime import test_qdatetime
+    test_qdatetime()

@@ -13,33 +13,273 @@ from qcore import qhtml
 import datetime
 import decimal
 
-# from qcore import qhtml, qpage
-# from datetime import date, datetime, time as dt_time
+
+_UNSERIALIZED = object()
+
+_SERIALIZE_POLICIES = {
+    'json': {
+        'recursive': False,
+        'q_object_mode': 'string',
+        'unknown_mode': 'sentinel',
+        'cycle_mode': 'sentinel',
+        'allow_type_name': True,
+        'allow_user': True,
+    },
+    'variant': {
+        'recursive': True,
+        'q_object_mode': 'none',
+        'unknown_mode': 'raise',
+        'cycle_mode': 'raise',
+        'allow_type_name': False,
+        'allow_user': False,
+    },
+}
 
 
 class QEncoderBase(DjangoJSONEncoder):
 
     def default(self, obj):
-        if isinstance(obj, (Qty, QDateTime, QFile, QImage, QChart)):
-            return str(obj)
-        if isinstance(obj, (datetime.date, datetime.datetime, datetime.time)):
-            return str(QDateTime(obj))
-        elif isinstance(obj, pd.DataFrame):
-            # return obj.columns.to_list()
-            return obj.to_dict(orient="records")
-        elif isinstance(obj, type):
-            return obj.__name__  # | str(obj) or obj.__name__ if you only want the class name
-        # elif isinstance(obj, User):
-        #     return str(obj)
-        else:
-            from qsite.users.models import User # Lazy import
-            if isinstance(obj, User):
-                return str(obj)
+        encoded = serialize_value(obj, profile='json')
+        if encoded is not _UNSERIALIZED:
+            return encoded
 
+        try:
+            return super().default(obj)
+        except Exception as e:
+            return str(e)  # | don't return e (exception)
+
+
+def serialize_value(value, profile='json', _seen=None):
+    if profile == 'step2':
+        return step2_pack_value(value, _seen)
+
+    policy = _SERIALIZE_POLICIES.get(profile)
+    if policy is not None:
+        return _serialize_common_profile(value, policy, _seen)
+
+    raise ValueError(f'Unsupported profile: {profile}')
+
+
+def deserialize_value(value, profile='variant'):
+    if profile == 'step2':
+        return step2_unpack_for_run(value)
+
+    policy = _SERIALIZE_POLICIES.get(profile)
+    if policy is not None:
+        return _deserialize_common_profile(value, policy)
+
+    raise ValueError(f'Unsupported profile: {profile}')
+
+
+def _serialize_common_profile(value, policy, _seen=None):
+    if _seen is None:
+        _seen = set()
+
+    if policy.get('recursive') and isinstance(value, dict):
+        value_id = id(value)
+        if value_id in _seen:
+            cycle_mode = policy.get('cycle_mode', 'raise')
+            if cycle_mode == 'none':
+                return None
+            if cycle_mode == 'sentinel':
+                return _UNSERIALIZED
+            raise ValueError('Cyclic reference detected while serializing dict')
+
+        _seen.add(value_id)
+        try:
+            return {key: _serialize_common_profile(val, policy, _seen) for key, val in value.items()}
+        finally:
+            _seen.discard(value_id)
+
+    if policy.get('recursive') and isinstance(value, list):
+        value_id = id(value)
+        if value_id in _seen:
+            cycle_mode = policy.get('cycle_mode', 'raise')
+            if cycle_mode == 'none':
+                return None
+            if cycle_mode == 'sentinel':
+                return _UNSERIALIZED
+            raise ValueError('Cyclic reference detected while serializing list')
+
+        _seen.add(value_id)
+        try:
+            return [_serialize_common_profile(item, policy, _seen) for item in value]
+        finally:
+            _seen.discard(value_id)
+
+    if isinstance(value, pd.DataFrame):
+        return value.to_dict(orient='records')
+
+    if isinstance(value, (datetime.date, datetime.time, datetime.datetime)):
+        return str(QDateTime(value))
+
+    if isinstance(value, QDateTime):
+        return str(value)
+
+    if isinstance(value, Qty):
+        return str(value)
+
+    if isinstance(value, decimal.Decimal):
+        return float(value)
+
+    if isinstance(value, datetime.timedelta):
+        return value.total_seconds()
+
+    if isinstance(value, (QFile, QImage, QChart)):
+        q_object_mode = policy.get('q_object_mode', 'string')
+        if q_object_mode == 'string':
+            return str(value)
+        if q_object_mode == 'none':
+            return None
+
+    if policy.get('allow_type_name') and isinstance(value, type):
+        return value.__name__
+
+    if policy.get('allow_user'):
+        from qsite.users.models import User  # Lazy import
+        if isinstance(value, User):
+            return str(value)
+
+    if isinstance(value, (str, int, float, bool)):
+        return value
+
+    if value is None:
+        return None
+
+    unknown_mode = policy.get('unknown_mode', 'raise')
+    if unknown_mode == 'sentinel':
+        return _UNSERIALIZED
+
+    raise ValueError(f"Unsupported type: {type(value)}")
+
+
+def _looks_like_legacy_dataframe_records(value):
+    if not (isinstance(value, list) and value and all(isinstance(item, dict) for item in value)):
+        return False
+
+    keyset = set(value[0].keys())
+    if not keyset:
+        return False
+
+    for row in value[1:]:
+        if set(row.keys()) != keyset:
+            return False
+
+    for row in value:
+        for cell in row.values():
+            if isinstance(cell, (dict, list, tuple, set, pd.DataFrame)):
+                return False
+
+    return True
+
+
+def _deserialize_common_profile(value, policy):
+    if policy.get('recursive') and isinstance(value, dict):
+        return {key: _deserialize_common_profile(val, policy) for key, val in value.items()}
+
+    if policy.get('recursive') and isinstance(value, list):
+        out = [_deserialize_common_profile(item, policy) for item in value]
+        if _looks_like_legacy_dataframe_records(out):
             try:
-                return super().default(obj)
-            except Exception as e:
-                return str(e)  # | don't return e (exception)
+                return pd.DataFrame(out)
+            except ValueError:
+                return out
+        return out
+
+    if isinstance(value, str):
+        dt = qc_str_to_datetime(value)
+        return dt if dt else value
+
+    return value
+
+
+def step2_pack_value(value, _seen=None):
+    if _seen is None:
+        _seen = set()
+
+    value_id = id(value)
+    if value_id in _seen:
+        return None
+
+    if isinstance(value, Qty):
+        return {'__qcalc_type': 'qty', 'value': str(value)}
+
+    if isinstance(value, QChart):
+        _seen.add(value_id)
+        chart_data = value.data or {}
+        if isinstance(chart_data, dict):
+            chart_data = {
+                key: val for key, val in chart_data.items()
+                if key not in {'chart', 'fig', 'ax'}
+            }
+        return {
+            '__qcalc_type': 'chart',
+            'chtype': value.chtype,
+            'data': step2_pack_value(chart_data, _seen),
+        }
+
+    if isinstance(value, pd.DataFrame):
+        return {
+            '__qcalc_type': 'table',
+            'columns': [str(col) for col in value.columns],
+            'data': value.values.tolist(),
+        }
+
+    if isinstance(value, dict) and {'columns', 'data'} <= value.keys():
+        return {
+            '__qcalc_type': 'table',
+            'columns': value['columns'],
+            'data': value['data'],
+        }
+
+    if isinstance(value, (datetime.date, datetime.datetime, datetime.time)):
+        return str(QDateTime(value))
+
+    if isinstance(value, dict):
+        _seen.add(value_id)
+        return {str(key): step2_pack_value(val, _seen) for key, val in value.items()}
+
+    if isinstance(value, (list, tuple, set)):
+        _seen.add(value_id)
+        return [step2_pack_value(item, _seen) for item in value]
+
+    if isinstance(value, (str, int, float, bool)) or value is None:
+        return value
+
+    return str(value)
+
+
+def step2_unpack_for_run(value):
+    if isinstance(value, dict):
+        qtype = value.get('__qcalc_type')
+        if qtype == 'qty':
+            return value.get('value', '')
+        if qtype == 'chart':
+            return step2_unpack_for_run(value.get('data', {}))
+        if qtype == 'table':
+            return {
+                'columns': value.get('columns', []),
+                'data': value.get('data', []),
+            }
+        return {key: step2_unpack_for_run(val) for key, val in value.items()}
+
+    if isinstance(value, list):
+        return [step2_unpack_for_run(item) for item in value]
+
+    return value
+
+
+def step2_unpack_for_cost(value):
+    if isinstance(value, Qty):
+        return value
+
+    if isinstance(value, dict) and value.get('__qcalc_type') == 'qty':
+        try:
+            return Qty(value.get('value', ''))
+        except Exception:
+            return None
+
+    return value
 
 
 class QEncoderShort(QEncoderBase):
@@ -72,45 +312,8 @@ def qpretty_json(dict_):
 
 
 def prepare_for_json(value):
-    """
-    Prepares a value for storage in a JSON field.
-
-    If the value is a Pandas DataFrame, it converts it to a list of dictionaries.
-    If the value is a dictionary or a list, it recursively checks each value.
-
-    Args:
-        value: The value to be prepared.
-
-    Returns:
-        The prepared value in a JSON-compatible format.
-    """
-    if isinstance(value, pd.DataFrame):
-        # Convert DataFrame to a list of dictionaries
-        return value.to_dict(orient='records')
-    elif isinstance(value, dict):
-        # If it's a dictionary, recursively process each value
-        return {key: prepare_for_json(val) for key, val in value.items()}
-    elif isinstance(value, list):
-        # If it's a list, recursively process each item
-        return [prepare_for_json(item) for item in value]
-    elif isinstance(value, (datetime.date, datetime.time, datetime.datetime)):
-        # Convert datetime, date, or time to ISO format string
-        return str(QDateTime(value))
-    elif isinstance(value, decimal.Decimal):
-        # Convert Decimal to a float
-        return float(value)
-    elif isinstance(value, datetime.timedelta):
-        # Convert timedelta to total seconds for storage
-        return value.total_seconds()
-    elif isinstance(value, (str, int, float, bool)):
-        # If it's a primitive type (str, int, float, bool), return as is
-        return value
-    elif isinstance(value, (QFile, QImage, QChart)):
-        # ignore
-        return None
-    else:
-        # Raise an exception for unsupported types
-        raise ValueError(f"Unsupported type: {type(value)}")
+    """Prepare a value for variant JSON storage using the shared serializer."""
+    return serialize_value(value, profile='variant')
 
 
 def reverse_prepare_for_json(value):
@@ -126,23 +329,4 @@ def reverse_prepare_for_json(value):
     Returns:
         The converted value in its original Python format.
     """
-    # Check if it's a list of dictionaries, convert back to DataFrame
-    if isinstance(value, list) and all(isinstance(item, dict) for item in value):
-        # Assuming all dictionaries have the same keys, try converting to DataFrame
-        try:
-            return pd.DataFrame(value)
-        except ValueError:
-            # In case of conversion failure, return the original list
-            return value
-    elif isinstance(value, dict):
-        # If it's a dictionary, recursively process each value
-        return {key: reverse_prepare_for_json(val) for key, val in value.items()}
-    elif isinstance(value, list):
-        # If it's a list, recursively process each item
-        return [reverse_prepare_for_json(item) for item in value]
-    elif isinstance(value, str):
-        dt = qc_str_to_datetime(value)
-        return dt if dt else value
-    else:
-        # If it's a primitive type (str, int, float, bool), return as is
-        return value
+    return deserialize_value(value, profile='variant')

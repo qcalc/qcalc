@@ -3,7 +3,7 @@
 from tempfile import template
 
 import qvars
-from qcore import qformat, df_formatter, QChart, QMap, QImage, qjson_dumps
+from qcore import qformat, df_formatter, QChart, QMap, QImage, qjson_dumps, step2_pack_value, step2_unpack_for_run, step2_unpack_for_cost
 from calc import QTemp, QList, QIO, QFav
 from django.shortcuts import render
 from django.http import HttpResponse
@@ -282,94 +282,12 @@ def calc_io_clear(_request: HtmxHttpRequest, cid: str):
     return JsonResponse({'ok': True, 'cid': cid, 'removed': removed}, encoder=QEncoderBase)
 
 
-def _step2_pack_value(value, _seen=None):
-    if _seen is None:
-        _seen = set()
-
-    value_id = id(value)
-    if value_id in _seen:
-        return None
-
-    if isinstance(value, Qty):
-        return {'__qcalc_type': 'qty', 'value': str(value)}
-
-    if isinstance(value, QChart):
-        _seen.add(value_id)
-        chart_data = value.data or {}
-        if isinstance(chart_data, dict):
-            chart_data = {
-                key: val for key, val in chart_data.items()
-                if key not in {'chart', 'fig', 'ax'}
-            }
-        return {
-            '__qcalc_type': 'chart',
-            'chtype': value.chtype,
-            'data': _step2_pack_value(chart_data, _seen),
-        }
-
-    if isinstance(value, pd.DataFrame):
-        return {
-            '__qcalc_type': 'table',
-            'columns': [str(col) for col in value.columns],
-            'data': value.values.tolist(),
-        }
-
-    if isinstance(value, (date, datetime, dt_time)):
-        return str(QDateTime(value))
-
-    if isinstance(value, dict):
-        _seen.add(value_id)
-        return {str(key): _step2_pack_value(val, _seen) for key, val in value.items()}
-
-    if isinstance(value, (list, tuple, set)):
-        _seen.add(value_id)
-        return [_step2_pack_value(item, _seen) for item in value]
-
-    if isinstance(value, (str, int, float, bool)) or value is None:
-        return value
-
-    return str(value)
-
-
 def _step2_compact_io_payload(func_id, input_map, output_map):
     return {
         'function': func_id,
-        'input': _step2_pack_value(input_map or {}),
-        'output': _step2_pack_value(output_map or {}),
+        'input': step2_pack_value(input_map or {}),
+        'output': step2_pack_value(output_map or {}),
     }
-
-
-def _step2_value_for_run(value):
-    if isinstance(value, dict):
-        qtype = value.get('__qcalc_type')
-        if qtype == 'qty':
-            return value.get('value', '')
-        if qtype == 'chart':
-            return _step2_value_for_run(value.get('data', {}))
-        if qtype == 'table':
-            return {
-                'columns': value.get('columns', []),
-                'data': value.get('data', []),
-            }
-        return {key: _step2_value_for_run(val) for key, val in value.items()}
-
-    if isinstance(value, list):
-        return [_step2_value_for_run(item) for item in value]
-
-    return value
-
-
-def _step2_value_for_cost(value):
-    if isinstance(value, Qty):
-        return value
-
-    if isinstance(value, dict) and value.get('__qcalc_type') == 'qty':
-        try:
-            return Qty(value.get('value', ''))
-        except Exception:
-            return None
-
-    return value
 
 
 def _step2_prepare_cost_items(output_map, spec):
@@ -388,7 +306,7 @@ def _step2_prepare_cost_items(output_map, spec):
 
     keys = [key for key in output.keys()]
     for key in keys:
-        qval = _step2_value_for_cost(output[key])
+        qval = step2_unpack_for_cost(output[key])
         if not isinstance(qval, Qty):
             _ = output.pop(key)
             continue
@@ -429,8 +347,8 @@ def q1_step2(request: HtmxHttpRequest):
         ff = QCals.quick_find_func(fname)
         input_ = step2_io.get('input', {})
         input_ = input_ if isinstance(input_, dict) else {}
-        run_input = {key: _step2_value_for_run(val) for key, val in input_.items()}
-        run_output = {key: _step2_value_for_run(val) for key, val in output.items()}
+        run_input = {key: step2_unpack_for_run(val) for key, val in input_.items()}
+        run_output = {key: step2_unpack_for_run(val) for key, val in output.items()}
         io = {**run_input, **run_output}
         fargs = {}
         for arg in fspec:

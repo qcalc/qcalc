@@ -15,6 +15,12 @@ from timezonefinderL import TimezoneFinder
 QC_DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S %z'
 ISO_8601_DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%S%z' # not used
 
+def is_number(value: str) -> bool:
+    try:
+        float(value)
+        return True
+    except (ValueError, TypeError):
+        return False
 
 class QDateTime:
     dt_value: date | datetime | dt_time | None
@@ -52,8 +58,9 @@ class QDateTime:
                 #   "1"        -> invalid
                 #   "2024"     -> invalid
                 #   "230721"   -> invalid
-                #   "20230721" -> invalid
-                if value.isdigit():
+                #   "30.0"     -> invalid
+                #   "12.65"    -> invalid
+                if is_number(value):
                     return
 
                 # Normalize custom UTC notation to an offset understood

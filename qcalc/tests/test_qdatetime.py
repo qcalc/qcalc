@@ -1,7 +1,16 @@
-from qutil import QDateTime, is_str_date
+from qutil import QDateTime, is_str_date, is_number
 
 
 def test_qdatetime():
+    assert is_number("1")
+    assert is_number("33.0")
+    assert is_number("-12.5")
+    assert is_number("1e5")
+    assert is_number("20230721")
+
+    assert not is_number("2024-09-23")
+    assert not is_number("18:30")
+    assert not is_number("hello")
     assert QDateTime('1.07.1967').is_date
     assert QDateTime('07.21.2023').is_date
     assert not QDateTime('21.07.2023').is_datetime

@@ -4,7 +4,7 @@
 import numpy as np
 import pandas as pd
 from qutil import css2floats, css2strs, css2ints, css2values
-from qcore import qtexta, qlist, qchar, qtable, QChart
+from qcore import qtexta, qlist, qchar, qtable, QChart, as_qtable
 from calc import QCals
 import matplotlib.dates as mdates  # requires for 3D as 3D cant natively handle date axes
 from datetime import date, datetime
@@ -16,7 +16,6 @@ def heatmap_chart__info():
         'schema': {
             'color_scheme': {'type': 'choice', 'choices': ['viridis', 'plasma', 'inferno', 'magma', 'Use Preference']}
         },
-        'outcol': ['chart__r']
     }
 
 
@@ -54,7 +53,6 @@ def surface3d_error_chart__info():
         'schema': {
             'surface_type': {'type': 'radio', 'choices': ['Contour', 'Contourf', 'Wireframe', 'Surface']}
         },
-        'outcol': ['chart__r']
     }
 
 
@@ -99,7 +97,6 @@ def surface3d_error_chart(
 def surface_contour3d_chart__info():
     return {
         'title': '3D Surface Contour Chart',
-        'outcol': ['chart__r']
     }
 
 
@@ -117,6 +114,7 @@ def surface_contour3d_chart(
     zlabel='Z-Axis',
     title='3D Surface Contour Chart'
 ):
+    zvals2d = as_qtable(zvals2d)
     xvals_, xtype = css2values(xvals, time2val='hr')
     if xtype in (date, datetime): xvals_ = mdates.date2num(xvals_)
     yvals_ = css2floats(yvals)
@@ -139,7 +137,6 @@ def surface_contour3d_chart(
 def box_chart__info():
     return {
         'title': 'Simple Box Chart',
-        'outcol': ['chart__r']
     }
 
 
@@ -160,7 +157,6 @@ def box_chart(
 def violin_chart__info():
     return {
         'title': 'Simple Violin Chart',
-        'outcol': ['chart__r']
     }
 
 
@@ -184,7 +180,6 @@ def violin_chart(
 def radar_chart__info():
     return {
         'title': 'Simple Radar Chart',
-        'outcol': ['chart__r']
     }
 
 
@@ -209,7 +204,6 @@ def radar_chart(
 def scatter3d_chart__info():
     return {
         'title': '3D Scatter Chart',
-        'outcol': ['chart__r']
     }
 
 
@@ -242,7 +236,6 @@ def scatter3d_chart(
 def stack_chart__info():
     return {
         'title': 'Simple Stack Chart',
-        'outcol': ['chart__r']
     }
 
 
@@ -275,7 +268,6 @@ def stack_chart(
 def contour3d_chart__info():
     return {
         'title': '3D Contour Chart',
-        'outcol': ['chart__r']
     }
 
 
@@ -288,6 +280,7 @@ def contour3d_chart(
     zlabel='Z-Axis',
     title='3D Contour Chart'
 ):
+    zvals = as_qtable(zvals)
     xvals_, xtype = css2values(xvals, time2val='hr')
     if xtype in (date, datetime): xvals_ = mdates.date2num(xvals_)
     yvals_ = css2floats(yvals)
@@ -309,7 +302,6 @@ def contour3d_chart(
 def errorbar_chart__info():
     return {
         'title': 'Error Bar Chart',
-        'outcol': ['chart__r']
     }
 
 
@@ -339,7 +331,6 @@ def errorbar_chart(
 def qqplot_chart__info():
     return {
         'title': 'QQ Plot',
-        'outcol': ['chart__r']
     }
 
 
@@ -360,7 +351,6 @@ def qqplot_chart(
 def gantt_chart__info():
     return {
         'title': 'Gantt Chart',
-        'outcol': ['chart__r']
     }
 
 
@@ -374,6 +364,7 @@ def gantt_chart(
     ),
     title='Gantt Chart'
 ):
+    project = as_qtable(project)
     # Extract columns from the DataFrame
     tasks_ = project['Task'].tolist()
 
@@ -391,7 +382,6 @@ def gantt_chart(
 def mesh3d_chart__info():
     return {
         'title': '3D Mesh Plot',
-        'outcol': ['chart__r']
     }
 
 
@@ -409,6 +399,7 @@ def mesh3d_chart(
     zlabel='Z-Axis',
     title='3D Mesh Plot'
 ):
+    zvals2d = as_qtable(zvals2d)
     # xvals_ = css2floats(xvals)
     xvals_, xtype = css2values(xvals, time2val='hr')
     if xtype in (date, datetime): xvals_ = mdates.date2num(xvals_)
@@ -432,7 +423,6 @@ def mesh3d_chart(
 def sankey_chart__info():
     return {
         'title': 'Sankey Diagram',
-        'outcol': ['chart__r']
     }
 
 
@@ -465,7 +455,6 @@ def sankey_chart(
 def dendrogram_chart__info():
     return {
         'title': 'Dendrogram Chart',
-        'outcol': ['chart__r'],
         'schema': {
             'method':
                 {
@@ -483,6 +472,7 @@ def dendrogram_chart(
     ylabel: str = 'Y-Axis',
     title: str = 'Dendrogram Chart'
 ):
+    data = as_qtable(data)
     from scipy.cluster.hierarchy import linkage
     # Generate the linkage matrix using the selected method
     linkage_matrix = linkage(np.array(data, dtype=float), method=method)
@@ -496,7 +486,6 @@ def dendrogram_chart(
 def bubble_chart__info():
     return {
         'title': 'Bubble Chart',
-        'outcol': ['chart__r']
     }
 
 
@@ -521,7 +510,6 @@ def bubble_chart(
 def polar_chart__info():
     return {
         'title': 'Polar Chart',
-        'outcol': ['chart__r']
     }
 
 
@@ -543,7 +531,6 @@ def polar_chart(
 def area_chart__info():
     return {
         'title': 'Area Chart',
-        'outcol': ['chart__r']
     }
 
 
@@ -565,7 +552,6 @@ def area_chart(
 def waterfall_chart__info():
     return {
         'title': 'Waterfall Chart',
-        'outcol': ['chart__r'],
     }
 
 
@@ -592,7 +578,6 @@ def waterfall_chart(
 def chord_diagram__info():
     return {
         'title': 'Chord Diagram',
-        'outcol': ['chart__r'],
     }
 
 
@@ -601,6 +586,7 @@ def chord_diagram(
     labels: qtexta = 'A,B,C',
     title='Chord Diagram Example'
 ):
+    matrix = as_qtable(matrix)
     labels_ = css2strs(labels)
     chart = QChart()
     chart.render_chord_diagram(matrix=matrix, labels=labels_, title=title)
@@ -610,7 +596,6 @@ def chord_diagram(
 def streamgraph__info():
     return {
         'title': 'Streamgraph',
-        'outcol': ['chart__r'],
     }
 
 
@@ -622,6 +607,7 @@ def streamgraph(
     ylabel='Y-Axis',
     title='Streamgraph Example'
 ):
+    yvals = as_qtable(yvals)
     xvals_, xtype = css2values(xvals, time2val='hr')
     yvals_ = yvals.to_numpy(dtype=float)
     labels_ = css2strs(labels)

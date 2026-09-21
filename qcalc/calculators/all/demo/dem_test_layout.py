@@ -4,7 +4,7 @@
 from qcore import Qty, qtexta, qchar
 from qutil import cal_link, page_link, calurl
 from calc import gender_choice, list2options
-# from calculators.all.general.mod_chart import pie
+# from calculators.all.general import pie
 from datetime import date
 
 

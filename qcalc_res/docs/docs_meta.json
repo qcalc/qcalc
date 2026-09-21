@@ -7,6 +7,18 @@
     "desc": "Detailed guide to using qCalc's calculators and features.",
     "order": "1.10"
   },
+
+  "user-guide/related-topics/qcalc-input-output-table.md": {
+    "title": "qCalc input and output table",
+    "desc": "How to enter data in qCalc input table and dealing with output table",
+    "order": "1.10.10"
+  },
+  "user-guide/related-topics/parameter-filtering.md": {
+    "title": "qCalc results filtering by result labels",
+    "desc": "How to select results for further processing and presenting in table and chart",
+    "order": "1.10.20"
+  },
+
   "author-guide": {
     "order": "0.20"
   },
@@ -45,16 +57,28 @@
     "desc": "Alphabetical list of qCalc field types or annotations",
     "order": "2.00.10"
   },
+
   "author-guide/related-topics/quantity-reference.md": {
     "title": "qCalc quantity reference",
     "desc": "Reference for using quantities, units, conversions, and dimensional arithmetic in qCalc",
     "order": "2.00.20"
   },
-  "author-guide/related-topics/dot-dict-notation.md": {
+  "author-guide/related-topics/info-dot-dict-notation.md": {
     "title": "qCalc DotDict notation",
     "desc": "Using dot-dict notation in qCalc __info() functions",
     "order": "2.00.30"
   },
+  "author-guide/related-topics/info-specify-layout.md": {
+    "title": "How to specify layout in __info() function",
+    "desc": "How to specify calculator input and output layout inside a calculator metadata function",
+    "order": "2.00.35"
+  },
+  "author-guide/related-topics/info-specify-next-step.md": {
+    "title": "How to specify next step in __info() function",
+    "desc": "How to use step2 inside a calculator metadata function, so users can open a follow-up calculator with prefilled data",
+    "order": "2.00.40"
+  },
+
   "admin-guide": {
     "order": "0.30"
   },
@@ -73,6 +97,7 @@
     "desc": "Deploying qCalc to production directly on Linux.",
     "order": "3.30"
   },
+
   "admin-guide/related-topics/LICENSE.txt": {
     "title": "qCalc license",
     "desc": "Host qCalc yourself. Open source. Customize it. Make it yours. Free, with no strings attached.",
@@ -83,6 +108,7 @@
     "desc": "Setting up a user account in linux.",
     "order": "3.00.10"
   },
+
   "nodoc.html": {
     "hidden": true
   },

@@ -6,7 +6,9 @@ This calculator finds the **Internal Rate of Return** implied by a series
 of cash flows over time — the single discount rate at which those cash
 flows exactly break even (a Net Present Value of zero). It is useful for
 judging an investment or project's own rate of return, so it can be
-compared against a required return or against other opportunities.
+compared against a required return or against other opportunities. 
+
+> It supports cash flows at irregular periods, so **Period** values do not need to be consecutive.
 
 ## Background
 
@@ -31,9 +33,12 @@ The time period between entries in the **Cashflows** series (for example,
 
 ### Cashflows
 
-A single column of cash flow amounts, one per period, in order. The first
-entry is normally the initial outlay (a negative number); later entries
-are the returns received in subsequent periods.
+A table with exactly two columns in this order:
+
+-   **Period** (first column), for example 1, 10, 15, 25, 26.
+-   **Cashflow** (second column), the corresponding cash flow amount.
+
+Any renamed, reordered, missing, or extra column is rejected.
 
 ## Results
 
@@ -50,15 +55,24 @@ quoted elsewhere.
 
 ## Understanding the Calculation
 
-The calculator searches for the periodic discount rate $r$ that makes the
-Net Present Value of the **Cashflows** series equal to zero:
+The calculator searches for the periodic discount rate `r` that makes the
+Net Present Value of the **Cashflows** series equal to zero.
 
 $$\sum_{i=0}^{n} \dfrac{\text{Cashflow}_i}{(1+r)^{i}} = 0$$
 
-where $\text{Cashflow}_0$ is the first entry (typically the initial
-outlay) and $i$ counts periods from there. The resulting rate $r$ is the
+where `Cashflow_0` is the first entry (typically the initial
+outlay) and `i` counts periods from there. The resulting rate `r` is the
 **Periodic Interest Rate**; the **Annual Interest Rate** restates it as an
 effective annual rate.
+
+When a **Period** column is provided, the same break-even condition is
+solved using explicit period values (normalized so the first listed period
+is treated as the start):
+
+$$\sum_{k=1}^{m} \dfrac{\text{Cashflow}_k}{(1+r)^{t_k - t_1}} = 0$$
+
+This keeps 1, 2, 3, ... equivalent to the consecutive-row model,
+while also supporting sparse periods.
 
 ## Example
 
@@ -81,5 +95,8 @@ make this series worth pursuing on an IRR basis; any required return above
     negative, then positive, then negative again) can have more than one
     mathematically valid IRR, or none; treat results from such series with
     caution.
+-   With irregular **Period** gaps, the same cash flow amounts can produce
+    a different IRR than the consecutive-row assumption, because timing is
+    part of the return calculation.
 -   The result describes the rate implied by the cash flows given; it is
     not a forecast of future project performance.

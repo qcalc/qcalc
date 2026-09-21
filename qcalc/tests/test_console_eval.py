@@ -9,7 +9,7 @@ from django.contrib.sessions.middleware import SessionMiddleware
 from django.test import RequestFactory
 
 from calc import QPref, QRam
-from calculators.all.general.cal_evacon import qeval
+from calculators.all.general import qeval
 from qutil.timed_thread import QThread
 
 

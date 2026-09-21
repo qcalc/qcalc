@@ -2,7 +2,7 @@ import qsett
 
 qsett.init()
 
-from calculators.all.general.utility.cal_compare import compare
+from calculators.all.analytics import compare
 
 
 def test_compare_evaluates_discrete_multi_variable_rows():

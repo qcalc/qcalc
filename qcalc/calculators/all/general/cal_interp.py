@@ -14,7 +14,6 @@ def linter__info():
             'x_values': {'type': 'textarea'},
             'y_values': {'type': 'textarea'}
         },
-        'outcol': ['chart__r']
     }
 
 

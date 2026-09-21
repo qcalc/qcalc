@@ -5,7 +5,7 @@ import math
 from qcore import Qty, qfunc
 from qutil import QDateTime, qc_datetime_to_str
 from datetime import timedelta
-from calculators.all.science.astronomy.cal_earth_rotation import sunrise
+from calculators.all.science.astronomy import sunrise
 
 # CoC in mm
 image_sensor_coc = {

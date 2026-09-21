@@ -10,6 +10,8 @@ Value (NPV) and Internal Rate of Return (IRR) — against a required
 projects or investments is worth pursuing, and which single one is the
 strongest choice.
 
+> It supports cash flows at irregular periods, so **Period** values do not need to be consecutive.
+
 ## Background
 
 ### NPV, IRR, and the discount rate
@@ -40,12 +42,14 @@ example, `yr` for one entry per year).
 
 ### Cashflows
 
-A table with one column per project, and one row per period. The first
-entry in each column is normally the initial investment (a negative
-number); later entries are the returns received in each subsequent period.
-A project's series ends at its first blank or zero entry — projects can
-have different lengths, and shorter projects simply have blank cells in
-the remaining rows.
+A table with **Period** as the first column and one or more project
+columns after it.
+
+-   **Period** must be the first column and provides the project timeline
+    (for example, 1, 10, 15, 25, 26).
+-   Each project column contains cashflow values aligned to those periods.
+-   **Period** values used for a project must be unique and increasing.
+-   Each project must have at least one valid numeric cashflow row.
 
 ## Results
 
@@ -54,10 +58,11 @@ the remaining rows.
 A table with one row per project:
 
 -   **Project** — the project's column name from the **Cashflows** table.
--   **Period** — the number of cash flow entries used for that project
-    (that is, how many periods until its first blank or zero entry).
+-   **Count** — the number of cash flow entries used for that project
+    (that is, how many valid cash flow rows were used for that project).
+-   **End Period** — the last valid period value used for that project.
 -   **NPV** — the project's Net Present Value at the **Discount Rate**,
-    over its **Period** length.
+    over its project timeline.
 -   **IRR** — the project's Internal Rate of Return, expressed as an
     annual rate regardless of the **Cashflow Interval** used.
 -   **Rank** — **Bad** if the project's NPV is negative or its IRR falls
@@ -66,27 +71,33 @@ A table with one row per project:
 
 ## Understanding the Calculation
 
-For each project, the calculator collects its cash flow entries up to (but
-not including) the first blank or zero value, forming that project's own
-cash flow series. It calculates the **NPV** of that series at the
-**Discount Rate**, and separately calculates the series' **IRR**
-(annualized to a per-year rate for comparison, even if **Cashflow
-Interval** is not yearly). A project is marked **Bad** if either its NPV is
-negative or its annualized IRR is below the **Discount Rate** — failing
-either test disqualifies it. Every remaining project is marked **OK**, and
-whichever **OK** project has the highest NPV is upgraded to **Best**.
+For each project, the calculator builds that project's cash flow series,
+then computes **NPV** at the **Discount Rate** and **IRR** (annualized to a
+per-year rate for comparison, even if **Cashflow Interval** is not yearly).
+
+-   Timing comes from the **Period** values and can be irregular.
+-   Rows with non-numeric **Period** or project cashflow values are ignored
+    for that project.
+
+A project is marked **Bad** if either its NPV is negative or its annualized
+IRR is below the **Discount Rate** — failing either test disqualifies it.
+Every remaining project is marked **OK**, and whichever **OK** project has
+the highest NPV is upgraded to **Best**.
 
 ## Example
 
 Using the default inputs — a Discount Rate of 10% per year, a yearly
-cashflow interval, and three projects (Project1: -40000, 5000, 8000,
-12000, 30000 over 5 years; Project2: -25000, 3000, 5000, 25000 over 4
-years; Project3: -10000, 2000, 6000, 7000 over 4 years) — the calculator
-returns:
+cashflow interval, a Period column of 1, 2, 3, 4, 5, and three projects
+(Project1: -40000, 5000, 8000, 12000, 30000 over 5 years; Project2:
+-25000, 3000, 5000, 25000 over 4 years; Project3: -10000, 2000, 6000,
+7000 over 4 years) — the calculator returns:
 
--   **Project1**: Period 5, NPV ≈ 663.21, IRR ≈ 10.58%/yr, Rank **OK**
--   **Project2**: Period 4, NPV ≈ 642.37, IRR ≈ 11.07%/yr, Rank **OK**
--   **Project3**: Period 4, NPV ≈ 2036.06, IRR ≈ 19.38%/yr, Rank **Best**
+-   **Project1**: Count 5, End Period 5, NPV ≈ 663.21, IRR ≈ 10.58%/yr,
+    Rank **OK**
+-   **Project2**: Count 4, End Period 4, NPV ≈ 642.37, IRR ≈ 11.07%/yr,
+    Rank **OK**
+-   **Project3**: Count 4, End Period 4, NPV ≈ 2036.06, IRR ≈ 19.38%/yr,
+    Rank **Best**
 
 All three projects clear the 10% discount rate and have positive NPV, so
 none are ranked **Bad**. Project3 is marked **Best** because its NPV
@@ -101,11 +112,10 @@ initial investment.
 -   Only one project can be marked **Best** per calculation — the one with
     the highest NPV among those ranked **OK**. Other **OK** projects may
     still be worth pursuing if you are not limited to a single choice.
--   Because a project's cash flow series stops at its first zero or blank
-    entry, a genuine cash flow of exactly 0 in the middle of a project's
-    series will be treated the same as a blank cell, cutting off any
-    entries after it — use a very small nonzero placeholder instead of an
-    actual 0 if a project truly has a zero cash flow in some period.
+-   Project rows are selected from numeric, nonblank cashflow entries;
+    a cashflow of 0 is valid and does not terminate the series.
+-   The calculator raises an error when a project's usable **Period**
+    values are duplicated or not increasing.
 -   NPV values across projects are only directly comparable when the
     projects are evaluated over the same **Cashflow Interval**; the table
     does not adjust NPV for differing project lengths beyond discounting

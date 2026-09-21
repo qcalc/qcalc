@@ -3,10 +3,14 @@
 
 import pandas as pd
 
+import qconst
+
 
 def resize_df(df: pd.DataFrame, nrow: int, ncol: int, keep_last_ncol: int = 0) -> pd.DataFrame:
-    to_be_ncol = max(min(int(ncol), 100), 1)
-    to_be_nrow = max(min(int(nrow), int(10000 / to_be_ncol)), 1)
+    max_cols = qconst.TABLE_MAX_COLS
+    max_cells = qconst.TABLE_MAX_CELLS
+    to_be_ncol = max(min(int(ncol), max_cols), 1)
+    to_be_nrow = max(min(int(nrow), int(max_cells / to_be_ncol)), 1)
     as_is_nrow = len(df)
     as_is_ncol = len(df.columns) - keep_last_ncol
     add_row = 0

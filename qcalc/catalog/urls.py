@@ -22,10 +22,12 @@ urlpatterns = [
     path('ulist/', views.qty_ulist, name='qty-ulist'),
     path('help/', show_docs, name='show-docs'),
     path('search/', views.search_catalog, name='catalog-search'),  # ?q=body
-    path('search_func/', views.search_func, name='catalog-search-func'),  # ?qf=bmi, not used
-    path('search_pfunc/', views.search_func, name='catalog-search-pfunc'),  # ?qf=bmi, not used
+    # Retired (kept for reference): unused legacy calculator-function search endpoints.
+    # path('search_func/', views.search_func, name='catalog-search-func'),  # ?qf=bmi
+    # path('search_pfunc/', views.search_pfunc, name='catalog-search-pfunc'),  # ?qf=bmi
+    path('search_tag/', views.search_tag, name='catalog-search-tag'),  # inline related-tag results in calculator card
     path('search_unit/', views.search_unit, name='catalog-search-unit'),  # ?qu=ft
-    path('search_tag/', views.search_tag, name='catalog-search-tag'),  # ?qf=bmi
+    path('tags/', views.tag_browser, name='catalog-tag-browser'),
     path('page/<str:pname>/', views.show_page, name='show-page'),
     path('toggle_favorite/', views.toggle_favorite, name='toggle_favorite'),
     path('toggle_share/', views.toggle_share, name='toggle_share'),

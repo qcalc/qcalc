@@ -5,6 +5,7 @@
 /* 500 */
 /* 12rem; */
 /* -1rem */
+/* important */
 /* Background Colors */
 /* Soft off-white for a clean, modern backdrop */
 /* Light gray for subtle differentiation */
@@ -120,6 +121,133 @@
   border-color: #9bb2c7;
 }
 
+/* Trial: fullscreen behavior for table-in and table-out wrappers. */
+/* 1. Lighten the inner grid wrapper block */
+.tabulator .tabulator-tableholder .tabulator-table {
+  background-color: #f9f9f9 !important; /* Your preferred light color */
+}
+
+/* 2. Ensure the main container matches so the entire empty space is uniform */
+.tabulator .tabulator-tableholder {
+  background-color: #f9f9f9 !important;
+}
+
+.elem-wrapper.table-wrap {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.elem-wrapper.table-wrap .fullscreen-square {
+  z-index: 20; /* keep icon above table header */
+}
+
+.elem-wrapper.table-wrap .table-responsive.table-in,
+.elem-wrapper.table-wrap .table-responsive.table-out {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  overflow: auto;
+}
+
+/* Trial: keep Tabulator width within wrapper and allow inner horizontal scroll. */
+.elem-wrapper.table-wrap .tabulator {
+  width: 100% !important;
+  max-width: 100%;
+}
+
+.elem-wrapper.table-wrap .tabulator-tableholder {
+  overflow: auto;
+  padding-bottom: 12px; /* keep last row clear of horizontal scrollbar */
+  box-sizing: border-box;
+}
+
+/* Keep editable header title visually consistent with themed table header. */
+.elem-wrapper.table-wrap .tabulator .tabulator-title-editor {
+  background: transparent !important;
+  color: inherit;
+  border: 0 !important;
+  box-shadow: none;
+  font-weight: 700;
+  padding: 0;
+  margin: 3px;
+  line-height: inherit;
+}
+
+/* Header editor focus styling for editable Tabulator column titles. */
+.elem-wrapper.table-wrap .tabulator .tabulator-title-editor:focus {
+  outline: none;
+  background: transparent !important;
+  border: 0;
+  box-shadow: none;
+}
+
+/* Input table header: keep spacing consistent with output table header. */
+.elem-wrapper.table-wrap .table-responsive.table-in .tabulator-header .tabulator-col .tabulator-col-content {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.elem-wrapper.table-wrap .table-responsive.table-in .tabulator-header .tabulator-col .tabulator-col-content .tabulator-col-title {
+  line-height: 1.2;
+  margin: 3px 0 0 3px;
+  min-height: calc(1.2em + 6px); /* match edit-mode title editor vertical space */
+}
+
+/* In table-in, use title container margin for both modes; avoid double inset in Edit mode. */
+.elem-wrapper.table-wrap .table-responsive.table-in .tabulator-header .tabulator-col .tabulator-col-content .tabulator-col-title .tabulator-title-editor {
+  margin: 0;
+}
+
+/* Shared fullscreen layout for table wrappers (browser fullscreen + local fullscreen). */
+.elem-wrapper.table-wrap.fullscreen,
+.elem-wrapper.table-wrap.fullscreen-local {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100vw;
+  height: 100vh;
+  padding: 12px;
+  box-sizing: border-box;
+  overflow: auto;
+}
+
+/* Local fullscreen overlay mode used for no-flicker structural re-renders. */
+.elem-wrapper.table-wrap.fullscreen-local {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: #f5f7fa;
+}
+
+/* Let table region fill remaining vertical space in fullscreen modes. */
+.elem-wrapper.table-wrap:is(.fullscreen, .fullscreen-local) .table-responsive.table-in,
+.elem-wrapper.table-wrap:is(.fullscreen, .fullscreen-local) .table-responsive.table-out,
+.elem-wrapper.table-wrap:is(.fullscreen, .fullscreen-local) .tabulator {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: auto;
+  max-height: none;
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Keep table-in controls visible under table in fullscreen modes. */
+.elem-wrapper.table-wrap:is(.fullscreen, .fullscreen-local) .table-responsive.table-in + span {
+  flex: 0 0 auto;
+}
+
+/* Trial: keep tabulator context menu visible above fullscreen content. */
+.elem-wrapper.table-wrap:is(.fullscreen, .fullscreen-local) .tabulator-menu {
+  z-index: 10050;
+}
+
+/* Menus mounted to document body must stay above fullscreen overlays. */
+.tabulator-menu {
+  z-index: 10050;
+}
+
 /**/
 /* CSS to remove '/' from all breadcrumb items */
 .breadcrumb .breadcrumb-item + .breadcrumb-item::before {
@@ -185,43 +313,27 @@ label.required::after {
   display: none;
 }
 
-.section-input {
-  background-color: rgba(255, 255, 255, 0.85);
-  padding-top: 0.25rem;
-  padding-bottom: 1rem;
-  min-width: 300px;
-}
-
 .section-input1 {
   background-color: rgba(255, 255, 255, 0.85);
-  padding-top: 0.25rem;
-  padding-bottom: 1rem;
-  min-width: 300px;
 }
 
 .section-input2 {
   background-color: rgba(255, 255, 255, 0.85);
-  padding-top: 0.25rem;
-  padding-bottom: 1rem;
-  min-width: 300px;
+  min-width: 0; /* allow child tables to shrink within flex/grid containers */
 }
 
 .section-output1 {
   background-color: #f0f2f5;
-  padding-top: 0.25rem;
-  padding-bottom: 1rem;
+  min-width: 0; /* allow child tables to shrink within flex/grid containers */
   padding-right: 0.625rem;
   padding-left: 0.625rem;
-  min-width: 300px;
 }
 
 .section-output2 {
+  min-width: 0; /* allow child tables to shrink within flex/grid containers */
   background-color: rgba(255, 255, 255, 0.98);
-  padding-top: 0.25rem;
-  padding-bottom: 1rem;
   padding-right: 0.625rem;
   padding-left: 0.625rem;
-  min-width: 300px;
 }
 
 .btncmd {
@@ -374,15 +486,6 @@ textarea {
   margin-right: 0.75rem;
 }
 
-/*
-ul {
-  padding-left: 1rem;
-  }
-
-ol {
-  padding-left: 1rem;
-  }
-*/
 li:not(.nav-item) {
   /* !otherwise this will shift nav-item icons to the right */
   padding-left: 0.75rem;
@@ -581,42 +684,6 @@ label {
   display: flex;
 }
 
-div.calc {
-  min-width: 332px;
-  container-type: inline-size; /* enables container queries on card width */
-  container-name: calc;
-}
-
-/* On wide viewports, preserve enough width for comfortable calculator use. */
-@media screen and (min-width: 1568px) {
-  div.calc {
-    min-width: 500px;
-  }
-}
-@container calc (min-width: 350px) {
-  .calimg {
-    display: none;
-  }
-  .caltxt {
-    display: inline-block;
-  }
-}
-@container calc (max-width: 351px) {
-  .calimg {
-    display: inline-block;
-  }
-  .caltxt {
-    display: none;
-  }
-  /*
-  .btncal {
-    height: 28px;
-    width: 28px;
-    padding-left: 5px;
-    padding-top: 3px;
-  }
-  */
-}
 .outbtn {
   padding: 6px !important;
   font-size: 0.82rem;
@@ -625,8 +692,100 @@ div.calc {
   align-items: center !important;
 }
 
-/* Card is narrow */
-@container calc (max-width: 420px) {
+/* =========================================================
+   Container queries
+   ========================================================= */
+div.calc {
+  min-width: 352px;
+  /*** enables container queries on card width ***/
+  container-type: inline-size;
+  container-name: calc;
+}
+
+div.inpart {
+  min-width: 320px;
+  /*** enables container queries on inpart width ***/
+  container-type: inline-size;
+  container-name: inpart;
+}
+
+div.outpart {
+  min-width: 320px;
+  /*** enables container queries on outpart width ***/
+  container-type: inline-size;
+  container-name: outpart;
+}
+
+div.io {
+  min-width: 320px;
+  max-width: 100%;
+  padding-top: 0.25rem;
+  padding-bottom: 1rem;
+  /*** enables container queries on io width ***/
+  container-type: inline-size;
+  container-name: io;
+}
+
+/* On wide screen, enough width for calculator use. */
+@media screen and (min-width: 1568px) {
+  div.calc {
+    min-width: 500px;
+  }
+}
+/* Input part: 350px and wider; display calculate caption */
+@container inpart (min-width: 350px) {
+  .calimg {
+    display: none;
+  }
+  .caltxt {
+    display: inline-block;
+  }
+}
+/*
+@container ? (max-width: 300px) {
+  .btncal {
+    height: 28px;
+    width: 28px;
+    padding-left: 5px;
+    padding-top: 3px;
+  }
+}
+*/
+/* Input part: below 350px; hide calculate caption */
+/* inpart contains 1 or 2 io sections */
+@container inpart (max-width: 349px) {
+  .calimg {
+    display: inline-block;
+  }
+  .caltxt {
+    display: none;
+  }
+  .btnimg.dropdown-toggle {
+    display: none;
+  }
+}
+/* Output part: below 375px; hide text from outbtns */
+/* outpart contains 1 or 2 io sections */
+@container outpart (max-width: 374px) {
+  /*
+    .btnimg {
+      height: 28px;
+      width: 28px;
+      padding-left: 5px;
+      padding-top: 3px;
+    }
+  */
+  .notxt {
+    /* hide caption on small screen */
+    display: none;
+  }
+  .outbtn {
+    display: inline-block !important;
+    padding: 0.4375rem 0.875rem !important;
+  }
+}
+/* IO section: 375px-420px; Medium width  */
+@container io (min-width: 375px) and (max-width: 420px) {
   /*
     .btncal {
       height: 36px;
@@ -636,9 +795,6 @@ div.calc {
   */
   /* sizes - medium */
   .chr {
-    width: 9rem;
-  }
-  .uom {
     width: 9rem;
   }
   .uom {
@@ -694,8 +850,8 @@ div.calc {
     min-width: 200px !important;
   }
 }
-/* Very narrow card */
-@container calc (max-width: 375px) {
+/* IO section: below 375px; Very narrow */
+@container io (max-width: 374px) {
   /* sizes small */
   .chr {
     width: 8rem;
@@ -749,26 +905,8 @@ div.calc {
     width: 16.125rem;
     height: 5rem;
   }
-  /*
-    .btnimg {
-      height: 28px;
-      width: 28px;
-      padding-left: 5px;
-      padding-top: 3px;
-    }
-  */
-  .btnimg.dropdown-toggle {
-    display: none;
-  }
-  .notxt {
-    /* hide caption on small screen */
-    display: none;
-  }
-  .outbtn {
-    display: inline-block !important;
-    padding: 0.4375rem 0.875rem !important;
-  }
 }
+/* Container queries end */
 span.mark2 {
   display: inline-block;
   background: #e0e5ec; /* #ffb82e; */

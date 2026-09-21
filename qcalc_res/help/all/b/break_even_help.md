@@ -28,7 +28,7 @@ The selling price must be greater than the variable cost per unit for a meaningf
 
 Enter the profit you want to achieve.
 
-For example, entering `$5,000` calculates how many units must be sold to cover fixed costs and generate an additional `$5,000` profit.
+For example, entering `USD 5,000` calculates how many units must be sold to cover fixed costs and generate an additional `USD 5,000` profit.
 
 ### Scenario Units
 
@@ -116,27 +116,27 @@ A positive value indicates a profit, while a negative value indicates a loss.
 
 Suppose a business has:
 
-- Fixed Costs: `$10,000`
-- Variable Cost per Unit: `$20`
-- Selling Price per Unit: `$50`
-- Target Profit: `$5,000`
+- Fixed Costs: `USD 10,000`
+- Variable Cost per Unit: `USD 20`
+- Selling Price per Unit: `USD 50`
+- Target Profit: `USD 5,000`
 - Scenario Units: `500`
 
 The contribution margin is:
 
-`$50 − $20 = $30 per unit`
+`USD 50 − USD 20 = USD 30 per unit`
 
 The break-even quantity is approximately:
 
-`$10,000 ÷ $30 = 333.33 units`
+`USD 10,000 ÷ USD 30 = 333.33 units`
 
 So the business needs to sell approximately **334 units** to move beyond break-even when whole units are required.
 
 The target-profit quantity is:
 
-`($10,000 + $5,000) ÷ $30 = 500 units`
+`(USD 10,000 + USD 5,000) ÷ USD 30 = 500 units`
 
-At 500 units, revenue is `$25,000`, variable cost is `$10,000`, fixed cost is `$10,000`, and profit is `$5,000`.
+At 500 units, revenue is `USD 25,000`, variable cost is `USD 10,000`, fixed cost is `USD 10,000`, and profit is `USD 5,000`.
 
 ## Interpreting the Results
 

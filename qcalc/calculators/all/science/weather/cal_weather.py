@@ -9,7 +9,7 @@ from datetime import datetime, timezone, timedelta
 import requests
 
 from calc import check_setting
-from calculators.all.general.map.cal_location import geo_location
+from calculators.all.general.map import geo_location
 
 
 def wind_chill__info():

@@ -6,10 +6,9 @@ from django.conf import settings
 from .mod_qcals import QCals
 from qcore import _base_categ_s2d, _base_categories, _unit_info
 import inspect
-import markdown
 import qconst
 from .mod_cache import QMyCal
-from qutil import fid2owner, user_name, check_setting
+from qutil import fid2owner, user_name, check_setting, md2html
 
 
 def get_code(func_id: str = 'gold', show_meta=False):
@@ -85,10 +84,6 @@ def ask_gpt(question: str = "What is qCalc", temperature=0.7):
     return resp
 
 
-def format_markdown(content):
-    return markdown.markdown(content, extensions=qconst.MARKDOWN_EXTENSIONS, output_format="html")
-
-
 def func_desc(func_id: str = 'gold'):
     prompt = f"""
     Please analyse the following python function. This is a code for a calculator.
@@ -117,7 +112,7 @@ def qty_guide(qty_slug: str = 'length'):
     4) In 2nd paragraph of the description you can mention some of the common examples of related units of measurements.
     5) description section to be followed by it's application and importance, using bullet points.
     """
-    desc = format_markdown(ask_gpt(prompt, 0.7))
+    desc = md2html(ask_gpt(prompt, 0.7))
     return desc
 
 

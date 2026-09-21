@@ -1,26 +1,26 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
+from tempfile import template
 
 import qvars
-from qcore import layrow, laycol, qformat, df_formatter, QChart, QMap, QImage, qjson_dumps
+from qcore import qformat, df_formatter, QChart, QMap, QImage, qjson_dumps
 from calc import QTemp, QList, QIO, QFav
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.utils.safestring import mark_safe
 import catalog.views
-from qvars import qfunc_dict_template
+from qvars import qfunc_dict_layout
 from qcore.mod_anno import *
 from .mod_ucals import get_uc_list
 from .view_form_data import *
-from qutil import HtmxHttpRequest, QThread, preprocess_expression, QDateTime, fid2owner
+from qutil import HtmxHttpRequest, QThread, preprocess_expression, QDateTime, fid2owner, md2html
 import qutil as ut
 import json
+import re
 from datetime import date, datetime, time as dt_time
 import pandas as pd
 from qcore import isMeasureQuantity as isPQ
 from django.conf import settings
-import markdown
-import qconst
 import logging
 
 logger = logging.getLogger(__name__)
@@ -132,12 +132,12 @@ def q1999_func_to_form(request: HtmxHttpRequest, **dictf):  # main view
             or request.POST.get('qcalc_structural_cmd') == '1'
         )
         if request.method == 'POST' and not structural:
-            layout = request.json_doc['info']['layout']
-            if layout == '':
-                template = 'insert-calculator-section-output-layout.html'
-            elif layout in ['l2r', 'lr', 't2b', 'tb']:
+            template = request.json_doc['info'].get('template', '')
+            if template == '':
                 template = 'layout-output-1-section.html'
-            else:  # layout in ['lr2', 'tb2']
+            elif template in ['l2r', 'lr', 't2b', 'tb']:
+                template = 'layout-output-1-section.html'
+            else:  # layout in ['l2r2', 'lr2', 't2b2', 'tb2']
                 template = 'layout-output-2-section.html'
         else:
             template = get_template(part)
@@ -276,24 +276,176 @@ def calc_io(_request: HtmxHttpRequest):
     return JsonResponse(io_dict, encoder=QEncoderBase)
 
 
+def calc_io_clear(_request: HtmxHttpRequest, cid: str):
+    cid = (cid or '').strip()
+    removed = QIO.delp1(cid) if cid else False
+    return JsonResponse({'ok': True, 'cid': cid, 'removed': removed}, encoder=QEncoderBase)
+
+
+def _step2_pack_value(value, _seen=None):
+    if _seen is None:
+        _seen = set()
+
+    value_id = id(value)
+    if value_id in _seen:
+        return None
+
+    if isinstance(value, Qty):
+        return {'__qcalc_type': 'qty', 'value': str(value)}
+
+    if isinstance(value, QChart):
+        _seen.add(value_id)
+        chart_data = value.data or {}
+        if isinstance(chart_data, dict):
+            chart_data = {
+                key: val for key, val in chart_data.items()
+                if key not in {'chart', 'fig', 'ax'}
+            }
+        return {
+            '__qcalc_type': 'chart',
+            'chtype': value.chtype,
+            'data': _step2_pack_value(chart_data, _seen),
+        }
+
+    if isinstance(value, pd.DataFrame):
+        return {
+            '__qcalc_type': 'table',
+            'columns': [str(col) for col in value.columns],
+            'data': value.values.tolist(),
+        }
+
+    if isinstance(value, (date, datetime, dt_time)):
+        return str(QDateTime(value))
+
+    if isinstance(value, dict):
+        _seen.add(value_id)
+        return {str(key): _step2_pack_value(val, _seen) for key, val in value.items()}
+
+    if isinstance(value, (list, tuple, set)):
+        _seen.add(value_id)
+        return [_step2_pack_value(item, _seen) for item in value]
+
+    if isinstance(value, (str, int, float, bool)) or value is None:
+        return value
+
+    return str(value)
+
+
+def _step2_compact_io_payload(func_id, input_map, output_map):
+    return {
+        'function': func_id,
+        'input': _step2_pack_value(input_map or {}),
+        'output': _step2_pack_value(output_map or {}),
+    }
+
+
+def _step2_value_for_run(value):
+    if isinstance(value, dict):
+        qtype = value.get('__qcalc_type')
+        if qtype == 'qty':
+            return value.get('value', '')
+        if qtype == 'chart':
+            return _step2_value_for_run(value.get('data', {}))
+        if qtype == 'table':
+            return {
+                'columns': value.get('columns', []),
+                'data': value.get('data', []),
+            }
+        return {key: _step2_value_for_run(val) for key, val in value.items()}
+
+    if isinstance(value, list):
+        return [_step2_value_for_run(item) for item in value]
+
+    return value
+
+
+def _step2_value_for_cost(value):
+    if isinstance(value, Qty):
+        return value
+
+    if isinstance(value, dict) and value.get('__qcalc_type') == 'qty':
+        try:
+            return Qty(value.get('value', ''))
+        except Exception:
+            return None
+
+    return value
+
+
+def _step2_prepare_cost_items(output_map, spec):
+    output = output_map.copy() if isinstance(output_map, dict) else {}
+    fspec = spec if isinstance(spec, dict) else {}
+
+    if 'include' in fspec:
+        if '*' not in fspec['include']:
+            keys = [key for key in output.keys() if key not in fspec['include']]
+            for key in keys:
+                _ = output.pop(key)
+    if 'exclude' in fspec:
+        keys = [key for key in output.keys() if key in fspec['exclude']]
+        for key in keys:
+            _ = output.pop(key)
+
+    keys = [key for key in output.keys()]
+    for key in keys:
+        qval = _step2_value_for_cost(output[key])
+        if not isinstance(qval, Qty):
+            _ = output.pop(key)
+            continue
+
+        output[key] = qval
+        dim = qval.unit.dimension
+        if 'C' in dim:
+            _ = output.pop(key)
+
+    if not output:
+        return None
+
+    user_curnc = QThread.get_pref('defa_currency', 'USD')
+    ucost = ['1.00 ' + user_curnc + '/' + q.uom for q in output.values()]
+    return pd.DataFrame({'Item': output.keys(), 'Quantity': output.values(), 'Unit Cost': ucost})
+
+
 def q1_step2(request: HtmxHttpRequest):
-    fstep = request.GET.get('step', "").strip().lower()  # run, cost, chart
+    fstep = request.GET.get('step', "").strip().lower()  # run, chart
     fname = request.GET.get('func', "").strip().lower()  # run function name
     # | fcaption = request.GET.get('caption', "").strip().lower() # used in template
     fcid = request.GET.get('src_cid', "").strip()  # source cid may not have been used, collected from html
-    fspec = json.loads(request.GET.get('spec', {}))  # spec
+    spec_raw = request.GET.get('spec', '{}')
+    try:
+        fspec = json.loads(spec_raw) if spec_raw else {}
+    except Exception:
+        fspec = {}
+    if not isinstance(fspec, dict):
+        fspec = {}
     # | print(type(fspec), fspec) # spec can be: 'include, 'exclude', 'field', dict of arg:field
-    output = QIO.getp1(fcid, {}).get('output', {})
+    step2_io = QIO.getp1(fcid, {}) if fcid else {}
+    if not isinstance(step2_io, dict):
+        step2_io = {}
+    output = step2_io.get('output', {})
+    output = output.copy() if isinstance(output, dict) else {}
 
     if fstep == 'run':
         ff = QCals.quick_find_func(fname)
-        input_ = QIO.getp1(fcid, {}).get('input', {})
-        io = {**input_, **output}
+        input_ = step2_io.get('input', {})
+        input_ = input_ if isinstance(input_, dict) else {}
+        run_input = {key: _step2_value_for_run(val) for key, val in input_.items()}
+        run_output = {key: _step2_value_for_run(val) for key, val in output.items()}
+        io = {**run_input, **run_output}
         fargs = {}
         for arg in fspec:
-            if fspec[arg] in io:
-                v = io[fspec[arg]]
+            src_key = fspec[arg]
+            if isinstance(src_key, str) and src_key in io:
+                v = io[src_key]
                 fargs[arg] = v
+
+        # Allow step='run', func='cost' to use include/exclude + Qty-to-items behavior.
+        if ff == 'cost' and 'items' not in fargs:
+            items_df = _step2_prepare_cost_items(output, fspec)
+            if items_df is None:
+                return ut.show_modal(request, "Next Step", 'Error (S2): No suitable Qty found to calculate cost')
+            fargs['items'] = items_df
+
         return q1999_func_to_form(request, fname=ff, fargs=fargs, part='1')
 
     if output:
@@ -310,30 +462,16 @@ def q1_step2(request: HtmxHttpRequest):
             for key in keys:
                 _ = output.pop(key)
 
-        if fstep == 'cost':
-            ff = 'cost'
-            # not_cqkeys = []  # | cq = qty having cost
-            keys = [key for key in output.keys()]
-            for key in keys:
-                if not isinstance(output[key], Qty):
-                    _ = output.pop(key)
-                else:
-                    dim = output[key].unit.dimension
-                    if 'C' in dim:
-                        _ = output.pop(key)
-
-            user_curnc = QThread.get_pref('defa_currency', 'USD')
-            if output:
-                ucost = ['1.00 ' + user_curnc + '/' + q.uom for q in output.values()]
-                df = pd.DataFrame({'Item': output.keys(), 'Quantity': output.values(), 'Unit Cost': ucost})
-                return q1999_func_to_form(request, fname=ff, fargs={'items': df}, part='1')
-            else:
-                msg = f'No suitable Qty found to calculate cost'
-        elif fstep == 'chart':
-            key = fspec['field']
+        if fstep == 'chart':
+            key = fspec.get('field', '')
             if key in output:
                 if isinstance(output[key], QChart):
                     return q1999_func_to_form(request, fname=output[key].chtype, fargs=output[key].data, part='1')
+                if isinstance(output[key], dict) and output[key].get('__qcalc_type') == 'chart':
+                    chtype = output[key].get('chtype', '')
+                    cdata = output[key].get('data', {})
+                    if chtype and isinstance(cdata, dict):
+                        return q1999_func_to_form(request, fname=chtype, fargs=cdata, part='1')
             msg = f'No data found for Chart'
         else:
             msg = f'Unknown step2 step [{fstep}]'
@@ -470,10 +608,7 @@ def q1_add_func_help(request: HtmxHttpRequest, **kwargs):
             if help_path.suffix == '.html':
                 context['help_html'] = help_path.as_posix()
             else:  # .md
-                document_html = markdown.markdown(
-                    help_path.read_text(encoding='utf-8'),
-                    extensions=qconst.MARKDOWN_EXTENSIONS, output_format='html'
-                )
+                document_html = md2html(help_path.read_text(encoding='utf-8'))
                 context['help_html'] = ""
                 context['dyn_html'] += document_html
         else:
@@ -500,13 +635,21 @@ def q1_run_func(request: HtmxHttpRequest, **dictf):
     return JsonResponse(result, encoder=QEncoderBase)
 
 
-def q1141_read_func_meta(func_id, __info=None, scope='qpots'):
+def template_name(layout, inp1, out1):
+    icol = '' if inp1 == '*' else '2'
+    ocol = '' if out1 == '*' else '2'
+    template = f't{icol}b{ocol}' if layout == 'tb' else f'l{icol}r{ocol}'
+    # print('|', template, inp1, out1, outcol)
+    return template
+
+
+def q1141_read_func_meta(func_id, __info=None, scope='qpots'):  # __info__
     json_doc = {}
     json_doc['help'] = 'y' if get_help_path(func_id).exists() else 'nohelp.html'  # internal
     json_doc['clean'] = False  # if form has clean_data or not # internal
 
-    json_doc['info'] = {  # if func__info() exists it should return following dict
-        'name': func_id,  # string, auto
+    json_doc['info'] = {  # func__info() should return following dict
+        'name': func_id,  # internal, string, auto
         'title': 'Calculate ' + ut.variable_to_title(func_id),  # string
         'desc': '',  # string
         'calculate': 'Calculate',  # calculate button caption
@@ -526,31 +669,29 @@ def q1141_read_func_meta(func_id, __info=None, scope='qpots'):
         # layout
         'row': [],  # ['arg1-argN',...] #legacy
         'col': [],  # number or ['arg1-argN',...] # legacy
-        'outcol': [],  # or css string, legacy
-        # 'newcol': [],  # internal use - auto calculated from row, col spec
-        # 'endcol': [],  # internal use - auto calculated from row, col spec
-        # 'newrow': [],  # internal use - auto calculated from row, col spec, template v4.21
-        # 'inrowb': [],  # internal use - auto calculated from row, col spec, template v4.21
-        # 'inrowe': [],  # internal use - auto calculated from row, col spec, template v4.21
-        # 'endrow': [],  # internal use - auto calculated from row, col spec, template v4.21
-        'inp1': ['*'],  # or css string. parameter filtering
-        'out1': ['*'],  # or css string, parameter filtering
-        'layout': 'lr',  # ['l2r', 'lr', 'lr2', 't2b', 't2b2', 'tb', 'tb2']
-        'template': '',  # string e.g. 'v4.21' # legacy
+        'layout': 'lr',  # 'lr' or 'tb'
+        'inp1': '*',  # array or css string, parameter filtering
+        'out1': '*',  # array or css string, parameter filtering
+        # 'outcol': '',  # array or css string, legacy
+        'template': 'lr',  # internal
         # extra front end logic
         'onsubmit': '',
         'script': '',  # string e.g. 'function cfn(v){return v>100;}'
-        'qsel2': False,  # internal use
-        'qlist': False,  # internal use
-        'table_out': False,  # internal use - auto calculated if it is an output table
-        'table_in': False,  # internal use - auto calculated if it is an input table
+        'qsel2': False,  # internal
+        'qlist': False,  # internal
+        'table_out': False,  # internal - auto calculated if it is an output table
+        'table_in': False,  # internal - auto calculated if it is an input table
         'kins': '',  # comma separated cal list meant to be sepcified through qfunc_info.json
         'tags': '',  # comma separated tag list meant to be specified through qfunc_info.json
-        'xpr': True,
-        'url': True,
-        'loop': False,  # True,
+        'xpr': True,  # internal
+        'url': True,  # internal
+        'loop': False,  # internal, True,
         'step2': [],
-        'cost': False,  # internal use
+        'cost': False,  # internal
+        'single_instance': False,
+        'single_instance_key': '',
+        'provides_data': {},
+        'consumes_data': {},
         'inserts': {},
         # comma separated list of words with proper case that needs to be unchanged
         # during title case conversion for this calculator function
@@ -570,36 +711,37 @@ def q1141_read_func_meta(func_id, __info=None, scope='qpots'):
         'related',
         'showhide',
         'anyof',
-        'row',
-        'col',
-        'outcol',  # legacy
-        # 'newcol',
-        # 'endcol',
-        # 'newrow',
-        # 'inrowb',
-        # 'inrowe',
-        # 'endrow',
+        # 'images',
+        'row',  # obsolete
+        'col',  # obsolete
+        'layout',
         'inp1',
         'out1',
-        'layout',
-        'template',
+        # 'outcol',  # legacy
+        # 'template', # internal
         'onsubmit',
         'script',
         'kins',
         'tags',
-        'xpr',
-        'url',
-        'loop',
+        'xpr',  # internal
+        'url',  # internal
+        'loop',  # internal
         'step2',
-        'cost',
+        'cost',  # internal
+        'single_instance',
+        'single_instance_key',
+        'provides_data',
+        'consumes_data',
         'inserts',
         'proper',
     ]:
         if key in func_info:
             json_doc['info'][key] = func_info[key]
 
-    if json_doc['info']['layout'] not in qconst.QCALC_LAYOUTS:
+    if json_doc['info']['layout'] not in ['lr', 'tb']:
         json_doc['info']['layout'] = 'lr'
+    json_doc['info']['template'] = template_name(
+        json_doc['info']['layout'], json_doc['info']['inp1'], json_doc['info']['out1'])
 
     if 'images' in func_info:
         images = func_info['images']
@@ -612,16 +754,15 @@ def q1141_read_func_meta(func_id, __info=None, scope='qpots'):
         if 'bottom' in images:
             json_doc['info']['images']['bottom'] = images['bottom']
 
-    tmpl = qfunc_dict_template.get(func_id, '')
+    tmpl = qfunc_dict_layout.get(func_id, '')
     if tmpl != '':
-        json_doc['info']['template'] = tmpl  # used in sine for test purpose
-    if json_doc['info']['template'] == '':
-        tmpl = qfunc_dict_template.get('default', '')
+        json_doc['info']['layout'] = tmpl
+    if json_doc['info']['layout'] == '':
+        tmpl = qfunc_dict_layout.get('default', '')
         if tmpl != '':
-            json_doc['info']['template'] = tmpl  # used in sine for test purpose
+            json_doc['info']['layout'] = tmpl
 
     json_doc['name'] = func_id
-    # json_doc['id'] = cid
 
     # prepare list of tags
     tags = json_doc['info']['tags']
@@ -645,18 +786,6 @@ def q1141_read_func_meta(func_id, __info=None, scope='qpots'):
     json_doc['info']['proper'] = ut.css2proper_dict(proper)
 
     return json_doc
-
-
-def q1143_create_form_layout(request, func_addr):
-    fargs = list(request.json_data.keys())
-    if 'row' in request.json_doc['info']:
-        request.json_doc['info'].update(
-            layrow(func_addr, request.json_doc['info']['row'],
-                   {'c4f': request.json_c4f, 'fargs': fargs}))
-    if 'col' in request.json_doc['info']:
-        request.json_doc['info'].update(
-            laycol(func_addr, request.json_doc['info']['col'],
-                   {'c4f': request.json_c4f, 'fargs': fargs}))
 
 
 def q1146_result_transfer(request: HtmxHttpRequest, sfunc):
@@ -693,7 +822,6 @@ def q1149_func_to_form_context(request: HtmxHttpRequest, func_id, cid, kwargs):
     request.json_doc = q1141_read_func_meta(func_id, __info)
     request.json_doc['info']['inp1'] = ut.specified_args(func_addr, request.json_doc['info']['inp1'])
     q11429_func_to_form_schema(request, func_addr, func_id, cid, kwargs)
-    q1143_create_form_layout(request, func_addr)
     request.context['input'] = q11469_form_data_create_dynaform_and_fill(
         request, request.json_schema, request.json_data, request.json_s2f,
         request.json_doc, cid, 0)  # data, form, doc[info]
@@ -719,7 +847,8 @@ def q1149_func_to_form_context(request: HtmxHttpRequest, func_id, cid, kwargs):
     if request.cmd == '' and request.POST and request.json_doc['info'].get('step2', []):
         # | ---------------------------------
         # | if anything is not serializable (e.g. qreq, beautifulsoup .string) will fail
-        QIO.setp({cid: io_dict})
+        step2_io = _step2_compact_io_payload(func_id, request.json_d4f, request.ojson_d4f)
+        QIO.setp1(cid, step2_io)
         # | ---------------------------------
 
     q1146_result_transfer(request, func_id)
@@ -806,12 +935,15 @@ def q1145_result_to_form_schema(request: HtmxHttpRequest, func_id, cid, result, 
             table_id = f"{cid}_{name}"
             value = value.apply(lambda col: col.map(df_formatter))  # apply format for table-out
             request.ojson_data[name] = qhtml(
-                value.to_html(
-                    table_id=table_id,
-                    classes=f'table table-responsive table-out {cid}',
-                    na_rep='None',
-                    # float_format=qformatter().format,
-                    index=False
+                wrap_actions(
+                    value.to_html(
+                        table_id=table_id,
+                        classes=f'table table-responsive table-out {cid}',
+                        na_rep='None',
+                        # float_format=qformatter().format,
+                        index=False
+                    ),
+                    'table-wrap'
                 ))  # datatable-basic {cid}
             request.ojson_data_type.append('html')
             request.ojson_doc['table_out'] = True
@@ -951,11 +1083,19 @@ def q1145_result_to_form_schema(request: HtmxHttpRequest, func_id, cid, result, 
 
     try:
         result_list = list(request.ojson_data.keys())
-        if request.json_doc['info']['outcol']:  # legacy and takes priority over 'out1'
-            specified_labels = ut.unspecified_args(result_list, request.json_doc['info']['outcol'])
-        else:  # modern 'out1'
-            specified_labels = ut.specified_args(result_list, request.json_doc['info']['out1'])
+
+        # Keep out1 indexing consistent with template matching: Qty value + _uom is one logical field.
+        logical_result_list = []
+        seen_roots = set()
+        for name in result_list:
+            root = re.sub(r'_(?:\d+_)?part(?:_uom)?$|_uom$', '', name)
+            if root not in seen_roots:
+                logical_result_list.append(root)
+                seen_roots.add(root)
+
+        specified_labels = ut.specified_args(logical_result_list, request.json_doc['info']['out1'])
         # print('|', result_list)
+        # print('|', logical_result_list)
         # print('|', specified_labels)
         request.json_doc['info']['out1'] = specified_labels
 

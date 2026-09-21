@@ -7,7 +7,11 @@
 {% load qfilter %}
 {% lineless_ex %}
 <div class="content" hx-ext="response-targets">
-  <div id="card-holder-{{ input.cid }}" class="calc show">
+    <div id="card-holder-{{ input.cid }}" class="calc show"
+      data-qcalc-cid="{{ input.cid }}"
+      data-qcalc-func="{{ input.doc.name|default:'' }}"
+      data-qcalc-single-instance="{% if input.doc.info.single_instance %}1{% else %}0{% endif %}"
+      data-qcalc-single-key="{% if input.doc.info.single_instance_key %}{{ input.doc.info.single_instance_key }}{% else %}{{ input.doc.name|default:'' }}{% endif %}">
     <script>setCid('{{ input.cid }}');</script>
     <!-- Basic card -->
     <div class="card">

@@ -32,7 +32,10 @@ class TestSpecifiedArgs(unittest.TestCase):
             specified_args(["a", "b", "c", "d"], ["1-2"]),
             ["a", "b"],
         )
-
+        self.assertEqual(
+            specified_args(["a", "b", "c", "d", "e"], "1-2,4-5"),
+            ["a", "b", "d", "e"],
+        )
         # 3. Tuple of argument names
         self.assertEqual(
             specified_args(("a", "b", "c", "d"), ["2-4"]),

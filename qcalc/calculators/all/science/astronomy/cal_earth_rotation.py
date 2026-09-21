@@ -2,7 +2,7 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 from datetime import datetime, date
-from calculators.all.general.map.cal_location import geo_location
+from calculators.all.general.map import geo_location
 from qcore import Qty, qfunc, QGeo
 from math import fmod, radians, degrees, sqrt, ceil, acos
 from .cal_coord import *

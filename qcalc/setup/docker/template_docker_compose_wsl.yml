@@ -1,0 +1,133 @@
+
+name: qcalc_prj
+services:
+  nginx:
+    image: nginx:1.31
+    container_name: nginx
+    restart: always
+    ports:
+      - "8000:80"
+      - "443:443"
+    environment:
+      - NGINX_HOST=localhost
+    volumes:
+      - ~/qcalc_prj/.local/nginx/templates:/etc/nginx/templates
+      - ~/qcalc_prj/.local/nginx/conf:/etc/nginx/conf.d
+      - ~/qcalc_prj/.local/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ~/qcalc_prj/.local/log/nginx:/var/log/nginx
+      # check nginx location /static/, the path should be consistent
+      - static:/usr/src/qcalc_prj/qcalc/staticfiles/
+    networks:
+      - qcnet
+    depends_on:
+      qcalc_prj:
+        condition: service_started
+
+  qcalc_prj:
+    image: qcalc_prj
+    build:
+      context: ~/qcalc_prj
+      dockerfile: Dockerfile
+    container_name: qcalc_prj
+    restart: always
+    environment:
+      - GUNICORN_INSTANCE_ID=${HOSTNAME:-qcalc_web_node}
+    command: >
+      bash -c '
+        python manage.py collectstatic --noinput &&
+        python manage.py makemigrations &&
+        python manage.py migrate &&
+        export GUNICORN_INSTANCE_ID="instance_1";
+        gunicorn config.wsgi:application --bind 0.0.0.0:8001 --workers 2 --timeout 900 --access-logfile /var/log/gunicorn/access_1.log --error-logfile /var/log/gunicorn/error_1.log --log-file /var/log/gunicorn/qcalc_1.log &
+        export GUNICORN_INSTANCE_ID="instance_2";
+        gunicorn config.wsgi:application --bind 0.0.0.0:8002 --workers 2 --timeout 900 --access-logfile /var/log/gunicorn/access_2.log --error-logfile /var/log/gunicorn/error_2.log --log-file /var/log/gunicorn/qcalc_2.log &
+        export GUNICORN_INSTANCE_ID="instance_3";
+        gunicorn config.wsgi:application --bind 0.0.0.0:8003 --workers 2 --timeout 900 --access-logfile /var/log/gunicorn/access_3.log --error-logfile /var/log/gunicorn/error_3.log --log-file /var/log/gunicorn/qcalc_3.log &
+        wait
+      '
+    # gunicorn timeout 15 minutes or 900 seconds
+    volumes:
+      - ~/qcalc_prj/qcalc:/usr/src/qcalc_prj/qcalc
+      - ~/qcalc_prj/qcalc_res:/usr/src/qcalc_prj/qcalc_res
+      - ~/qcalc_prj/.cache:/usr/src/qcalc_prj/.cache
+      - ~/qcalc_prj/.local/log/gunicorn:/var/log/gunicorn
+      - ~/qcalc_prj/.temp:/usr/src/qcalc_prj/.temp
+      - ~/qcalc_prj/.local/log/qcalc:/usr/src/qcalc_prj/.local/log/qcalc
+      # check nginx location /static/, the path should be consistent
+      - static:/usr/src/qcalc_dock/qcalc/staticfiles/
+    ports:
+      - "8001:8001"
+      - "8002:8002"
+      - "8003:8003"
+    networks:
+      - qcnet
+    depends_on:
+      redis:
+        condition: service_started
+#      memcached:
+#        condition: service_started
+      postgres:
+        condition: service_started
+#     mysql:
+#       condition: service_started
+
+#  memcached:
+#    image: memcached:1.6
+#    container_name: memcached
+#    restart: unless-stopped
+#    # memcached cache size 256 MB RAM
+#    command: memcached -m 256
+#    networks:
+#      - qcnet
+
+  redis:
+    image: redis:8
+    container_name: redis
+    restart: unless-stopped
+    networks:
+      - qcnet
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  postgres:
+    image: postgres:16
+    container_name: postgres
+    restart: unless-stopped
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=qcalc
+      - POSTGRES_PASSWORD=qcalc
+      - POSTGRES_DB=qcalc
+    networks:
+      - qcnet
+
+#  mysql:
+#    image: mysql:8.4
+#    container_name: mysql
+#    restart: unless-stopped
+#    volumes:
+#      - mysqldata:/var/lib/mysql
+#    environment:
+#      MYSQL_ROOT_PASSWORD: <mysql_root_password>
+#      MYSQL_DATABASE: qcalc
+#      MYSQL_USER: qcalc
+#      MYSQL_PASSWORD: <mysql_user_password>
+#    networks:
+#      - qcnet
+
+networks:
+  qcnet:
+    driver: bridge
+    name: qcnet
+
+volumes:
+  pgdata:
+    external: true
+    name: pgdata
+  static:
+    external: true
+    name: static

@@ -1,0 +1,94 @@
+{% extends base %}
+{% load qfilter %}
+{% block card %}{% endblock %}
+{% block page_profile %}
+{% add_head 'Tag Browser' 'Open calculators by tags' '/catalog/tags/' %}
+{% endblock %}
+{% block _cardtitle %}Tag Browser{% endblock %}
+{% block _content %}
+<div class="mb-2">
+  <form method="get" hx-get="/catalog/tags/?part=1" hx-target="closest .calc" hx-swap="outerHTML">
+    <div class="row">
+      <div class="col-md-4 mb-2">
+        <input type="search" class="form-control" name="q" value="{{ filter_text }}" placeholder="Filter tags">
+      </div>
+      <div class="col-md-4 mb-2">
+        <select class="form-control" name="mode" onchange="this.form.requestSubmit();">
+          {% if mode == 'and' %}
+          <option value="and" selected>Match all selected tags</option>
+          <option value="or">Match any selected tag</option>
+          {% else %}
+          <option value="and">Match all selected tags</option>
+          <option value="or" selected>Match any selected tag</option>
+          {% endif %}
+        </select>
+      </div>
+      <div class="col-md-4 mb-2 d-flex justify-content-md-end align-items-center">
+        <button type="submit" class="btn btn-info d-inline-flex align-items-center justify-content-center mr-2" style="height:38px;line-height:1;padding-top:0;padding-bottom:0;">Apply</button>
+        <a href="/catalog/tags/?page_size={{ page_size }}" hx-get="/catalog/tags/?part=1&page_size={{ page_size }}" hx-target="closest .calc" hx-swap="outerHTML" class="btn btn-light d-inline-flex align-items-center justify-content-center" style="height:38px;line-height:1;padding-top:0;padding-bottom:0;position:relative;top:-2px;">Reset</a>
+        <a href="/catalog/calc/" hx-get="/catalog/calc/?part=1" hx-target="closest .calc" hx-swap="outerHTML" class="btn btn-light d-inline-flex align-items-center justify-content-center ml-2" style="height:38px;line-height:1;padding-top:0;padding-bottom:0;position:relative;top:-2px;">
+          <i class="icon-tree6 mr-1"></i>Catalog
+        </a>
+      </div>
+    </div>
+
+    <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between py-1 px-2 mb-2" style="background:#e6e6e6;border:1px solid #aaa;line-height:1.2;">
+      <div class="mb-1 mb-md-0" style="font-weight:400;font-size:0.9rem;">
+        Showing {{ start_row }}-{{ end_row }} of {{ total_rows }} rows
+      </div>
+
+      <div class="d-flex flex-wrap align-items-center justify-content-start justify-content-md-end">
+      <div class="d-flex align-items-center mr-md-2 mb-1 mb-md-0">
+        <span class="mr-2" style="font-weight:400;font-size:0.9rem;">Page Size</span>
+        <select class="form-control form-control-sm" name="page_size" style="width:auto;height:30px;padding-top:0;padding-bottom:0;" onchange="this.form.requestSubmit();">
+          {% for size in page_size_options %}
+          <option value="{{ size }}" {% if size == page_size %}selected{% endif %}>{{ size }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="d-flex align-items-center flex-wrap">
+        {% if page <= 1 %}
+        <button class="btn btn-sm btn-light mr-1 py-0 d-inline-flex align-items-center" style="height:30px;" type="submit" name="page" value="1" disabled>First</button>
+        <button class="btn btn-sm btn-light mr-1 py-0 d-inline-flex align-items-center" style="height:30px;" type="submit" name="page" value="{{ page|add:'-1' }}" disabled>Prev</button>
+        {% else %}
+        <button class="btn btn-sm btn-light mr-1 py-0 d-inline-flex align-items-center" style="height:30px;" type="submit" name="page" value="1">First</button>
+        <button class="btn btn-sm btn-light mr-1 py-0 d-inline-flex align-items-center" style="height:30px;" type="submit" name="page" value="{{ page|add:'-1' }}">Prev</button>
+        {% endif %}
+        <span class="btn btn-sm btn-danger mr-1 py-0 d-inline-flex align-items-center disabled" style="height:30px;position:relative;top:-2px;">{{ page }}</span>
+        {% if page >= total_pages %}
+        <button class="btn btn-sm btn-light mr-1 py-0 d-inline-flex align-items-center" style="height:30px;" type="submit" name="page" value="{{ page|add:'1' }}" disabled>Next</button>
+        <button class="btn btn-sm btn-light py-0 d-inline-flex align-items-center" style="height:30px;" type="submit" name="page" value="{{ total_pages }}" disabled>Last</button>
+        {% else %}
+        <button class="btn btn-sm btn-light mr-1 py-0 d-inline-flex align-items-center" style="height:30px;" type="submit" name="page" value="{{ page|add:'1' }}">Next</button>
+        <button class="btn btn-sm btn-light py-0 d-inline-flex align-items-center" style="height:30px;" type="submit" name="page" value="{{ total_pages }}">Last</button>
+        {% endif %}
+      </div>
+      </div>
+    </div>
+
+    <div class="mb-2">
+      {% if tag_items|length == 0 %}
+      <p class="text-muted">No tags found.</p>
+      {% else %}
+      {% for item in tag_items %}
+      <label class="btn btn-sm {% if item.name in selected_tags %}btn-primary{% else %}btn-light{% endif %} mb-1 mr-1 py-1 border-0" style="box-shadow:none;font-size:0.96rem;">
+        <input type="checkbox" name="qt" value="{{ item.name }}" {% if item.name in selected_tags %}checked{% endif %} style="margin-right:6px;" onchange="this.form.requestSubmit();">
+        {{ item.name }} <span class="ml-1">({{ item.count }})</span>
+      </label>
+      {% endfor %}
+      {% endif %}
+    </div>
+
+    {% for tag in selected_tags %}
+      {% if tag not in page_tag_names %}
+      <input type="hidden" name="qt" value="{{ tag }}">
+      {% endif %}
+    {% endfor %}
+  </form>
+</div>
+
+<div>
+  {% include 'catalog-tag-browser-results.html' %}
+</div>
+{% endblock %}

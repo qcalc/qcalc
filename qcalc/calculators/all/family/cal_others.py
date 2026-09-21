@@ -34,8 +34,7 @@ def gold__info():
             'making_charge_pct': {'label': 'Making Charge %'}
         },
         'anyof': {"1": {'fields': ['gold_weight_intl', 'gold_weight_india']}},
-        # 'outcol': ['chart__r']
-        'layout': 't2b2',
+        'layout': 'tb',
         'inp1': ['gold_weight_intl', 'gold_weight_india'],
         'out1': ['gold_weight', 'grand_total'],
     }

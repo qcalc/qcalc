@@ -6,7 +6,10 @@ This calculator discounts a series of future cash flows back to today's
 value at a given interest rate, and sums them to give a single **Net
 Present Value**. It is useful for judging whether a project or investment's
 future cash flows are worth more or less than the initial outlay, once the
-time value of money is taken into account.
+time value of money is taken into account. 
+
+> It supports cash flows at
+irregular periods, so **Period** values do not need to be consecutive.
 
 ## Background
 
@@ -37,9 +40,12 @@ The time period between entries in the **Cashflows** series (for example,
 
 ### Cashflows
 
-A single column of cash flow amounts, one per period, in order, starting
-from period 0. The first entry is typically the initial outlay (a negative
-number); later entries are the returns received in each subsequent period.
+A table with exactly two columns in this order:
+
+-   **Period** (first column), for example 1, 10, 15, 25, 26.
+-   **Cashflow** (second column), the corresponding cash flow amount.
+
+Any renamed, reordered, missing, or extra column is rejected.
 
 ## Results
 
@@ -54,14 +60,22 @@ Return.
 
 ## Understanding the Calculation
 
-Each cash flow is discounted according to how many periods from the start
-it occurs:
+Each cash flow is discounted according to its period from the start.
 
 $$NPV = \sum_{i=0}^{n} \dfrac{\text{Cashflow}_i}{(1+r)^{i}}$$
 
-where $\text{Cashflow}_0$ is the first entry (discounted by 1, since it
-occurs immediately), $r$ is the **Interest Rate** converted to a rate per
-**Cashflow Interval**, and $i$ counts periods from the first entry.
+where `Cashflow_0` is the first entry (discounted by 1, since it
+occurs immediately), `r` is the **Interest Rate** converted to a rate per
+**Cashflow Interval**, and `i` counts periods from the first entry.
+
+When a **Period** column is provided, the calculator uses those explicit
+period values (normalized so the first listed period is treated as the
+starting point):
+
+$$NPV = \sum_{k=1}^{m} \dfrac{\text{Cashflow}_k}{(1+r)^{t_k - t_1}}$$
+
+This keeps 1, 2, 3, ... equivalent to the consecutive-row model,
+while also supporting sparse periods.
 
 ## Example
 
@@ -80,9 +94,8 @@ by definition, the rate at which a series' NPV is zero.
 
 ## Important Assumptions and Interpretation
 
--   The first **Cashflows** entry is discounted as occurring at period 0
-    (today), not one period from now; make sure your initial outlay is
-    entered as the first row if that is the intended timing.
+-   With or without an explicit **Period** column, the first listed cashflow
+    is treated as the timing origin (period 0 after normalization).
 -   NPV depends heavily on the chosen **Interest Rate** — always state
     which rate was used to discount when comparing NPV figures, since the
     same cash flows can show a positive NPV at one rate and a negative NPV
@@ -92,3 +105,13 @@ by definition, the rate at which a series' NPV is zero.
 -   The result is a valuation based on estimated future cash flows and an
     assumed constant discount rate; it is not a guarantee of actual
     project or investment performance.
+
+### Quick Cross-Check with FV/NFV
+
+For the same cashflow series and rate basis, compounding NPV to horizon
+`T` should match NFV:
+
+$$NFV = NPV \times (1+r)^T$$
+
+To reproduce this with **FV**, set **Present Value = NPV**,
+**Periodic Payment = 0**, and **Duration = T** intervals.

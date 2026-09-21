@@ -4,25 +4,23 @@
 from . import __version__
 from calc import QCals, QCache, get_help_path, cur_loader
 from .mod_docs import get_doc_path, build_docs_tree, fix_doc_links
-from qutil import HtmxHttpRequest, get_page, q1139_request_init
+from qutil import HtmxHttpRequest, get_page, q1139_request_init, md2html
 from django.conf import settings
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
 from pathlib import Path
 import time
-import markdown
 import json
 from qvars import qc_gpref as gs
 from django.http import JsonResponse
 from django.http import FileResponse
 from django.shortcuts import render, redirect
-from calculators.all.general.cal_evacon import qeval
-from calculators.all.admin.cal_email import email_send
+from calculators.all.general import qeval
+from calculators.all.admin import email_send
 from qcore import QEncoderBase
 import qutil as ut
 import qenv
 from .forms import ContactForm
-import qconst
 
 
 def serve_app_static_file(relative_path:str, content_type):
@@ -134,10 +132,7 @@ def q1_add_page_help(request: HtmxHttpRequest, **kwargs):
         if help_path.suffix == '.html':
             context['help_html'] = help_path.as_posix()
         else:  # .md
-            document_html = markdown.markdown(
-                help_path.read_text(encoding='utf-8'),
-                extensions=qconst.MARKDOWN_EXTENSIONS, output_format='html'
-            )
+            document_html = md2html(help_path.read_text(encoding='utf-8'))
             context['help_html'] = ""
             context['dyn_html'] = document_html
     else:
@@ -172,10 +167,7 @@ def q1_add_doc(request: HtmxHttpRequest, **kwargs):
     doc_exists = doc_path.exists()
 
     if doc_exists and doc_path.suffix == '.md':
-        document_html = markdown.markdown(
-            _read_doc_text(doc_path),
-            extensions=qconst.MARKDOWN_EXTENSIONS, output_format='html'
-        )
+        document_html = md2html(_read_doc_text(doc_path))
         document_html = fix_doc_links(document_html, pname)
         context = {'help_html': '', 'dyn_html': document_html}
     elif doc_exists and doc_path.suffix in ['.txt']:  # ,'', '.py'

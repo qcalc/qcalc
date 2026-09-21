@@ -41,7 +41,7 @@ def test_safe_execute_exposes_qapi_annotations_as_globals():
 
 
 def test_retirement_sustainability_reports_zero_return_zero_inflation_depletion():
-    from calculators.all.finance.cal_retirement import retirement_sustainability
+    from calculators.all.family import retirement_sustainability
 
     result = retirement_sustainability(
         portfolio='1000 USD',

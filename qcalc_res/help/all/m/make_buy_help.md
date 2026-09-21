@@ -101,11 +101,11 @@ A cost is relevant to a decision when it changes depending on which alternative 
 
 For example:
 
-- Make fixed cost: $50,000
-- Unavoidable make fixed cost: $20,000
-- Relevant make fixed cost: $30,000
+- Make fixed cost: USD 50,000
+- Unavoidable make fixed cost: USD 20,000
+- Relevant make fixed cost: USD 30,000
 
-The $20,000 unavoidable cost should not influence the make-or-buy decision because it will be incurred either way.
+The USD 20,000 unavoidable cost should not influence the make-or-buy decision because it will be incurred either way.
 
 This prevents unavoidable costs from distorting the decision.
 
@@ -145,43 +145,43 @@ Suppose a company requires **10,000 units** per year.
 
 ### Make
 
-- Fixed cost: $50,000
-- Unavoidable fixed cost: $20,000
-- Variable cost: $12 per unit
+- Fixed cost: USD 50,000
+- Unavoidable fixed cost: USD 20,000
+- Variable cost: USD 12 per unit
 
 ### Buy
 
-- Fixed cost: $5,000
-- Unavoidable fixed cost: $0
-- Supplier price: $18 per unit
+- Fixed cost: USD 5,000
+- Unavoidable fixed cost: USD 0
+- Supplier price: USD 18 per unit
 
 The full costs are:
 
 **Make**
 
-$50,000 + (10,000 × $12) = **$170,000**
+USD 50,000 + (10,000 × USD 12) = **USD 170,000**
 
 **Buy**
 
-$5,000 + (10,000 × $18) = **$185,000**
+USD 5,000 + (10,000 × USD 18) = **USD 185,000**
 
-The full-cost comparison favors making by $15,000.
+The full-cost comparison favors making by USD 15,000.
 
 However, the relevant make fixed cost is:
 
-$50,000 − $20,000 = **$30,000**
+USD 50,000 − USD 20,000 = **USD 30,000**
 
 Therefore:
 
 **Relevant Make Cost**
 
-$30,000 + $120,000 = **$150,000**
+USD 30,000 + USD 120,000 = **USD 150,000**
 
 **Relevant Buy Cost**
 
-$5,000 + $180,000 = **$185,000**
+USD 5,000 + USD 180,000 = **USD 185,000**
 
-The relevant-cost analysis therefore shows that making saves **$35,000** at 10,000 units.
+The relevant-cost analysis therefore shows that making saves **USD 35,000** at 10,000 units.
 
 The break-even quantity is approximately **4,167 units**.
 

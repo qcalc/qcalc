@@ -164,8 +164,8 @@ than require additional financing.
 
 Suppose:
 
--   Annual sales = $1,000,000
--   Annual COGS = $600,000
+-   Annual sales = USD 1,000,000
+-   Annual COGS = USD 600,000
 -   Customer terms change from 45 to 60 days
 -   Supplier terms change from 30 to 45 days
 
@@ -176,10 +176,10 @@ supplier payments are delayed.
 The calculator combines these effects to show the **net additional
 financing requirement**.
 
-In the example shown, the result is approximately **$16,438**.
+In the example shown, the result is approximately **USD 16,438**.
 
 This means the proposed payment-term changes would require about
-$16,438 of additional operating financing, assuming sales and COGS
+USD 16,438 of additional operating financing, assuming sales and COGS
 remain at the specified levels and inventory does not change.
 
 ## Important Interpretation

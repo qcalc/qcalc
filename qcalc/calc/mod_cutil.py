@@ -1,20 +1,19 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
-
+import qconst
 from .mod_mfunc import q0162_dictify_fargs
 from .mod_qcals import QCals
 import inspect
 from django.conf import settings
-from qcore import Qty
-from qutil import fid2help_file, QDateTime, TreeNode
+from qcore import Qty, complex_input_xpr, complex_input_url
+from qutil import fid2help_file, QDateTime
 import re
 from datetime import date, datetime, time as dt_time
 from pathlib import Path
+import pandas as pd
 import logging
 
 logger = logging.getLogger(__name__)
-
-complex_input = ['file', 'textarea']
 
 
 def ancestors(page_id, page_type='c'):
@@ -30,6 +29,7 @@ def ancestors(page_id, page_type='c'):
 
 def get_help_path(func_id, qty=False):
     help_file, help_file_opt = fid2help_file(func_id, qty)  # considers user catalog name and demo function
+
     def check_help_file(help_file):
         help_path = Path(settings.HELP_FILES_DIR) / help_file
         # | if .html help does not exist check also .md file
@@ -53,6 +53,23 @@ def val_de_quote(val):
     return val
 
 
+# def _plain_fxpr_value(val):
+#     if isinstance(val, Qty):
+#         return val_de_quote(str(val))
+#     if isinstance(val, (date, datetime, dt_time)):
+#         return val_de_quote(str(QDateTime(val)))
+#     if isinstance(val, pd.DataFrame):
+#         return {
+#             'columns': [str(col) for col in val.columns],
+#             'data': [_plain_fxpr_value(row) for row in val.to_numpy().tolist()],
+#         }
+#     if isinstance(val, dict):
+#         return {key: _plain_fxpr_value(item) for key, item in val.items()}
+#     if isinstance(val, list):
+#         return [_plain_fxpr_value(item) for item in val]
+#     return val
+
+
 def furl_from_json(func_id, json_data, json_data_type):
     # print(json_data)
     json_data_copy = json_data
@@ -61,15 +78,22 @@ def furl_from_json(func_id, json_data, json_data_type):
     empties = 0
     for name in json_data_copy:
         val = json_data_copy[name]
-        if val == '':
+        if json_data_type[name] in complex_input_url:
+            empties += 1
+            return ''
+            # continue
+        if isinstance(val, (list, tuple)):
+            return ''
+        elif val == '' or val is None:
             empties += 1
             continue
-        elif isinstance(val, str):
-            val = val_de_quote(val)
-        elif json_data_type[name] in complex_input:
-            empties += 1
-            continue
-
+        else:
+            sc_val = scalar_or_none(val, json_data_type[name])
+            if sc_val is None:
+                empties += 1
+                return ''
+                # continue
+            val = sc_val
         args_str += f'{name}/{val}/'
 
     furl += args_str
@@ -77,22 +101,53 @@ def furl_from_json(func_id, json_data, json_data_type):
     return furl
 
 
+def scalar_or_none(val, jdata_type: str):
+    if isinstance(val, int) or isinstance(val, float):
+        return val
+    elif isinstance(val, str):
+        if len(val) < qconst.SCALAR_LENGTH:
+            return val_de_quote(val)
+        else:
+            return None
+    elif isinstance(val, (date, datetime, dt_time)):
+        return val_de_quote(str(QDateTime(val)))  # can have +
+    elif jdata_type in complex_input_xpr:
+        return None
+    else:
+        return val  # bool
+    # return None
+
+
 def fxpr_from_json(func_id, json_data, json_data_type, forced=False):
     # print('j', func_id, json_data, json_data_type)
-    if func_id in ['eva', 'redo']:
-        if not forced:
-            return ''
+    # if func_id in ['eva', 'redo']:
+    #     if not forced:
+    #         return ''
+
+    # if func_id in ['eva']: #, 'redo', 'compare', 'monte_carlo' has variables inside code]:
+    #     # Expression is whatever inside codeedit field
+    #     name = 'code' if func_id=='eva' else 'xpr'
+    #     return val_de_quote(json_data[name])
+
     json_data_copy = q0162_dictify_fargs(json_data)
     json_data_type_copy = q0162_dictify_fargs(json_data_type)
     # print('1', json_data_copy)
     # print('2', json_data_type_copy)
+
     for name in json_data_copy:
+        # print('|', name, json_data_copy[name], json_data_type_copy[name])
         val = json_data_copy[name]
-        if isinstance(val, str):
-            if len(val) < 256:
-                json_data_copy[name] = val_de_quote(val)
-            else:
-                json_data_copy[name] = None
+        if isinstance(val, (list, tuple)):
+            json_data_copy[name] = [
+                scalar_or_none(list_val, json_data_type[name])
+                for list_val in val
+            ]
+        elif isinstance(val, pd.DataFrame):
+            # json_data_copy[name] = val
+            json_data_copy[name] = {
+                'columns': [str(col) for col in val.columns],
+                'data': val.to_numpy().tolist(),
+            }
         elif isinstance(val, dict):
             if '@' in val:
                 cfname = val.pop('@')
@@ -103,12 +158,20 @@ def fxpr_from_json(func_id, json_data, json_data_type, forced=False):
                 cfname = val.pop('#')
                 cfname_type = json_data_type_copy[name]
                 json_data_copy[name] = fxpr_from_json(cfname, val, cfname_type)
-        elif isinstance(val, (date, datetime, dt_time)):
-            json_data_copy[name] = str(QDateTime(val))
-        elif json_data_type[name] in complex_input:
+            # else:
+            #     json_data_copy[name] = _plain_fxpr_value(val)
+        elif json_data_type[name] in complex_input_xpr:
+            return ''
             json_data_copy[name] = None
+        elif val is None:
+            json_data_copy[name] = None
+        else:
+            sc_val = scalar_or_none(val, json_data_type[name])
+            if sc_val is None:
+                return ''
+            json_data_copy[name] = sc_val
 
-    json_data_copy = {k: v for k, v in json_data_copy.items() if v is not None}
+    json_data_copy = {k: v for k, v in json_data_copy.items()}  # if v is not None}
     func_call_str = json_to_func_call(func_id, json_data_copy)
     return func_call_str
 
@@ -157,7 +220,7 @@ def json_to_func_call(func_id, json_var):
     args_str = ", ".join(args_list)
 
     # Form the final function call string
-    if '-' not in func_id:
+    if '-' not in func_id and not func_id.startswith('demo_'):
         func_call_str = f"{func_id}({args_str})"
     else:
         func_call_str = f"call('{func_id}')({args_str})"
@@ -165,17 +228,29 @@ def json_to_func_call(func_id, json_var):
     return func_call_str
 
 
-def floop_from_json(func_id, json_data, json_data_type):
-    if func_id == 'redo':
-        return ''
-    if func_id == 'eva':
-        func_call_str = fxpr_from_json(func_id, json_data, json_data_type, forced=True).replace("eva(code=", '')[1:-2]
-    else:
-        func_call_str = fxpr_from_json(func_id, json_data, json_data_type)
-    func_call_str = func_call_str + "/varx_start/1/varx_stop/1/varx_step/1/step_round/2"
-    # print('func_call_str', func_call_str)
-    return func_call_str
+# def floop_from_json(func_id, json_data, json_data_type):
+#     # if func_id == 'redo':
+#     #     return ''
+#     if func_id in ['redo', 'compare', 'monte_carlo']:
+#         return ''
+#     if func_id == 'eva':
+#         func_call_str = fxpr_from_json(func_id, json_data, json_data_type, forced=True).replace("eva(code=", '')[1:-2]
+#     else:
+#         func_call_str = fxpr_from_json(func_id, json_data, json_data_type)
+#     func_call_str = func_call_str + "/varx_start/1/varx_stop/1/varx_step/1/step_round/2"
+#     # print('func_call_str', func_call_str)
+#     return func_call_str
 
+def xpr2loop(xpr: str):
+    return xpr + "/varx_start/1/varx_stop/1/varx_step/1/step_round/2"
+
+
+# def xpr2loop(func_id, xpr:str):
+#     if func_id in ['redo','compare','monte_carlo']:
+#         return ''
+#     if func_id in ['eva']:
+#         xpr = xpr.replace(f"eva(code=", '')[:-2]
+#     return xpr + "/varx_start/1/varx_stop/1/varx_step/1/step_round/2"
 
 def get_fhelp(func_id, __info):
     func_help = ''

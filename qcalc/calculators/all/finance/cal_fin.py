@@ -3,7 +3,7 @@
 
 import numpy as np
 import pandas as pd
-from qcore import Qty, qtable, qhtml, qformat_q
+from qcore import Qty, qtable, qhtml, qformat_q, as_qtable
 import numpy_financial as npf
 from math import log10
 from qutil import addcal_button
@@ -15,6 +15,22 @@ cashflow_choices = {'type': 'choice', 'choices': {'1': 'Incoming', '-1': 'Outgoi
 
 def _cf(v):
     return 'Incoming' if v > 0 else 'Outgoing'
+
+
+def _validate_cashflow_table_columns(cashflows, func_name):
+    expected_cols = ['Period', 'Cashflow']
+    actual_cols = list(cashflows.columns)
+    actual_cols_l = [str(c).lower() for c in actual_cols]
+    expected_cols_l = [c.lower() for c in expected_cols]
+    if actual_cols_l != expected_cols_l:
+        raise ValueError(
+            f"{func_name} expects cashflows table columns exactly as: "
+            f"{expected_cols}. Found: {actual_cols}."
+        )
+    return {
+        'period': actual_cols[0],
+        'cashflow': actual_cols[1],
+    }
 
 
 def fincal__info():
@@ -56,6 +72,7 @@ def fincal(unknown_parameter='fv', known_parameters=['ir']):
         'cir': ('ir', {'pv', 'fv', 'du', 'ii'}),
         'cirp': ('ir', {'pv', 'fv', 'du', 'pp', 'pi', 'pw'}),
         'fv': ('fv', {'pv', 'ir', 'du', 'pp', 'pi', 'pw'}),
+        'nfv': ('fv', {'ir', 'ci', 'cf'}),
         'irrm': ('ir', {'ci', 'cf', 'ri'}),
         'irrn': ('ir', {'ci', 'cf'}),
         'npv': ('pv', {'ir', 'ci', 'cf'}),
@@ -159,61 +176,6 @@ def pv(future_value: float = 100000.0, fv_part='1',
     return {'Present Value': abs(pval), 'Cash Flow': _cf(pval)}
 
 
-def prjrank__info():
-    return {
-        'title': 'Project Ranking based on Cashflows',
-    }
-
-
-def prjrank(
-    discount_rate='10 pct/yr',
-    cashflow_interval='yr',
-    cashflows: qtable = pd.DataFrame({
-        'Project1': [-40000, 5000, 8000, 12000, 30000],
-        'Project2': [-25000, 3000, 5000, 25000, ''],
-        'Project3': [-10000, 2000, 6000, 7000, ''],
-    })):
-    periods = []
-    npvs = []
-    irrns = []
-    ranks = []
-    drate = circ(discount_rate, 'yr')
-    maxnpv = -9e99
-    bestprj = -1
-    for i, prj in enumerate(cashflows.columns.tolist()):
-        vals = []
-        for v in cashflows[prj].tolist():
-            if v:
-                vals.append(v)
-            else:
-                break
-        periods.append(len(vals))
-        data = pd.DataFrame({'Cashflow': vals})
-        prj_npv = npv(discount_rate, cashflow_interval, data)['Net Present Value']
-        prj_irrn = irrn(cashflow_interval, data)['Annual Interest Rate']
-        npvs.append(prj_npv)
-        irrns.append(prj_irrn)
-
-        if prj_npv < 0 or prj_irrn.val < drate.val:
-            ranks.append('Bad')
-        else:
-            ranks.append('OK')
-            if maxnpv < prj_npv:
-                maxnpv = prj_npv
-                bestprj = i
-    df = pd.DataFrame({
-        'Project': cashflows.columns.values,
-        'Period': periods,
-        'NPV': npvs,
-        'IRR': irrns,
-        'Rank': ranks
-    })
-    if bestprj > -1:
-        df._set_value(bestprj, 'Rank', 'Best')
-    df['IRR'] = df['IRR'].apply(qformat_q)
-    return {'Ranking': df}
-
-
 def npv__info():
     return {
         'title': 'Net Present Value (NPV) of Future Cashflows',
@@ -222,12 +184,50 @@ def npv__info():
 
 def npv(interest_rate='5 pct/yr',
         cashflow_interval='yr',
-        cashflows: qtable = pd.DataFrame({'Cashflow': [-40000, 5000, 8000, 12000, 30000]})
+    cashflows: qtable = pd.DataFrame({'Period': [1, 2, 3, 4, 5],
+                      'Cashflow': [-40000, 5000, 8000, 12000, 30000]})
         ):
+    cashflows = as_qtable(cashflows)
+    cols = _validate_cashflow_table_columns(cashflows, 'npv')
     rate = circ(interest_rate, cashflow_interval).val / 100
-    npv_val = np.sum([float(cf) / (1 + rate) ** i for i, cf in enumerate(cashflows['Cashflow'])])
+    cf = pd.to_numeric(cashflows[cols['cashflow']], errors='coerce')
+    prd = pd.to_numeric(cashflows[cols['period']], errors='coerce')
+    data = pd.DataFrame({'Cashflow': cf, 'Period': prd}).dropna()
+    periods = data['Period'].to_numpy(dtype=float)
+    if len(periods) > 0:
+        periods = periods - periods[0]
+    npv_val = np.sum(data['Cashflow'].to_numpy(dtype=float) / ((1 + rate) ** periods))
     return {
         'Net Present Value': npv_val
+    }
+
+
+def nfv__info():
+    return {
+        'title': 'Net Future Value (NFV) of Cashflows',
+    }
+
+
+def nfv(interest_rate='5 pct/yr',
+        cashflow_interval='yr',
+        cashflows: qtable = pd.DataFrame({'Period': [1, 2, 3, 4, 5],
+                                          'Cashflow': [-40000, 5000, 8000, 12000, 30000]})
+        ):
+    cashflows = as_qtable(cashflows)
+    cols = _validate_cashflow_table_columns(cashflows, 'nfv')
+    rate = circ(interest_rate, cashflow_interval).val / 100
+    cf = pd.to_numeric(cashflows[cols['cashflow']], errors='coerce')
+    prd = pd.to_numeric(cashflows[cols['period']], errors='coerce')
+    data = pd.DataFrame({'Cashflow': cf, 'Period': prd}).dropna()
+    periods = data['Period'].to_numpy(dtype=float)
+    if len(periods) > 0:
+        periods = periods - periods[0]
+        target_period = np.max(periods)
+    else:
+        target_period = 0
+    nfv_val = np.sum(data['Cashflow'].to_numpy(dtype=float) * ((1 + rate) ** (target_period - periods)))
+    return {
+        'Net Future Value': nfv_val
     }
 
 
@@ -243,11 +243,52 @@ def irrn__info():  # name conflicts with Iranian Rial IRR
 
 
 def irrn(cashflow_interval='yr',
-         cashflows: qtable = pd.DataFrame({'Cashflow': [-40000, 5000, 8000, 12000, 30000]})
+         cashflows: qtable = pd.DataFrame({'Period': [1, 2, 3, 4, 5],
+                                           'Cashflow': [-40000, 5000, 8000, 12000, 30000]})
          ):
+    def npv_at_rate(rate, values, periods):
+        return np.sum(values / ((1 + rate) ** periods))
+
+    def irr_for_periods(values, periods):
+        lo = -0.999999
+        hi = 1.0
+        flo = npv_at_rate(lo, values, periods)
+        fhi = npv_at_rate(hi, values, periods)
+        for _ in range(80):
+            if np.isfinite(flo) and np.isfinite(fhi) and flo * fhi <= 0:
+                break
+            hi = hi * 2 + 1
+            fhi = npv_at_rate(hi, values, periods)
+        else:
+            return np.nan
+
+        for _ in range(200):
+            mid = (lo + hi) / 2
+            fmid = npv_at_rate(mid, values, periods)
+            if not np.isfinite(fmid):
+                lo = mid
+                continue
+            if abs(fmid) < 1e-10:
+                return mid
+            if flo * fmid <= 0:
+                hi = mid
+                fhi = fmid
+            else:
+                lo = mid
+                flo = fmid
+        return (lo + hi) / 2
+
+    cashflows = as_qtable(cashflows)
+    cols = _validate_cashflow_table_columns(cashflows, 'irrn')
     cfiq = Qty(1, cashflow_interval)
-    values = cashflows['Cashflow'].astype(float)
-    irr_val = npf.irr(values) * 100  # pct/intreval
+    cf = pd.to_numeric(cashflows[cols['cashflow']], errors='coerce')
+    prd = pd.to_numeric(cashflows[cols['period']], errors='coerce')
+    data = pd.DataFrame({'Cashflow': cf, 'Period': prd}).dropna()
+    values = data['Cashflow'].to_numpy(dtype=float)
+    periods = data['Period'].to_numpy(dtype=float)
+    if len(periods) > 0:
+        periods = periods - periods[0]
+    irr_val = irr_for_periods(values, periods) * 100  # pct/intreval
     irr_str = f'{irr_val} pct/{cfiq.uom}'
     interest_rate_for = 'yr'
     irr_fq = circ(irr_str, interest_rate_for)
@@ -264,15 +305,39 @@ def irrm__info():
 
 
 def irrm(cashflow_interval='yr',
-         cashflows: qtable = pd.DataFrame({'Cashflow': [-40000, 5000, 8000, 12000, 30000]}),
+         cashflows: qtable = pd.DataFrame({'Period': [1, 2, 3, 4, 5],
+                                           'Cashflow': [-40000, 5000, 8000, 12000, 30000]}),
          finance_rate='10 pct/yr',
          reinvestment_rate='12 pct/yr'
          ):
+    cashflows = as_qtable(cashflows)
     cfiq = Qty(1, cashflow_interval)
+    cols = _validate_cashflow_table_columns(cashflows, 'irrm')
     finance_rate_p = circ(finance_rate, cashflow_interval).val / 100
     reinvestment_rate_p = circ(reinvestment_rate, cashflow_interval).val / 100
-    values = cashflows['Cashflow'].astype(float)
-    mirr_val = npf.mirr(values, finance_rate_p, reinvestment_rate_p) * 100
+    cf = pd.to_numeric(cashflows[cols['cashflow']], errors='coerce')
+    prd = pd.to_numeric(cashflows[cols['period']], errors='coerce')
+    data = pd.DataFrame({'Cashflow': cf, 'Period': prd}).dropna()
+    values = data['Cashflow'].to_numpy(dtype=float)
+    periods = data['Period'].to_numpy(dtype=float)
+    if len(periods) > 0:
+        periods = periods - periods[0]
+        horizon = np.max(periods)
+    else:
+        horizon = 0
+
+    if horizon <= 0:
+        mirr_val = np.nan
+    else:
+        pos_mask = values > 0
+        neg_mask = values < 0
+        if not np.any(pos_mask) or not np.any(neg_mask):
+            mirr_val = np.nan
+        else:
+            pv_neg = np.sum(values[neg_mask] / ((1 + finance_rate_p) ** periods[neg_mask]))
+            fv_pos = np.sum(values[pos_mask] * ((1 + reinvestment_rate_p) ** (horizon - periods[pos_mask])))
+            ratio = -fv_pos / pv_neg if pv_neg != 0 else np.nan
+            mirr_val = (((ratio ** (1 / horizon)) - 1) * 100) if ratio > 0 else np.nan
     mirr_str = f'{mirr_val} pct/{cfiq.uom}'
     interest_rate_for = 'yr'
     mirr_fq = circ(mirr_str, interest_rate_for)

@@ -38,7 +38,7 @@
     <i class="icon-plus-circle2 mr-2"></i>{{ cal.1 }} ({{ cal.0 }})</a></span>
   {% endfor %}
   {% for tag in input.doc.info.tags %}
-  <span><a class="btn" href="/calc/{{ cal.0 }}/" hx-get="/catalog/search_tag/?qt={{ tag }}"
+  <span><a class="btn" href="/catalog/search_tag/?qt={{ tag }}" hx-get="/catalog/search_tag/?qt={{ tag }}"
            hx-target="#tags_{{ input.cid }}" hx-swap="innerHTML">
     <i class="icon-price-tag2 mr-2"></i>{{ tag }}</a></span>
   {% endfor %}
@@ -107,10 +107,10 @@
 {% load static %}
 {% load qfilter %}
 {% csrf_token %}
-{% if input.doc.info.layout != '' %}
-  {% include "gen-calculator-content-"|add:input.doc.info.layout|add:".html" with input=input output=output%}
+{% if input.doc.info.template != '' %}
+  {% include "gen-calculator-content-"|add:input.doc.info.template|add:".html" with input=input output=output%}
 {% else %}
-  {% include "gen-calculator-content-v4.27.html" with input=input output=output%}
+  {% include "gen-calculator-content-lr.html" with input=input output=output%}
 {% endif %}
 {% include "insert-calculator-section-social.html" %}
 

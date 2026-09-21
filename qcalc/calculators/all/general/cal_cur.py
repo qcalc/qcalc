@@ -54,7 +54,8 @@ def curx__info():
             'buy_currency': {'help_text': 'Currency to be bought or received.', },
             'sale_currency': {'help_text': 'Currency to be sold or paid.', },
         },
-        'row': ['1-2', '3-4', '5-6']
+        'layout': 'tb',
+        'inp1': '1,3,5,7',
     }
 
 
@@ -66,7 +67,6 @@ def curx(
     one_buy_currency_equals: float = 1.0,
     one_sale_currency_equals: float = None,
     exchange_fee='@unc'
-    # express_in_currencies: str = ''
 ):
     exchange_fee = nzv(Qty(exchange_fee, sale_currency).val)
     if buy_amount is not None:

@@ -1,6 +1,7 @@
+<a id="qcalc-dev-system-setup-guide"></a>
 # qCalc — Dev System Setup Guide
 <!-- TOC -->
-* [qCalc — Dev System Setup Guide](#qcalc--dev-system-setup-guide)
+* [qCalc — Dev System Setup Guide](#qcalc-dev-system-setup-guide)
   * [Windows Setup](#windows-setup)
     * [1. Prerequisites](#1-prerequisites)
     * [2. Clone the qCalc Repository from Git](#2-clone-the-qcalc-repository-from-git)

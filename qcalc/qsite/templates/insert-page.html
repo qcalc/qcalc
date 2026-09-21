@@ -25,9 +25,8 @@
             {{ show_code }}
             {% endif %}
             <a class="dropdown-item" href="javascript:;"
-            onclick="calWithCmd('{{ input.cid }}', '{{ input.doc.name }}', 'save_input');">Check before Saving Input</a>
-            <a class="dropdown-item" href="javascript:;"
-            onclick="saveInput('{{ input.doc.name }}');">Save Input to File...</a>
+            onclick="saveInputToFile('{{ input.cid }}', '{{ input.doc.name }}');">Save Input to File...</a>
+            <a class="dropdown-item" href="/calc/core/{{ input.doc.name }}/?run" target="_blank">Printable View...</a>
           </div>
           {% endif %}
           {% if input.doc.name|hashelp %}

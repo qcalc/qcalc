@@ -161,6 +161,7 @@ PROPER_WORDS: dict = {
     'is': 'is',
     'of': 'of',
     'qcalc': 'qCalc',
+    'kpi': 'KPI',
 }
 
 
@@ -207,7 +208,7 @@ def specified_args(func_or_args, spec):
         return list(all_args)
 
     if isinstance(spec, str):
-        spec = css2strs(spec) # '*'-> ['*'], '1,2,3'->['1'],['2'],['3']
+        spec = css2strs(spec)  # '*'-> ['*'], '1,2,3'->['1'],['2'],['3']
 
     if isinstance(spec, (list, tuple)) and "*" in spec:
         return list(all_args)

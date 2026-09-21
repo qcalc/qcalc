@@ -7,7 +7,7 @@
     <div class="col">
       {% load static %}
 {% load qfilter %}
-<div id="input-part-{{ input.cid }}" class="row">
+<div id="input-part-{{ input.cid }}" class="row inpart">
     {% if 'left' in input.doc.info.images %}
     <div class="col section-left">
       {% for image in input.doc.info.images.left %}
@@ -16,25 +16,24 @@
     </div>
     {% endif %}
 
-<div class="col section-input1">
+<div class="col section-input1 io">
 {% for field in input.form %}
 {% if field.name|field_root in input.doc.info.inp1 %}
 {% load qfilter %}
-
-                  {% if field|showlabel %}
-                    <div class="mt-1">{{ field.label_tag }}
-                    {% if field.help_text %}
-                      {% render_help_text field %}
-                    {% endif %}
-                    </div>
-                  {% endif %}
-                  {{ field }}
-                  {% if field.errors %}
-                    <span><ul class=errors>
-                    {% for error in field.errors %}
-                      <li>{{ error }}</li>
-                    {% endfor %}</ul></span>
-                  {% endif %}
+    {% if field|showlabel %}
+      <div class="mt-1">{{ field.label_tag }}
+      {% if field.help_text %}
+        {% render_help_text field %}
+      {% endif %}
+      </div>
+    {% endif %}
+    {{ field }}
+    {% if field.errors %}
+      <span><ul class=errors>
+      {% for error in field.errors %}
+        <li>{{ error }}</li>
+      {% endfor %}</ul></span>
+    {% endif %}
 
 {% endif %}
 {% endfor %}
@@ -48,7 +47,7 @@
     </div>
     {% endif %}
 
-<div class="col section-input2">
+<div class="col section-input2 io">
 {% for field in input.form %}
 {% if field.name|field_root not in input.doc.info.inp1 %}
 {% include 'insert-calculator-section-input.html' %}
@@ -62,6 +61,8 @@
       {% endfor %}
     </div>
     {% endif %}
+
+</div>
 
 <input type="hidden" name="cid" value="{{ input.cid }}">
 <input type="hidden" name="extra" value="{{ input.extra }}" id="extra_{{ input.cid }}">
@@ -77,7 +78,7 @@
   <p>
     <button type="submit" id="calculate_{{ input.cid }}"
       class="btn btn-primary btncal mr-2" aria-label="calculate"
-      title="Calculate"
+      title={{ input.doc.info.calculate }}
     >
     <span class="calculate-content">
       <i class="icon-enter5 calimg"></i><span class="caltxt">{{ input.doc.info.calculate }}</span>
@@ -151,15 +152,13 @@
 </div>
 <!-- end:insert-calculator-section-inpbtns -->
 
-
-</div>
 </div>
 
     </div>
     <div class="col">
       {% load qfilter %}
-<div id="output-part-{{ input.cid }}" class="row">
-<div class="col section-output1">
+<div id="output-part-{{ input.cid }}" class="row outpart">
+<div class="col section-output1 io">
     {% if 'out_top' in input.doc.info.inserts %}
     <br>
     {{ input.doc.info.inserts.out_top | safe }}
@@ -168,10 +167,10 @@
 {% for field in output.form %}
 {% include 'insert-calculator-section-output.html' %}
 {% endfor %}
+</div>
 
 {% include 'insert-calculator-section-outbtns.html' %}
 <div id="status-{{ input.cid }}" class="status"></div>
-</div>
 
 {% if output.doc.table_out or input.doc.info.table_out %}
 <script src="{% static_ver 'calc/js/tabulator-out.js' %}"></script>

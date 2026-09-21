@@ -28,15 +28,16 @@ $.fn.treed = function (o){
                 if (this == e.target) {
                     var icon = $(this).children('i:first');
                     icon.toggleClass(openedClass + " " + closedClass);
-                    $(this).children().children().toggle();
+                    // Toggle only the nested branch list, not icon/content inside anchors.
+                    $(this).children('ul').toggle();
                     // Close all open nodes
                     $(this).siblings().not($(this)).each(function () {
                       $(this).children('i:first').removeClass(openedClass).addClass(closedClass);
-                      $(this).children().children().hide();
+                      $(this).children('ul').hide();
                     });
                 }
             })
-            branch.children().children().toggle();
+            branch.children('ul').toggle();
         });
         //fire event from the dynamically added icon
       tree.find('.branch .indicator').each(function(){

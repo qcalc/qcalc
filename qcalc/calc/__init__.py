@@ -15,6 +15,11 @@ from .mod_redis_act import *
 from .mod_result import result_values, is_scalar, scalar_results
 from .mod_ucals import UCals
 from .mod_whoosh import QSearch, print_search_result, search_result_nodes
+from .mod_shared_data import (
+    publish_shared_dataset,
+    get_shared_dataset,
+)
+from .mod_feasible_region import *
 
 import os
 import signal

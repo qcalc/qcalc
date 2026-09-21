@@ -197,8 +197,8 @@ produces higher calculated net wealth.
 
 Suppose you have:
 
--   Available cash: **$20,000**
--   Debt remaining: **$100,000**
+-   Available cash: **USD 20,000**
+-   Debt remaining: **USD 100,000**
 -   Debt interest rate: **9%**
 -   Remaining debt term: **20 years**
 -   Expected investment return: **8%**

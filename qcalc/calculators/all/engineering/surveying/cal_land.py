@@ -1,12 +1,12 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
-from qcore import Qty, qtable, qformat_q, quom2, qhtml, qfunc
+from qcore import Qty, qtable, qformat_q, quom2, qhtml, qfunc, as_qtable
 import pandas as pd
 from qcore import QChart, QTable
-from calculators.all.mathematics.geometry.cal_triangle import triangle
+from calculators.all.mathematics.geometry import triangle
 import numpy as np
-from calculators.all.image_processing.cal_image import image_reader
+from calculators.all.image_processing import image_reader
 from PIL import Image
 from qutil import demo_url
 
@@ -51,6 +51,7 @@ def irg_land(coordinates: qtable = pd.DataFrame(
         'X': ['1 ft', '30 ft', '30 ft', '20 ft', '10 ft'],
         'Y': ['0 ft', '0 ft', '40 ft', '50 ft', '20 ft']
     }), result_area_unit: quom2 = 'decimal', result_length_unit: quom2 = 'ft'):
+    coordinates = as_qtable(coordinates)
     p = 'Point'
     x = 'X'
     y = 'Y'
@@ -108,6 +109,7 @@ def irg_land2(triangles: qtable = pd.DataFrame(
         "Param2": ['81 ft', '20 ft', '75 ft'],
         "Param3": ['76 deg', '', '65 ft']
     }), result_area_unit: quom2 = 'decimal', result_length_unit: quom2 = 'ft'):
+    triangles = as_qtable(triangles)
     # def length_or_angle(la):
     #     if la=='':
     #         return ''

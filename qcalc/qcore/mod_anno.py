@@ -6,7 +6,7 @@ import json
 import pandas as pd
 from .mod_qfile import QFile
 from .qc_qty import Qty
-from qutil import HtmxHttpRequest, pretty_json
+
 
 # Short character input field up to 50 characters.
 class qchar(str):  # char 50
@@ -211,6 +211,7 @@ class qdict(dict):  # dynamic addition/deletion not possible
 
 
 # Editable table input backed by a DataFrame. Not available for front-end calculator
+
 class qtable(pd.DataFrame):  # pd.DataFrame
     pass
     # def __init__(self):
@@ -220,6 +221,17 @@ class qtable(pd.DataFrame):  # pd.DataFrame
 # Safe table field represented by columns and row data without exposing the DataFrame API.
 class qtbl(dict):  # {'columns': [...], 'data': [[...]]} - safe table, no DataFrame API exposed
     pass
+
+
+def as_qtable(value):
+    if isinstance(value, qtable):
+        return value
+    if isinstance(value, pd.DataFrame):
+        return value
+    if isinstance(value, dict) and {"columns", "data"} <= value.keys():
+        return qtable(value["data"], columns=value["columns"])
+
+    raise TypeError("Expected qtable or {'columns', 'data'}")
 
 
 # display output fields
@@ -313,9 +325,37 @@ def convert_to_type(value, target_type):
         return value
 
 
-def wrap_actions(html_element):
-    return f"""<div class="elem-wrapper">{html_element}
+def wrap_actions(html_element, wrapper_class=''):
+    cls = f"elem-wrapper {wrapper_class}".strip()
+    return f"""<div class="{cls}">{html_element}
     <span class="fullscreen-square" onclick="toggleFullscreen(this.closest('.elem-wrapper'))"></span></div>"""
+
+
+# json data type doesn't have q-prfix, refer to mod_qjfield.py
+complex_input_xpr = ['codeedit', 'file', 'image', 'regex', 'duration', 'decimal', 'uuid']  #
+complex_input_url = complex_input_xpr + ['table']  # +list
+
+anno_ostrings = ['oqfunc', 'html', 'qhtml', 'qvstr', 'qpage']  # not used yet
+anno_otypes = [oqfunc, qhtml, qvstr, qpage]  # not used yet
+
+anno_strings = [  # not used yet
+    'bool', 'float', 'int', 'qchar', 'qcode', 'qdate', 'qdatetime', 'qdict', 'qemail', 'qfile',
+    'qfl', 'qfunc', 'qimage', 'qin', 'qlist', 'qread', 'qregex', 'qsel2', 'qt', 'qt2', 'qtable',
+    'qtbl', 'qtc', 'qtc2', 'qtext', 'qtexta', 'qtime', 'qtx', 'quom', 'quom2', 'quomx', 'qurl',
+    'str', 'checkbox', 'checkboxselectmultiple', 'choice', 'decimal', 'duration',
+    'multiplechoice', 'nullboolean', 'radio', 'range', 'rchoice', 'slug', 'textarea',
+    'typedmultiplechoice', 'uuid', 'typedchoice', 'combo', 'multivalue',
+    # alternative names
+    'boolean', 'char', 'date', 'time', 'datetime', 'email', 'file', 'image', 'integer',
+    'regex', 'text', 'select2', 'textarea', 'codeedit', 'uom', 'uomx', 'uom2', 'url'
+]
+
+anno_types = [  # not used yet
+    bool, float, int, qchar, qcode, qdate, qdatetime, qdict, qemail, qfile,
+    qfl, qfunc, qimage, qin, qlist, qread, qregex, qsel2, qt, qt2, qtable,
+    qtbl, qtc, qtc2, qtext, qtexta, qtime, qtx, quom, quom2, quomx, qurl,
+    str, range,
+]
 
 
 def _test():

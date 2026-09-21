@@ -7,8 +7,8 @@ from statistics import mean, fmean, median, mode, stdev, pstdev, \
 import pandas as pd
 import scipy.stats as ss
 from qutil import css2floats
-from qcore import qchar, qtable
-from calculators.all.general.chart.cal_chart import pareq
+from qcore import qchar, qtable, as_qtable
+from calculators.all.general.chart import pareq
 import numpy as np
 
 
@@ -119,7 +119,6 @@ def normal__info():
         'title': 'Normal Distribution Curve',
         'desc': 'Plot the normal distribution equation: '
                 'y=(1 / (sqrt(2 * pi) * sigma)) * exp(-0.5 * (1 / sigma * (x - mu)) ** 2)',
-        'outcol': ['chart__r']
     }
 
 
@@ -169,6 +168,7 @@ def volatility__info():
 def volatility(historical_values: qtable = pd.DataFrame(
     {'Values': [100.8, 97.8, 102.0, 101.3, 98, 101.1, 103.5, 104.2, 101, 99, 99.5]})
 ):
+    historical_values = as_qtable(historical_values)
     # https://quant.stackexchange.com/questions/35194/estimating-the-historical-drift-and-volatility
     values = historical_values['Values'].astype(float)
     changes = [math.log(values[i] / values[i - 1]) for i in range(1, len(values))]

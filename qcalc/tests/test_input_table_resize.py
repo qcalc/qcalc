@@ -75,12 +75,12 @@ def test_resize_df_shrinks_rows_and_cols():
     assert len(result.columns) == 1
 
 
-def test_resize_df_ncol_clamped_to_100():
+def test_resize_df_ncol_clamped_to_125():
     df = pd.DataFrame({"A": [1]})
 
     result = resize_df(df, 1, 500)
 
-    assert len(result.columns) == 100
+    assert len(result.columns) == 125
 
 
 # --- TabulatorWidget: end-to-end resize/update through the actual input-table widget ---
@@ -176,7 +176,7 @@ def _make_view_request(monkeypatch, cmd, interactive_pref=True, interactive_info
 def test_structural_table_commands_get_full_form(monkeypatch, cmd):
     template = _make_view_request(monkeypatch, cmd=cmd)
 
-    assert template != "insert-calculator-section-output-layout.html"
+    assert template != "layout-output-1-section.html"
 
 
 @pytest.mark.parametrize("pref_on,info_on", [(True, True), (True, False), (False, True), (False, False)])
@@ -186,7 +186,7 @@ def test_plain_field_change_always_uses_output_fragment(monkeypatch, pref_on, in
     template = _make_view_request(monkeypatch, cmd="",
                                   interactive_pref=pref_on, interactive_info=info_on)
 
-    assert template == "insert-calculator-section-output-layout.html"
+    assert template == "layout-output-1-section.html"
 
 
 def test_table_cmd_header_forces_full_form_response(monkeypatch):
@@ -196,7 +196,7 @@ def test_table_cmd_header_forces_full_form_response(monkeypatch):
     # is on.
     template = _make_view_request(monkeypatch, cmd="", table_cmd_header="1")
 
-    assert template != "insert-calculator-section-output-layout.html"
+    assert template != "layout-output-1-section.html"
 
 
 def test_structural_cmd_post_field_forces_full_form_response(monkeypatch):
@@ -206,7 +206,7 @@ def test_structural_cmd_post_field_forces_full_form_response(monkeypatch):
     # get a full-form response from the server.
     template = _make_view_request(monkeypatch, cmd="", structural_post_field="1")
 
-    assert template != "insert-calculator-section-output-layout.html"
+    assert template != "layout-output-1-section.html"
 
 
 # --- command_button(): input-updating command buttons (Format Code, Load Code,

@@ -3,7 +3,7 @@
 
 import pandas as pd
 from titlecase import titlecase
-from qcore import qtexta, QScreen, qchar, qtable
+from qcore import qtexta, QScreen, qchar, qtable, as_qtable
 from wordcloud import STOPWORDS
 from functools import partial
 import re
@@ -153,6 +153,7 @@ def list2string__info():
 def list2string(table: qtable = pd.DataFrame(
     {'Value': ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']}),
     separator: qchar = ',_', column: qchar = ''):
+    table = as_qtable(table)
     cols = table.columns
     col = validated_col(cols, 0, column)
     sep = separator.replace('_', ' ')

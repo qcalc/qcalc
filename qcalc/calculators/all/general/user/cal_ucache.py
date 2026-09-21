@@ -34,9 +34,8 @@ def pref__info():
             'execution_timeout': {'attrs': {'max': '900.0', 'min': '1.0'}},
         },
         'calculate': 'Save',
-        # 'col': ["1-9", "10-17"],
+        'layout': 'tb',
         'inp1': 0.5,
-        'layout': 't2b',
         'script':
             """
 $(document).ready(function() {

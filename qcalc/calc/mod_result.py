@@ -13,7 +13,7 @@ def scalar_results(xpr: str, variable: str, var_vals: list, variation_target: st
     # imported lazily: eva -> cal_eva -> "from calc import QCals" would otherwise
     # circular-import back into this module while calc/__init__.py is still loading
     # variation target can be 'p' (parameters in a function/calculator) or 'v' (variables in an expression)
-    from calculators.all.general.cal_eva import eva
+    from calculators.all.general import eva
 
     def filter_scalar(result) -> dict | list | None:
         if is_scalar(result):

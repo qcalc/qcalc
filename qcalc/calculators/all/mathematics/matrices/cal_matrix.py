@@ -50,12 +50,18 @@ def bmatrix__info():
                 'choices': ['Add', 'Subtract', 'Multiply', 'Divide', 'Expression']
             },
         },
-        'layout': 't2b',
+        'layout': 'tb',
         'inp1': '~y',
     }
 
 
+from qcore import as_qtable
+
+
 def bmatrix(x: qtable, y: qtable, operation='Add', expression: str = 'x*y-5*x+17'):
+    x = as_qtable(x)
+    y = as_qtable(y)
+
     x = x.to_numpy()
     y = y.to_numpy()
     x = x.astype(float)
@@ -93,6 +99,7 @@ def umatrix__info():
         }
     }
 
+from qcore import as_qtable
 
 def umatrix(x: qtable, operation='Sum', expression: str = 'x^2-5*x+17'):
     """
@@ -106,6 +113,8 @@ def umatrix(x: qtable, operation='Sum', expression: str = 'x^2-5*x+17'):
     |
     |In addition to the above you can use other usual mathmatical operators and functions
      """
+    x = as_qtable(x)
+
     x = x.to_numpy()
     x = x.astype(float)
     z = ''

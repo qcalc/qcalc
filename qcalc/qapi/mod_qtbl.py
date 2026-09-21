@@ -1,6 +1,8 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
+import pandas as pd
 
+import qconst
 from qcore.qc_qty import Qty, is_str_qty
 from qcore.qc_mquantity import isMeasureQuantity as is_qty
 import operator
@@ -10,7 +12,8 @@ from .mod_autil import to_plain
 # df.<name>(data, ...) builds a DataFrame internally and always returns a
 # plain-Python result (see _to_plain) -- no DataFrame-like object is ever
 # handed back to sandboxed code, so there's no object to restrict methods on.
-_DF_MAX_CELLS = 10_000  # guard against memory-exhaustion via huge frames
+_DF_MAX_CELLS = qconst.TABLE_MAX_CELLS  # guard against memory-exhaustion via huge frames
+_DF_MAX_COLS = qconst.TABLE_MAX_COLS
 
 # DataFrame methods/properties exposed to sandboxed code.
 _DF_METHODS = (
@@ -52,6 +55,13 @@ class _Df:
     """
 
     def __init__(self, data, columns=None):
+
+        if len(columns) > _DF_MAX_COLS:
+            raise ValueError(
+                f"DataFrame too large "
+                f"({len(columns)} columns > {_DF_MAX_COLS})."
+            )
+
         built = _pd.DataFrame(data, columns=columns)
 
         if built.size > _DF_MAX_CELLS:

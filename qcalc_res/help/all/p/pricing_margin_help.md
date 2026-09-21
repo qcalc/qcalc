@@ -76,9 +76,9 @@ The money earned per unit before considering fixed costs:
 
 **Gross Profit = Selling Price − Unit Cost**
 
-For example, if the selling price is $100 and the unit cost is \$60:
+For example, if the selling price is USD 100 and the unit cost is USD 60:
 
-**Gross Profit = `$100 − $60` = $40 per unit**
+**Gross Profit = `USD 100 − USD 60` = USD 40 per unit**
 
 ### Gross Margin
 
@@ -86,7 +86,7 @@ Gross profit expressed as a percentage of selling price:
 
 **Gross Margin = Gross Profit / Selling Price × 100**
 
-With a $40 gross profit on a \$100 selling price, the gross margin is 40%.
+With a USD 40 gross profit on a USD 100 selling price, the gross margin is 40%.
 
 ### Markup
 
@@ -94,7 +94,7 @@ Profit expressed as a percentage of cost:
 
 **Markup = Gross Profit / Unit Cost × 100**
 
-With a `$40` profit on a `$60` cost, the markup is 66.67%.
+With a `USD 40` profit on a `USD 60` cost, the markup is 66.67%.
 
 Margin and markup are therefore different measures. A 40% margin does not mean a 40% markup.
 
@@ -104,9 +104,9 @@ The selling price needed to achieve the specified target margin at the given uni
 
 **Required Price = Unit Cost / (1 − Target Margin)**
 
-For example, if unit cost is $60 and the target margin is 30%:
+For example, if unit cost is USD 60 and the target margin is 30%:
 
-**Required Price = $60 / (1 − 0.30) = $85.71**
+**Required Price = USD 60 / (1 − 0.30) = USD 85.71**
 
 ### Maximum Cost
 
@@ -114,9 +114,9 @@ The maximum unit cost that can be allowed while achieving the target margin at t
 
 **Maximum Cost = Target Price × (1 − Target Margin)**
 
-For example, with a target price of $100 and a target margin of 30%:
+For example, with a target price of USD 100 and a target margin of 30%:
 
-**Maximum Cost = $100 × (1 − 0.30) = $70**
+**Maximum Cost = USD 100 × (1 − 0.30) = USD 70**
 
 ### Discounted Price
 
@@ -124,9 +124,9 @@ The selling price after applying the specified discount:
 
 **Discounted Price = Selling Price × (1 − Discount)**
 
-For example, a 10% discount on a $100 selling price gives:
+For example, a 10% discount on a USD 100 selling price gives:
 
-**Discounted Price = $100 × (1 − 0.10) = $90**
+**Discounted Price = USD 100 × (1 − 0.10) = USD 90**
 
 ### Margin After Discount
 
@@ -134,9 +134,9 @@ The gross margin remaining after the discount:
 
 **Margin After Discount = (Discounted Price − Unit Cost) / Discounted Price × 100**
 
-For example, with a `$90` discounted price and a `$60` unit cost:
+For example, with a `USD 90` discounted price and a `USD 60` unit cost:
 
-**Margin After Discount = ($90 − $60) / $90 × 100 = 33.33%**
+**Margin After Discount = (USD 90 − USD 60) / USD 90 × 100 = 33.33%**
 
 A discount can therefore reduce the margin substantially even when the discount itself appears small.
 
@@ -148,9 +148,9 @@ The minimum selling price required to cover both variable and fixed costs for th
 
 At this price, total revenue equals total cost and profit is zero.
 
-For example, with variable cost of `$60` per unit, fixed costs of $10,000, and quantity of 1,000:
+For example, with variable cost of `USD 60` per unit, fixed costs of USD 10,000, and quantity of 1,000:
 
-**Break-even Price = $60 + $10,000 / 1,000 = $70**
+**Break-even Price = USD 60 + USD 10,000 / 1,000 = USD 70**
 
 ### Profit at Quantity
 
@@ -158,9 +158,9 @@ The total profit from selling the specified quantity:
 
 **Profit at Quantity = (Selling Price − Variable Cost) × Quantity − Fixed Cost**
 
-For example, with a `$100` selling price, `$60` variable cost, 1,000 units, and $10,000 fixed costs:
+For example, with a `USD 100` selling price, `USD 60` variable cost, 1,000 units, and USD 10,000 fixed costs:
 
-**Profit = ($100 − $60) × 1,000 − $10,000 = $30,000**
+**Profit = (USD 100 − USD 60) × 1,000 − USD 10,000 = USD 30,000**
 
 ## Margin vs. Markup
 
@@ -176,9 +176,9 @@ Margin and markup are often confused because both describe profitability as a pe
 
 For example:
 
-- Cost = $60
-- Selling price = $100
-- Profit = $40
+- Cost = USD 60
+- Selling price = USD 100
+- Profit = USD 40
 - Gross margin = 40%
 - Markup = 66.67%
 

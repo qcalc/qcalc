@@ -1,0 +1,13 @@
+{% if selected_count == 0 %}
+<p class="text-muted">Select one or more tags, then click Apply.</p>
+{% else %}
+<p>
+  Showing {{ calc_data|length }} calculator{% if calc_data|length != 1 %}s{% endif %}
+  for {{ selected_count }} selected tag{% if selected_count != 1 %}s{% endif %}.
+</p>
+{% if calc_data|length > 0 %}
+  {% include 'catalog-calc-categories.html' with calc_data=calc_data %}
+{% else %}
+  <p class="text-muted">No calculators matched the selected tags.</p>
+{% endif %}
+{% endif %}

@@ -1,6 +1,9 @@
 <a href="/" hx-get="/?part=1" hx-target="closest .calc"
    hx-swap="outerHTML" class="btn">
   <i class="icon-home2 mr-2"></i><span class="notxt">Home</span></a>
+<a href="/catalog/tags/" hx-get="/catalog/tags/?part=1" hx-target="closest .calc"
+  hx-swap="outerHTML" class="btn">
+  <i class="icon-price-tag2 mr-2"></i><span class="notxt">Tags</span></a>
 <a href="/catalog/calc/" hx-get="/catalog/calc/?part=1" hx-target="closest .calc"
    hx-swap="outerHTML" class="btn">
   {% if cat == 'calc' %}<i class="icon-sync mr-2"></i><span class="notxt">Standard (Refresh)</span>{% endif %}

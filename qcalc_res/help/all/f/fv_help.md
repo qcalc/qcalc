@@ -94,9 +94,9 @@ The annual **Interest Rate** is converted to an equivalent rate per
 
 $$FV = PV \times (1+r)^{n} + PMT \times (1 + r \times w) \times \dfrac{(1+r)^{n} - 1}{r}$$
 
-where $PV$ and $PMT$ are the signed **Present Value** and **Periodic
-Payment** (negative if **Outgoing**, positive if **Incoming**), $r$ is the
-rate per period, $n$ is the number of periods, and $w$ is 1 for payments at
+where `PV` and `PMT` are the signed **Present Value** and **Periodic
+Payment** (negative if **Outgoing**, positive if **Incoming**), `r` is the
+rate per period, `n` is the number of periods, and `w` is 1 for payments at
 **Period Start** or 0 for payments at **Period End**.
 
 ## Example
@@ -121,3 +121,17 @@ compound. Removing the periodic payments entirely (**Periodic Payment** =
 -   **Periodic Payment** is assumed to be a fixed, evenly spaced amount for every period; irregular contributions are not supported.
 -   The **Interest Rate** is assumed constant for the entire **Duration**.
 -   Getting **Present Value Direction** and **Periodic Payment Direction** right matters for interpreting **Cash Flow** correctly, even though **Future Value** itself is always reported as a positive number.
+
+### Quick Cross-Check with NPV/NFV
+
+To match **NFV** from the same cashflow table, use **FV** with:
+
+-   **Present Value** = output of **NPV**
+-   **Periodic Payment** = 0
+-   same rate and interval as NPV/NFV
+-   **Duration** equal to the normalized last period distance (for periods
+	1..N, duration is N-1 intervals)
+
+Then the values should satisfy:
+
+$$FV = NPV \times (1+r)^T = NFV$$

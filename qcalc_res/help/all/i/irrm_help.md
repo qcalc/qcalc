@@ -10,6 +10,8 @@ flows. It is useful when the plain IRR's assumption — that all positive
 cash flows are reinvested at the project's own IRR — does not match
 reality.
 
+> It supports cash flows at irregular periods, so **Period** values do not need to be consecutive.
+
 ## Background
 
 ### Why "modified"
@@ -34,9 +36,12 @@ The time period between entries in the **Cashflows** series (for example,
 
 ### Cashflows
 
-A single column of cash flow amounts, one per period, in order. The first
-entry is normally the initial outlay (a negative number); later entries
-are the returns received in subsequent periods.
+A table with exactly two columns in this order:
+
+-   **Period** (first column), for example 1, 10, 15, 25, 26.
+-   **Cashflow** (second column), the corresponding cash flow amount.
+
+Any renamed, reordered, missing, or extra column is rejected.
 
 ### Finance Rate
 
@@ -72,6 +77,17 @@ to the final period using the **Reinvestment Rate**. The **Modified
 Internal Rate of Return** is then the single periodic rate that would grow
 the present value of the financed outflows into the future value of the
 reinvested inflows over the same number of periods.
+
+With normalized periods `t_k - t_1` and final normalized period `T`:
+
+$$PV_{neg} = \sum_{k \in neg} \dfrac{Cashflow_k}{(1+f)^{(t_k-t_1)}}$$
+
+$$FV_{pos} = \sum_{k \in pos} Cashflow_k \times (1+r_f)^{T-(t_k-t_1)}$$
+
+$$IRRM = \left(\dfrac{-FV_{pos}}{PV_{neg}}\right)^{1/T} - 1$$
+
+where `f` is the periodic **Finance Rate** and `r_f` is the periodic
+**Reinvestment Rate**.
 
 ## Example
 

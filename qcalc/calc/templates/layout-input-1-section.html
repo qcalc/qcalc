@@ -1,6 +1,6 @@
 {% load static %}
 {% load qfilter %}
-<div id="input-part-{{ input.cid }}" class="row">
+<div id="input-part-{{ input.cid }}" class="row inpart">
     {% if 'left' in input.doc.info.images %}
     <div class="col section-left">
       {% for image in input.doc.info.images.left %}
@@ -9,7 +9,7 @@
     </div>
     {% endif %}
 
-<div class="col section-input1">
+<div class="col section-input1 io">
 {% for field in input.form %}
 @@include('insert-calculator-section-input.html')
 {% endfor %}
@@ -30,10 +30,10 @@
     </div>
     {% endif %}
 
+</div>
+
 <input type="hidden" name="cid" value="{{ input.cid }}">
 <input type="hidden" name="extra" value="{{ input.extra }}" id="extra_{{ input.cid }}">
 <input type="hidden" name="input_id" value="{{ request.input_id }}">
 @@include('insert-calculator-section-inpbtns.html')
-
-</div>
 </div>

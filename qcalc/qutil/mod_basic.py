@@ -2,7 +2,6 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 import sys
-import re
 import os
 import bisect
 from qutil.mod_data import str2type, time2float

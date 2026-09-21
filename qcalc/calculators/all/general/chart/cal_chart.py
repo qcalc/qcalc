@@ -4,10 +4,52 @@
 import numpy as np
 import pandas as pd
 from qutil import replace_words, css2floats, css2strs, validated_col, css2values
-from qcore import qtexta, qchar, qtable, QChart, legend_locations
+from qcore import qtexta, qchar, qtable, QChart, legend_locations, qlist, as_qtable
 from calc import QCals
 import matplotlib.dates as mdates  # requires for 3D as 3D cant natively handle date axes
 from datetime import date, datetime
+from calc import feasible_region
+
+
+def feasible_chart__info():
+    return {
+        'title': 'Feasible Region Chart',
+    }
+
+
+def feasible_chart(
+    objective: str = '40*x + 55*y',
+    constraints: qlist[str] = ['2*x + 3*y <= 100', '3*x + y <= 80'],
+    solution='20, 20',
+    x_limit: float = None,
+    y_limit: float = None,
+):
+    if solution is None:
+        solution_vals = None
+    elif isinstance(solution, str):
+        if solution.strip() == '':
+            solution_vals = None
+        else:
+            solution_vals = css2floats(solution)
+            if len(solution_vals) != 2:
+                raise ValueError('Solution must contain exactly 2 values: x,y')
+    elif isinstance(solution, (list, tuple)):
+        if len(solution) != 2:
+            raise ValueError('Solution must contain exactly 2 values: x,y')
+        solution_vals = solution
+    elif isinstance(solution, dict):
+        solution_vals = solution
+    else:
+        raise ValueError('Solution must be a CSV string, 2-item sequence, dict, or None')
+    xlim = (0, x_limit) if x_limit is not None else None
+    ylim = (0, y_limit) if y_limit is not None else None
+
+    chart = QChart()
+    fig, ax = chart.create_figure()
+    feasible_region(objective, constraints, solution_vals, xlim, ylim, fig=fig, ax=ax)
+    chart.render_done()
+
+    return {'chart': chart}
 
 
 def surface3d_chart__info():
@@ -19,7 +61,6 @@ def surface3d_chart__info():
             'z_expr': {'type': 'qtexta'},
             'surface_type': {'type': 'radio', 'choices': ['Contour', 'Contourf', 'Wireframe', 'Surface']}
         },
-        'outcol': ['chart__r']
     }
 
 
@@ -62,7 +103,6 @@ def line3d_chart__info():
             'y_values': {'type': 'qtexta'},
             'z_values': {'type': 'qtexta'}
         },
-        'outcol': ['chart__r']
     }
 
 
@@ -93,7 +133,6 @@ def line_chart__info():
             'x_values': {'type': 'qtexta'},
             'y_values': {'type': 'qtexta'}
         },
-        'outcol': ['chart__r']
     }
 
 
@@ -115,7 +154,6 @@ def line_chart(
 def line2_chart__info():
     return {
         'title': 'Simple Double Line Chart',
-        'outcol': ['chart__r']
     }
 
 
@@ -141,7 +179,6 @@ def line2_chart(
 def scatter_chart__info():
     return {
         'title': 'Simple Scatter Chart',
-        'outcol': ['chart__r']
     }
 
 
@@ -169,7 +206,6 @@ def bar_chart__info():
             'names': {'type': 'textarea'},
             'values': {'type': 'textarea'}
         },
-        'outcol': ['chart__r']
     }
 
 
@@ -195,7 +231,6 @@ def pie_chart__info():
             'legend': {'type': 'choice', 'choices': legend_locations},
             'labels_include': {'type': 'checkboxselectmultiple', 'choices': ['label', 'value']}
         },
-        'outcol': ['chart__r']
     }
 
 
@@ -222,7 +257,6 @@ def pie_chart(
 def pie2_chart__info():
     return {
         'title': 'Simple Pie Chart based on Tabular Data',
-        'outcol': ['chart__r']
     }
 
 
@@ -236,6 +270,7 @@ def pie2_chart(
     label_column: qchar = 'label',
     value_column: qchar = 'value'
 ):
+    data = as_qtable(data)
     cols = data.columns
     lbl = validated_col(cols, 0, label_column)
     val = validated_col(cols, 1, value_column)
@@ -250,7 +285,6 @@ def pie2_chart(
 def pareto_chart__info():
     return {
         'title': 'Simple Pareto Chart',
-        'outcol': ['chart__r']
     }
 
 
@@ -273,7 +307,6 @@ def histogram__info():
         'schema': {
             'values': {'type': 'textarea'}
         },
-        'outcol': ['chart__r']
     }
 
 
@@ -294,9 +327,8 @@ def histogram(
 def pareq__info():
     ret = {
         'title': 'Parametric Equation',
-        # 'outcol': ['chart__r'],
-        'col': ['x-title', 'const_1-aspect'],
-        # 'row': ['10-11', '12-13','14-15','16-17','18-19']
+        'layout': 'tb',
+        'inp1': '1-6',
     }
     return ret
 
@@ -389,6 +421,8 @@ def mesh(
     title='Network Diagram',
     edge_label=True
 ):
+    nodes = as_qtable(nodes)
+    edges = as_qtable(edges)
     chart = QChart()
     chart.render_network(
         nodes,
@@ -418,6 +452,9 @@ def quadrant_chart(
     y_column: qchar = '',
     title='Quardant Chart'
 ):
+    category_x = as_qtable(category_x)
+    category_y = as_qtable(category_y)
+    data = as_qtable(data)
     cols = data.columns
     item = validated_col(cols, 0, item_column)
     x = validated_col(cols, 1, x_column)

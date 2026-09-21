@@ -3,11 +3,20 @@
 
 import pandas as pd
 
-from calc import QKeep, valid_numq, QData
+from calc import (
+    QKeep,
+    valid_numq,
+    QData,
+    publish_shared_dataset,
+    get_shared_dataset,
+)
 import json
 from qutil import find_matched_variables, addcal_button
-from calculators.all.general.chart.cal_chart import pie_chart
+from calculators.all.general.chart import pie_chart
 from qcore import qhtml, qtable, Qty, _unit_tree, qformat_q, qformat_qstr
+
+SHARED_RATES_TYPE = 'item_rates'
+SHARED_RATES_KEY = 'rates_master'
 
 
 def collect__input(_kwargs):  # | kwargs required
@@ -76,31 +85,40 @@ def collect(output: qtable = pd.DataFrame({"SL": [1, 2], "Value": [
             }
 
 
-# def cost__modify(arg_name, arg_value, _action):  # | _action not used but required
-#     if arg_name == 'items':
-#         items = arg_value
-#         rates = QData.getp1('rates')
-#         if isinstance(rates, pd.DataFrame):
-#             merged_df = items.merge(rates, on='Item', how='left')
-#             items['Unit Cost'] = merged_df['Unit Cost_y'].fillna(items['Unit Cost'])
-#             return items
-#         elif rates is None:
-#             raise Exception('No Rates loaded. Click on [Open Rates] to update and load')
-#     return arg_value
-
 def cost__input(kwargs):
     # probably it is better to restrict invoking __input() during GET only
-    items = kwargs.get('items') # kwargs data available only during GET
-    if isinstance(items, pd.DataFrame): # can't have if items, truth value of df is ambiguous
-        items['Quantity'] = items['Quantity'].apply(qformat_qstr) # format data
-        return {'items': items}
+    items = kwargs.get('items')  # kwargs data available only during GET
+    if isinstance(items, pd.DataFrame):  # can't have if items, truth value of df is ambiguous
+        items['Quantity'] = items['Quantity'].apply(qformat_qstr)  # format data
+        return {
+            'items': items,
+        }
 
     return {}
+
 
 def cost__modify(arg_name, arg_value, _action):  # _action not used but required
     if arg_name == 'items':
         items = arg_value
-        rates = QData.getp1('rates')
+        action = _action if isinstance(_action, dict) else {}
+        dataset_type = action.get('dataset_type', SHARED_RATES_TYPE)
+        dataset_key = action.get('dataset_key', SHARED_RATES_KEY)
+        shared_record = get_shared_dataset(dataset_type=dataset_type, dataset_key=dataset_key)
+
+        if isinstance(shared_record, dict):
+            rates = shared_record.get('payload')
+        else:
+            # backward compatibility for old sessions that only have legacy rates
+            rates = QData.getp1('rates')
+            if isinstance(rates, pd.DataFrame):
+                publish_shared_dataset(
+                    dataset_type=dataset_type,
+                    dataset_key=dataset_key,
+                    payload=rates,
+                    producer_func='rates',
+                )
+                shared_record = get_shared_dataset(dataset_type=dataset_type, dataset_key=dataset_key)
+                rates = shared_record.get('payload') if isinstance(shared_record, dict) else None
 
         if isinstance(rates, pd.DataFrame):
             item_key = items['Item'].str.strip().str.casefold()
@@ -119,7 +137,7 @@ def cost__modify(arg_name, arg_value, _action):  # _action not used but required
 
         elif rates is None:
             raise Exception(
-                'No Rates loaded. Click on [Open Rates] to update and load'
+                'No shared rates loaded. Open [Schedule of Rates], click [Load], then apply again.'
             )
 
     return arg_value
@@ -128,10 +146,15 @@ def cost__modify(arg_name, arg_value, _action):  # _action not used but required
 def cost__info():
     return {
         'title': 'Calculate Cost',
+        'consumes_data': {
+            'dataset_type': SHARED_RATES_TYPE,
+            'dataset_key': SHARED_RATES_KEY,
+        },
         'inserts': {
             'form_bottom': addcal_button('rates', 'Schedule of Rates') +
                            '<button type="button" class="btn btn-info btncmd ml-2 cmd-rates" '
                            'name="apply_rate">Apply Rates</button>'
+                           '<p><small class="text-muted ml-2">After [Apply Rates], click [Update] before [Calculate].</small></p>'
             # command_button() # not good for scripting
         },
         'step2': [
@@ -142,7 +165,15 @@ $(document).ready(function() {
     $(".cmd-rates").on("click", function() {
         updateAllData($(this));
         cid = getCidOf($(this));
-        updateExtra(cid, {"cmd":"__modify", "args":["@items"]});
+        qcalc_EnableTableUpdateAfterSwap(cid);
+        updateExtra(cid, {
+            "cmd":"__modify",
+            "args":["@items"],
+            "kwargs":{"@items":{
+                "dataset_type":"item_rates",
+                "dataset_key":"rates_master"
+            }}
+        });
         qcalc_FullFormSubmit(cid);
     });
 });
@@ -150,8 +181,7 @@ $(document).ready(function() {
     }
 
 
-def cost(items: qtable = pd.DataFrame({'Item': ['Brick'], 'Quantity': ['1000 nos'], 'Unit Cost': ['0.10 UNC/nos']}),
-         ):
+def cost(items: qtable = pd.DataFrame({'Item': ['Brick'], 'Quantity': ['1000 nos'], 'Unit Cost': ['0.10 UNC/nos']})):
     currecncy_used = find_matched_variables(items['Unit Cost'][0].lower(), _unit_tree['C'])[0]
 
     def cal_cost(row) -> Qty:
@@ -177,7 +207,13 @@ def cost(items: qtable = pd.DataFrame({'Item': ['Brick'], 'Quantity': ['1000 nos
 def rates__info():
     return {
         'title': 'Schedule of Rates',
-        'calculate': 'Load'
+        'calculate': 'Load',
+        'single_instance': True,
+        'single_instance_key': 'rates_master',
+        'provides_data': {
+            'dataset_type': SHARED_RATES_TYPE,
+            'dataset_key': SHARED_RATES_KEY,
+        },
     }
 
 
@@ -197,5 +233,13 @@ def rates(rate_schedule: qtable = pd.DataFrame({
         'Item': rate_schedule['Item'],
     })
     cost_schedule['Unit Cost'] = rate_schedule.apply(calprice, axis=1)
+    publish_shared_dataset(
+        dataset_type=SHARED_RATES_TYPE,
+        dataset_key=SHARED_RATES_KEY,
+        payload=cost_schedule,
+        producer_func='rates',
+    )
     QData.setp1('rates', cost_schedule)
-    return {'cost_schedule': cost_schedule}
+    return {
+        'cost_schedule': cost_schedule,
+    }

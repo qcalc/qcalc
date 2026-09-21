@@ -690,7 +690,7 @@ class QCals:
 
 
 if __name__ == "__main__":
-    # import sett
+    import qsett
 
     # QCals.package_contents('calc.all')
     QCals.package_contents('calculators.all.fun')

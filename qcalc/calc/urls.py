@@ -19,6 +19,7 @@ urlpatterns = [
     path('help/<str:fname>/', views.q1_add_func_help, name='calc-add-func-help'),
     path('dump/', views.dump, name='calc-dump'),
     path('io/', views.calc_io, name='calc-io'),
+    path('io/clear/<str:cid>/', views.calc_io_clear, name='calc-io-clear'),
     path('mems/', views.mems, name='calc-mems'),
     path('lists/', views.lists, name='calc-lists'),
     path('cart/', views.add_to_cart, name='calc-cart'),

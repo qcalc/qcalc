@@ -5,10 +5,8 @@ import environ
 import json
 import os
 
-qfunc_dict_template = {  # dict of function name and template version
-    # 'default': 'v4.27',
-    # 'default': 'v5.01',
-    'default': 'v5.10',
+qfunc_dict_layout = {  # dict of function name and template version
+    'default': 'lr',
 }
 qfunc_info = {}
 qty_info = {}

@@ -2,56 +2,58 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 from math import pi
-from calculators.all.fun.cal_img2ascii import qf2img
-from calculators.all.general.chart.cal_chart import pie_chart, line_chart, scatter_chart, line2_chart
-from calculators.all.engineering.surveying.cal_survey import rectland
-from calculators.all.mathematics.geometry.cal_circle import circle
-from calculators.all.health.cal_bmi import bmi
+from calculators.all.others.fun import qf2img
+from calculators.all.general.chart import pie_chart, line_chart, scatter_chart, line2_chart
+from calculators.all.engineering.surveying import rectland
+from calculators.all.mathematics.geometry import circle
+from calculators.all.health import bmi
 from calc import QList
 from qutil import cal_link, resize_df, to_df, command_button, calurl
 import time
-from calculators.all.general.cal_conv import conv2
+from calculators.all.general import conv2
 from qcore.mod_anno import *
 
 
-def demo_adda__modify(arg_name, arg_value, _action):
+def demo_modify_number__modify(arg_name, arg_value, _action):
     if arg_name == 'y':
         return arg_value ** 2
     else:
         return arg_value
 
 
-def demo_adda__info():
+def demo_modify_number__info():
     return {
-        'title': 'Testing Callback',
+        'title': 'Testing __modify Number',
+        'desc': 'Modify int argument y before calculation',
         'inserts': {
-            'form_bottom': command_button('demo_adda', 'Y**2', '__modify', args=['y'])  # not good for scripting
+            'form_bottom': command_button('demo_modify_number', 'Y**2', '__modify', args=['y'])  # not good for scripting
         }
     }
 
 
-def demo_adda(x=3, y=2):
+def demo_modify_number(x=3, y=2):
     return x + y
 
 
-def demo_addat__modify(arg_name, arg_value, _action):
-    if arg_name == 'y':
-        return arg_value + 'hi'
+def demo_modify_text__modify(arg_name, arg_value, _action):
+    if arg_name == 'x':
+        return 'Hello'
     else:
-        return arg_value + 'lo'
+        return 'World'
 
 
-def demo_addat__info():
+def demo_modify_text__info():
     return {
-        'title': 'Testing Callback',
+        'title': 'Testing __modify Text',
+        'desc': 'Modify multiple arguments x and y before calculation',
         'inserts': {
-            'form_bottom': command_button('addat', 'Load', '__modify', args=['y'])  # not good for scripting
+            'form_bottom': command_button('demo_modify_text', 'Load', '__modify', args=['x', 'y'])  # not good for scripting
         }
     }
 
 
-def demo_addat(x: str = '3', y: str = '2'):
-    return x + y
+def demo_modify_text(x: str = 'Hi', y: str = 'There'):
+    return x + ' ' + y
 
 
 def demo_anno2__info():
@@ -87,7 +89,6 @@ def demo_table2__info():
             'tsel': QList.get("test")
         },
         'col': ['x', 'y'],
-        # 'endcol': ['table_del_x', 'table_del_y'],
     }
 
 
@@ -115,7 +116,6 @@ def demo_table__info():
             'tsel': QList.get("test")
         },
         'col': ['x', 'y'],
-        # 'endcol': ['table_del_x', 'table_del_y'],
     }
 
 
@@ -256,7 +256,8 @@ def demo_cal2(c: qfunc = circle, r: qfunc = rectland, b: qfunc = bmi, r2: qfunc 
 
 def demo_out__info():
     return {
-        'outcol': ['html__r', 'chart__r', 'table__r', 'code__r'],
+        'layout': 'tb',
+        'out1': ['~chart', '~table'],
     }
 
 
@@ -531,7 +532,7 @@ class Circle:
         self.circumference = 2 * pi * qradius
 
 
-from calculators.all.general.utility.cal_range import vrange
+from calculators.all.general.utility import vrange
 
 
 def demo_xouts__info():

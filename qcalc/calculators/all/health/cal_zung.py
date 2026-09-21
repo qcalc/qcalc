@@ -15,7 +15,6 @@ def zung__info():
 
     options2 = {
         'type': 'radio',
-        # 'initial': 4,
         'choices': [
             {'name': 'None or a little of the time', 'value': 4},
             {'name': 'Some of the time', 'value': 3},
@@ -48,7 +47,8 @@ def zung__info():
             'q19': {**options2, **{'label': 'I fall asleep easily and get a good night’s rest'}},
             'q20': {**options1, **{'label': 'I have nightmares'}},
         },
-        'col': ['q01-q10', 'q11-q20'],
+        'layout': 'tb',
+        'inp1': 0.5,
     }
 
 

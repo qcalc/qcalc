@@ -4,7 +4,7 @@
 import pandas as pd
 import numpy as np
 from qcore import qfunc, QScreen
-from calculators.all.general.file.cal_file import csv_reader
+from calculators.all.general.file import csv_reader
 from scipy.optimize import minimize
 from qutil import demo_url
 

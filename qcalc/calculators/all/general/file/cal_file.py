@@ -4,11 +4,8 @@
 import re
 from bs4 import BeautifulSoup
 import requests
-import markdown
-
-import qconst
 from qconst import delimiter_help_text
-from qutil import nzs, to_df, demo_url
+from qutil import nzs, to_df, demo_url, md2html
 from qcore.mod_anno import *
 
 
@@ -44,7 +41,7 @@ def md_reader(upload_markdown: qfile = None, md_url: qurl = demo_url('demo.md'),
         md_text = upload_markdown.file_bytes.decode()
     else:
         raise Exception(f'Error (MR): A valid Markdown File, Text or URL is not found')
-    return qhtml(markdown.markdown(md_text, extensions=qconst.MARKDOWN_EXTENSIONS, output_format="html"))
+    return qhtml(md2html(md_text))
 
 
 def csv_reader__info():

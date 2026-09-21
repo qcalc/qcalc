@@ -5,7 +5,7 @@ from qcore import qhtml, qemail, qurl, qtexta
 from qutil import qaddr, qdomain
 from calc import QCals
 from django.template.loader import render_to_string
-from calculators.all.admin.cal_email import email_send
+from calculators.all.admin import email_send
 
 
 def share_by_email__info():

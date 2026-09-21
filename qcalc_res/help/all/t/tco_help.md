@@ -186,27 +186,39 @@ visual comparison alongside the table.
 
 For each supplier:
 
-1. **Initial Cost** = Purchase + Freight + Installation (undiscounted).
-2. Each recurring cost (Operating, Maintenance, Financing) is discounted as a
+**Initial Cost** = Purchase + Freight + Installation (undiscounted).
+
+Each recurring cost (Operating, Maintenance, Financing) is discounted as a
   growing annuity: if the annual cost is `C`, the discount rate is `r`, the
-  escalation rate is `g`, and the analysis period is `n` years, its present
-   value is
+  escalation rate is `g`, and the analysis period is `n` years, its present value is
 
 $$PV = C \times \dfrac{1 - \left(\dfrac{1+g}{1+r}\right)^n}{r - g}$$
 
-&nbsp;&nbsp;&nbsp;&nbsp;(when `r` equals `g`, this simplifies to `PV = C
-	imes n \div (1+r)`; when `g = 0` this is the standard flat annuity present
-value formula.)
-3. **Disposal Cost (PV)** and **Residual Value (PV)** are each discounted as
-  a single amount received/paid at year `n`: `PV = \text{amount} \times
-  (1+r)^{-n}`.
-4. **Total Cost of Ownership** = Initial Cost + Operating PV + Maintenance PV
-   + Financing PV + Disposal PV - Residual Value PV.
-5. **Annualized TCO** = Total Cost of Ownership × capital recovery factor,
-  where the capital recovery factor is `r \div \left(1 - (1+r)^{-n}\right)`
-  (or `1 \div n` when the discount rate is `0`). This annualization uses
-   only the Discount Rate, not the Cost Escalation Rate.
-6. **Cost / Hour** = Annualized TCO ÷ Usage (in hours/year).
+when `r` equals `g`, this simplifies to:
+
+$$PV = C	\times n \div (1+r)$$
+
+when `g = 0` this is the standard flat annuity present
+value formula:
+
+$$PV=C \times \frac{1-(1+r)^{-n}}{r}$$
+
+**Disposal Cost (PV)** and **Residual Value (PV)** are each discounted as a single amount received/paid at year `n`: 
+  
+  $$PV = \text{amount} \times (1+r)^{-n}$$
+
+**Total Cost of Ownership** = Initial Cost + Operating PV + Maintenance PV + Financing PV + Disposal PV - Residual Value PV.
+
+**Annualized TCO** = Total Cost of Ownership × capital recovery factor,
+  where the capital recovery factor is:
+  
+  $$r \div \left(1 - (1+r)^{-n}\right)$$
+
+  or `1/n` when the discount rate is `0`. 
+  
+  This annualization uses only the Discount Rate, not the Cost Escalation Rate.
+
+**Cost / Hour** = Annualized TCO ÷ Usage (in hours/year).
 
 The supplier with the smallest **Total Cost of Ownership** is reported as
 the **Lowest TCO Supplier** and marked `Best` in the **Rank** row; every

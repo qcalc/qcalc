@@ -10,7 +10,6 @@ from .qc_mbase import _base_categories, _base_categ_list, _base_categ_list2, _ba
 from .qc_munit import MeasureUnit as Unit, isMeasureUnit
 from .qc_units import add_measurement_units, find_unit, add_currencies, lmt2catalog, _unit_table, _unit_info,\
     _unit_tree, unit_desc, unit_short_desc, base_units
-from .mod_layout import laycol, layrow
 from .mod_smartcalc import SmartCalc
 from .mod_anno import *
 from .mod_qcutil import *

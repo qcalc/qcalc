@@ -4,20 +4,19 @@
 # COMBINE_FINF = {dict,   dict,       dict,      dict,       dict,    list,      dict,    value}
 COMBINE_FINF = {'schema', 'autofill', 'related', 'showhide', 'anyof', 'fargs', 'script'}
 KNOWN_METAS = ['__info', '__input', '__modify', '__command', '__help']
-QCALC_LAYOUTS = ['l2r', 'lr', 'lr2', 't2b', 't2b2', 'tb', 'tb2']
+QCALC_LAYOUTS = ['l2r', 'l2r2', 'lr', 'lr2', 't2b', 't2b2', 'tb', 'tb2']
 CODE_TAB = 4
+
+# IO table limits
+TABLE_MAX_COLS = 125  # Maximum number of columns
+TABLE_MAX_CELLS = 50000  # Maximum number of celss
+
+# Expression builder limit
+SCALAR_LENGTH = 512  # Maximum length of a scalar value or string for expression builder to process
 
 # Local trusted deployments may enable legacy unrestricted user-calculator imports.
 ALLOW_UNSAFE_USER_CALCULATOR_IMPORTS = False
-# 'toc' adds slug ids to headings (e.g. #1-getting-started) so in-doc TOC/bookmark links resolve
-MARKDOWN_EXTENSIONS = extensions = ['extra', 'fenced_code', 'tables', 'mdx_math', 'toc']
-"""
-extra:  footnotes, abbreviations, and definition lists
-fenced_code: multiline code blocks by wrapping them in three backticks (```) instead of forcing a four-space indentation.
-tables: standard data grids using traditional pipe and dash separators (| and -).
-mdx_math: Intercepts math syntax (like $ .. $ and $$ .. $$) so LaTeX math equations can be prepared for browser rendering.
-toc: to generate a dynamic, hyperlinked Table of Contents.
-"""
+
 # catalog properties
 name_separator = '-'
 separator_display = ' > '

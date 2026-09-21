@@ -583,7 +583,7 @@ The calculator function may also accept `__info` if it needs the selected mode d
 
 For an easier and more readable way to create the dictionary returned by `__info()`, calculator authors can use qCalc's `dd()` (`DotDict`) helper. It allows nested information to be defined using dot notation, reducing the need for `{}` and making complex `__info()` structures easier to read. 
 
-> See **[qCalc DotDict notation: Using `dd()` in `__info()`](related-topics/dot-dict-notation.md)** for examples and usage.
+> See **[qCalc DotDict notation: Using `dd()` in `__info()`](related-topics/info-dot-dict-notation.md)** for examples and usage.
 
 
 ## 10. Author Checklist

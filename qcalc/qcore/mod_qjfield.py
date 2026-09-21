@@ -411,8 +411,9 @@ class QJField:  # 11422
                                   "btn:0", "-", self.id_prefix))
 
     def _table2flds(self, _value, s2f_type='table'):
-        self.doc_info['xpr'] = False
+        # self.doc_info['xpr'] = False
         self.doc_info['url'] = False
+
         # self.doc_info['loop'] = False
         self.jf['type'] = 'table'
         self.s2f = {'type': s2f_type}  # 'table' -> DataFrame, 'tbl' -> plain dict

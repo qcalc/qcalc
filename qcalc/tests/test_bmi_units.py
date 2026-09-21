@@ -3,10 +3,10 @@
 
 import sys
 from pathlib import Path
-# import qsett
+import qsett # required
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from calculators.all.health.cal_bmi import bmi
+from calculators.all.health import bmi
 # from calc import mod_mfunc
 
 def test_bmi_works_with_si_units():

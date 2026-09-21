@@ -119,9 +119,9 @@ Consequently, a purchase can have a high initial cost but still be economically 
 
 ## Example
 
-Suppose an asset costs **$50,000** to purchase and is expected to be used for **5 years**.
+Suppose an asset costs **USD 50,000** to purchase and is expected to be used for **5 years**.
 
-If it can be rented for **$1,000 per month**, the calculator considers not only the monthly rent payment but also:
+If it can be rented for **USD 1,000 per month**, the calculator considers not only the monthly rent payment but also:
 
 - Expected rent increases
 - Ownership and maintenance costs

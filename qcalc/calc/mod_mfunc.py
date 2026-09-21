@@ -281,8 +281,8 @@ def call_f(fadr):
 
 
 def _test():
-    from calculators.all.health.cal_fitness import bodyfat
-    from calculators.all.others.cal_others import gold
+    from calculators.all.health import bodyfat
+    from calculators.all.family import gold
 
     def callf1(x=10, bf: qfunc = bodyfat, y='3ft'):
         # args={'age': 35, 'sex': 'F'}

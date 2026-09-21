@@ -11,6 +11,152 @@
     const colNames = {};
     const colTitles = {};
 
+    // Parse one CSV line with quoted-field handling (double quotes escaped as "").
+    function parseCsvLine(line) {
+        const out = [];
+        let cur = "";
+        let inQuotes = false;
+        for (let i = 0; i < line.length; i++) {
+            const ch = line[i];
+            if (ch === '"') {
+                if (inQuotes && line[i + 1] === '"') {
+                    cur += '"';
+                    i += 1;
+                } else {
+                    inQuotes = !inQuotes;
+                }
+            } else if (ch === ',' && !inQuotes) {
+                out.push(cur);
+                cur = "";
+            } else {
+                cur += ch;
+            }
+        }
+        out.push(cur);
+        return out;
+    }
+
+    // Ensure unique field keys even when uploaded header titles are duplicated.
+    function toUniqueFields(headers) {
+        const seen = {};
+        return headers.map(function(h, idx) {
+            const base = (String(h || "").trim() || ("col_" + String(idx + 1)));
+            if (seen[base] == null) {
+                seen[base] = 1;
+                return base;
+            }
+            const n = ++seen[base];
+            return base + "_" + String(n);
+        });
+    }
+
+    // Deterministic CSV upload path: first non-empty line is header, remaining lines are rows.
+    function importCsvWithHeaders(table) {
+        const picker = document.createElement("input");
+        picker.type = "file";
+        picker.accept = ".csv,.txt,text/csv";
+        picker.style.display = "none";
+        document.body.appendChild(picker);
+
+        picker.addEventListener("change", function() {
+            const file = picker.files && picker.files[0] ? picker.files[0] : null;
+            if (!file) {
+                document.body.removeChild(picker);
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function() {
+                try {
+                    const text = String(reader.result || "").replace(/^\uFEFF/, "");
+                    const lines = text.split(/\r?\n/).filter(function(l) {
+                        return l.trim() !== "";
+                    });
+                    if (lines.length === 0) {
+                        document.body.removeChild(picker);
+                        return;
+                    }
+
+                    const headerTitles = parseCsvLine(lines[0]).map(function(h, idx) {
+                        const t = String(h == null ? "" : h).trim();
+                        return t || ("col_" + String(idx + 1));
+                    });
+                    const fields = toUniqueFields(headerTitles);
+
+                    const columns = fields.map(function(field, idx) {
+                        return {
+                            title: headerTitles[idx],
+                            field: field,
+                            headerSort: false,
+                            editor: true,
+                            editableTitle: true,
+                        };
+                    });
+
+                    const rows = lines.slice(1).map(function(line) {
+                        const vals = parseCsvLine(line);
+                        const row = {};
+                        for (let i = 0; i < fields.length; i++) {
+                            row[fields[i]] = (vals[i] != null ? vals[i] : "");
+                        }
+                        return row;
+                    });
+
+                    table.setColumns(columns);
+                    const setDataResult = table.setData(rows);
+                    if (setDataResult && typeof setDataResult.then === "function") {
+                        setDataResult.then(function() {
+                            afterTableImport(table);
+                        });
+                    } else {
+                        afterTableImport(table);
+                    }
+                } finally {
+                    document.body.removeChild(picker);
+                }
+            };
+            reader.readAsText(file);
+        });
+
+        picker.click();
+    }
+
+    // After any import, rebuild editable columns from current row keys.
+    function syncColumnsFromUploadedData(table) {
+        const rows = table.getData();
+        if (!rows || rows.length === 0) {
+            return;
+        }
+        const keys = Object.keys(rows[0]).filter(function(key) {
+            return key !== "id";
+        });
+        if (keys.length === 0) {
+            return;
+        }
+
+        const columns = keys.map(function(key) {
+            return {
+                title: key,
+                field: key,
+                headerSort: false,
+                editor: true,
+                editableTitle: true,
+            };
+        });
+        table.setColumns(columns);
+    }
+
+    // Keep hidden JSON payload and button state in sync after import.
+    function afterTableImport(table) {
+        syncColumnsFromUploadedData(table);
+        const tableId = table && table.element ? table.element.id : "";
+        if (tableId) {
+            setUpdateButtonEnabled(tableId, true);
+        }
+        pickData(table);
+        packData(table);
+    }
+
     const rowMenuEdit = [
         {
             label: "Upload Data",
@@ -19,14 +165,19 @@
                     label: "Load from CSV",
                     action: function(e, row) {
                         const table = row.getTable();
-                        table.import("csv", [".csv", ".txt"]);
+                        importCsvWithHeaders(table);
                     }
                 },
                 {
                     label: "Load from JSON",
                     action: function(e, row) {
                         const table = row.getTable();
-                        table.import("json", ".json");
+                        const imported = table.import("json", ".json");
+                        if (imported && typeof imported.then === "function") {
+                            imported.then(function() {
+                                afterTableImport(table);
+                            });
+                        }
                     }
                 },
             ],
@@ -107,6 +258,17 @@
     function columnTitles(dataTable) {
         return dataTable.getColumns().map(function(column) {
             return column.getDefinition().title;
+        });
+    }
+
+    // Avoid browser default input size (20ch) inflating editable header widths.
+    function normalizeTitleEditorSizing(scopeElem) {
+        const root = scopeElem && scopeElem.querySelectorAll ? scopeElem : document;
+        const editors = root.querySelectorAll('.tabulator-title-editor');
+        editors.forEach(function(input) {
+            const txt = String(input.value || "").trim();
+            const len = txt.length > 0 ? txt.length : 2;
+            input.size = Math.max(2, Math.min(24, len));
         });
     }
 
@@ -196,6 +358,49 @@
         window.qcalc_FullFormSubmit(cid);
     }
 
+    // Trial: remember local fullscreen table before structural re-render.
+    function rememberFullscreenTableState(tableId) {
+        const tableElem = document.getElementById(tableId);
+        if (!tableElem) {
+            return;
+        }
+        const wrapper = tableElem.closest('.elem-wrapper.table-wrap');
+        const form = tableElem.closest('form');
+        if (!wrapper || !form) {
+            return;
+        }
+        if (wrapper.classList.contains('fullscreen-local')) {
+            form.dataset.qcalcRestoreFullscreenTableId = tableId;
+        }
+    }
+
+    // Trial: restore local fullscreen for the remembered table after form swap.
+    function restoreFullscreenTableState(rootElem) {
+        // htmx can pass Document as root; guard before calling Element.closest.
+        const rootCanClosest = rootElem && typeof rootElem.closest === "function";
+        const form = rootElem && rootElem.matches && rootElem.matches('form')
+            ? rootElem
+            : (rootCanClosest ? rootElem.closest('form') : null);
+        if (!form) {
+            return;
+        }
+        const tableId = form.dataset.qcalcRestoreFullscreenTableId;
+        if (!tableId) {
+            return;
+        }
+        delete form.dataset.qcalcRestoreFullscreenTableId;
+
+        const tableElem = document.getElementById(tableId);
+        if (!tableElem) {
+            return;
+        }
+        const wrapper = tableElem.closest('.elem-wrapper.table-wrap');
+        if (!wrapper) {
+            return;
+        }
+        wrapper.classList.add('fullscreen-local');
+    }
+
     function bindTableButtons(tableId) {
         const updateButton = $("#id_" + tableId + "_table_update");
         if (updateButton.length > 0 && !updateButton.data("qcalc_Bound")) {
@@ -234,6 +439,7 @@
                 const cid = getCidOf($(this));
                 const extraFieldId = "extra_" + cid;
                 $("#" + extraFieldId).val(JSON.stringify({"cmd": "resize"}));
+                rememberFullscreenTableState(tableId);
                 submitWithFullFormSwap(cid);
             });
             resizeButton.data("qcalc_Bound", "1");
@@ -252,6 +458,7 @@
                 const extraFieldId = "extra_" + cid;
                 const extra = JSON.stringify({"cmd": this.innerText});
                 $("#" + extraFieldId).val(extra);
+                rememberFullscreenTableState(tableId);
                 submitWithFullFormSwap(cid);
             });
             edButton.data("qcalc_Bound", "1");
@@ -307,10 +514,16 @@
         const dataTable = new Tabulator(selector, {
             pagination: "local",
             paginationSize: 10,
-            paginationSizeSelector: [10, 25, 50, 100],
+            paginationSizeSelector: [5, 10, 25, 50, 100, 250],
             paginationCounter: "rows",
+            // Render menus in body so they are not clipped by small table wrappers.
+            popupContainer: document.body,
             rowContextMenu: (mode === "edit" ? rowMenuEdit.concat(rowMenuDisplay) : rowMenuDisplay),
-            columnDefaults: {headerSort: false, editor: (mode === "edit")},
+            columnDefaults: {
+                headerSort: false,
+                editor: (mode === "edit"),
+                editableTitle: (mode === "edit"), // allow header rename in Edit mode
+            },
             clipboard: (mode === "edit" ? true : "copy"),
             clipboardPasteAction: "replace",
         });
@@ -326,7 +539,16 @@
             setUpdateButtonEnabled(tableId, true);
         });
 
+        dataTable.on("columnTitleChanged", function(column) {
+            setUpdateButtonEnabled(tableId, true);
+            const colElem = column && column.getElement ? column.getElement() : null;
+            if (colElem) {
+                normalizeTitleEditorSizing(colElem);
+            }
+        });
+
         dataTable.on("renderComplete", function() {
+            normalizeTitleEditorSizing(this.element);
             setTimeout(() => {
                 pickData(this);
                 packData(this);
@@ -364,5 +586,6 @@
         // querying it would rebuild tables against selectors missing from the live DOM.
         const root = (target && target.isConnected) ? target : document;
         initTabulatorIn(root);
+        restoreFullscreenTableState(root);
     });
 })();

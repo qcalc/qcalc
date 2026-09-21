@@ -83,7 +83,6 @@ def conv2__info(__info=None):
             'mode': {'fields': ['from_unit', 'from_qty', 'to_units', 'to_qty', 'unit_cost'], 'callback': 'conv2_sh'}
         },
         'calculate': 'Convert',
-        # 'row': ['3-4'],
         'kins': 'conv',
         'script': '''
         function conv2_sh(v){

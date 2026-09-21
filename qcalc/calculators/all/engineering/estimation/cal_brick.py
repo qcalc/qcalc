@@ -8,7 +8,7 @@ def ccwork__info():
     return {
         'title': 'Estimate Gravel, Cement and Sand for Plain Cement Concrete work',
         'step2': [
-            {'step': 'cost', 'caption': 'Calculate Cost of Materials',
+            {'step': 'run', 'func': 'cost', 'caption': 'Calculate Cost of Materials',
              'spec': {'include': ['*'], 'exclude': ['CC Work Volume']}
              },
         ],
@@ -52,11 +52,12 @@ def brickwork__info():
         'title': 'Estimate Brick, Cement and Sand for Brickwork',
         'interactive': True,
         'step2': [
-            {'step': 'cost', 'caption': 'Calculate Cost of Materials',
+            {'step': 'run', 'func': 'cost', 'caption': 'Calculate Cost of Materials',
              'spec': {'exclude': ['Brick Work Volume']}
              },
         ],
-        'col': 2,
+        'layout': 'tb',
+        'inp1': 0.5,
     }
 
 
@@ -120,11 +121,11 @@ def plaster__info(): return {
         'work_side': {'type': 'radio', 'choices': {1: 'One Side', 2: 'Both Side'}},
     },
     'step2': [
-        {'step': 'cost', 'caption': 'Calculate Cost of Materials',
+        {'step': 'run', 'func': 'cost', 'caption': 'Calculate Cost of Materials',
          'spec': {'exclude': ['Plaster Work Area']}
          },
     ],
-    'col': 2,
+    'inp1': 0.5,
 }
 
 

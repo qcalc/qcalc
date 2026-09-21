@@ -9,8 +9,77 @@
 // opposed to a normal submit whose response only refreshes the output
 // region (#output-part-<cid>).
 (function() {
+    function qcalcRequestPath(detail, trigger) {
+        var requestPath = detail.path || (detail.pathInfo && detail.pathInfo.requestPath) || '';
+        if (requestPath) {
+            return requestPath;
+        }
+        var host = trigger && trigger.closest ? trigger.closest('[hx-get]') : null;
+        return host ? (host.getAttribute('hx-get') || '') : '';
+    }
+
+    function qcalcRequestedFunc(detail, trigger) {
+        var params = detail.parameters || (detail.requestConfig && detail.requestConfig.parameters) || {};
+        var fname = (params['fname'] || '').toString().trim().toLowerCase();
+        if (fname) {
+            return fname;
+        }
+
+        var pathArg = (params['path'] || '').toString().trim();
+        if (pathArg) {
+            return pathArg.split('/')[0].trim().toLowerCase();
+        }
+
+        var requestPath = qcalcRequestPath(detail, trigger);
+        if (!requestPath) {
+            return '';
+        }
+
+        try {
+            var url = new URL(requestPath, window.location.origin);
+            var queryFname = (url.searchParams.get('fname') || '').trim().toLowerCase();
+            if (queryFname) {
+                return queryFname;
+            }
+            var queryPath = (url.searchParams.get('path') || '').trim();
+            if (queryPath) {
+                return queryPath.split('/')[0].trim().toLowerCase();
+            }
+        } catch (_err) {
+            return '';
+        }
+
+        return '';
+    }
+
+    function qcalcFindOpenSingleton(funcName) {
+        var cards = document.querySelectorAll('[id^="card-holder-"][data-qcalc-single-instance="1"]');
+        for (var i = 0; i < cards.length; i++) {
+            var card = cards[i];
+            var cardFunc = (card.dataset.qcalcFunc || '').trim().toLowerCase();
+            if (cardFunc === funcName) {
+                return card;
+            }
+        }
+        return null;
+    }
+
     document.addEventListener('htmx:configRequest', function(event) {
         var detail = event.detail || {};
+        var reqPath = qcalcRequestPath(detail, event.target);
+        if (reqPath.includes('/calc/add')) {
+            var requestedFunc = qcalcRequestedFunc(detail, event.target);
+            if (requestedFunc) {
+                var existing = qcalcFindOpenSingleton(requestedFunc);
+                if (existing) {
+                    var existingCid = existing.dataset.qcalcCid || existing.id.replace('card-holder-', '');
+                    jumpTo(existingCid);
+                    event.preventDefault();
+                    return;
+                }
+            }
+        }
+
         var params = detail.parameters || {};
         if (params['qcalc_structural_cmd'] !== '1') {
             return;
@@ -85,6 +154,27 @@ function toggleLoadButton()
     const fileInput = document.getElementById('open-io');
     const loadButton = document.getElementById('load-io');
     loadButton.disabled = !fileInput.files.length; // Enable button if a file is selected
+}
+
+function qcalc_EnableTableUpdateAfterSwap(cid) {
+    const swapSync = function(evt) {
+        const target = evt && evt.detail ? evt.detail.target : null;
+        if (!target || target.id !== ("form-" + cid)) {
+            return;
+        }
+        document.body.removeEventListener("htmx:afterSwap", swapSync);
+        setTimeout(function() {
+            const form = document.getElementById("form-" + cid);
+            if (!form) {
+                return;
+            }
+            const updateBtn = form.querySelector("button[id$='_table_update']");
+            if (updateBtn) {
+                updateBtn.disabled = false;
+            }
+        }, 0);
+    };
+    document.body.addEventListener("htmx:afterSwap", swapSync);
 }
 
 function formReady(cid) {
@@ -284,7 +374,26 @@ function uploadCodeMirrorWidget(input, textareaId) {
 
 function closeCard(cid)
 {
-    document.getElementById('card-holder-'+cid).remove();
+    var card = document.getElementById('card-holder-' + cid);
+    if (!card) {
+        return;
+    }
+
+    var form = document.getElementById('form-' + cid);
+    var tokenInput = form ? form.querySelector('input[name="csrfmiddlewaretoken"]') : null;
+
+    if (tokenInput && tokenInput.value) {
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', '/calc/io/clear/' + encodeURIComponent(cid) + '/');
+        xhr.setRequestHeader('X-CSRFToken', tokenInput.value);
+        xhr.send();
+    } else {
+        var xhrFallback = new XMLHttpRequest();
+        xhrFallback.open('GET', '/calc/io/clear/' + encodeURIComponent(cid) + '/');
+        xhrFallback.send();
+    }
+
+    card.remove();
 }
 
 function idPrefix()
@@ -476,6 +585,28 @@ function updateExtra(cid,dict){
     //console.log($('#'+extra_field_id).val());
 }
 
+function clearExtraCmd(cid){
+    const extraField = document.getElementById('extra_' + cid);
+    if (!extraField) {
+        return;
+    }
+    let obj = {};
+    try {
+        obj = JSON.parse(extraField.value || '{}');
+    } catch (_err) {
+        extraField.value = '{}';
+        return;
+    }
+    if (!obj || typeof obj !== 'object' || Array.isArray(obj)) {
+        extraField.value = '{}';
+        return;
+    }
+    if (Object.prototype.hasOwnProperty.call(obj, 'cmd')) {
+        delete obj.cmd;
+        extraField.value = JSON.stringify(obj);
+    }
+}
+
 function calClick(cid){
     calc_btn_id = "calculate_" + cid;
     $('#'+calc_btn_id).trigger('click');
@@ -508,6 +639,77 @@ function calWithCmd(cid, fname, cmd){ // cmd='save_input', 'save_io', 'save_var'
     calClick(cid);
 }
 
+async function saveInputToFile(cid, fname){
+    const form = document.getElementById('form-' + cid);
+    if (!form) {
+        return;
+    }
+
+    const downloadName = fname + '.json';
+    let fileHandle = null;
+    if (window.isSecureContext && typeof window.showSaveFilePicker === 'function') {
+        try {
+            fileHandle = await window.showSaveFilePicker({
+                suggestedName: downloadName,
+                types: [{
+                    description: 'JSON files',
+                    accept: { 'application/json': ['.json'] }
+                }]
+            });
+        } catch (err) {
+            if (err && err.name === 'AbortError') {
+                return;
+            }
+            fileHandle = null;
+        }
+    }
+
+    const extraField = document.getElementById('extra_' + cid);
+    const originalExtra = extraField ? (extraField.value || '{}') : null;
+
+    if (extraField) {
+        let payload = {};
+        try {
+            payload = JSON.parse(originalExtra || '{}');
+        } catch (_err) {
+            payload = {};
+        }
+        payload.cmd = 'save_io';
+        extraField.value = JSON.stringify(payload);
+    }
+
+    try {
+        const postData = new FormData(form);
+        const csrftoken = form.querySelector('[name=csrfmiddlewaretoken]');
+        const response = await fetch('/calc/run/' + encodeURIComponent(fname) + '/?part=2', {
+            method: 'POST',
+            body: postData,
+            headers: csrftoken ? { 'X-CSRFToken': csrftoken.value } : {}
+        });
+        if (!response.ok) {
+            throw new Error('Save request failed with status ' + response.status);
+        }
+
+        const data = await response.json();
+        const jsonText = JSON.stringify(data, null, 2);
+        if (fileHandle) {
+            const writable = await fileHandle.createWritable();
+            await writable.write(jsonText);
+            await writable.close();
+        } else {
+            const blob = new Blob([jsonText], { type: 'application/json;charset=utf-8' });
+            saveAs(blob, downloadName);
+        }
+    } catch (_err) {
+        alert('Unable to save input right now. Please try again.');
+    } finally {
+        if (extraField) {
+            extraField.value = originalExtra == null ? '{}' : originalExtra;
+            clearExtraCmd(cid);
+        }
+    }
+}
+
 function saveInput(fname){ // cmd='save_input', 'save_io', 'save_var', 'create_var'
     var xhr = new XMLHttpRequest();
     xhr.open("POST", '/calc/save/');
@@ -519,6 +721,20 @@ function saveInput(fname){ // cmd='save_input', 'save_io', 'save_var', 'create_v
     }
     xhr.send();
 }
+
+document.addEventListener('htmx:afterRequest', function(event) {
+    const detail = event.detail || {};
+    const elt = detail.elt || event.target;
+    const form = elt && elt.tagName === 'FORM'
+        ? elt
+        : (elt && elt.closest ? elt.closest('form') : null);
+    if (!form || !form.id || !form.id.startsWith('form-')) {
+        return;
+    }
+
+    const cid = form.id.replace('form-', '');
+    clearExtraCmd(cid);
+});
 
 function validateFileSize(input, max_mb=10.0) {
     const file = input.files[0];
@@ -578,6 +794,12 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function toggleFullscreen(elem) {
+    // Table wrappers use local fullscreen to avoid flicker on form re-render.
+    if (elem && elem.classList && elem.classList.contains('table-wrap')) {
+        elem.classList.toggle('fullscreen-local');
+        return;
+    }
+
     if (!document.fullscreenElement) {
         elem.classList.add('fullscreen');
         elem.requestFullscreen().catch(err => {
@@ -589,6 +811,20 @@ function toggleFullscreen(elem) {
         });
     }
 }
+
+// Escape closes only local table fullscreen overlays; browser fullscreen keeps its own ESC behavior.
+document.addEventListener('keydown', function(event) {
+    if (event.key !== 'Escape') {
+        return;
+    }
+
+    const localFullscreen = document.querySelector('.elem-wrapper.table-wrap.fullscreen-local');
+    if (!localFullscreen) {
+        return;
+    }
+
+    localFullscreen.classList.remove('fullscreen-local');
+});
 
 
 function themeChanger(themeSelectorElemId){

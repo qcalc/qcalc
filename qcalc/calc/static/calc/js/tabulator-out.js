@@ -48,7 +48,6 @@
             if (!tableId || !tableElem.isConnected) {
                 return;
             }
-
             const selector = '#' + tableId;
             const existingTables = Tabulator.findTable(selector);
             let boundToThisElem = false;
@@ -68,9 +67,11 @@
             new Tabulator(tableElem, {
                 pagination: "local",
                 paginationSize: 10,
-                paginationSizeSelector: [10, 25, 50, 100],
+                paginationSizeSelector: [5, 10, 25, 50, 100, 250],
                 paginationCounter: "rows",
                 //rowHeader: {formatter:"rownum", headerSort:false, hozAlign:"center", resizable:false, frozen:true},
+                // Render menus in body so they are not clipped by small table wrappers.
+                popupContainer: document.body,
                 rowContextMenu: rowMenuDisplay,
                 columnDefaults: {headerSort: false},
                 clipboard: "copy",

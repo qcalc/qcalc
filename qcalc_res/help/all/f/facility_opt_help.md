@@ -11,8 +11,8 @@ from it carries a variable cost or distance.
 
 The calculator solves an optimization problem: it selects a subset of the
 candidate facilities and splits each customer's demand across them so that
-total cost — fixed costs of open facilities plus variable transportation
-cost — is as low as possible, while respecting facility capacity and any
+total cost - fixed costs of open facilities plus variable transportation
+cost - is as low as possible, while respecting facility capacity and any
 service-level constraints you set.
 
 ## Background
@@ -20,7 +20,7 @@ service-level constraints you set.
 ### Fixed cost vs. variable cost trade-off
 
 Opening a facility usually costs money regardless of how much it is used
-(rent, staffing, equipment — captured here as **Fixed Cost**), while serving
+(rent, staffing, equipment - captured here as **Fixed Cost**), while serving
 each unit of customer demand from a facility has its own per-unit cost or
 distance (captured in the **Cost** table). Opening more facilities tends to
 shorten the distance to customers and lower variable cost, but adds more
@@ -44,8 +44,8 @@ few customers from very far away.
 
 A table with one row per customer/demand location and these columns:
 
--   **Location** — an identifier for the customer or demand point.
--   **Demand** — the quantity that location needs, to be supplied by one or
+-   **Location** - an identifier for the customer or demand point.
+-   **Demand** - the quantity that location needs, to be supplied by one or
     more of the candidate facilities.
 -   One additional column per candidate facility (named to match the
     **Location** values in the **Facility** table), giving the per-unit cost
@@ -59,11 +59,11 @@ reports an inconsistency instead of a result.
 
 A table listing the candidate facility sites, with columns:
 
--   **Location** — an identifier for the candidate site (must match a column
+-   **Location** - an identifier for the candidate site (must match a column
     name in the **Cost** table).
--   **Capacity** — the maximum total demand that facility can supply if
+-   **Capacity** - the maximum total demand that facility can supply if
     opened.
--   **Fixed Cost** — the cost added to the total whenever that facility is
+-   **Fixed Cost** - the cost added to the total whenever that facility is
     chosen to open, regardless of how much of its capacity is used.
 
 ### Minimum Number of Facilities
@@ -76,9 +76,9 @@ The most candidate facilities the solution is allowed to open.
 
 ### Maximum Average Customer Distance
 
-An optional cap intended to limit how high the average cost/distance may be
-across the customer-facility pairs actually used in the solution. Leave
-blank to not apply this limit.
+An optional cap on the simple average cost/distance of active assignment
+arcs (customer-facility links that carry positive flow). This is not
+demand-weighted. Leave blank to not apply this limit.
 
 ### Maximum Average Demand Distance
 
@@ -104,7 +104,7 @@ facility at or within this cost/distance.
 
 The outcome of the optimization: **Optimal** means a best solution meeting
 every constraint was found. Other statuses (for example, infeasible) mean no
-solution satisfies all the constraints as given — try relaxing the
+solution satisfies all the constraints as given - try relaxing the
 facility-count, capacity, or distance/percentage limits.
 
 ### Total Cost
@@ -115,12 +115,35 @@ every facility chosen to open. It is expressed in the same units used in the
 **Cost** and **Fixed Cost** columns you entered (currency, distance, or any
 consistent cost metric).
 
-### Selected Facilities
+### Structured Output Tables
 
-Below the Status and Total Cost, the calculator lists the facilities chosen
-to open, shown as `Possible_Facility_<Location> : 1.0` for each opened site.
-Candidate facilities not listed here were not selected in the optimal
-solution.
+For an optimal solution, the calculator returns these result fields:
+
+-   **Status**
+-   **Total Cost**
+-   **Opened Facilities**
+-   **Avg Demand Weighted Distance**
+-   **Facility Table**
+-   **Allocation Table**
+
+**Facility Table** has one row per candidate facility and includes:
+
+-   **Facility**
+-   **Open** (1 if opened, else 0)
+-   **Capacity**
+-   **Used**
+-   **Utilization %**
+-   **Fixed Cost**
+
+**Allocation Table** has one row per demand location and includes:
+
+-   **Location**
+-   **Demand**
+-   One column for each facility, showing assigned flow
+-   **Served** (sum of assigned flow across facilities)
+
+If no optimal solution is found, the calculator still returns the same keys,
+with empty tables and null/zero values where appropriate.
 
 ## Understanding the Calculation
 
@@ -130,13 +153,13 @@ The calculator builds and solves a mixed-integer optimization model:
     Number of Facilities** limits.
 -   **Assign demand from every customer location to one or more open
     facilities** so that each location's full **Demand** is met.
--   **Respect each facility's Capacity** — the total demand assigned to a
-    facility cannot exceed it — and demand can only be assigned to a
+-   **Respect each facility's Capacity** - the total demand assigned to a
+    facility cannot exceed it - and demand can only be assigned to a
     facility that is actually opened.
 -   Apply the optional distance/service-level limits: **Maximum Average
     Customer Distance**, **Maximum Average Demand Distance**, and the
     **Minimum Percent Demand** within **Demand Within Distance**.
--   **Minimize total cost** = sum of (assigned demand × per-unit cost) over
+-   **Minimize total cost** = sum of (assigned demand x per-unit cost) over
     every customer-facility pair actually used, plus the **Fixed Cost** of
     every opened facility.
 
@@ -145,15 +168,15 @@ the lowest possible total cost while satisfying every constraint above.
 
 ## Example
 
-Using the default inputs — 12 customer locations with varying demand, and 5
+Using the default inputs - 12 customer locations with varying demand, and 5
 candidate facility sites (BO, NA, PR, SP, WO) each with capacity 2000 and
 fixed cost 10000, a minimum of 1 and maximum of 5 facilities allowed, a
 maximum demand-weighted average distance of 60, and at least 80% of demand
-required within a distance of 50 — the calculator finds:
+required within a distance of 50 - the calculator finds:
 
 -   **Status**: Optimal
 -   **Total Cost**: 66781.0
--   **Selected Facilities**: BO, NA, PR, and SP are opened; WO is not.
+-   **Opened Facilities**: 4 (BO, NA, PR, SP opened; WO not opened)
 
 This means opening four of the five candidate sites, and splitting customer
 demand among them as determined by the solver, achieves the lowest total
@@ -165,7 +188,7 @@ weighed against the transportation savings it would add.
 ## Important Assumptions and Interpretation
 
 -   The **Cost** table values can represent either a monetary transportation
-    cost or a physical distance — the calculator treats them the same way
+    cost or a physical distance - the calculator treats them the same way
     mathematically, so make sure all entries use one consistent unit or
     currency, matching the **Fixed Cost** unit.
 -   Demand at a customer location can be split across more than one open
@@ -179,3 +202,102 @@ weighed against the transportation savings it would add.
     together; relax one or more of them and re-run.
 -   The **Cost** table's facility columns must match the **Facility**
     table's **Location** entries exactly, or no result can be produced.
+
+## Formulas for Reference
+
+This section summarizes the optimization formulas used by
+`facility_opt()`.
+
+### Sets and Variables
+
+-   $L$: set of demand locations (customers)
+-   $F$: set of candidate facilities
+-   $d_l$: demand at location $l$
+-   $u_f$: capacity of facility $f$
+-   $c_{lf}$: per-unit cost (or distance) from facility $f$ to location $l$
+-   $k_f$: fixed cost to open facility $f$
+-   $x_{lf}$: flow from facility $f$ to location $l$ (integer, $x_{lf} \ge 0$)
+-   $y_f$: 1 if facility $f$ is opened, else 0 (binary)
+-   $a_{lf}$: 1 if arc $(l,f)$ is used, else 0 (binary)
+
+### Objective Function
+
+Minimize total cost:
+
+$$
+\min \sum_{l \in L} \sum_{f \in F} c_{lf} x_{lf} + \sum_{f \in F} k_f y_f
+$$
+
+Interpretation: variable shipment/assignment cost plus fixed opening cost.
+
+### Core Constraints
+
+Facility-count bounds:
+
+$$
+\mathrm{min\_facilities} \le \sum_{f \in F} y_f \le \mathrm{max\_facilities}
+$$
+
+Demand satisfaction (each customer fully served):
+
+$$
+\sum_{f \in F} x_{lf} = d_l \quad \forall l \in L
+$$
+
+Facility capacity:
+
+$$
+\sum_{l \in L} x_{lf} \le u_f \quad \forall f \in F
+$$
+
+Flow only through opened facilities (big-M link):
+
+$$
+x_{lf} \le M y_f \quad \forall l \in L, f \in F
+$$
+
+where $M = 999 \times 10^9$ in the implementation.
+
+Arc-use linking constraints:
+
+$$
+x_{lf} \le d_l a_{lf}, \quad a_{lf} \le y_f \quad \forall l \in L, f \in F
+$$
+
+Interpretation: an arc can carry flow only if that arc is marked used, and an
+arc can be used only if the facility is open.
+
+### Optional Service-Level Constraints
+
+Maximum average customer distance (non-demand-weighted, over used arcs):
+
+$$
+\sum_{l,f} c_{lf} a_{lf} \le D_{cust}^{max} \sum_{l,f} a_{lf}
+$$
+
+Maximum average demand distance (demand-weighted):
+
+$$
+\sum_{l,f} c_{lf} x_{lf} \le D_{dem}^{max} \sum_{l,f} x_{lf}
+$$
+
+Minimum percent demand within threshold distance $T$:
+
+$$
+\frac{\sum_{l,f} \mathbf{1}(c_{lf} \le T) x_{lf}}{\sum_{l \in L} d_l}
+\ge \frac{p_{min}}{100}
+$$
+
+where $\mathbf{1}(\cdot)$ is an indicator that equals 1 when the condition is
+true, otherwise 0.
+
+### Reported Output Metric
+
+Avg Demand Weighted Distance is computed as:
+
+$$
+\frac{\sum_{l,f} c_{lf} x_{lf}}{\sum_{l,f} x_{lf}}
+$$
+
+This is the realized demand-weighted average cost/distance of the optimized
+allocation.

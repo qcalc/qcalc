@@ -15,6 +15,7 @@ from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
 from calc.views_tabulator import get_fav_data
+from collections import Counter
 
 
 def show_page(request: HtmxHttpRequest, **kwargs):
@@ -232,21 +233,131 @@ def search_catalog(request: HtmxHttpRequest, scope='cx', idonly=False):
     return ut.get_page(request, template, context, 'search')
 
 
-def search_func(request: HtmxHttpRequest):  # | not used
-    sterm = request.GET.get('qf').strip()
-    nodes = QCals.calc_root.search_nodes(sterm, request.user)
-    context = {"calc_data": nodes}
-    template = 'search-func.html'
-    return render(request, template, context)
+def _visible_calc_leaf_nodes(request: HtmxHttpRequest):
+    return [
+        node for node in QCals.calc_root.depth_first()
+        if node.is_leaf and node.is_active and node.is_visible(request)
+    ]
 
 
-def search_pfunc(request: HtmxHttpRequest):  # | not used
-    sterm = request.GET.get('qf').strip()
-    nodes = QCals.pcalc_root.search_nodes(sterm, request.user)
-    context = {"calc_data": nodes}
-    template = 'search-func.html'
-    return render(request, template, context)
+def _normalized_tag_list(values):
+    tags = []
+    seen = set()
+    for value in values:
+        tag = value.strip().lower()
+        if not tag or tag in seen:
+            continue
+        tags.append(tag)
+        seen.add(tag)
+    return tags
 
+
+def _tag_index(nodes):
+    counter = Counter()
+    for node in nodes:
+        for tag in node.tag_list:
+            ntag = tag.strip().lower()
+            if ntag:
+                counter[ntag] += 1
+
+    return [
+        {'name': tag, 'count': count}
+        for tag, count in sorted(counter.items(), key=lambda item: (-item[1], item[0]))
+    ]
+
+
+def _nodes_by_tags(nodes, selected_tags, mode='or'):
+    if not selected_tags:
+        return []
+
+    selected = set(selected_tags)
+    result = []
+    for node in nodes:
+        node_tags = {tag.strip().lower() for tag in node.tag_list if tag.strip()}
+        if mode == 'or':
+            matched = bool(node_tags.intersection(selected))
+        else:  # mode == 'and'
+            matched = selected.issubset(node_tags)
+        if matched:
+            result.append(node)
+
+    result.sort(key=lambda nd: (nd.title.lower(), nd.name.lower()))
+    return result
+
+
+def tag_browser(request: HtmxHttpRequest):
+    q1139_request_init(request)
+    mode = request.GET.get('mode', 'or').strip().lower()
+    mode = 'or' if mode == 'or' else 'and'
+
+    filter_text = request.GET.get('q', '').strip().lower()
+    selected_tags = _normalized_tag_list(request.GET.getlist('qt'))
+    visible_nodes = _visible_calc_leaf_nodes(request)
+    tag_items = _tag_index(visible_nodes)
+
+    if filter_text:
+        tag_items = [item for item in tag_items if filter_text in item['name']]
+
+    calc_nodes = _nodes_by_tags(visible_nodes, selected_tags, mode)
+
+    try:
+        page_size = int(request.GET.get('page_size', 10))
+    except (TypeError, ValueError):
+        page_size = 10
+    if page_size not in (5, 10, 25, 50, 100, 250):
+        page_size = 10
+
+    try:
+        page = int(request.GET.get('page', 1))
+    except (TypeError, ValueError):
+        page = 1
+
+    total_rows = len(tag_items)
+    total_pages = (total_rows + page_size - 1) // page_size if total_rows > 0 else 1
+    page = max(1, min(page, total_pages))
+
+    start_index = (page - 1) * page_size
+    end_index = min(start_index + page_size, total_rows)
+    paged_tag_items = tag_items[start_index:end_index]
+    page_tag_names = [item['name'] for item in paged_tag_items]
+
+    context = {
+        'title': 'Tag Browser',
+        'tag_items': paged_tag_items,
+        'page_tag_names': page_tag_names,
+        'selected_tags': selected_tags,
+        'selected_count': len(selected_tags),
+        'mode': mode,
+        'filter_text': request.GET.get('q', '').strip(),
+        'calc_data': calc_nodes,
+        'page': page,
+        'page_size': page_size,
+        'page_size_options': [10, 25, 50, 100, 250],
+        'total_rows': total_rows,
+        'total_pages': total_pages,
+        'start_row': start_index + 1 if total_rows > 0 else 0,
+        'end_row': end_index,
+        'category': {'title': ''},
+        'cat': 'calc',
+        'help_html': '',
+        'search': True,
+    }
+    return ut.get_page(request, 'gen-catalog-tags.html', context, 'tag_browser')
+
+# def search_func(request: HtmxHttpRequest):  # | not used
+#     sterm = request.GET.get('qf').strip()
+#     nodes = QCals.calc_root.search_nodes(sterm, request.user)
+#     context = {"calc_data": nodes}
+#     template = 'search-func.html'
+#     return render(request, template, context)
+#
+#
+# def search_pfunc(request: HtmxHttpRequest):  # | not used
+#     sterm = request.GET.get('qf').strip()
+#     nodes = QCals.pcalc_root.search_nodes(sterm, request.user)
+#     context = {"calc_data": nodes}
+#     template = 'search-func.html'
+#     return render(request, template, context)
 
 def search_tag(request: HtmxHttpRequest):
     sterm = request.GET.get('qt').strip()
@@ -254,7 +365,6 @@ def search_tag(request: HtmxHttpRequest):
     context = {"calc_data": nodes}
     template = 'search-tag.html'
     return render(request, template, context)
-
 
 def search_unit(request: HtmxHttpRequest):
     # check if a unit is being searched

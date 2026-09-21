@@ -248,6 +248,7 @@ def q11421_get_extra_form_data_posted(request):
     if not request.POST:
         return
     extra = json.loads(request.POST.get('extra'))
+
     if not extra:
         request.cmd = ''
         request.extra = {}
@@ -293,10 +294,19 @@ def q11449_form_data_postprocess_and_run(request, func_id):  # cid
                 if request.cmd in ['', 'run']:
                     if request.json_doc['info']['xpr']:
                         request.json_doc['fxpr'] = fxpr_from_json(func_id, request.json_d4f, json_data_type)
+                        if request.json_doc['fxpr'] == '':
+                            request.json_doc['info']['xpr'] = False
+                        # if request.json_doc['info']['loop']: it will be true or false depending on
+                        # if output has any scalar items or not i.e. number (float, int) or qty
+                        # accordingly the icon will be placed during template preparation
+                    if request.json_doc['fxpr']:
+                        # request.json_doc['floop'] = floop_from_json(func_id, request.json_d4f, json_data_type)
+                        request.json_doc['floop'] = xpr2loop(request.json_doc['fxpr'])
                     if request.json_doc['info']['url']:
                         request.json_doc['furl'] = furl_from_json(func_id, request.json_d4f, json_data_type)
-                    # if request.json_doc['info']['loop']:
-                    request.json_doc['floop'] = floop_from_json(func_id, request.json_d4f, json_data_type)
+                        if request.json_doc['furl']=='':
+                            request.json_doc['info']['url'] = False
+
                     logger.note("CAL: Calculate clicked | user=%s | ip=%s | func=%s", user_name(request),
                                 user_ip(request), func_id)
             elif request.cmd == 'save_input':
@@ -445,15 +455,35 @@ def q11441_data_for_function(request: HtmxHttpRequest):  # , kwargs):
                 if isinstance(value, pd.DataFrame):
                     request.json_d4f[name] = value
                 else:
-                    value = json.loads(value)
-                    # print('d4f value', value['data'], value['columns'])
-                    request.json_d4f[name] = pd.DataFrame(data=value['data'], columns=value['columns'])
+                    sval = value.strip() if isinstance(value, str) else value
+                    if sval in ['', 'null', 'None']:
+                        request.json_d4f[name] = pd.DataFrame()
+                    else:
+                        try:
+                            value = json.loads(sval)
+                            # print('d4f value', value['data'], value['columns'])
+                            request.json_d4f[name] = pd.DataFrame(data=value.get('data', []), columns=value.get('columns', []))
+                        except Exception:
+                            logger.warning("Invalid posted table payload for %s; using empty DataFrame", name)
+                            request.json_d4f[name] = pd.DataFrame()
             else:
                 request.json_d4f[name] = None
         elif request.json_s2f[i]['type'] == 'tbl':
             # | qtbl: keep as plain dict, never build a DataFrame
             if value is not None:
-                request.json_d4f[name] = value if isinstance(value, dict) else json.loads(value)
+                if isinstance(value, dict):
+                    request.json_d4f[name] = value
+                else:
+                    sval = value.strip() if isinstance(value, str) else value
+                    if sval in ['', 'null', 'None']:
+                        request.json_d4f[name] = {'columns': [], 'data': []}
+                    else:
+                        try:
+                            parsed = json.loads(sval)
+                            request.json_d4f[name] = parsed if isinstance(parsed, dict) else {'columns': [], 'data': []}
+                        except Exception:
+                            logger.warning("Invalid posted qtbl payload for %s; using empty table dict", name)
+                            request.json_d4f[name] = {'columns': [], 'data': []}
             else:
                 request.json_d4f[name] = None
         elif request.json_s2f[i]['type'] == 'c' and request.json_schema[i]['type'] == 'qty':

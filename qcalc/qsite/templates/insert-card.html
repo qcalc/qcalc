@@ -2,7 +2,11 @@
 {% load qfilter %}
 {% block card %}
 {% lineless_ex %}
-<div id="card-holder-{{ input.cid }}" class="calc col-sm collapse show"> <!-- hidden-->
+<div id="card-holder-{{ input.cid }}" class="calc col-sm collapse show"
+  data-qcalc-cid="{{ input.cid }}"
+  data-qcalc-func="{{ input.doc.name|default:'' }}"
+  data-qcalc-single-instance="{% if input.doc.info.single_instance %}1{% else %}0{% endif %}"
+  data-qcalc-single-key="{% if input.doc.info.single_instance_key %}{{ input.doc.info.single_instance_key }}{% else %}{{ input.doc.name|default:'' }}{% endif %}"> <!-- hidden-->
   <script>setCid('{{ input.cid }}');</script>
   <!-- Basic card -->
   <div class="card">
@@ -25,9 +29,8 @@
             {{ show_code }}
             {% endif %}
             <a class="dropdown-item" href="javascript:;"
-            onclick="calWithCmd('{{ input.cid }}', '{{ input.doc.name }}', 'save_input');">Check before Saving Input</a>
-            <a class="dropdown-item" href="javascript:;"
-            onclick="saveInput('{{ input.cid }}', '{{ input.doc.name }}', 'save_io');">Save Input to File...</a>
+            onclick="saveInputToFile('{{ input.cid }}', '{{ input.doc.name }}');">Save Input to File...</a>
+            <a class="dropdown-item" href="/calc/core/{{ input.doc.name }}/?run" target="_blank">Printable View...</a>
           </div>
           <a class="card-help" href="/calc/help/{{ input.doc.name }}/"
              hx-get="/calc/help/{{ input.doc.name }}/?part=1&token={{request.token}}"

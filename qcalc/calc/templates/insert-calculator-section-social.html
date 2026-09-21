@@ -20,7 +20,7 @@
     <!-- Email -->
     <a href="/calc/share_by_email/"
        hx-get="/calc/add/?path=share_by_email/func_id/{{ input.doc.info.name }}/url/{{ url|deslash }}/---/"
-       hx-target="#card-space" hx-swap="beforebegin" class="btn"><i class="icon-envelop"></i>
+       hx-target="closest .calc" hx-swap="afterend" class="btn"><i class="icon-envelop"></i>
     </a>
   {% endif %}
     <!-- Favorites -->

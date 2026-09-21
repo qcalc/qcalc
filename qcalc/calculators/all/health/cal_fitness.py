@@ -11,29 +11,15 @@ from calc import list2options, gender_choice
 from .cal_bmi import bmi
 from math import log10
 
-"""
-def bf2__info():
-    return {
-        'title': 'bf2',
-        'col':['3-6','7-10'],
-        # 'row': ['1-3', '4-6', '7-9'],
-        'template':'v4.21'
-    }
-def bf2(age=30, sex='M',
-        triceps=7, biceps=5, chest=8, subscapular=4,
-        abdominal=6, suprailiac=10, thigh=8, axilla=3):
-    return
-"""
-
 
 def bodyfat__info():
     return {
         'title': 'Body Fat from Skinfold Measurements',
-        'col': ['3-6', '7-11'],
-        # 'row': ['1-3', '4-6', '7-9'],
         'schema': {
             'sex': list2options(gender_choice)
         },
+        'layout': 'tb',
+        'inp1': '1-6',
     }
 
 
@@ -184,7 +170,7 @@ def bodyfat2__info():
             'sex': list2options(gender_choice)
         },
         'showhide': {
-            'sex': {'fields': ['hip'], 'callback':"'@'=='F'"}
+            'sex': {'fields': ['hip'], 'callback': "'@'=='F'"}
         },
     }
 

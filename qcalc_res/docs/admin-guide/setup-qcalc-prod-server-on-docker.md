@@ -1,6 +1,7 @@
+<a id="qcalc-docker-ubuntu-linux-vps-installation-guide"></a>
 # qCalc — Docker, Ubuntu Linux, VPS: Installation Guide
 <!-- TOC -->
-* [qCalc — Docker, Ubuntu Linux, VPS: Installation Guide](#qcalc--docker-ubuntu-linux-vps-installation-guide)
+* [qCalc — Docker, Ubuntu Linux, VPS: Installation Guide](#qcalc-docker-ubuntu-linux-vps-installation-guide)
   * [Prerequisites](#prerequisites)
   * [1. Initial Linux Server Setup](#1-initial-linux-server-setup)
   * [2. Install Docker Engine and Docker Compose](#2-install-docker-engine-and-docker-compose)
@@ -18,9 +19,9 @@
     * [7b. Production `.env` file](#7b-production-env-file)
     * [7c. `gpref.json`](#7c-gprefjson)
   * [8. Create Docker Named Volumes](#8-create-docker-named-volumes)
-  * [9. Phase 1 — Start Containers with HTTP-Only Nginx](#9-phase-1--start-containers-with-http-only-nginx)
+  * [9. Phase 1 — Start Containers with HTTP-Only Nginx](#9-phase-1-start-containers-with-http-only-nginx)
   * [10. Obtain the SSL Certificate](#10-obtain-the-ssl-certificate)
-  * [11. Phase 2 — Switch Nginx to HTTPS](#11-phase-2--switch-nginx-to-https)
+  * [11. Phase 2 — Switch Nginx to HTTPS](#11-phase-2-switch-nginx-to-https)
   * [11a. Create qCalc Super User](#11a-create-qcalc-super-user)
   * [11b. Switch to HTTPS](#11b-switch-to-https)
   * [12. Post-Installation](#12-post-installation)
@@ -29,8 +30,8 @@
     * [Verify static files inside the container](#verify-static-files-inside-the-container)
     * [Run a management command inside the container](#run-a-management-command-inside-the-container)
     * [View logs](#view-logs)
-  * [### Some useful docker commands](#-some-useful-docker-commands)
-  * [Quick Reference — Useful Commands](#quick-reference--useful-commands)
+  * [Some useful docker commands](#some-useful-docker-commands)
+  * [Quick Reference — Useful Commands](#quick-reference-useful-commands)
   * [Directory Layout Summary](#directory-layout-summary)
 <!-- TOC -->
 This guide covers a Docker-based deployment of qCalc on an Ubuntu VPS.
@@ -275,6 +276,7 @@ docker volume create mysqldata
 
 ---
 
+<a id="9-phase-1-start-containers-with-http-only-nginx"></a>
 ## 9. Phase 1 — Start Containers with HTTP-Only Nginx
 
 Activate the HTTP-only Nginx config so Certbot can complete the ACME challenge:
@@ -313,6 +315,7 @@ On the host these map to `~/qcalc_dock/.local/certbot/conf/live/<your_domain>/`.
 
 ---
 
+<a id="11-phase-2-switch-nginx-to-https"></a>
 ## 11. Phase 2 — Switch Nginx to HTTPS
 
 
@@ -412,6 +415,7 @@ docker rm qcalc        # Remove a stopped container
 
 ```
 
+<a id="quick-reference-useful-commands"></a>
 ## Quick Reference — Useful Commands
 
 | Task | Command |

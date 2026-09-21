@@ -12,10 +12,10 @@ const gulp = require('gulp');
 const rename = require('gulp-rename');
 
 // Replace this path with your own project path
-const appRoot = '<replace_your_path>/qcalc_dock/qcalc';
-const qcalc_TemplatesPath = `${appRoot}/qsite/templates`;
-const calcTemplatesPath = `${appRoot}/calc/templates`;
-const catalogTemplatesPath = `${appRoot}/catalog/templates`;
+const projectRoot = 's:/PROJECTS/QCALC/github/qcalc_dock/qcalc';
+const qcalc_TemplatesPath = `${projectRoot}/qsite/templates`;
+const calcTemplatesPath = `${projectRoot}/calc/templates`;
+const catalogTemplatesPath = `${projectRoot}/catalog/templates`;
 
 gulp.task('include1', function() {
   return gulp.src([`${qcalc_TemplatesPath}/_gulp-base.html`])
@@ -27,15 +27,81 @@ gulp.task('include1', function() {
     .pipe(gulp.dest(qcalc_TemplatesPath));
 });
 
-gulp.task('include2a', function() {
-  return gulp.src([`${calcTemplatesPath}/_gulp-calculator-content-v4.27.html`])
+
+gulp.task('include2a1', function() {
+  return gulp.src([`${calcTemplatesPath}/_gulp-calculator-content-l2r.html`])
     .pipe(fileinclude({
       prefix: '@@',
       basepath: '@file'
     }))
-    .pipe(rename('gen-calculator-content-v4.27.html'))
+    .pipe(rename('gen-calculator-content-l2r.html'))
     .pipe(gulp.dest(calcTemplatesPath));
 });
+gulp.task('include2a2', function() {
+  return gulp.src([`${calcTemplatesPath}/_gulp-calculator-content-l2r2.html`])
+    .pipe(fileinclude({
+      prefix: '@@',
+      basepath: '@file'
+    }))
+    .pipe(rename('gen-calculator-content-l2r2.html'))
+    .pipe(gulp.dest(calcTemplatesPath));
+});
+gulp.task('include2a3', function() {
+  return gulp.src([`${calcTemplatesPath}/_gulp-calculator-content-lr.html`])
+    .pipe(fileinclude({
+      prefix: '@@',
+      basepath: '@file'
+    }))
+    .pipe(rename('gen-calculator-content-lr.html'))
+    .pipe(gulp.dest(calcTemplatesPath));
+});
+gulp.task('include2a4', function() {
+  return gulp.src([`${calcTemplatesPath}/_gulp-calculator-content-lr2.html`])
+    .pipe(fileinclude({
+      prefix: '@@',
+      basepath: '@file'
+    }))
+    .pipe(rename('gen-calculator-content-lr2.html'))
+    .pipe(gulp.dest(calcTemplatesPath));
+});
+
+gulp.task('include2a5', function() {
+  return gulp.src([`${calcTemplatesPath}/_gulp-calculator-content-t2b.html`])
+    .pipe(fileinclude({
+      prefix: '@@',
+      basepath: '@file'
+    }))
+    .pipe(rename('gen-calculator-content-t2b.html'))
+    .pipe(gulp.dest(calcTemplatesPath));
+});
+gulp.task('include2a6', function() {
+  return gulp.src([`${calcTemplatesPath}/_gulp-calculator-content-t2b2.html`])
+    .pipe(fileinclude({
+      prefix: '@@',
+      basepath: '@file'
+    }))
+    .pipe(rename('gen-calculator-content-t2b2.html'))
+    .pipe(gulp.dest(calcTemplatesPath));
+});
+gulp.task('include2a7', function() {
+  return gulp.src([`${calcTemplatesPath}/_gulp-calculator-content-tb.html`])
+    .pipe(fileinclude({
+      prefix: '@@',
+      basepath: '@file'
+    }))
+    .pipe(rename('gen-calculator-content-tb.html'))
+    .pipe(gulp.dest(calcTemplatesPath));
+});
+gulp.task('include2a8', function() {
+  return gulp.src([`${calcTemplatesPath}/_gulp-calculator-content-tb2.html`])
+    .pipe(fileinclude({
+      prefix: '@@',
+      basepath: '@file'
+    }))
+    .pipe(rename('gen-calculator-content-tb2.html'))
+    .pipe(gulp.dest(calcTemplatesPath));
+});
+
 
 gulp.task('include2b', function() {
   return gulp.src([`${calcTemplatesPath}/_gulp-calculator.html`])
@@ -47,7 +113,8 @@ gulp.task('include2b', function() {
     .pipe(gulp.dest(calcTemplatesPath));
 });
 
-gulp.task('include3', function() {
+
+gulp.task('include2c', function() {
   return gulp.src([`${calcTemplatesPath}/_gulp-calculator-partial.html`])
     .pipe(fileinclude({
       prefix: '@@',
@@ -57,7 +124,7 @@ gulp.task('include3', function() {
     .pipe(gulp.dest(calcTemplatesPath));
 });
 
-gulp.task('include4', function() {
+gulp.task('include2d', function() {
   return gulp.src([`${calcTemplatesPath}/_gulp-calculator-core.html`])
     .pipe(fileinclude({
       prefix: '@@',
@@ -67,7 +134,7 @@ gulp.task('include4', function() {
     .pipe(gulp.dest(calcTemplatesPath));
 });
 
-gulp.task('include5', function() {
+gulp.task('include3a', function() {
   return gulp.src([`${catalogTemplatesPath}/_gulp-catalog-calc.html`])
     .pipe(fileinclude({
       prefix: '@@',
@@ -77,7 +144,7 @@ gulp.task('include5', function() {
     .pipe(gulp.dest(catalogTemplatesPath));
 });
 
-gulp.task('include6', function() {
+gulp.task('include3b', function() {
   return gulp.src([`${catalogTemplatesPath}/_gulp-catalog-qty.html`])
     .pipe(fileinclude({
       prefix: '@@',
@@ -87,7 +154,7 @@ gulp.task('include6', function() {
     .pipe(gulp.dest(catalogTemplatesPath));
 });
 
-gulp.task('include7', function() {
+gulp.task('include3c', function() {
   return gulp.src([`${catalogTemplatesPath}/_gulp-catalog-search.html`])
     .pipe(fileinclude({
       prefix: '@@',
@@ -97,6 +164,10 @@ gulp.task('include7', function() {
     .pipe(gulp.dest(catalogTemplatesPath));
 });
 
-gulp.task('default', gulp.series('include1', 'include2a', 'include2b', 'include3',
-	'include4', 'include5', 'include6', 'include7'));
+gulp.task('default', gulp.series('include1',  
+	'include2a1', 'include2a2', 'include2a3', 'include2a4', 
+	'include2a5', 'include2a6', 'include2a7', 'include2a8',
+	'include2b', 'include2c', 'include2d', 
+	'include3a', 'include3b', 'include3c')
+);
 

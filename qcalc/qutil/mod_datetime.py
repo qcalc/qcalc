@@ -7,7 +7,13 @@ import re
 import pytz
 from timezonefinderL import TimezoneFinder
 
-QC_DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S UTC%z'  # Europe/London 2026-08-09 05:36:09 UTC+0100
+# QC_DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S UTC%z'  # Europe/London 2026-08-09 05:36:09 UTC+0100
+
+# UTC%z is not a valid input for django datetime field
+# Europe/London 2026-08-09 05:36:09 +0100
+# Following is not strictly ISO 8601 format which is '%Y-%m-%dT%H:%M:%S%z' but closer and cleaner and compatible
+QC_DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S %z'
+ISO_8601_DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%S%z' # not used
 
 
 class QDateTime:

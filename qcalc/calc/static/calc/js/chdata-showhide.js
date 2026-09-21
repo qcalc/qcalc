@@ -170,19 +170,47 @@ function showhide_elem(elem, sh)
 function showhide_elem_and_parts(cid, sh)
 {
     const element = $('#' + cid);
-    const label = $('label[for=' + cid + ']');
+    // Main label bound directly to the base field id.
+    const label = $('label[for="' + cid + '"]');
+    // Most fields render label/help in a sibling mt-1 block just before input/widget.
+    const adjacentLabelBlock = element.prev('div.mt-1');
+    // Qty-like split parts (e.g. _part, _part_uom) that should follow parent visibility.
     const parts = $('[id^="' + cid + '"][id*="_part"]');
+    // Table-in style widgets: hidden input + immediate sibling wrapper containing the real UI.
+    const ownWrapper = element.next('.elem-wrapper');
+    // Code/editor style widgets: field itself may sit inside an elem-wrapper container.
+    const parentWrapper = element.closest('.elem-wrapper');
+    // Composite controls generated with the same field prefix (row/col/resize/update, uploads, etc.).
+    const prefixedElements = $('[id^="' + cid + '_"]');
+    // Labels attached to those composite controls.
+    const prefixedLabels = $('label[for^="' + cid + '_"]');
 
     if(sh){
         element.show();
         label.show().parent().show();
+        adjacentLabelBlock.show();
     } else {
         element.hide();
         label.hide().parent().hide();
+        adjacentLabelBlock.hide();
     }
 
     showhide_elem(element, sh)
     showhide_elem($('#'+cid+'_uom'), sh)
+    // Toggle wrapped widgets regardless of whether the wrapper is sibling or parent.
+    ownWrapper.each(function(){
+        showhide_elem($(this), sh)
+    })
+    parentWrapper.each(function(){
+        showhide_elem($(this), sh)
+    })
+    prefixedElements.each(function(){
+        showhide_elem($(this), sh)
+    })
+    prefixedLabels.each(function(){
+        showhide_elem($(this), sh)
+        showhide_elem($(this).parent(), sh)
+    })
 
     parts.each(function(){
         showhide_elem($(this), sh)

@@ -352,7 +352,8 @@ SOCIALACCOUNT_ADAPTER = "qsite.users.adapters.SocialAccountAdapter"
 
 # Your stuff...
 # ------------------------------------------------------------------------------
-DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000  # deafult is 1000
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 50000  # default is 1000
+DATA_UPLOAD_MAX_MEMORY_SIZE = 40 * 1024 * 1024
 
 # HINT: Configure the DEFAULT_AUTO_FIELD setting or
 # the CalcConfig.default_auto_field attribute to point to a subclass of AutoField

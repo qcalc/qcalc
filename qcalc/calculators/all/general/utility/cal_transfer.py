@@ -2,7 +2,7 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 import pandas as pd
-from qcore import qtable
+from qcore import qtable, as_qtable
 
 
 def trans__info():
@@ -15,4 +15,5 @@ def trans(transfer_queue: qtable = pd.DataFrame(
     {'Source Func': ['csv_reader'], 'Source Field': ['table'],
      'Dest Func': ['pie2_chart'], 'Dest Field': ['data']})
 ):
+    transfer_queue = as_qtable(transfer_queue)
     return transfer_queue

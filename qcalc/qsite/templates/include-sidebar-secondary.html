@@ -25,7 +25,7 @@
         <ul class="nav nav-sidebar" data-nav-type="accordion">
           <li class="nav-item">
             <form id="open-input-form" hx-post="/calc/open/" hx-encoding="multipart/form-data"
-            hx-target="#card-space" hx-swap="beforebegin">
+            hx-target="#content-holder" hx-swap="afterbegin">
             <div class="nav-link" id="open-io-file">
               <input name="io" type="file" id="open-io" accept=".json,*" class="inputfile"
                      onchange="toggleLoadButton()" hidden>

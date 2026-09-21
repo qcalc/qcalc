@@ -8,6 +8,7 @@ from django.forms import Widget
 import pandas as pd
 import json
 from qutil import resize_df
+from qcore.mod_anno import wrap_actions
 
 
 class ButtonWidget(Widget):
@@ -344,5 +345,5 @@ class TabulatorWidget(Widget):
             html += f'<span>{row_inp}{col_inp}{rsz_btn}{ed_btn}</span>'
 
         hidden_field = f'<input type="hidden" name="{name}" value="" id="id_{self.cid}_{name}">'
-        html = hidden_field + html
+        html = hidden_field + wrap_actions(html, 'table-wrap')
         return mark_safe(html)

@@ -6,12 +6,6 @@ import pulp
 from qutil import is_debug
 
 
-def require_columns(df, table_name, required_cols):
-    missing = [col for col in required_cols if col not in df.columns]
-    if missing:
-        raise Exception(f"{table_name} missing required column(s): {', '.join(missing)}")
-
-
 def safe_objective_value(prob):
     value = prob.objective.value()
     return round(float(value), 6) if value is not None else None

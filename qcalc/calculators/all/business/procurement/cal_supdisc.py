@@ -5,6 +5,7 @@ import numpy as np
 
 from qcore import Qty, qtbl
 from qapi import qdf
+from qutil import require_columns
 
 
 def supdisc__info():
@@ -47,11 +48,8 @@ def supdisc(
     if cost_of_capital_v < 0:
         raise ValueError('Cost of Capital cannot be negative.')
 
+    require_columns(discount_tiers, 'discount_tiers', ['Discount Tier', 'Minimum Order Quantity', 'Unit Price'])
     df = qdf(discount_tiers)
-    required_columns = ['Discount Tier', 'Minimum Order Quantity', 'Unit Price']
-    missing_columns = [column for column in required_columns if column not in df.columns]
-    if missing_columns:
-        raise ValueError(f"Discount Tier Table is missing: {', '.join(missing_columns)}.")
     if not len(df):
         raise ValueError('Discount Tier Table needs at least one tier.')
 

@@ -3,13 +3,9 @@
 
 import pandas as pd
 import pulp
+from qutil import require_columns, require_unique_pairs, require_unique_values, require_values_subset
 
-from ..opt_core import require_columns, safe_objective_value, solver, slack_table
-
-
-def _is_blank(value):
-    return value in ('', None)
-
+from ..opt_core import safe_objective_value, solver, slack_table
 
 def _period_sort_key(value):
     text = str(value).strip()
@@ -29,7 +25,21 @@ def solve_production_inventory_planning(
 ):
     require_columns(prodinv_item_master, 'prodinv_item_master', ['Item', 'Initial Inventory', 'Holding Cost', 'Backlog Penalty'])
     require_columns(prodinv_demand, 'prodinv_demand', ['Period', 'Item', 'Demand'])
-    require_columns(prodinv_production, 'prodinv_production', ['Period', 'Item', 'Unit Cost', 'Max Production'])
+    require_columns(
+        prodinv_production,
+        'prodinv_production',
+        ['Period', 'Item', 'Unit Cost', 'Max Production'],
+        optional_cols=['Setup Cost'],
+    )
+    require_values_subset(prodinv_demand, 'prodinv_demand', 'Item', prodinv_item_master, 'prodinv_item_master', 'Item')
+    require_values_subset(
+        prodinv_production,
+        'prodinv_production',
+        'Item',
+        prodinv_item_master,
+        'prodinv_item_master',
+        'Item',
+    )
 
     item_df = prodinv_item_master.copy()
     demand_df = prodinv_demand.copy()
@@ -48,11 +58,7 @@ def solve_production_inventory_planning(
     demand_df['Period'] = demand_df['Period'].astype(str).str.strip()
     prod_df['Period'] = prod_df['Period'].astype(str).str.strip()
 
-    if item_df['Item'].duplicated().any():
-        raise Exception('prodinv_item_master contains duplicate Item values')
-
-    items = item_df['Item'].tolist()
-    item_set = set(items)
+    items = require_unique_values(item_df, 'prodinv_item_master', 'Item')
 
     demand_df['Demand'] = pd.to_numeric(demand_df['Demand'])
     prod_df['Unit Cost'] = pd.to_numeric(prod_df['Unit Cost'])
@@ -70,18 +76,9 @@ def solve_production_inventory_planning(
         if float(backlog_penalty[item]) < 0:
             raise Exception(f'Backlog Penalty must be non-negative for item: {item}')
 
-    if demand_df['Item'].isin(items).all() is False:
-        unknown = sorted(set(demand_df['Item']) - item_set)
-        raise Exception(f'prodinv_demand contains unknown item(s): {", ".join(unknown)}')
-
-    if prod_df['Item'].isin(items).all() is False:
-        unknown = sorted(set(prod_df['Item']) - item_set)
-        raise Exception(f'prodinv_production contains unknown item(s): {", ".join(unknown)}')
-
     demand_df = demand_df.groupby(['Period', 'Item'], as_index=False)['Demand'].sum()
 
-    if prod_df[['Period', 'Item']].duplicated().any():
-        raise Exception('prodinv_production contains duplicate (Period, Item) rows')
+    require_unique_pairs(prod_df, 'prodinv_production', 'Period', 'Item')
 
     periods = sorted(set(demand_df['Period'].tolist()) | set(prod_df['Period'].tolist()), key=_period_sort_key)
     if not periods:

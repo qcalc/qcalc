@@ -5,8 +5,9 @@ import re
 
 import pandas as pd
 import pulp
+from qutil import QThread, require_columns
 
-from ..opt_core import require_columns, safe_objective_value, solver, slack_table
+from ..opt_core import safe_objective_value, solver, slack_table
 
 
 def _is_blank(value):
@@ -63,8 +64,12 @@ def solve_blending(
     blend_qty_type,
     show_zero,
 ):
-    require_columns(blend_materials, 'blend_materials', ['Material', 'Unit Cost'])
+    require_columns(blend_materials, 'blend_materials', ['Material', 'Unit Cost'], optional_cols=['Min Qty', 'Max Qty'])
     require_columns(blend_specs, 'blend_specs', ['Property', 'Min %', 'Max %'])
+
+    has_min_qty_col = 'Min Qty' in blend_materials.columns
+    has_max_qty_col = 'Max Qty' in blend_materials.columns
+    strict_mode = bool(QThread.get_pref('strict_table_input', False))
 
     if blend_materials.empty:
         raise Exception('blend_materials must contain at least one material row')
@@ -283,6 +288,13 @@ def solve_blending(
             'Material Count': len(material_names),
             'Active Materials': int(active_count),
         }]),
+        'Consistency Note': (
+            'Optional bounds recognized in blend_materials: '
+            f"Min Qty={'Yes' if has_min_qty_col else 'No'}, "
+            f"Max Qty={'Yes' if has_max_qty_col else 'No'}. "
+            'Missing Min Qty defaults to 0; missing Max Qty means unbounded. '
+            f"Strict Table Input={'On' if strict_mode else 'Off'}."
+        ),
         'Optimal Mix': pd.DataFrame(mix_rows),
         'Property Compliance': pd.DataFrame(compliance_rows),
         'Constraint Slack': slack_table(prob),

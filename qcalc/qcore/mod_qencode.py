@@ -108,7 +108,11 @@ def _serialize_common_profile(value, policy, _seen=None):
             _seen.discard(value_id)
 
     if isinstance(value, pd.DataFrame):
-        return value.to_dict(orient='records')
+        return {
+            '__qcalc_type': 'table',
+            'columns': [str(col) for col in value.columns],
+            'data': value.values.tolist(),
+        }
 
     if isinstance(value, (datetime.date, datetime.time, datetime.datetime)):
         return str(QDateTime(value))
@@ -175,6 +179,11 @@ def _looks_like_legacy_dataframe_records(value):
 
 def _deserialize_common_profile(value, policy):
     if policy.get('recursive') and isinstance(value, dict):
+        if value.get('__qcalc_type') == 'table':
+            return pd.DataFrame(
+                data=value.get('data', []),
+                columns=value.get('columns', []),
+            )
         return {key: _deserialize_common_profile(val, policy) for key, val in value.items()}
 
     if policy.get('recursive') and isinstance(value, list):

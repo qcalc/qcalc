@@ -21,3 +21,4 @@ from .mod_code_security import *
 from .mod_dict import *
 from .mod_json import *
 from .mod_md import *
+from .mod_table_validate import *

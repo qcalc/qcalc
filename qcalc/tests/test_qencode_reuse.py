@@ -115,8 +115,22 @@ def test_prepare_for_json_variant_common_conversions():
     assert out['elapsed'] == 120.0
     assert isinstance(out['qty'], str)
     assert out['qty'].endswith(' kg')
-    assert out['table'] == [{'A': 1, 'B': 2}]
+    assert out['table'] == {
+        '__qcalc_type': 'table',
+        'columns': ['A', 'B'],
+        'data': [[1, 2]],
+    }
     assert out['items'] == [3.5]
+
+
+def test_prepare_and_reverse_variant_preserve_dataframe_column_order():
+    df = pd.DataFrame({'B': [1, 2], 'A': [3, 4]})
+
+    packed = enc.prepare_for_json({'table': df})
+    restored = enc.reverse_prepare_for_json(packed)
+
+    assert list(restored['table'].columns) == ['B', 'A']
+    assert restored['table'].values.tolist() == [[1, 3], [2, 4]]
 
 
 def test_reverse_prepare_for_json_uses_variant_deserialize(monkeypatch):

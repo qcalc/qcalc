@@ -3,27 +3,33 @@
 
 import pandas as pd
 import pulp
+from qutil import require_columns, require_complete_pair_grid, require_values_subset
 
-from ..opt_core import require_columns, safe_objective_value, solver, slack_table
+from ..opt_core import safe_objective_value, solver, slack_table
 
 
 def solve_transport(supply, demand, ship_cost, flow_type, show_zero):
     require_columns(supply, 'supply', ['Source', 'Capacity'])
     require_columns(demand, 'demand', ['Destination', 'Demand'])
     require_columns(ship_cost, 'ship_cost', ['Source', 'Destination', 'Cost'])
+    require_values_subset(ship_cost, 'ship_cost', 'Source', supply, 'supply', 'Source')
+    require_values_subset(ship_cost, 'ship_cost', 'Destination', demand, 'demand', 'Destination')
 
     sources = supply['Source'].astype(str).tolist()
     destinations = demand['Destination'].astype(str).tolist()
     capacity = dict(zip(supply['Source'].astype(str), pd.to_numeric(supply['Capacity'])))
     req = dict(zip(demand['Destination'].astype(str), pd.to_numeric(demand['Demand'])))
     cost = {(str(r['Source']), str(r['Destination'])): float(r['Cost']) for _, r in ship_cost.iterrows()}
-
-    missing_pairs = [
-        f'{s}-{d}' for s in sources for d in destinations if (s, d) not in cost
-    ]
-    if missing_pairs:
-        preview = ', '.join(missing_pairs[:10])
-        raise Exception(f'ship_cost missing pair(s): {preview}')
+    require_complete_pair_grid(
+        pair_table=ship_cost,
+        pair_table_name='ship_cost',
+        left_col='Source',
+        right_col='Destination',
+        left_values=sources,
+        right_values=destinations,
+        left_label='Source',
+        right_label='Destination',
+    )
 
     prob = pulp.LpProblem('optima_transport', pulp.LpMinimize)
     var_type = pulp.LpInteger if flow_type == 'integer' else pulp.LpContinuous

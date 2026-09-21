@@ -3,8 +3,9 @@
 
 import pandas as pd
 import pulp
+from qutil import require_columns
 
-from ..opt_core import require_columns, safe_objective_value, solver, slack_table
+from ..opt_core import safe_objective_value, solver, slack_table
 
 
 def solve_capacity(capacity_object, qty_type, shortage_penalty, show_zero):

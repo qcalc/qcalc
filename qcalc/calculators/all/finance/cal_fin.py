@@ -6,7 +6,7 @@ import pandas as pd
 from qcore import Qty, qtable, qhtml, qformat_q, as_qtable
 import numpy_financial as npf
 from math import log10
-from qutil import addcal_button
+from qutil import addcal_button, require_columns
 from calc import QCals
 
 when_choices = {'type': 'radio', 'choices': {'1': 'Period Start', '0': 'Period End'}}
@@ -19,17 +19,10 @@ def _cf(v):
 
 def _validate_cashflow_table_columns(cashflows, func_name):
     expected_cols = ['Period', 'Cashflow']
-    actual_cols = list(cashflows.columns)
-    actual_cols_l = [str(c).lower() for c in actual_cols]
-    expected_cols_l = [c.lower() for c in expected_cols]
-    if actual_cols_l != expected_cols_l:
-        raise ValueError(
-            f"{func_name} expects cashflows table columns exactly as: "
-            f"{expected_cols}. Found: {actual_cols}."
-        )
+    require_columns(cashflows, f'{func_name}.cashflows', expected_cols)
     return {
-        'period': actual_cols[0],
-        'cashflow': actual_cols[1],
+        'period': 'Period',
+        'cashflow': 'Cashflow',
     }
 
 

@@ -3,23 +3,12 @@
 
 import pandas as pd
 import pulp
+from qutil import parse_optional_number, require_columns, require_unique_values, require_values_subset
 
-from ..opt_core import require_columns, safe_objective_value, solver, slack_table
+from ..opt_core import safe_objective_value, solver, slack_table
 
 
 _ALLOWED_RULE_TYPES = {'depends_on', 'excludes'}
-
-
-def _to_float_or_none(value):
-    if value in ('', None):
-        return None
-    return float(value)
-
-
-def _to_int_or_default(value, default=0):
-    if value in ('', None):
-        return int(default)
-    return int(value)
 
 
 def solve_project(
@@ -31,15 +20,13 @@ def solve_project(
     project_min_selected,
     show_zero,
 ):
-    require_columns(projects, 'projects', ['Project', 'Value', 'Cost'])
+    require_columns(projects, 'projects', ['Project', 'Value', 'Cost'], optional_cols=['Resource', 'Must Do'])
 
     prj = projects.copy()
-    prj['Project'] = prj['Project'].astype(str)
-    project_list = prj['Project'].tolist()
+    prj['Project'] = prj['Project'].astype(str).str.strip()
+    project_list = require_unique_values(prj, 'projects', 'Project')
     if not project_list:
         raise Exception('projects must contain at least one row')
-    if prj['Project'].duplicated().any():
-        raise Exception('projects contains duplicate Project values')
 
     value = dict(zip(prj['Project'], pd.to_numeric(prj['Value'])))
     cost = dict(zip(prj['Project'], pd.to_numeric(prj['Cost'])))
@@ -53,10 +40,12 @@ def solve_project(
         if has_must_do else {p: 0 for p in project_list}
     )
 
-    budget_limit = _to_float_or_none(project_budget_limit)
-    resource_limit = _to_float_or_none(project_resource_limit)
-    max_selected = _to_int_or_default(project_max_selected, 0)
-    min_selected = _to_int_or_default(project_min_selected, 0)
+    budget_limit = parse_optional_number(project_budget_limit, 'project_budget_limit', float)
+    resource_limit = parse_optional_number(project_resource_limit, 'project_resource_limit', float)
+    max_selected = parse_optional_number(project_max_selected, 'project_max_selected', int)
+    min_selected = parse_optional_number(project_min_selected, 'project_min_selected', int)
+    max_selected = 0 if max_selected is None else max_selected
+    min_selected = 0 if min_selected is None else min_selected
 
     prob = pulp.LpProblem('optima_project', pulp.LpMaximize)
     x = pulp.LpVariable.dicts('Select', project_list, lowBound=0, upBound=1, cat=pulp.LpBinary)
@@ -84,6 +73,8 @@ def solve_project(
     rules = project_rules if project_rules is not None else pd.DataFrame(columns=['From', 'To', 'Type'])
     if len(rules) > 0:
         require_columns(rules, 'project_rules', ['From', 'To', 'Type'])
+        require_values_subset(rules, 'project_rules', 'From', prj, 'projects', 'Project')
+        require_values_subset(rules, 'project_rules', 'To', prj, 'projects', 'Project')
         for _, row in rules.iterrows():
             from_p = str(row['From'])
             to_p = str(row['To'])
@@ -92,10 +83,6 @@ def solve_project(
                 raise Exception(
                     f"project_rules Type must be one of {sorted(_ALLOWED_RULE_TYPES)}. Found: {row['Type']}"
                 )
-            if from_p not in project_list:
-                raise Exception(f'project_rules has unknown From project: {from_p}')
-            if to_p not in project_list:
-                raise Exception(f'project_rules has unknown To project: {to_p}')
 
             if rtype == 'depends_on':
                 prob += x[from_p] <= x[to_p], f'depends_{from_p}_on_{to_p}'

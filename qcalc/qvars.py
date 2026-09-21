@@ -49,6 +49,7 @@ qc_gpref = {  # pref-01
     # 'page_font_size': 82,
     'chart_legend': 'lower center',
     'strict_assign': False,
+    'strict_table_input': False,
     'execution_timeout': 60,  # 60
     # global settings
     'range_limit': 1000,  # 10-2000

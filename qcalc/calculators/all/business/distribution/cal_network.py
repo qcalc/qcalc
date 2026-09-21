@@ -2,7 +2,15 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 from qcore import qtable, qtexta, QScreen, QChart, as_qtable
-from qutil import css2strs, is_debug
+from qutil import (
+    css2strs,
+    is_debug,
+    require_complete_pair_grid,
+    require_columns,
+    require_unique_pairs,
+    require_values_subset,
+    validate_value_columns_against_master,
+)
 import pandas as pd
 import pulp
 import math
@@ -66,12 +74,30 @@ def transship_opt(
 
 
 def solve_transport_network(supply, demand, cost):
+    require_columns(supply, 'supply', ['Plant', 'Capacity'])
+    require_columns(demand, 'demand', ['Customer', 'Demand'])
+    require_columns(cost, 'cost', ['Plant', 'Customer', 'Cost'])
+    require_values_subset(cost, 'cost', 'Plant', supply, 'supply', 'Plant')
+    require_values_subset(cost, 'cost', 'Customer', demand, 'demand', 'Customer')
+
     # Extract data from DataFrames
-    plants = supply['Plant'].tolist()
-    customers = demand['Customer'].tolist()
+    plants = supply['Plant'].astype(str).str.strip().tolist()
+    customers = demand['Customer'].astype(str).str.strip().tolist()
     capacity = dict(zip(supply['Plant'], supply['Capacity'].astype(float)))
     demand = dict(zip(demand['Customer'], demand['Demand'].astype(float)))
-    cost_matrix = {(row['Plant'], row['Customer']): float(row['Cost']) for _, row in cost.iterrows()}
+
+    require_complete_pair_grid(
+        pair_table=cost,
+        pair_table_name='cost',
+        left_col='Plant',
+        right_col='Customer',
+        left_values=plants,
+        right_values=customers,
+        left_label='Plant',
+        right_label='Customer',
+    )
+
+    cost_matrix = {(str(row['Plant']).strip(), str(row['Customer']).strip()): float(row['Cost']) for _, row in cost.iterrows()}
 
     # Create the LP problem
     prob = pulp.LpProblem("SupplyChainProblem", pulp.LpMinimize)
@@ -107,14 +133,66 @@ def solve_transport_network(supply, demand, cost):
 
 
 def solve_transshipment_network(supply, distribution, demand, cost):
+    require_columns(supply, 'supply', ['Plant', 'Capacity'])
+    require_columns(distribution, 'distribution', ['DC'])
+    require_columns(demand, 'demand', ['Customer', 'Demand'])
+    require_columns(cost, 'cost', ['From', 'To', 'Cost'])
+
     # Extract data from DataFrames
-    plants = supply['Plant'].tolist()
-    dcs = distribution['DC'].tolist()
-    customers = demand['Customer'].tolist()
+    plants = supply['Plant'].astype(str).str.strip().tolist()
+    dcs = distribution['DC'].astype(str).str.strip().tolist()
+    customers = demand['Customer'].astype(str).str.strip().tolist()
+
+    from_nodes = set(cost['From'].astype(str).str.strip().tolist())
+    to_nodes = set(cost['To'].astype(str).str.strip().tolist())
+    valid_from = set(plants) | set(dcs)
+    valid_to = set(dcs) | set(customers)
+
+    unknown_from = sorted(from_nodes - valid_from)
+    if unknown_from:
+        raise Exception(f"cost.From contains unknown node(s): {', '.join(unknown_from)}")
+
+    unknown_to = sorted(to_nodes - valid_to)
+    if unknown_to:
+        raise Exception(f"cost.To contains unknown node(s): {', '.join(unknown_to)}")
+
     pl_capacity = dict(zip(supply['Plant'], supply['Capacity'].astype(float)))
     # dc_capacity = dict(zip(distribution['DC'], distribution['Capacity'].astype(float)))
     demand = dict(zip(demand['Customer'], demand['Demand'].astype(float)))
-    cost_matrix = {(row['From'], row['To']): float(row['Cost']) for _, row in cost.iterrows()}
+
+    require_unique_pairs(cost, 'cost', 'From', 'To')
+
+    cost_matrix = {(str(row['From']).strip(), str(row['To']).strip()): float(row['Cost']) for _, row in cost.iterrows()}
+
+    plant_dc_cost = cost[
+        cost['From'].astype(str).str.strip().isin(set(plants))
+        & cost['To'].astype(str).str.strip().isin(set(dcs))
+    ]
+    require_complete_pair_grid(
+        pair_table=plant_dc_cost,
+        pair_table_name='cost',
+        left_col='From',
+        right_col='To',
+        left_values=plants,
+        right_values=dcs,
+        left_label='Plant',
+        right_label='DC',
+    )
+
+    dc_customer_cost = cost[
+        cost['From'].astype(str).str.strip().isin(set(dcs))
+        & cost['To'].astype(str).str.strip().isin(set(customers))
+    ]
+    require_complete_pair_grid(
+        pair_table=dc_customer_cost,
+        pair_table_name='cost',
+        left_col='From',
+        right_col='To',
+        left_values=dcs,
+        right_values=customers,
+        left_label='DC',
+        right_label='Customer',
+    )
 
     # Create the LP problem
     prob = pulp.LpProblem("SupplyChainProblem", pulp.LpMinimize)
@@ -313,14 +391,33 @@ def facility_opt(
 ):
     cost = as_qtable(cost)
     facility = as_qtable(facility)
+    require_columns(cost, 'cost', ['Location', 'Demand'])
+    require_columns(
+        facility,
+        'facility',
+        ['Location', 'Capacity', 'Fixed Cost'],
+        columns_can_grow=False,
+    )
 
     # Define the problem
     prob = pulp.LpProblem("Facility_Location_Problem", pulp.LpMinimize)
     # Decision variables
-    facilities = facility['Location'].tolist()
-    facilities_check = cost.columns.values[2:].tolist()
-    if set(facilities) != set(facilities_check):
-        return f'Facility list in [cost] table are not consistent with [facility] table'
+    try:
+        matched = validate_value_columns_against_master(
+            matrix_table=cost,
+            matrix_table_name='cost',
+            master_table=facility,
+            master_table_name='facility',
+            master_value_col='Location',
+            matrix_reserved_cols=['Location', 'Demand'],
+            require_master_in_matrix=True,
+            require_matrix_in_master=True,
+            case_sensitive=False,
+        )
+    except Exception as e:
+        return str(e)
+
+    facilities = matched['master_values']
 
     cost_matrix = {(row['Location'], f): float(row[f]) for _, row in cost.iterrows() for f in facilities}
     locations = cost['Location'].tolist()

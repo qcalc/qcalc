@@ -51,6 +51,12 @@ def test_qdatetime():
     qnum  = QDateTime('1')
     assert not qnum.is_date
     assert not qnum.is_time
+    assert QDateTime('20.0').val is None
+    assert QDateTime('0.05').val is None
+    assert QDateTime(20.0).val is None
+    assert QDateTime(20).val is None
+    assert QDateTime("").val is None
+    assert QDateTime(None).val is None
 
     # Example usage:
     qdate = QDateTime("2024-09-23")

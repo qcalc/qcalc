@@ -3,26 +3,32 @@
 
 import pandas as pd
 import pulp
+from qutil import require_columns, require_complete_pair_grid, require_values_subset
 
-from ..opt_core import require_columns, safe_objective_value, solver, slack_table
+from ..opt_core import safe_objective_value, solver, slack_table
 
 
 def solve_assignment(agents, tasks, assign_cost, show_zero):
     require_columns(agents, 'agents', ['Agent', 'Capacity'])
     require_columns(tasks, 'tasks', ['Task'])
     require_columns(assign_cost, 'assign_cost', ['Agent', 'Task', 'Cost'])
+    require_values_subset(assign_cost, 'assign_cost', 'Agent', agents, 'agents', 'Agent')
+    require_values_subset(assign_cost, 'assign_cost', 'Task', tasks, 'tasks', 'Task')
 
     agent_list = agents['Agent'].astype(str).tolist()
     task_list = tasks['Task'].astype(str).tolist()
     capacity = dict(zip(agents['Agent'].astype(str), pd.to_numeric(agents['Capacity'])))
     cost = {(str(r['Agent']), str(r['Task'])): float(r['Cost']) for _, r in assign_cost.iterrows()}
-
-    missing_pairs = [
-        f'{a}-{t}' for a in agent_list for t in task_list if (a, t) not in cost
-    ]
-    if missing_pairs:
-        preview = ', '.join(missing_pairs[:10])
-        raise Exception(f'assign_cost missing pair(s): {preview}')
+    require_complete_pair_grid(
+        pair_table=assign_cost,
+        pair_table_name='assign_cost',
+        left_col='Agent',
+        right_col='Task',
+        left_values=agent_list,
+        right_values=task_list,
+        left_label='Agent',
+        right_label='Task',
+    )
 
     prob = pulp.LpProblem('optima_assignment', pulp.LpMinimize)
     x = pulp.LpVariable.dicts(

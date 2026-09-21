@@ -3,8 +3,9 @@
 
 import pandas as pd
 import pulp
+from qutil import parse_optional_number, require_columns, require_unique_values, require_values_subset
 
-from ..opt_core import require_columns, safe_objective_value, solver, slack_table
+from ..opt_core import safe_objective_value, solver, slack_table
 
 
 def solve_supplier_selection(
@@ -19,8 +20,36 @@ def solve_supplier_selection(
     show_zero,
 ):
     require_columns(material_demand, 'material_demand', ['Item', 'Demand'])
-    require_columns(supplier_master, 'supplier_master', ['Supplier', 'Capacity', 'Fixed Cost'])
-    require_columns(supplier_item_cost, 'supplier_item_cost', ['Supplier', 'Item', 'Unit Cost'])
+    require_columns(
+        supplier_master,
+        'supplier_master',
+        ['Supplier', 'Capacity', 'Fixed Cost'],
+        optional_cols=['Min Order', 'Risk', 'Quality'],
+    )
+    require_columns(
+        supplier_item_cost,
+        'supplier_item_cost',
+        ['Supplier', 'Item', 'Unit Cost'],
+        optional_cols=['Max Qty'],
+    )
+    require_values_subset(
+        supplier_item_cost,
+        'supplier_item_cost',
+        'Supplier',
+        supplier_master,
+        'supplier_master',
+        'Supplier',
+    )
+    require_values_subset(
+        supplier_item_cost,
+        'supplier_item_cost',
+        'Item',
+        material_demand,
+        'material_demand',
+        'Item',
+    )
+    require_unique_values(material_demand, 'material_demand', 'Item')
+    require_unique_values(supplier_master, 'supplier_master', 'Supplier')
 
     items = material_demand['Item'].astype(str).tolist()
     suppliers = supplier_master['Supplier'].astype(str).tolist()
@@ -33,10 +62,6 @@ def solve_supplier_selection(
     for _, row in supplier_item_cost.iterrows():
         supplier = str(row['Supplier'])
         item = str(row['Item'])
-        if supplier not in suppliers:
-            raise Exception(f'supplier_item_cost has unknown supplier: {supplier}')
-        if item not in items:
-            raise Exception(f'supplier_item_cost has unknown item: {item}')
         pair = (supplier, item)
         pair_cost[pair] = float(row['Unit Cost'])
         if 'Max Qty' in supplier_item_cost.columns and str(row.get('Max Qty', '')).strip() != '':
@@ -86,11 +111,12 @@ def solve_supplier_selection(
                 f'min_order_{supplier}'
             )
 
-    max_suppliers_val = 0 if max_suppliers in ('', None) else int(max_suppliers)
+    max_suppliers_val = parse_optional_number(max_suppliers, 'max_suppliers', int)
+    max_suppliers_val = 0 if max_suppliers_val is None else max_suppliers_val
     if max_suppliers_val > 0:
         prob += pulp.lpSum(y[supplier] for supplier in suppliers) <= max_suppliers_val, 'max_suppliers'
 
-    budget_limit_val = None if budget_limit in ('', None) else float(budget_limit)
+    budget_limit_val = parse_optional_number(budget_limit, 'budget_limit', float)
     if budget_limit_val is not None:
         prob += variable_cost_expr + fixed_cost_expr <= budget_limit_val, 'budget_limit'
 
@@ -98,7 +124,7 @@ def solve_supplier_selection(
     if total_demand <= 0:
         raise Exception('Total demand must be greater than zero')
 
-    min_avg_quality_val = None if min_avg_quality in ('', None) else float(min_avg_quality)
+    min_avg_quality_val = parse_optional_number(min_avg_quality, 'min_avg_quality', float)
     if min_avg_quality_val is not None:
         if 'Quality' not in supplier_master.columns:
             raise Exception("supplier_master must include 'Quality' when min_avg_quality is used")
@@ -111,7 +137,7 @@ def solve_supplier_selection(
             'min_avg_quality'
         )
 
-    max_avg_risk_val = None if max_avg_risk in ('', None) else float(max_avg_risk)
+    max_avg_risk_val = parse_optional_number(max_avg_risk, 'max_avg_risk', float)
     if max_avg_risk_val is not None:
         if 'Risk' not in supplier_master.columns:
             raise Exception("supplier_master must include 'Risk' when max_avg_risk is used")

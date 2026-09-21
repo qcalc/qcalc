@@ -3,12 +3,13 @@
 
 import pandas as pd
 import pulp
+from qutil import require_columns
 
-from ..opt_core import require_columns, safe_objective_value, solver, slack_table
+from ..opt_core import safe_objective_value, solver, slack_table
 
 
 def solve_knapsack(items, capacity_limit, decision_type, show_zero):
-    require_columns(items, 'items', ['Item', 'Value', 'Weight'])
+    require_columns(items, 'items', ['Item', 'Value', 'Weight'], optional_cols=['Max Qty'])
 
     item_list = items['Item'].astype(str).tolist()
     value = dict(zip(items['Item'].astype(str), pd.to_numeric(items['Value'])))

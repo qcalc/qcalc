@@ -3,8 +3,9 @@
 
 import pandas as pd
 import pulp
+from qutil import require_columns, require_unique_values
 
-from ..opt_core import require_columns, safe_objective_value, solver, slack_table
+from ..opt_core import safe_objective_value, solver, slack_table
 
 
 def _skills_set(value):
@@ -20,8 +21,18 @@ def solve_workforce_scheduling(
     shortage_penalty,
     show_zero,
 ):
-    require_columns(workforce_staff, 'workforce_staff', ['Worker', 'Max Shifts', 'Cost per Shift'])
-    require_columns(workforce_shift_demand, 'workforce_shift_demand', ['Shift', 'Required'])
+    require_columns(
+        workforce_staff,
+        'workforce_staff',
+        ['Worker', 'Max Shifts', 'Cost per Shift'],
+        optional_cols=['Skills'],
+    )
+    require_columns(
+        workforce_shift_demand,
+        'workforce_shift_demand',
+        ['Shift', 'Required'],
+        optional_cols=['Required Skill'],
+    )
 
     staff_df = workforce_staff.copy()
     demand_df = workforce_shift_demand.copy()
@@ -34,13 +45,8 @@ def solve_workforce_scheduling(
     staff_df['Worker'] = staff_df['Worker'].astype(str).str.strip()
     demand_df['Shift'] = demand_df['Shift'].astype(str).str.strip()
 
-    if staff_df['Worker'].duplicated().any():
-        raise Exception('workforce_staff contains duplicate Worker values')
-    if demand_df['Shift'].duplicated().any():
-        raise Exception('workforce_shift_demand contains duplicate Shift values')
-
-    workers = staff_df['Worker'].tolist()
-    shifts = demand_df['Shift'].tolist()
+    workers = require_unique_values(staff_df, 'workforce_staff', 'Worker')
+    shifts = require_unique_values(demand_df, 'workforce_shift_demand', 'Shift')
 
     max_shifts = dict(zip(staff_df['Worker'], pd.to_numeric(staff_df['Max Shifts'])))
     cost_per_shift = dict(zip(staff_df['Worker'], pd.to_numeric(staff_df['Cost per Shift'])))

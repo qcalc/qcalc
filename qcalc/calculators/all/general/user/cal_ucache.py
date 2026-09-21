@@ -71,6 +71,7 @@ def pref__input(_kwargs):  # alternative to func__info() 'schema':{}'
         # 'page_font_size': us['page_font_size'],
         'chart_legend': us['chart_legend'],
         'strict_assign': us['strict_assign'],
+        'strict_table_input': us['strict_table_input'],
         'execution_timeout': us['execution_timeout'],
     }
 
@@ -93,6 +94,7 @@ def pref(  # pref-03
     # page_font_size: int,
     chart_legend,
     strict_assign: bool,
+    strict_table_input: bool,
     execution_timeout: int,
 ):
     try:
@@ -120,6 +122,7 @@ def pref(  # pref-03
         # 'page_font_size': page_font_size,
         'chart_legend': chart_legend,
         'strict_assign': strict_assign,
+        'strict_table_input': strict_table_input,
         'execution_timeout': int(execution_timeout),
     }
     try:

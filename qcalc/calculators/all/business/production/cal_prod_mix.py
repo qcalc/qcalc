@@ -4,7 +4,7 @@
 import pulp
 
 from qcore import Qty, qtbl
-from qutil import is_debug
+from qutil import is_debug, require_columns
 
 
 def production_mix_profit__info():
@@ -51,9 +51,10 @@ def production_mix_profit(
         'Current Production Quantity',
         'Max Ramp Change',
     ]
-    missing = [c for c in required_cols if c not in products.get('columns', [])]
-    if missing:
-        return f'Missing required column(s) in products table: {", ".join(missing)}'
+    try:
+        require_columns(products, 'products', required_cols)
+    except Exception as e:
+        return str(e)
 
     rows = products.get('data', [])
     if not rows:

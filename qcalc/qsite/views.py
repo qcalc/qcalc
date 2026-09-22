@@ -4,7 +4,7 @@
 from . import __version__
 from calc import QCals, QCache, get_help_path, cur_loader
 from .mod_docs import get_doc_path, build_docs_tree, fix_doc_links
-from qutil import HtmxHttpRequest, get_page, q1139_request_init, md2html
+from qutil import HtmxHttpRequest, get_page, q1139_request_init, md2html, wrap_md_images
 from django.conf import settings
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
@@ -132,7 +132,7 @@ def q1_add_page_help(request: HtmxHttpRequest, **kwargs):
         if help_path.suffix == '.html':
             context['help_html'] = help_path.as_posix()
         else:  # .md
-            document_html = md2html(help_path.read_text(encoding='utf-8'))
+            document_html = wrap_md_images(md2html(help_path.read_text(encoding='utf-8')))
             context['help_html'] = ""
             context['dyn_html'] = document_html
     else:
@@ -167,7 +167,7 @@ def q1_add_doc(request: HtmxHttpRequest, **kwargs):
     doc_exists = doc_path.exists()
 
     if doc_exists and doc_path.suffix == '.md':
-        document_html = md2html(_read_doc_text(doc_path))
+        document_html = wrap_md_images(md2html(_read_doc_text(doc_path)))
         document_html = fix_doc_links(document_html, pname)
         context = {'help_html': '', 'dyn_html': document_html}
     elif doc_exists and doc_path.suffix in ['.txt']:  # ,'', '.py'

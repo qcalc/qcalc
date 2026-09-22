@@ -2,6 +2,7 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 import itertools
+import re
 import numpy as np
 import sympy as sp
 from matplotlib.figure import Figure
@@ -53,6 +54,12 @@ def feasible_region(
     # ---------------------------------------------------------
 
     expressions = [objective] + constraints
+
+    # Pre-register every identifier as its own symbol so implicit-multiplication
+    # parsing doesn't split names like "x1" into "x*1".
+    names = set(re.findall(r"[A-Za-z_][A-Za-z0-9_]*", " ".join(expressions)))
+    local_symbols = {name: sp.Symbol(name) for name in names}
+
     symbols = set()
 
     for expression in expressions:
@@ -69,6 +76,7 @@ def feasible_region(
         parsed = parse_expr(
             expression,
             transformations=transformations,
+            local_dict=local_symbols,
         )
 
         symbols.update(parsed.free_symbols)
@@ -346,7 +354,12 @@ def feasible_region(
         x0 = x_opt
         y0 = y_opt
 
-        objective_value = oa * x0 + ob * y0
+        objective_value = float(
+            obj.subs({
+                x_var: x0,
+                y_var: y0,
+            })
+        )
 
         if abs(ob) > 1e-10:
 

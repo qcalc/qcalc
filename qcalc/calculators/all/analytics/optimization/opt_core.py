@@ -20,3 +20,6 @@ def slack_table(prob):
     for name, cons in prob.constraints.items():
         rows.append({'Constraint': name, 'Slack': round(float(cons.slack), 6)})
     return pd.DataFrame(rows)
+
+
+

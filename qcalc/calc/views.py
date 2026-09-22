@@ -13,7 +13,7 @@ from qvars import qfunc_dict_layout
 from qcore.mod_anno import *
 from .mod_ucals import get_uc_list
 from .view_form_data import *
-from qutil import HtmxHttpRequest, QThread, preprocess_expression, QDateTime, fid2owner, md2html
+from qutil import HtmxHttpRequest, QThread, preprocess_expression, QDateTime, fid2owner, md2html, wrap_md_images
 import qutil as ut
 import json
 import re
@@ -526,7 +526,7 @@ def q1_add_func_help(request: HtmxHttpRequest, **kwargs):
             if help_path.suffix == '.html':
                 context['help_html'] = help_path.as_posix()
             else:  # .md
-                document_html = md2html(help_path.read_text(encoding='utf-8'))
+                document_html = wrap_md_images(md2html(help_path.read_text(encoding='utf-8')))
                 context['help_html'] = ""
                 context['dyn_html'] += document_html
         else:

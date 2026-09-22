@@ -3,15 +3,23 @@
 
 import pandas as pd
 import pulp
-from qutil import parse_optional_number, require_columns, require_unique_values, require_values_subset
+from qcore import as_qtable, qtable
+from qutil.mod_runtime_validate import validate_schema_if_needed
+from qutil import parse_optional_number, require_unique_values, require_values_subset
 
-from ..opt_core import safe_objective_value, solver, slack_table
+from .cal_optima import (
+    field_show_zero,
+    table_material_demand,
+    table_supplier_item_cost,
+    table_supplier_master,
+)
+from .opt_core import safe_objective_value, solver, slack_table
 
 
-def solve_supplier_selection(
-    material_demand,
-    supplier_master,
-    supplier_item_cost,
+def optima_supplier_selection(
+    material_demand: qtable,
+    supplier_master: qtable,
+    supplier_item_cost: qtable,
     max_suppliers,
     material_qty_type,
     budget_limit,
@@ -19,19 +27,10 @@ def solve_supplier_selection(
     max_avg_risk,
     show_zero,
 ):
-    require_columns(material_demand, 'material_demand', ['Item', 'Demand'])
-    require_columns(
-        supplier_master,
-        'supplier_master',
-        ['Supplier', 'Capacity', 'Fixed Cost'],
-        optional_cols=['Min Order', 'Risk', 'Quality'],
-    )
-    require_columns(
-        supplier_item_cost,
-        'supplier_item_cost',
-        ['Supplier', 'Item', 'Unit Cost'],
-        optional_cols=['Max Qty'],
-    )
+    validate_schema_if_needed('optima_supplier_selection')
+    material_demand = as_qtable(material_demand)
+    supplier_master = as_qtable(supplier_master)
+    supplier_item_cost = as_qtable(supplier_item_cost)
     require_values_subset(
         supplier_item_cost,
         'supplier_item_cost',
@@ -206,3 +205,44 @@ def solve_supplier_selection(
         'Supplier Utilization': pd.DataFrame(selected_rows),
         'Constraint Slack': slack_table(prob),
     }
+
+
+def optima_supplier_selection__info():
+    return {
+        'title': 'Optimization: Supplier Selection',
+        'desc': (
+            'Minimize procurement cost with supplier capacities, optional budget, and risk/quality controls.'
+            ' Use this for sourcing decisions, vendor mix planning, and cost-risk-quality trade-off problems.'
+        ),
+        'calculate': 'Solve',
+        'schema': {
+            'material_demand': table_material_demand('material_demand'),
+            'supplier_master': table_supplier_master('supplier_master'),
+            'supplier_item_cost': table_supplier_item_cost('supplier_item_cost'),
+            'max_suppliers': {'initial': 0, 'help_text': 'Set 0 for no limit on number of suppliers.'},
+            'material_qty_type': {
+                'type': 'choice',
+                'choices': {'continuous': 'Continuous', 'integer': 'Integer'},
+                'initial': 'continuous',
+                'help_text': 'Quantity type for material purchase variables. Use the same quantity unit basis as Demand, Capacity, and Max Qty.',
+            },
+            'budget_limit': {'initial': None, 'help_text': 'Optional total spend cap including variable and fixed costs.'},
+            'min_avg_quality': {
+                'initial': None,
+                'help_text': "Optional lower bound on demand-weighted average quality; requires 'Quality' in supplier_master and uses the same quality scale as that column.",
+            },
+            'max_avg_risk': {
+                'initial': None,
+                'help_text': "Optional upper bound on demand-weighted average risk; requires 'Risk' in supplier_master and uses the same risk scale as that column.",
+            },
+            'show_zero': field_show_zero(),
+        },
+        'layout': 'lr',
+        'out1': ['Summary', 'Decision Table'],
+        'tags': 'optimization, supplier selection, mixed integer programming',
+    }
+
+
+
+
+

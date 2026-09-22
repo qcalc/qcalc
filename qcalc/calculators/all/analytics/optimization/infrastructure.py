@@ -3,20 +3,34 @@
 
 import pandas as pd
 import pulp
-from qutil import require_columns
+from qcore import as_qtable, qtable
+from qutil.mod_runtime_validate import validate_schema_if_needed
 
-from ..opt_core import safe_objective_value, solver, slack_table
+from .cal_optima import (
+    field_show_zero,
+    table_capacity_object,
+    table_placement_object,
+    table_redundancy_object,
+    table_routing_object,
+)
+from .opt_core import safe_objective_value, solver, slack_table
 
 
-def solve_capacity(capacity_object, qty_type, shortage_penalty, show_zero):
-    require_columns(capacity_object, 'capacity_object', ['Resource', 'Available', 'Required', 'Unit Cost'])
+def optima_capacity(
+    capacity_object: qtable,
+    capacity_qty_type,
+    shortage_penalty,
+    show_zero,
+):
+    validate_schema_if_needed('optima_capacity')
+    capacity_object = as_qtable(capacity_object)
 
     resources = capacity_object['Resource'].astype(str).tolist()
     available = dict(zip(capacity_object['Resource'].astype(str), pd.to_numeric(capacity_object['Available'])))
     required = dict(zip(capacity_object['Resource'].astype(str), pd.to_numeric(capacity_object['Required'])))
     unit_cost = dict(zip(capacity_object['Resource'].astype(str), pd.to_numeric(capacity_object['Unit Cost'])))
 
-    var_type = pulp.LpInteger if str(qty_type).lower() == 'integer' else pulp.LpContinuous
+    var_type = pulp.LpInteger if str(capacity_qty_type).lower() == 'integer' else pulp.LpContinuous
     penalty = float(shortage_penalty)
 
     prob = pulp.LpProblem('optima_capacity', pulp.LpMinimize)
@@ -71,8 +85,16 @@ def solve_capacity(capacity_object, qty_type, shortage_penalty, show_zero):
     }
 
 
-def solve_routing(routing_object, source_node, target_node, demand_qty, flow_type, show_zero):
-    require_columns(routing_object, 'routing_object', ['From', 'To', 'Cost', 'Capacity'])
+def optima_routing(
+    routing_object: qtable,
+    source_node,
+    target_node,
+    demand_qty,
+    routing_flow_type,
+    show_zero,
+):
+    validate_schema_if_needed('optima_routing')
+    routing_object = as_qtable(routing_object)
 
     edges = [(str(r['From']), str(r['To'])) for _, r in routing_object.iterrows()]
     cost = {(str(r['From']), str(r['To'])): float(r['Cost']) for _, r in routing_object.iterrows()}
@@ -92,7 +114,7 @@ def solve_routing(routing_object, source_node, target_node, demand_qty, flow_typ
     if demand <= 0:
         raise Exception('demand_qty must be greater than zero')
 
-    var_type = pulp.LpInteger if str(flow_type).lower() == 'integer' else pulp.LpContinuous
+    var_type = pulp.LpInteger if str(routing_flow_type).lower() == 'integer' else pulp.LpContinuous
 
     prob = pulp.LpProblem('optima_routing', pulp.LpMinimize)
     flow = pulp.LpVariable.dicts('Flow', edges, lowBound=0, cat=var_type)
@@ -146,8 +168,15 @@ def solve_routing(routing_object, source_node, target_node, demand_qty, flow_typ
     }
 
 
-def solve_placement(placement_object, objective_mode, location_capacity, score_weight, show_zero):
-    require_columns(placement_object, 'placement_object', ['Entity', 'Location', 'Score', 'Cost'])
+def optima_placement(
+    placement_object: qtable,
+    objective_mode,
+    location_capacity,
+    score_weight,
+    show_zero,
+):
+    validate_schema_if_needed('optima_placement')
+    placement_object = as_qtable(placement_object)
 
     entities = placement_object['Entity'].astype(str).unique().tolist()
     locations = placement_object['Location'].astype(str).unique().tolist()
@@ -232,8 +261,14 @@ def solve_placement(placement_object, objective_mode, location_capacity, score_w
     }
 
 
-def solve_redundancy(redundancy_object, min_avg_coverage, budget_limit, show_zero):
-    require_columns(redundancy_object, 'redundancy_object', ['Primary', 'Backup', 'Coverage %', 'Extra Cost'])
+def optima_redundancy(
+    redundancy_object: qtable,
+    min_avg_coverage,
+    redundancy_budget_limit,
+    show_zero,
+):
+    validate_schema_if_needed('optima_redundancy')
+    redundancy_object = as_qtable(redundancy_object)
 
     rows = []
     for idx, r in redundancy_object.iterrows():
@@ -272,7 +307,7 @@ def solve_redundancy(redundancy_object, min_avg_coverage, budget_limit, show_zer
             'min_avg_coverage',
         )
 
-    budget = None if budget_limit in ('', None) else float(budget_limit)
+    budget = None if redundancy_budget_limit in ('', None) else float(redundancy_budget_limit)
     if budget is not None:
         prob += total_extra_cost <= budget, 'budget_limit'
 
@@ -312,3 +347,112 @@ def solve_redundancy(redundancy_object, min_avg_coverage, budget_limit, show_zer
         'Decision Table': pd.DataFrame(decision_rows),
         'Constraint Slack': slack_table(prob),
     }
+
+
+def optima_capacity__info():
+    return {
+        'title': 'Optimization: Capacity',
+        'desc': (
+            'Allocate limited capacity to required demand while minimizing cost and shortage penalties.'
+            ' Use this for capacity planning, staffing plans, and shortfall-penalty balancing problems.'
+        ),
+        'calculate': 'Solve',
+        'schema': {
+            'capacity_object': table_capacity_object('capacity_object'),
+            'capacity_qty_type': {
+                'type': 'choice',
+                'choices': {'continuous': 'Continuous', 'integer': 'Integer'},
+                'initial': 'continuous',
+                'help_text': 'Quantity type for allocation/shortage variables. Use the same quantity unit basis as Available and Required.',
+            },
+            'shortage_penalty': {'initial': 1000, 'help_text': 'Penalty per one unit shortage in the same quantity units as Required.'},
+            'show_zero': field_show_zero(),
+        },
+        'layout': 'lr',
+        'out1': ['Summary', 'Decision Table'],
+        'tags': 'optimization, capacity planning, linear programming',
+    }
+
+
+def optima_routing__info():
+    return {
+        'title': 'Optimization: Routing',
+        'desc': (
+            'Find minimum-cost flow from a source node to a target node over constrained edges.'
+            ' Use this for network pathing, lane selection, and constrained transfer-flow problems.'
+        ),
+        'calculate': 'Solve',
+        'schema': {
+            'routing_object': table_routing_object('routing_object'),
+            'source_node': {'initial': 'N1', 'help_text': 'Source node id.'},
+            'target_node': {'initial': 'N4', 'help_text': 'Target node id.'},
+            'demand_qty': {'initial': 10, 'help_text': 'Required flow from source to target. Use the same quantity units as edge Capacity in routing_object.'},
+            'routing_flow_type': {
+                'type': 'choice',
+                'choices': {'continuous': 'Continuous', 'integer': 'Integer'},
+                'initial': 'continuous',
+                'help_text': 'Flow type for route variables. Values are interpreted in the same quantity units as demand_qty and edge Capacity.',
+            },
+            'show_zero': field_show_zero(),
+        },
+        'layout': 'lr',
+        'out1': ['Summary', 'Decision Table'],
+        'tags': 'optimization, routing, network flow, linear programming',
+    }
+
+
+def optima_placement__info():
+    return {
+        'title': 'Optimization: Placement',
+        'desc': (
+            'Assign entities to locations with a blended score and cost objective under location capacity limits.'
+            ' Use this for slotting, host-placement, and entity-to-site assignment problems.'
+        ),
+        'calculate': 'Solve',
+        'schema': {
+            'placement_object': table_placement_object('placement_object'),
+            'objective_mode': {
+                'type': 'choice',
+                'choices': {
+                    'maximize_score': 'Maximize score (cost-aware)',
+                    'minimize_cost': 'Minimize cost (score-aware)',
+                },
+                'initial': 'maximize_score',
+                'help_text': 'Primary optimization orientation.',
+            },
+            'location_capacity': {'initial': 2, 'help_text': 'Maximum entities assignable to each location.'},
+            'score_weight': {'initial': 1.0, 'help_text': 'Weight applied to score in the blended objective.'},
+            'show_zero': field_show_zero(),
+        },
+        'layout': 'lr',
+        'out1': ['Summary', 'Decision Table'],
+        'tags': 'optimization, placement, assignment, mixed integer programming',
+    }
+
+
+def optima_redundancy__info():
+    return {
+        'title': 'Optimization: Redundancy',
+        'desc': (
+            'Select backup pairings with minimum extra cost while meeting optional average coverage targets.'
+            ' Use this for backup design, failover planning, and resilience-cost optimization problems.'
+        ),
+        'calculate': 'Solve',
+        'schema': {
+            'redundancy_object': table_redundancy_object('redundancy_object'),
+            'min_avg_coverage': {'initial': 98.0, 'help_text': 'Minimum average coverage percent target on a 0-100 scale (for example 98 means 98%).'},
+            'redundancy_budget_limit': {'initial': None, 'help_text': 'Optional cap on total extra cost.'},
+            'show_zero': field_show_zero(),
+        },
+        'layout': 'lr',
+        'out1': ['Summary', 'Decision Table'],
+        'tags': 'optimization, redundancy, resilience, mixed integer programming',
+    }
+
+
+
+
+
+
+
+

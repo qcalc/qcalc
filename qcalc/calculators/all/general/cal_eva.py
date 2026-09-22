@@ -76,23 +76,8 @@ show(y)
 
     res = aeval(expr, show_errors=False)
     if aeval.error:
-        error = aeval.error[0]
-        line_no = getattr(error.node, 'lineno', None)
-        lines = expr.splitlines()
-        source_line = (
-            lines[line_no - 1]
-            if line_no and line_no <= len(lines)
-            else ''
-        )
-        line_info = f'at line {line_no}' if line_no else ''
-        return {
-            'result': (
-                f'Error {line_info}: {error.msg}'
-                f'\n>> {source_line}' if source_line else
-                f'Error {line_info}: {error.msg}'
-            )
-        }
-    # print(res)
+        return {'result': format_eval_error(aeval.error[0])}
+
     if res is not None:
         show(res)
     stdout = out.flush()
@@ -108,3 +93,38 @@ show(y)
     # if not toret:
     #     toret = {'result': 'Output is empty'}
     return toret
+
+def format_eval_error(error):
+    exc_info = getattr(error, 'exc_info', None)
+
+    if exc_info and len(exc_info) >= 2 and exc_info[1] is not None:
+        exc = exc_info[1]
+        message = f'{type(exc).__name__}: {exc}'
+    else:
+        message = error.msg
+
+    line_no = getattr(error.node, 'lineno', None)
+
+    result = (
+        f'Error at line {line_no}: {message}'
+        if line_no
+        else f'Error: {message}'
+    )
+
+    expr = getattr(error, 'expr', '')
+
+    if expr and line_no:
+        lines = expr.splitlines()
+
+        if 0 < line_no <= len(lines):
+            source_line = lines[line_no - 1].strip()
+
+            if len(source_line) > 120:
+                if '(' in source_line:
+                    source_line = source_line[:source_line.index('(') + 1] + '...)'
+                else:
+                    source_line = source_line[:117] + '...'
+
+            result += f'\n\n>> {source_line}'
+
+    return result

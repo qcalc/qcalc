@@ -5,9 +5,11 @@ import re
 
 import pandas as pd
 import pulp
-from qutil import QThread, require_columns
+from qcore import as_qtable, qtable
+from qutil.mod_runtime_validate import validate_schema_if_needed
 
-from ..opt_core import safe_objective_value, solver, slack_table
+from .cal_optima import field_show_zero, table_blend_materials, table_blend_specs
+from .opt_core import safe_objective_value, solver, slack_table
 
 
 def _is_blank(value):
@@ -57,19 +59,18 @@ def _normalize_name(name):
     return ' '.join(text.split())
 
 
-def solve_blending(
-    blend_materials,
-    blend_specs,
+def optima_blending(
+    blend_materials: qtable,
+    blend_specs: qtable,
     batch_size,
     blend_qty_type,
     show_zero,
 ):
-    require_columns(blend_materials, 'blend_materials', ['Material', 'Unit Cost'], optional_cols=['Min Qty', 'Max Qty'])
-    require_columns(blend_specs, 'blend_specs', ['Property', 'Min %', 'Max %'])
-
+    validate_schema_if_needed('optima_blending')
+    blend_materials = as_qtable(blend_materials)
+    blend_specs = as_qtable(blend_specs)
     has_min_qty_col = 'Min Qty' in blend_materials.columns
     has_max_qty_col = 'Max Qty' in blend_materials.columns
-    strict_mode = bool(QThread.get_pref('strict_table_input', False))
 
     if blend_materials.empty:
         raise Exception('blend_materials must contain at least one material row')
@@ -293,9 +294,43 @@ def solve_blending(
             f"Min Qty={'Yes' if has_min_qty_col else 'No'}, "
             f"Max Qty={'Yes' if has_max_qty_col else 'No'}. "
             'Missing Min Qty defaults to 0; missing Max Qty means unbounded. '
-            f"Strict Table Input={'On' if strict_mode else 'Off'}."
         ),
         'Optimal Mix': pd.DataFrame(mix_rows),
         'Property Compliance': pd.DataFrame(compliance_rows),
         'Constraint Slack': slack_table(prob),
     }
+
+
+def optima_blending__info():
+    return {
+        'title': 'Optimization: Raw Material Mix',
+        'desc': (
+            'Minimize total blend cost while meeting batch-size and property specifications '
+            'with optional min/max bounds per material. '
+            'Use this for feed formulation, food blending, chemicals, alloys, fuels, and fertilizer mixes.'
+        ),
+        'calculate': 'Solve',
+        'schema': {
+            'blend_materials': table_blend_materials('blend_materials'),
+            'blend_specs': table_blend_specs('blend_specs'),
+            'batch_size': {
+                'initial': 1000,
+                'help_text': 'Target batch size in quantity units (for example kg).',
+            },
+            'blend_qty_type': {
+                'type': 'choice',
+                'choices': {'continuous': 'Continuous', 'integer': 'Integer'},
+                'initial': 'continuous',
+                'help_text': 'Quantity type for material decision variables.',
+            },
+            'show_zero': field_show_zero(),
+        },
+        'layout': 'lr',
+        'out1': ['Summary', 'Optimal Mix', 'Property Compliance'],
+        'tags': 'optimization, blending, product mix, linear programming',
+    }
+
+
+
+
+

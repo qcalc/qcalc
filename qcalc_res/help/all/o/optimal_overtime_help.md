@@ -10,6 +10,8 @@ It balances three competing effects:
 - More overtime reduces production shortfall and penalty cost.
 - Overtime efficiency deteriorates at higher overtime levels, so each extra overtime hour can produce less output.
 
+This mirrors what most operations teams notice on the floor: the first overtime hour is nearly as productive as a normal hour, but by the tenth hour, fatigue and diminishing returns make it far less valuable — even though it still costs more.
+
 ## Inputs
 
 - `Required Production`: Target production quantity for the month.
@@ -27,13 +29,35 @@ It balances three competing effects:
 ## Results
 
 - `Optimal Overtime`: Best overtime level found by the optimizer.
-- `Normal Production`, `Overtime Production`, `Total Production`: Production split and combined output at the optimal overtime level.
+	This is the recommended overtime target for the current assumptions because it
+	minimizes total monthly cost on the search grid.
+- `Normal Production`, `Overtime Production`, `Total Production`: Production
+	split and combined output at the optimal overtime level.
+	This helps you see how much output comes from regular capacity versus overtime
+	and whether overtime is carrying too much of the plan.
 - `Production Shortfall`: Unmet required production at the optimum.
-- `Overtime Efficiency Factor`: Effective overtime productivity multiplier at the optimum.
-- `Normal Labor Cost`, `Overtime Labor Cost`, `Shortfall Cost`, `Total Cost`: Cost components and final monthly total at the optimum.
-- `Cost per Unit Produced`: Total cost divided by total produced quantity at the optimum.
-- `Optimization Chart`: Visual cost curve versus overtime hours, including `Total Cost`, `Overtime Labor Cost`, and `Shortfall Cost`.
-- `Overtime Scenarios`: Point-by-point scenario table across the overtime range.
+	This tells you whether the cost-optimal plan still accepts some shortfall and
+	how much demand remains uncovered.
+- `Overtime Efficiency Factor`: Effective overtime productivity multiplier at
+	the optimum.
+	This indicates how much productivity loss the model applies at that overtime
+	level and whether extra overtime is becoming less effective.
+- `Normal Labor Cost`, `Overtime Labor Cost`, `Shortfall Cost`, `Total Cost`:
+	Cost components and final monthly total at the optimum.
+	This breakdown shows where savings come from and which cost component is
+	driving the solution (labor vs shortfall penalty).
+- `Cost per Unit Produced`: Total cost divided by total produced quantity at
+	the optimum.
+	Useful for comparing this plan with alternate production policies or prior
+	months on a normalized unit-cost basis.
+- `Optimization Chart`: Visual cost curve versus overtime hours, including
+	`Total Cost`, `Overtime Labor Cost`, and `Shortfall Cost`.
+	This makes the trade-off visible: where penalties drop, where overtime cost
+	rises, and where the minimum total cost occurs.
+- `Overtime Scenarios`: Point-by-point scenario table across the overtime
+	range.
+	Use it for what-if analysis and operational discussion before committing to a
+	final overtime target.
 
 ## Understanding the Calculation
 
@@ -68,6 +92,7 @@ Interpretation:
 - Zero or low overtime leaves too much shortfall penalty.
 - Excessive overtime becomes less productive due to efficiency deterioration and raises overtime labor cost.
 - The optimizer selects a middle region where combined cost is lowest.
+- Notice that the optimum rarely sits at either extreme — that's the signature of a genuine cost tradeoff rather than a one-sided decision.
 
 ## Important Assumptions and Interpretation
 

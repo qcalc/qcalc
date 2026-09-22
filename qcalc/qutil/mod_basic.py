@@ -137,6 +137,9 @@ def curdir_fullpath(ref_fname, fname, subdir=''):
 def xpr_coeffs(xpr):
     # xpr('3x-a+2y2-9.5_zZ') or xpr('3,-1,2,-9.5')
     # returns [3,-1,2,-9.5]
+    if '**' in xpr or '^' in xpr:
+        raise ValueError('Linear expressions must not contain exponents')
+    xpr = xpr.replace('*', '').replace(' ', '')
     matches = re.sub(r'[^\W0-9]\w*', ',', xpr).split(',')
     if matches[len(matches) - 1] == '':
         matches = matches[:-1]

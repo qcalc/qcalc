@@ -3,34 +3,38 @@
 
 import pandas as pd
 import pulp
-from qutil import require_columns, require_unique_pairs, require_unique_values, require_values_subset
+from qcore import as_qtable, qtable
+from qutil.mod_runtime_validate import validate_schema_if_needed
+from qutil import require_unique_pairs, require_unique_values, require_values_subset
 
-from ..opt_core import safe_objective_value, solver, slack_table
+from .cal_optima import (
+    field_show_zero,
+    table_prodinv_demand,
+    table_prodinv_item_master,
+    table_prodinv_production,
+)
+from .opt_core import safe_objective_value, solver, slack_table
 
 def _period_sort_key(value):
     text = str(value).strip()
     try:
-        return (0, float(text))
+        return 0, float(text)
     except Exception:
-        return (1, text)
+        return 1, text
 
 
-def solve_production_inventory_planning(
-    prodinv_item_master,
-    prodinv_demand,
-    prodinv_production,
+def optima_production_inventory(
+    prodinv_item_master: qtable,
+    prodinv_demand: qtable,
+    prodinv_production: qtable,
     prodinv_qty_type,
     prodinv_allow_backlog,
     show_zero,
 ):
-    require_columns(prodinv_item_master, 'prodinv_item_master', ['Item', 'Initial Inventory', 'Holding Cost', 'Backlog Penalty'])
-    require_columns(prodinv_demand, 'prodinv_demand', ['Period', 'Item', 'Demand'])
-    require_columns(
-        prodinv_production,
-        'prodinv_production',
-        ['Period', 'Item', 'Unit Cost', 'Max Production'],
-        optional_cols=['Setup Cost'],
-    )
+    validate_schema_if_needed('optima_production_inventory')
+    prodinv_item_master = as_qtable(prodinv_item_master)
+    prodinv_demand = as_qtable(prodinv_demand)
+    prodinv_production = as_qtable(prodinv_production)
     require_values_subset(prodinv_demand, 'prodinv_demand', 'Item', prodinv_item_master, 'prodinv_item_master', 'Item')
     require_values_subset(
         prodinv_production,
@@ -241,3 +245,40 @@ def solve_production_inventory_planning(
         'Decision Table': pd.DataFrame(plan_rows),
         'Constraint Slack': slack_table(prob),
     }
+
+
+def optima_production_inventory__info():
+    return {
+        'title': 'Optimization: Production and Inventory Planning',
+        'desc': (
+            'Minimize total production, holding, setup, and optional backlog cost across multiple periods.'
+            ' Use this for finite-capacity production planning and inventory balance decisions.'
+        ),
+        'calculate': 'Solve',
+        'schema': {
+            'prodinv_item_master': table_prodinv_item_master('prodinv_item_master'),
+            'prodinv_demand': table_prodinv_demand('prodinv_demand'),
+            'prodinv_production': table_prodinv_production('prodinv_production'),
+            'prodinv_qty_type': {
+                'type': 'choice',
+                'choices': {'continuous': 'Continuous', 'integer': 'Integer'},
+                'initial': 'continuous',
+                'help_text': 'Quantity type for production, inventory, and backlog variables. Use the same quantity unit basis as demand, inventory, and max production inputs.',
+            },
+            'prodinv_allow_backlog': {
+                'type': 'choice',
+                'choices': {False: 'No', True: 'Yes'},
+                'initial': True,
+                'help_text': 'Allow backlog carry-forward with penalty; disable to force demand-time fulfillment.',
+            },
+            'show_zero': field_show_zero(),
+        },
+        'layout': 'lr',
+        'out1': ['Summary', 'Decision Table'],
+        'tags': 'optimization, production planning, inventory, lot sizing, linear programming',
+    }
+
+
+
+
+

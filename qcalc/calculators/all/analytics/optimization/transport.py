@@ -3,15 +3,25 @@
 
 import pandas as pd
 import pulp
-from qutil import require_columns, require_complete_pair_grid, require_values_subset
+from qcore import as_qtable, qtable
+from qutil.mod_runtime_validate import validate_schema_if_needed
+from qutil import require_complete_pair_grid, require_values_subset
 
-from ..opt_core import safe_objective_value, solver, slack_table
+from .cal_optima import field_show_zero, table_demand, table_ship_cost, table_supply
+from .opt_core import safe_objective_value, solver, slack_table
 
 
-def solve_transport(supply, demand, ship_cost, flow_type, show_zero):
-    require_columns(supply, 'supply', ['Source', 'Capacity'])
-    require_columns(demand, 'demand', ['Destination', 'Demand'])
-    require_columns(ship_cost, 'ship_cost', ['Source', 'Destination', 'Cost'])
+def optima_transport(
+    supply: qtable,
+    demand: qtable,
+    ship_cost: qtable,
+    flow_type,
+    show_zero,
+):
+    validate_schema_if_needed('optima_transport')
+    supply = as_qtable(supply)
+    demand = as_qtable(demand)
+    ship_cost = as_qtable(ship_cost)
     require_values_subset(ship_cost, 'ship_cost', 'Source', supply, 'supply', 'Source')
     require_values_subset(ship_cost, 'ship_cost', 'Destination', demand, 'demand', 'Destination')
 
@@ -76,3 +86,34 @@ def solve_transport(supply, demand, ship_cost, flow_type, show_zero):
         'Capacity Utilization': pd.DataFrame(util_rows),
         'Constraint Slack': slack_table(prob),
     }
+
+
+def optima_transport__info():
+    return {
+        'title': 'Optimization: Transportation',
+        'desc': (
+            'Minimize total shipping cost from sources to destinations under supply and demand constraints.'
+            ' Use this for distribution, replenishment, and source-to-demand allocation problems.'
+        ),
+        'calculate': 'Solve',
+        'schema': {
+            'supply': table_supply('supply'),
+            'demand': table_demand('demand'),
+            'ship_cost': table_ship_cost('ship_cost'),
+            'flow_type': {
+                'type': 'choice',
+                'choices': {'continuous': 'Continuous', 'integer': 'Integer'},
+                'initial': 'integer',
+                'help_text': 'Quantity type for shipment flow variables. Use the same quantity unit basis as supply Capacity and demand Demand.',
+            },
+            'show_zero': field_show_zero(),
+        },
+        'layout': 'lr',
+        'out1': ['Summary', 'Decision Table'],
+        'tags': 'optimization, transportation, linear programming',
+    }
+
+
+
+
+

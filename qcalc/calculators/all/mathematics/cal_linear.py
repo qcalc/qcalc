@@ -2,6 +2,7 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 from qutil import xpr_coeffs
+from qutil import preprocess_expression
 import numpy as np
 from qcore.mod_anno import qlist
 from sympy import symbols, Eq, solve, sympify
@@ -52,6 +53,7 @@ def linear(variables:str='x,y,z', equation: qlist[str] = ['x+y+z=1', 'x-y+2*z=1'
 
     for i in range(len_equ):
         eq, rhs = equation[i].split('=')
+        eq = preprocess_expression(eq)
         seqn = sympify(eq, locals=_clash1)
         # print(seqn)
         eqns += (Eq(seqn, float(rhs)),)

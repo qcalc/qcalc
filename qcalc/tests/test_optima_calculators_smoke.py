@@ -7,15 +7,21 @@ import qsett
 
 qsett.init()
 
-from calculators.all.analytics.optimization.cal_optima import (
+from calculators.all.analytics.optimization import (
     optima_assignment,
     optima_assignment__info,
+    optima_blending,
+    optima_blending__info,
     optima_capacity,
     optima_capacity__info,
     optima_knapsack,
     optima_knapsack__info,
     optima_placement,
     optima_placement__info,
+    optima_production_inventory,
+    optima_production_inventory__info,
+    optima_project,
+    optima_project__info,
     optima_redundancy,
     optima_redundancy__info,
     optima_routing,
@@ -24,6 +30,8 @@ from calculators.all.analytics.optimization.cal_optima import (
     optima_supplier_selection__info,
     optima_transport,
     optima_transport__info,
+    optima_workforce,
+    optima_workforce__info,
 )
 
 
@@ -78,6 +86,17 @@ def test_optima_supplier_selection_smoke_with_schema_defaults():
     assert result['Summary'].iloc[0]['Model'] == 'Supplier Selection'
 
 
+def test_optima_blending_smoke_with_schema_defaults():
+    payload = _inputs_from_info(optima_blending__info)
+    result = optima_blending(**payload)
+
+    assert isinstance(result, dict)
+    assert 'Summary' in result
+    assert 'Optimal Mix' in result
+    assert len(result['Summary']) == 1
+    assert result['Summary'].iloc[0]['Model'] == 'Raw Material Mix (Blending)'
+
+
 def test_optima_capacity_smoke_with_schema_defaults():
     payload = _inputs_from_info(optima_capacity__info)
     result = optima_capacity(**payload)
@@ -108,6 +127,30 @@ def test_optima_redundancy_smoke_with_schema_defaults():
 
     _assert_common_output_shape(result)
     assert result['Summary'].iloc[0]['Model'] == 'Redundancy'
+
+
+def test_optima_project_smoke_with_schema_defaults():
+    payload = _inputs_from_info(optima_project__info)
+    result = optima_project(**payload)
+
+    _assert_common_output_shape(result)
+    assert result['Summary'].iloc[0]['Model'] == 'Project Portfolio'
+
+
+def test_optima_workforce_smoke_with_schema_defaults():
+    payload = _inputs_from_info(optima_workforce__info)
+    result = optima_workforce(**payload)
+
+    _assert_common_output_shape(result)
+    assert result['Summary'].iloc[0]['Model'] == 'Workforce Shift Scheduling'
+
+
+def test_optima_production_inventory_smoke_with_schema_defaults():
+    payload = _inputs_from_info(optima_production_inventory__info)
+    result = optima_production_inventory(**payload)
+
+    _assert_common_output_shape(result)
+    assert result['Summary'].iloc[0]['Model'] == 'Production and Inventory Planning'
 
 
 

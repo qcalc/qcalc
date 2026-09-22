@@ -2,6 +2,7 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 import markdown
+from bs4 import BeautifulSoup
 
 # 'toc' adds slug ids to headings (e.g. #1-getting-started) so in-doc TOC/bookmark links resolve
 MARKDOWN_EXTENSIONS = extensions = ['extra', 'fenced_code', 'tables', 'mdx_math', 'toc']
@@ -26,3 +27,17 @@ def md2html(md_text:str):
         output_format='html',
     )
     return html
+
+
+def wrap_md_images(html: str):
+    soup = BeautifulSoup(html, 'html.parser')
+
+    for image in soup.find_all('img', src=True):
+        if image.find_parent(class_='qmd-img-wrapper'):
+            continue
+        wrapper = soup.new_tag('span')
+        wrapper['class'] = 'qmd-img-wrapper'
+        image.insert_before(wrapper)
+        wrapper.append(image.extract())
+
+    return str(soup)

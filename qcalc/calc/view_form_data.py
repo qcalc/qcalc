@@ -267,6 +267,22 @@ def q11440b_get_saved_io(_request):
 
 def q11449_form_data_postprocess_and_run(request, func_id):  # cid
     result = ''
+
+    # For calculate/run, surface form validation errors immediately.
+    # Without this early guard, cmd='' invalid posts bypass processing and
+    # silently return an empty result.
+    if request.method == 'POST' and request.cmd in ['', 'run'] and not request.json_doc['clean']:
+        request.success &= False
+        form = request.context.get('input', {}).get('form')
+        if form is not None and form.errors:
+            error_chunks = []
+            for field, errors in form.errors.items():
+                field_label = 'Form' if field == '__all__' else field
+                joined = '; '.join(str(err) for err in errors)
+                error_chunks.append(f"{field_label}: {joined}")
+            return 'Input validation failed: ' + ' | '.join(error_chunks)
+        return 'Input validation failed. Please review the highlighted input fields.'
+
     if ((request.method == 'POST' and request.json_doc['clean']) or
         request.cmd in ['run', 'save_io',
                         'save_input', 'save_var', 'create_var', 'display_var', 'display_xmp']):
@@ -547,11 +563,6 @@ def q11442_func_call_by_name(request: HtmxHttpRequest, func_id, arg_dict=None): 
     # | https://yizhiyue.me/2022/03/27/call-functions-with-dynamic-parameters-in-python
     # | check if first argument is a request or not
     arg_dict2run = arg_dict.copy()
-    # if len(arg_dict) > 0:
-    #     rky = list(arg_dict.keys())[0]
-    #     req = list(arg_dict.values())[0]
-    #     # if isinstance(req, str) and req == '__req__':
-    #     #     arg_dict2run[rky] = request
 
     try:
         unflat_args = q0162_dictify_fargs(arg_dict2run)

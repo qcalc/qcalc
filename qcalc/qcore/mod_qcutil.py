@@ -4,6 +4,7 @@
 from qutil import replace_words, QThread
 from qcore.qc_qty import Qty
 import math
+from qvars import qc_gpref as gs
 
 
 def uprefs():
@@ -33,6 +34,13 @@ def qformat(val, unit=None, pref=None) -> None | str | list[str]:
 
     if pref is None:
         pref = uprefs()
+
+    # Some call paths set only a subset of preferences in thread-local storage.
+    # Merge with global defaults so formatter keys are always available.
+    if isinstance(pref, dict):
+        pref = {**gs, **pref}
+    else:
+        pref = gs
 
     is_cur = False
     funame = ''

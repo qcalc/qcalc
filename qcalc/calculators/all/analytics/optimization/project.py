@@ -3,24 +3,33 @@
 
 import pandas as pd
 import pulp
-from qutil import parse_optional_number, require_columns, require_unique_values, require_values_subset
+from qcore import as_qtable, qtable
+from qutil.mod_runtime_validate import validate_schema_if_needed
+from qutil import parse_optional_number, require_unique_values, require_values_subset
 
-from ..opt_core import safe_objective_value, solver, slack_table
+from .cal_optima import (
+    field_show_zero,
+    table_project_rules,
+    table_projects,
+)
+from .opt_core import safe_objective_value, solver, slack_table
 
 
 _ALLOWED_RULE_TYPES = {'depends_on', 'excludes'}
 
 
-def solve_project(
-    projects,
-    project_rules,
+def optima_project(
+    projects: qtable,
+    project_rules: qtable,
     project_budget_limit,
     project_resource_limit,
     project_max_selected,
     project_min_selected,
     show_zero,
 ):
-    require_columns(projects, 'projects', ['Project', 'Value', 'Cost'], optional_cols=['Resource', 'Must Do'])
+    validate_schema_if_needed('optima_project')
+    projects = as_qtable(projects)
+    project_rules = as_qtable(project_rules)
 
     prj = projects.copy()
     prj['Project'] = prj['Project'].astype(str).str.strip()
@@ -72,7 +81,6 @@ def solve_project(
 
     rules = project_rules if project_rules is not None else pd.DataFrame(columns=['From', 'To', 'Type'])
     if len(rules) > 0:
-        require_columns(rules, 'project_rules', ['From', 'To', 'Type'])
         require_values_subset(rules, 'project_rules', 'From', prj, 'projects', 'Project')
         require_values_subset(rules, 'project_rules', 'To', prj, 'projects', 'Project')
         for _, row in rules.iterrows():
@@ -143,3 +151,34 @@ def solve_project(
         'Decision Table': pd.DataFrame(decision_rows),
         'Constraint Slack': slack_table(prob),
     }
+
+
+def optima_project__info():
+    return {
+        'title': 'Optimization: Project Portfolio',
+        'desc': (
+            'Select projects to maximize portfolio value under optional budget, resource, and relation constraints.'
+            ' Use this for project intake, capex planning, and constrained portfolio selection problems.'
+        ),
+        'calculate': 'Solve',
+        'schema': {
+            'projects': table_projects('projects'),
+            'project_rules': table_project_rules('project_rules'),
+            'project_budget_limit': {'initial': 220, 'help_text': 'Set empty for no budget cap on selected projects.'},
+            'project_resource_limit': {
+                'initial': None,
+                'help_text': "Optional total resource cap; requires 'Resource' column in projects.",
+            },
+            'project_max_selected': {'initial': 0, 'help_text': 'Set 0 for no upper limit on number of selected projects.'},
+            'project_min_selected': {'initial': 0, 'help_text': 'Set 0 for no lower limit on number of selected projects.'},
+            'show_zero': field_show_zero(),
+        },
+        'layout': 'lr',
+        'out1': ['Summary', 'Decision Table'],
+        'tags': 'optimization, project portfolio, knapsack, mixed integer programming',
+    }
+
+
+
+
+

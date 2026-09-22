@@ -3,9 +3,16 @@
 
 import pandas as pd
 import pulp
-from qutil import require_columns, require_unique_values
+from qcore import as_qtable, qtable
+from qutil.mod_runtime_validate import validate_schema_if_needed
+from qutil import require_unique_values
 
-from ..opt_core import safe_objective_value, solver, slack_table
+from .cal_optima import (
+    field_show_zero,
+    table_workforce_shift_demand,
+    table_workforce_staff,
+)
+from .opt_core import safe_objective_value, solver, slack_table
 
 
 def _skills_set(value):
@@ -14,25 +21,16 @@ def _skills_set(value):
     return {token.strip().lower() for token in str(value).split(',') if token.strip()}
 
 
-def solve_workforce_scheduling(
-    workforce_staff,
-    workforce_shift_demand,
+def optima_workforce(
+    workforce_staff: qtable,
+    workforce_shift_demand: qtable,
     allow_shortage,
     shortage_penalty,
     show_zero,
 ):
-    require_columns(
-        workforce_staff,
-        'workforce_staff',
-        ['Worker', 'Max Shifts', 'Cost per Shift'],
-        optional_cols=['Skills'],
-    )
-    require_columns(
-        workforce_shift_demand,
-        'workforce_shift_demand',
-        ['Shift', 'Required'],
-        optional_cols=['Required Skill'],
-    )
+    validate_schema_if_needed('optima_workforce')
+    workforce_staff = as_qtable(workforce_staff)
+    workforce_shift_demand = as_qtable(workforce_shift_demand)
 
     staff_df = workforce_staff.copy()
     demand_df = workforce_shift_demand.copy()
@@ -188,3 +186,34 @@ def solve_workforce_scheduling(
         'Worker Utilization': pd.DataFrame(utilization_rows),
         'Constraint Slack': slack_table(prob),
     }
+
+
+def optima_workforce__info():
+    return {
+        'title': 'Optimization: Workforce Shift Scheduling',
+        'desc': (
+            'Assign workers to shifts at minimum labor cost with max-shift limits and optional skill matching.'
+            ' Optionally allow shortages with penalty to keep the problem feasible under tight staffing.'
+        ),
+        'calculate': 'Solve',
+        'schema': {
+            'workforce_staff': table_workforce_staff('workforce_staff'),
+            'workforce_shift_demand': table_workforce_shift_demand('workforce_shift_demand'),
+            'allow_shortage': {
+                'type': 'choice',
+                'choices': {False: 'No', True: 'Yes'},
+                'initial': True,
+                'help_text': 'Allow unmet shift demand with penalty instead of infeasible solve.',
+            },
+            'shortage_penalty': {'initial': 1000, 'help_text': 'Penalty per one unfilled shift-assignment unit (typically one worker-slot shortage).'},
+            'show_zero': field_show_zero(),
+        },
+        'layout': 'lr',
+        'out1': ['Summary', 'Decision Table', 'Coverage Table', 'Worker Utilization'],
+        'tags': 'optimization, workforce, scheduling, staffing, mixed integer programming',
+    }
+
+
+
+
+

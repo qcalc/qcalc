@@ -3,6 +3,7 @@ import re
 
 from qcore import qlist, qtext
 from calculators.all.general.chart import feasible_chart
+from qutil import preprocess_expression
 
 
 def linprog__info():
@@ -15,19 +16,37 @@ def linprog__info():
         'schema': {
             'objective': {
                 'type': 'choice', 'choices': ['Maximize', 'Minimize'],
-            }
+                'help_text': 'Whether to maximize or minimize the objective_function.',
+            },
+            'decision_variables': {
+                'help_text': (
+                    'One variable per line: a bare name (e.g. x), or with a single '
+                    'bound (e.g. x >= 0, y <= 10). A bare name defaults to x >= 0. '
+                    'Only one bound per variable is kept if a name is listed twice.'
+                ),
+            },
+            'objective_function': {
+                'help_text': (
+                    'Expression to maximize or minimize, using the declared variable '
+                    'names, e.g. 3*x + 5*y or 3x + 5y. Explicit * is still fine.'
+                ),
+            },
+            'constraints': {
+                'help_text': (
+                    'One constraint per line, e.g. 2*x + 3*y <= 12 or 2x + 3y <= 12. '
+                    'Variable terms go on the left of <=, >=, or =; the right side must be a plain number.'
+                ),
+            },
         }
     }
 
 
 def linprog(
-    objective='Minimize',
-    decision_variables: qlist[str] = ['x >= 0', 'y >= 0'],
-    objective_function: qtext = '3*x + 5*y',
-    constraints: qlist[str] = ['2 * x + 3 * y >= 12',
-                               '-x + y <= 3',
-                               'x >= 4',
-                               'y <= 3'],
+    objective='Maximize',
+    decision_variables: qlist[str] = ['x >= 45', 'y >= 5'],
+    objective_function: qtext = 'x + y - 50',
+    constraints: qlist[str] = ['50*x + 24*y <= 2400',
+                               '30*x + 33*y <= 2100'],
 ):
     """
     Solve a linear programming optimization problem.
@@ -85,7 +104,7 @@ def linprog(
     # Build expressions using the variables
     namespace = variables
 
-    objective = eval(objective_function, {"__builtins__": {}}, namespace)
+    objective = eval(preprocess_expression(objective_function), {"__builtins__": {}}, namespace)
 
     # Maximize
     model += objective
@@ -97,21 +116,21 @@ def linprog(
         if "<=" in constraint:
             lhs, rhs = constraint.split("<=", 1)
             model += (
-                eval(lhs, {"__builtins__": {}}, namespace)
+                eval(preprocess_expression(lhs), {"__builtins__": {}}, namespace)
                 <= float(rhs)
             )
 
         elif ">=" in constraint:
             lhs, rhs = constraint.split(">=", 1)
             model += (
-                eval(lhs, {"__builtins__": {}}, namespace)
+                eval(preprocess_expression(lhs), {"__builtins__": {}}, namespace)
                 >= float(rhs)
             )
 
         elif "=" in constraint:
             lhs, rhs = constraint.split("=", 1)
             model += (
-                eval(lhs, {"__builtins__": {}}, namespace)
+                eval(preprocess_expression(lhs), {"__builtins__": {}}, namespace)
                 == float(rhs)
             )
 
@@ -154,3 +173,6 @@ def linprog(
         ))
 
     return result
+
+
+

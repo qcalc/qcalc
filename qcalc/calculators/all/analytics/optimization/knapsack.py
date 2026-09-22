@@ -3,13 +3,21 @@
 
 import pandas as pd
 import pulp
-from qutil import require_columns
+from qcore import as_qtable, qtable
+from qutil.mod_runtime_validate import validate_schema_if_needed
 
-from ..opt_core import safe_objective_value, solver, slack_table
+from .cal_optima import field_show_zero, table_items
+from .opt_core import safe_objective_value, solver, slack_table
 
 
-def solve_knapsack(items, capacity_limit, decision_type, show_zero):
-    require_columns(items, 'items', ['Item', 'Value', 'Weight'], optional_cols=['Max Qty'])
+def optima_knapsack(
+    items: qtable,
+    capacity_limit,
+    decision_type,
+    show_zero,
+):
+    validate_schema_if_needed('optima_knapsack')
+    items = as_qtable(items)
 
     item_list = items['Item'].astype(str).tolist()
     value = dict(zip(items['Item'].astype(str), pd.to_numeric(items['Value'])))
@@ -64,3 +72,36 @@ def solve_knapsack(items, capacity_limit, decision_type, show_zero):
         'Decision Table': pd.DataFrame(decision_rows),
         'Constraint Slack': slack_table(prob),
     }
+
+
+def optima_knapsack__info():
+    return {
+        'title': 'Optimization: Knapsack',
+        'desc': (
+            'Maximize value under a capacity limit with binary or integer item decisions.'
+            ' Use this for budget selection, portfolio picking, and constrained mix-selection problems.'
+        ),
+        'calculate': 'Solve',
+        'schema': {
+            'items': table_items('items'),
+            'capacity_limit': {
+                'initial': 5,
+                'help_text': 'Total capacity limit; use the same unit basis as Weight (for example kg, volume, hours, or budget units).',
+            },
+            'decision_type': {
+                'type': 'choice',
+                'choices': {'binary': 'Binary (0/1)', 'integer': 'Integer (0..Max Qty)'},
+                'initial': 'binary',
+                'help_text': 'Choose binary (0/1) or integer quantities up to Max Qty.',
+            },
+            'show_zero': field_show_zero(),
+        },
+        'layout': 'lr',
+        'out1': ['Summary', 'Decision Table'],
+        'tags': 'optimization, knapsack, integer programming',
+    }
+
+
+
+
+

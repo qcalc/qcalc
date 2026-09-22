@@ -950,11 +950,43 @@ function qmdEnhanceImages(root) {
     });
 }
 
+function qcalcInitHelpTooltips(root) {
+    if (!(window.jQuery && window.jQuery.fn && window.jQuery.fn.tooltip)) {
+        return;
+    }
+
+    var scope = root || document;
+    var selector = '.qcalc-help-tip[data-toggle="tooltip"]';
+    var nodes = [];
+
+    if (scope && scope.matches && scope.matches(selector)) {
+        nodes.push(scope);
+    }
+    if (scope && scope.querySelectorAll) {
+        nodes = nodes.concat(Array.from(scope.querySelectorAll(selector)));
+    }
+
+    nodes.forEach(function(node) {
+        var $node = $(node);
+        if ($node.data('bs.tooltip')) {
+            return;
+        }
+        $node.tooltip({
+            container: 'body',
+            boundary: 'window',
+            template: '<div class="tooltip qcalc-help-tooltip" role="tooltip"><div class="arrow"></div><div class="tooltip-inner"></div></div>',
+            html: false,
+        });
+    });
+}
+
 document.addEventListener('DOMContentLoaded', function() {
+    qcalcInitHelpTooltips(document);
     qmdEnhanceCodeBlocks(document);
     qmdEnhanceImages(document);
     if (document.body) {
         document.body.addEventListener('htmx:afterSwap', function(evt) {
+            qcalcInitHelpTooltips(evt.target);
             qmdEnhanceCodeBlocks(evt.target);
             qmdEnhanceImages(evt.target);
         });

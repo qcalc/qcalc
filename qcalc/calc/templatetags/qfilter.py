@@ -344,7 +344,14 @@ def render_help_text(field):
 
     if hasattr(field, 'help_text'):
         return format_html(
-            "<a><img src='{}' class='info' title='{}'></a>", static('calc/images/info.png'), field.help_text)
+            (
+                "<a class='qcalc-help-tip' tabindex='0' data-toggle='tooltip' "
+                "data-trigger='hover focus' data-placement='top' title='{}'>"
+                "<img src='{}' class='info' alt='Help'></a>"
+            ),
+            field.help_text,
+            static('calc/images/info.png'),
+        )
     return ''
 
 

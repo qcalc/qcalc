@@ -3,15 +3,24 @@
 
 import pandas as pd
 import pulp
-from qutil import require_columns, require_complete_pair_grid, require_values_subset
+from qcore import as_qtable, qtable
+from qutil.mod_runtime_validate import validate_schema_if_needed
+from qutil import require_complete_pair_grid, require_values_subset
 
-from ..opt_core import safe_objective_value, solver, slack_table
+from .cal_optima import field_show_zero, table_agents, table_assign_cost, table_tasks
+from .opt_core import safe_objective_value, solver, slack_table
 
 
-def solve_assignment(agents, tasks, assign_cost, show_zero):
-    require_columns(agents, 'agents', ['Agent', 'Capacity'])
-    require_columns(tasks, 'tasks', ['Task'])
-    require_columns(assign_cost, 'assign_cost', ['Agent', 'Task', 'Cost'])
+def optima_assignment(
+    agents: qtable,
+    tasks: qtable,
+    assign_cost: qtable,
+    show_zero,
+):
+    validate_schema_if_needed('optima_assignment')
+    agents = as_qtable(agents)
+    tasks = as_qtable(tasks)
+    assign_cost = as_qtable(assign_cost)
     require_values_subset(assign_cost, 'assign_cost', 'Agent', agents, 'agents', 'Agent')
     require_values_subset(assign_cost, 'assign_cost', 'Task', tasks, 'tasks', 'Task')
 
@@ -74,3 +83,27 @@ def solve_assignment(agents, tasks, assign_cost, show_zero):
         'Resource Utilization': pd.DataFrame(util_rows),
         'Constraint Slack': slack_table(prob),
     }
+
+
+def optima_assignment__info():
+    return {
+        'title': 'Optimization: Assignment',
+        'desc': (
+            'Assign tasks to agents at minimum total cost under capacity constraints.'
+            ' Use this for worker-task assignment, machine-job assignment, and ticket routing problems.'
+        ),
+        'calculate': 'Solve',
+        'schema': {
+            'agents': table_agents('agents'),
+            'tasks': table_tasks('tasks'),
+            'assign_cost': table_assign_cost('assign_cost'),
+            'show_zero': field_show_zero(),
+        },
+        'layout': 'lr',
+        'out1': ['Summary', 'Decision Table'],
+        'tags': 'optimization, assignment, mixed integer programming',
+    }
+
+
+
+

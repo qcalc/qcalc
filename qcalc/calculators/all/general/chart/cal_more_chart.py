@@ -112,7 +112,7 @@ def surface_contour3d_chart(
     xlabel='X-Axis',
     ylabel='Y-Axis',
     zlabel='Z-Axis',
-    title='3D Surface Contour Chart'
+    title='3D Surface Contour Chart',
 ):
     zvals2d = as_qtable(zvals2d)
     xvals_, xtype = css2values(xvals, time2val='hr')
@@ -128,7 +128,7 @@ def surface_contour3d_chart(
     chart = QChart(xtype=xtype)
     chart.render_surface_contour3d(
         xvals=xvals_, yvals=yvals_, zvals2d=zvals2d_,
-        xlabel=xlabel, ylabel=ylabel, zlabel=zlabel, title=title
+        xlabel=xlabel, ylabel=ylabel, zlabel=zlabel, title=title,
     )
 
     return {'chart': chart}

@@ -300,12 +300,13 @@ def tag_browser(request: HtmxHttpRequest):
 
     calc_nodes = _nodes_by_tags(visible_nodes, selected_tags, mode)
 
+    defa_page_size = 25
     try:
-        page_size = int(request.GET.get('page_size', 10))
+        page_size = int(request.GET.get('page_size', defa_page_size))
     except (TypeError, ValueError):
-        page_size = 10
-    if page_size not in (5, 10, 25, 50, 100, 250):
-        page_size = 10
+        page_size = defa_page_size
+    if page_size not in (10, 25, 50, 100, 250):
+        page_size = defa_page_size
 
     try:
         page = int(request.GET.get('page', 1))

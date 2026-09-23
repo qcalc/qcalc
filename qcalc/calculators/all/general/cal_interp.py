@@ -25,7 +25,7 @@ def linter(x_values='1,2,3.2,4,5', y_values='2,3,5.8,12,20', x=2.5):
     chart = QChart()  # patch=True
     fig, ax = chart.create_figure()
     ax.plot(xvf, yvf)
-    ax.plot(x, y, 'ro')
+    chart.mark([x, y], show_axis_guides=True)
     chart.render_done()
     # chart.close()
     return {

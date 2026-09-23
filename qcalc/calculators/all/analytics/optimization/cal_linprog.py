@@ -1,14 +1,18 @@
-import pulp
 import re
+
+import pulp
 
 from qcore import qlist, qtext
 from calculators.all.general.chart import feasible_chart
+from .opt_core import optimization_status_description
 from qutil import preprocess_expression
 
 
 def linprog__info():
     return {
         "title": "Linear Programming",
+        'kins': 'nonlinprog',
+        'tags': 'optimization, linear programming',
         'desc': (
             'Solve a linear programming problem by selecting an objective, '
             'defining decision variables, and applying linear constraints.'
@@ -136,21 +140,9 @@ def linprog(
 
     # Solve
     status = model.solve()
-
     status_name = pulp.LpStatus[status]
 
-    status_descriptions = {
-        "Optimal": "A finite optimal solution was found!",
-        "Not Solved": "The optimization problem has not been solved.",
-        "Infeasible": "No solution satisfies all the specified constraints.",
-        "Unbounded": "The objective can improve indefinitely; no finite optimal solution exists.",
-        "Undefined": "The solver could not determine a valid solution status.",
-    }
-
-    status_description = status_descriptions.get(
-        status_name,
-        "Unknown optimization status.",
-    )
+    status_description = optimization_status_description(status_name)
 
     # Results
     result = {

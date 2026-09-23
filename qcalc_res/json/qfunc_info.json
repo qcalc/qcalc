@@ -4,35 +4,35 @@
         "desc": "The Debt Paydown vs Investment calculator helps you compare two ways of using available cash: Pay down debt and Invest the cash"
     },
     "gold": {
-        "tags": "ornaments, investment, jewelry",
+        "tags": "ornaments, investment, jewelry, family",
         "desc": "Estimate the cost of gold jewelry including VAT and making charge."
     },
     "sunrise": {
-        "tags": "solar system, calendar",
+        "tags": "solar system, calendar, astronomy, science",
         "desc": "Calculate sunrise and sunset time, day length, and night length based on location and date."
     },
     "invest": {
-        "tags": "investment",
+        "tags": "investment, financial",
         "desc": "Calculate periodic payment for a future cash value based on interest rate and number of periods. Get payment amount and total payment."
     },
     "html_reader": {
-        "tags": "file reader",
+        "tags": "file reader, file, data",
         "desc": "This calculator function removes all tags from HTML content to display plain text. Convert HTML to clear text easily."
     },
     "csv_reader": {
-        "tags": "file reader",
+        "tags": "file reader, file, data",
         "desc": "This calculator function reads and processes CSV data for easy viewing in a table."
     },
     "image_reader": {
-        "tags": "file reader",
+        "tags": "file reader, image, graphics",
         "desc": "Use this tool to read image details including format, size, and exif tags. Perfect for analyzing image properties."
     },
     "md_reader": {
-        "tags": "file reader",
+        "tags": "file reader, file, data",
         "desc": "This calculator function reads and converts markdown files, text, or URLs into HTML format."
     },
     "file_reader": {
-        "tags": "file reader",
+        "tags": "file reader, file, data",
         "desc": "This calculator function reads and retrieves information from a file or URL."
     },
     "code": {
@@ -44,580 +44,771 @@
         "desc": "Calculate function details such as arguments, annotations, and information for a flexible unit system."
     },
     "qcache": {
-        "tags": "technical",
+        "tags": "technical, admin, utility, cache, performance",
         "desc": "qCalc Cache function helps in caching and retrieving calculation results efficiently. It ensures quick access to previously calculated values."
     },
     "bmi": {
-        "desc": "Calculate Body Mass Index using provided weight and height measurements. Calculate BMI and return the result."
+        "desc": "Calculate Body Mass Index using provided weight and height measurements. Calculate BMI and return the result.",
+        "tags": "health, wellness, medical, body metrics"
     },
     "a2c": {
-        "desc": "This calculator function adds a new entry to the catalog."
+        "desc": "This calculator function adds a new entry to the catalog.",
+        "tags": "catalog, admin"
     },
     "adda": {
-        "desc": "This calculator function adds two numbers together for quick calculations."
+        "desc": "This calculator function adds two numbers together for quick calculations.",
+        "tags": "addition, arithmetic"
     },
     "addx": {
-        "desc": "A simple calculator function to add two numbers and quantities."
+        "desc": "A simple calculator function to add two numbers and quantities.",
+        "tags": "addition, arithmetic"
     },
     "addy": {
-        "desc": "Calculate the sum of two values with the 'Add from 2nd Package' calculator. Enter the values to get the result."
+        "desc": "Calculate the sum of two values with the 'Add from 2nd Package' calculator. Enter the values to get the result.",
+        "tags": "addition, arithmetic"
     },
     "addz": {
-        "desc": "Perform addition operations using the add from xyz package. Get the sum of two numbers with ease."
+        "desc": "Perform addition operations using the add from xyz package. Get the sum of two numbers with ease.",
+        "tags": "addition, arithmetic"
     },
     "adhoc_list": {
-        "desc": "This calculator function calculates adhoc lists. Enter values to get results."
+        "desc": "This calculator function calculates adhoc lists. Enter values to get results.",
+        "tags": "list, data"
     },
     "age": {
-        "desc": "Calculate your age accurately from your date of birth."
+        "desc": "Calculate your age accurately from your date of birth.",
+        "tags": "health, wellness, medical"
     },
     "amort": {
-        "desc": "Calculate your loan payment schedule with total interest and principal payments. Visualize your payment journey with an interactive chart."
+        "desc": "Calculate your loan payment schedule with total interest and principal payments. Visualize your payment journey with an interactive chart.",
+        "tags": "personal finance, financial, family"
     },
     "anyof": {
-        "desc": "A versatile calculator for testing multiple values simultaneously. Perform calculations with ease using Testing AnyOf."
+        "desc": "A versatile calculator for testing multiple values simultaneously. Perform calculations with ease using Testing AnyOf.",
+        "tags": "selection, form"
     },
     "applepie": {
-        "desc": "Make delicious apple pie with this recipe. Adjust servings to get the right amount of ingredients. Enjoy baking!"
+        "desc": "Make delicious apple pie with this recipe. Adjust servings to get the right amount of ingredients. Enjoy baking!",
+        "tags": "family, food, recipe, cooking"
     },
     "autofill": {
-        "desc": "This calculator function helps in calculating the total sum of specified values for autofill."
+        "desc": "This calculator function helps in calculating the total sum of specified values for autofill.",
+        "tags": "autofill, form"
     },
     "bar_chart": {
-        "desc": "Create a simple bar chart showing month wise temperature. Visualize data with ease."
+        "desc": "Create a simple bar chart showing month wise temperature. Visualize data with ease.",
+        "tags": "chart, visualization"
     },
     "bmatrix": {
-        "desc": "Perform matrix binary operations like addition, subtraction, multiplication, division, or using custom expressions. Get accurate results easily."
+        "desc": "Perform matrix binary operations like addition, subtraction, multiplication, division, or using custom expressions. Get accurate results easily.",
+        "tags": "math, matrix, algebra"
     },
     "bmr": {
-        "desc": "Calculate Basal Metabolic Rate (BMR) based on weight, height, age, and gender for daily calorie needs."
+        "desc": "Calculate Basal Metabolic Rate (BMR) based on weight, height, age, and gender for daily calorie needs.",
+        "tags": "health, wellness, medical, metabolism"
     },
     "bodyfat": {
-        "desc": "Calculate body fat percentage using skinfold measurements for accurate and personalized results. Get average, max, min, and standard deviation."
+        "desc": "Calculate body fat percentage using skinfold measurements for accurate and personalized results. Get average, max, min, and standard deviation.",
+        "tags": "health, wellness, medical, body composition"
     },
     "bodyfat2": {
-        "desc": "Calculate body fat percentage using weight, height, age, and gender. Get accurate results based on BMI and US Navy methods."
+        "desc": "Calculate body fat percentage using weight, height, age, and gender. Get accurate results based on BMI and US Navy methods.",
+        "tags": "health, wellness, medical, body composition"
     },
     "bond": {
-        "desc": "Calculate the price of a bond based on face value, coupon rate, interest rate, and duration. Bond Pricing tool for financial analysis."
+        "desc": "Calculate the price of a bond based on face value, coupon rate, interest rate, and duration. Bond Pricing tool for financial analysis.",
+        "tags": "financial, investment, bond"
     },
     "brickwork": {
-        "desc": "Estimate materials and labor for brickwork. Calculate bricks, cement, sand, and labor needed for a project."
+        "desc": "Estimate materials and labor for brickwork. Calculate bricks, cement, sand, and labor needed for a project.",
+        "tags": "engineering, estimation, construction"
     },
     "broken_links": {
-        "desc": "Check a website for broken links and display the number of broken links found."
+        "desc": "Check a website for broken links and display the number of broken links found.",
+        "tags": "web, seo, text analytics, links"
     },
     "butterfly": {
-        "desc": "Explore the mesmerizing Butterfly Curve with this calculator. Visualize the elegant mathematical pattern it creates."
+        "desc": "Explore the mesmerizing Butterfly Curve with this calculator. Visualize the elegant mathematical pattern it creates.",
+        "tags": "fun, math, curve, visualization"
     },
     "calorie_needs": {
-        "desc": "Calculate your daily calorie needs based on your age, gender, height, weight, activity level, and body fat percentage. Get personalized calorie recommendations for weight maintenance or various levels of weight loss."
+        "desc": "Calculate your daily calorie needs based on your age, gender, height, weight, activity level, and body fat percentage. Get personalized calorie recommendations for weight maintenance or various levels of weight loss.",
+        "tags": "health, wellness, medical, nutrition"
     },
     "ccwork": {
-        "desc": "Estimate materials and labor required for concrete work based on dimensions and ratios. Calculate cement, sand, gravel, and labor needs."
+        "desc": "Estimate materials and labor required for concrete work based on dimensions and ratios. Calculate cement, sand, gravel, and labor needs.",
+        "tags": "engineering, estimation, construction"
     },
     "cir": {
-        "desc": "Calculate the compound interest rate without periodic payment for a given present and future value over a specified duration."
+        "desc": "Calculate the compound interest rate without periodic payment for a given present and future value over a specified duration.",
+        "tags": "financial, investment, interest rate"
     },
     "circ": {
-        "desc": "Calculate compound interest rate conversion for different time periods. Convert annual interest rate to specified time unit."
+        "desc": "Calculate compound interest rate conversion for different time periods. Convert annual interest rate to specified time unit.",
+        "tags": "financial, investment, interest rate"
     },
     "circle": {
-        "desc": "Calculate the Area, Circumference, Diameter, and Radius of a Circle using a single parameter. Flexible unit usage."
+        "desc": "Calculate the Area, Circumference, Diameter, and Radius of a Circle using a single parameter. Flexible unit usage.",
+        "tags": "math, geometry"
     },
     "cirp": {
-        "desc": "Calculate compound interest rate with periodic payment, given initial and final values, duration, payment amount, interval, and tolerance."
+        "desc": "Calculate compound interest rate with periodic payment, given initial and final values, duration, payment amount, interval, and tolerance.",
+        "tags": "financial, investment, interest rate"
     },
     "cntry": {
-        "desc": "Calculate Cntry function returns the input value, serving as a basic calculator for various operations."
+        "desc": "Calculate Cntry function returns the input value, serving as a basic calculator for various operations.",
+        "tags": "country, utility"
     },
     "collect": {
-        "desc": "Combine and calculate the values from multiple inputs. Get the result, errors, and count."
+        "desc": "Combine and calculate the values from multiple inputs. Get the result, errors, and count.",
+        "tags": "utility, aggregation, list"
     },
     "conv": {
-        "desc": "Easily convert and express values between different units. Get cost calculations as well."
+        "desc": "Easily convert and express values between different units. Get cost calculations as well.",
+        "tags": "conversion, units"
     },
     "conv1": {
-        "desc": "Convert values from one unit to another, with cost calculation. Input value, units, and get converted and expressed values."
+        "desc": "Convert values from one unit to another, with cost calculation. Input value, units, and get converted and expressed values.",
+        "tags": "conversion, units"
     },
     "conv2": {
-        "desc": "Convert between different units of length, wavelength, and other quantities. Calculate costs for unit conversions."
+        "desc": "Convert between different units of length, wavelength, and other quantities. Calculate costs for unit conversions.",
+        "tags": "conversion, units"
     },
     "corr": {
-        "desc": "Calculate correlation coefficient, covariance, and regression line for given data. Find Pearson, Kendall, and Spearman correlation."
+        "desc": "Calculate correlation coefficient, covariance, and regression line for given data. Find Pearson, Kendall, and Spearman correlation.",
+        "tags": "math, correlation, statistics"
     },
     "cost": {
-        "desc": "Calculate the cost of items with this flexible unit calculator. Get itemized costs and a visual chart easily."
+        "desc": "Calculate the cost of items with this flexible unit calculator. Get itemized costs and a visual chart easily.",
+        "tags": "utility, costing, pricing"
     },
     "crcl": {
-        "desc": "Calculate Creatinine Clearance based on age, weight, serum creatinine level, and sex. Adjusts for sex differences."
+        "desc": "Calculate Creatinine Clearance based on age, weight, serum creatinine level, and sex. Adjusts for sex differences.",
+        "tags": "health, wellness, medical"
     },
     "crcl0": {
-        "desc": "Calculate estimated creatinine clearance based on age, weight, serum creatinine level, and sex. Adjusted for women."
+        "desc": "Calculate estimated creatinine clearance based on age, weight, serum creatinine level, and sex. Adjusted for women.",
+        "tags": "medical"
     },
     "csv_editor": {
-        "desc": "A versatile tool for editing CSV files with options to load, edit, and save data. Ideal for managing data efficiently."
+        "desc": "A versatile tool for editing CSV files with options to load, edit, and save data. Ideal for managing data efficiently.",
+        "tags": "file, data, csv, file editor"
     },
     "cur": {
-        "desc": "Convert any amount from one currency to another with this Simple Currency Converter. Get accurate rates instantly."
+        "desc": "Convert any amount from one currency to another with this Simple Currency Converter. Get accurate rates instantly.",
+        "tags": "currency, exchange"
     },
     "curx": {
-        "desc": "Calculate exchanged currency amount with fees, rates, and differences. Buy and sell in different currencies."
+        "desc": "Calculate exchanged currency amount with fees, rates, and differences. Buy and sell in different currencies.",
+        "tags": "currency, exchange"
     },
     "element": {
-        "desc": "Explore the properties of any element with this periodic table calculator. Find atomic number, mass, melting point, and more."
+        "desc": "Explore the properties of any element with this periodic table calculator. Find atomic number, mass, melting point, and more.",
+        "tags": "chemistry, science, periodic table"
     },
     "emc2": {
-        "desc": "Calculate energy and mass conversion using Einstein's Theory of Special relativity. Convert mass to energy and vice versa."
+        "desc": "Calculate energy and mass conversion using Einstein's Theory of Special relativity. Convert mass to energy and vice versa.",
+        "tags": "physics, science, relativity"
     },
     "eoq": {
-        "desc": "Calculate the Economic Order Quantity and Total Cost for efficient inventory management. Find order interval, material, inventory, transaction, and operational costs."
+        "desc": "Calculate the Economic Order Quantity and Total Cost for efficient inventory management. Find order interval, material, inventory, transaction, and operational costs.",
+        "tags": "business, procurement, supply chain, inventory"
     },
     "eva": {
-        "desc": "Evaluate simple expressions and calculations with this flexible calculator. Get results and console output easily."
+        "desc": "Evaluate simple expressions and calculations with this flexible calculator. Get results and console output easily.",
+        "tags": "expression, calculator"
     },
     "explain": {
-        "desc": "Learn how to use the calculator for efficient calculations. Find step-by-step instructions and technical details. Start calculating now!"
+        "desc": "Learn how to use the calculator for efficient calculations. Find step-by-step instructions and technical details. Start calculating now!",
+        "tags": "documentation, help"
     },
     "facility_opt": {
-        "desc": "Calculate the optimal facility locations for customers based on various constraints and criteria. Optimize costs and distances."
+        "desc": "Calculate the optimal facility locations for customers based on various constraints and criteria. Optimize costs and distances.",
+        "tags": "business, distribution, supply chain, optimization, facility location"
     },
     "fica": {
-        "desc": "Use this Finance Calculator Helper to quickly calculate various financial parameters based on your inputs. No calculator found, please try again with different parameters."
+        "desc": "Use this Finance Calculator Helper to quickly calculate various financial parameters based on your inputs. No calculator found, please try again with different parameters.",
+        "tags": "finance, tax"
     },
     "food": {
-        "desc": "This calculator function helps you calculate the nutrients in your food. Just enter the food items and get the nutrient information."
+        "desc": "This calculator function helps you calculate the nutrients in your food. Just enter the food items and get the nutrient information.",
+        "tags": "nutrition"
     },
     "fv": {
-        "desc": "Calculate the future value of a principal amount with periodic payments based on interest rate and duration. Plan your investments wisely."
+        "desc": "Calculate the future value of a principal amount with periodic payments based on interest rate and duration. Plan your investments wisely.",
+        "tags": "financial, investment, future value"
     },
     "fx": {
-        "desc": "Calculate y=f(x) with given function and variable range. Output in CSV, Table, or Chart format for analysis."
+        "desc": "Calculate y=f(x) with given function and variable range. Output in CSV, Table, or Chart format for analysis.",
+        "tags": "utility, function, chart"
     },
     "gas_flow": {
-        "desc": "Calculate the usage volume and duration of compressed gas flow based on cylinder and usage pressures, and gas flow rate."
+        "desc": "Calculate the usage volume and duration of compressed gas flow based on cylinder and usage pressures, and gas flow rate.",
+        "tags": "physics, science, gas"
     },
     "gas_law": {
-        "desc": "Calculate Pressure, Volume, Amount of Substance, and Temperature of an Ideal Gas using the General Gas Equation. Enter any THREE parameters to calculate the FOURTH one."
+        "desc": "Calculate Pressure, Volume, Amount of Substance, and Temperature of an Ideal Gas using the General Gas Equation. Enter any THREE parameters to calculate the FOURTH one.",
+        "tags": "physics, science, gas"
     },
     "gpref": {
-        "desc": "Update global settings for the calculator, including range limit, demo mode, schema cache, unit of measurement version, and execution mode."
+        "desc": "Update global settings for the calculator, including range limit, demo mode, schema cache, unit of measurement version, and execution mode.",
+        "tags": "admin, utility, settings, configuration"
     },
     "heart": {
-        "desc": "Assess your heart condition based on health parameters. High blood pressure, sugar, or cholesterol levels may indicate risk."
+        "desc": "Assess your heart condition based on health parameters. High blood pressure, sugar, or cholesterol levels may indicate risk.",
+        "tags": "health, wellness, medical"
     },
     "histogram": {
-        "desc": "A simple histogram calculator to visualize the frequency distribution of values. Customize bins, labels, and title."
+        "desc": "A simple histogram calculator to visualize the frequency distribution of values. Customize bins, labels, and title.",
+        "tags": "chart, visualization, statistics"
     },
     "hypo1": {
-        "desc": "Explore the beautiful shape of a Hypotrochoid Curve with this calculator. Find the curve with fixed, inner radii, and distance parameters."
+        "desc": "Explore the beautiful shape of a Hypotrochoid Curve with this calculator. Find the curve with fixed, inner radii, and distance parameters.",
+        "tags": "fun, math, curve, geometry"
     },
     "hypo2": {
-        "desc": "Calculate the Hypotrochoid Curve 2 with given parameters. Create intricate geometric patterns effortlessly."
+        "desc": "Calculate the Hypotrochoid Curve 2 with given parameters. Create intricate geometric patterns effortlessly.",
+        "tags": "fun, math, curve, geometry"
     },
     "hypo3": {
-        "desc": "Create a Hypotrochoid Curve using specified parameters - Fixed radius, Inner radius, and Distance."
+        "desc": "Create a Hypotrochoid Curve using specified parameters - Fixed radius, Inner radius, and Distance.",
+        "tags": "fun, math, curve, geometry"
     },
     "hypo4": {
-        "desc": "Calculate the Hypotrochoid Curve 4 with given parameters. Create intricate geometric patterns effortlessly."
+        "desc": "Calculate the Hypotrochoid Curve 4 with given parameters. Create intricate geometric patterns effortlessly.",
+        "tags": "fun, math, curve, geometry"
     },
     "hypo5": {
-        "desc": "Calculate the Hypotrochoid Curve 5 with given parameters for Fixed radius, Inner radius, and Distance."
+        "desc": "Calculate the Hypotrochoid Curve 5 with given parameters for Fixed radius, Inner radius, and Distance.",
+        "tags": "fun, math, curve, geometry"
     },
     "image_gray": {
-        "desc": "Convert your image to grayscale or black & white effortlessly with this tool. Perfect for adjusting image tones."
+        "desc": "Convert your image to grayscale or black & white effortlessly with this tool. Perfect for adjusting image tones.",
+        "tags": "image, graphics"
     },
     "image_rembg": {
-        "desc": "Easily remove the background from an image with this online tool. Convert your image with just a click."
+        "desc": "Easily remove the background from an image with this online tool. Convert your image with just a click.",
+        "tags": "image, graphics"
     },
     "image_resize": {
-        "desc": "Resize an image with flexible options for width, height, and aspect ratio. Convert and display original and converted image sizes."
+        "desc": "Resize an image with flexible options for width, height, and aspect ratio. Convert and display original and converted image sizes.",
+        "tags": "image, graphics"
     },
     "image_rotate": {
-        "desc": "Rotate an image by a specified angle. Convert and save the rotated image in PNG format."
+        "desc": "Rotate an image by a specified angle. Convert and save the rotated image in PNG format.",
+        "tags": "image, graphics"
     },
     "image_upscale": {
-        "desc": "Upscale your image to a higher resolution with fast and accurate results. Choose from different options for enhanced quality."
+        "desc": "Upscale your image to a higher resolution with fast and accurate results. Choose from different options for enhanced quality.",
+        "tags": "image, graphics"
     },
     "img2asc": {
-        "desc": "Convert an image into ASCII art with a customizable width parameter."
+        "desc": "Convert an image into ASCII art with a customizable width parameter.",
+        "tags": "fun, math, image, ascii art"
     },
     "invlevel": {
-        "desc": "Calculate Inventory Level: Determine stock levels based on demand, reorder points, and lead times. Plan orders efficiently for optimal inventory management."
+        "desc": "Calculate Inventory Level: Determine stock levels based on demand, reorder points, and lead times. Plan orders efficiently for optimal inventory management.",
+        "tags": "business, inventory, supply chain"
     },
     "ipbal": {
-        "desc": "Calculate interest for periodic balance using given rates and initial balance."
+        "desc": "Calculate interest for periodic balance using given rates and initial balance.",
+        "tags": "personal finance, financial, family, interest, balance"
     },
     "irg_land": {
-        "desc": "Calculate irregular land area with known coordinates, perimeter, and edge length. Visualize land shape with a chart."
+        "desc": "Calculate irregular land area with known coordinates, perimeter, and edge length. Visualize land shape with a chart.",
+        "tags": "engineering, surveying, geography, land"
     },
     "irg_land2": {
-        "desc": "Calculate irregular land area using triangulation method with flexible units and parameters. Get accurate results with this calculator."
+        "desc": "Calculate irregular land area using triangulation method with flexible units and parameters. Get accurate results with this calculator.",
+        "tags": "engineering, surveying, geography, land"
     },
     "irg_landimg": {
-        "desc": "Calculate the irregular land area from an image in pixel units. Get image size and land area percentage."
+        "desc": "Calculate the irregular land area from an image in pixel units. Get image size and land area percentage.",
+        "tags": "engineering, surveying, geography, land"
     },
     "irrm": {
-        "desc": "Calculate Modified Internal Rate of Return (IRRM) for given cashflows, finance rate, and reinvestment rate. Get both periodic and annual interest rates."
+        "desc": "Calculate Modified Internal Rate of Return (IRRM) for given cashflows, finance rate, and reinvestment rate. Get both periodic and annual interest rates.",
+        "tags": "financial, investment, cashflow"
     },
     "irrn": {
-        "desc": "Calculate the Internal Rate of Return (IRR) for a series of cashflows. Get periodic and annual interest rates."
+        "desc": "Calculate the Internal Rate of Return (IRR) for a series of cashflows. Get periodic and annual interest rates.",
+        "tags": "financial, investment, cashflow"
     },
     "jday": {
-        "desc": "Calculate Julian Day Number: Counting days since January 1, 4713 BC. Get the Julian Day Number for any date."
+        "desc": "Calculate Julian Day Number: Counting days since January 1, 4713 BC. Get the Julian Day Number for any date.",
+        "tags": "astronomy, science, calendar"
     },
     "jqval": {
-        "desc": "A slider input testing calculator for determining values based on user input. Find the values of x and y with optional parameters."
+        "desc": "A slider input testing calculator for determining values based on user input. Find the values of x and y with optional parameters.",
+        "tags": "utility"
     },
     "jqval22": {
-        "desc": "This calculator allows users to test slider inputs for a specific value range."
+        "desc": "This calculator allows users to test slider inputs for a specific value range.",
+        "tags": "utility"
     },
     "keywords": {
-        "desc": "Use this Keyword Extractor to find the most relevant keywords in your text. Get a list of top keywords based on relevancy."
+        "desc": "Use this Keyword Extractor to find the most relevant keywords in your text. Get a list of top keywords based on relevancy.",
+        "tags": "web, seo, text analytics, nlp"
     },
     "l2str": {
-        "desc": "Convert a list of values into a single string using a specified separator. Useful for data manipulation."
+        "desc": "Convert a list of values into a single string using a specified separator. Useful for data manipulation.",
+        "tags": "text, string"
     },
     "line2_chart": {
-        "desc": "A versatile calculator displaying a double line chart comparing two sets of values. Visualize data effortlessly."
+        "desc": "A versatile calculator displaying a double line chart comparing two sets of values. Visualize data effortlessly.",
+        "tags": "chart, visualization"
     },
     "line3d_chart": {
-        "desc": "A versatile tool to create a 3D line chart with customizable labels and values. Visualize data in a clear and interactive way."
+        "desc": "A versatile tool to create a 3D line chart with customizable labels and values. Visualize data in a clear and interactive way.",
+        "tags": "chart, visualization"
     },
     "line_chart": {
-        "desc": "Create a simple line chart to visualize data with x and y values. Customize labels and title for easy interpretation."
+        "desc": "Create a simple line chart to visualize data with x and y values. Customize labels and title for easy interpretation.",
+        "tags": "chart, visualization"
     },
     "linear": {
-        "desc": "Solve linear equations with N unknowns in a flexible way. Find solutions effortlessly."
+        "desc": "Solve linear equations with N unknowns in a flexible way. Find solutions effortlessly.",
+        "tags": "math, equation, algebra"
     },
     "linear2": {
-        "desc": "Solve linear equations with 2 unknowns. Enter expressions and values to find the unknowns."
+        "desc": "Solve linear equations with 2 unknowns. Enter expressions and values to find the unknowns.",
+        "tags": "math, equation, algebra"
     },
     "linter": {
-        "desc": "Use this linear interpolation calculator to find a value between known data points. Get accurate results and visual representation."
+        "desc": "Use this linear interpolation calculator to find a value between known data points. Get accurate results and visual representation.",
+        "tags": "interpolation, math"
     },
     "lissa": {
-        "desc": "Explore the mesmerizing Lissajous Curve with customizable parameters. Visualize intricate patterns in an interactive chart."
+        "desc": "Explore the mesmerizing Lissajous Curve with customizable parameters. Visualize intricate patterns in an interactive chart.",
+        "tags": "fun, math, curve, geometry"
     },
     "loan": {
-        "desc": "Calculate periodic payment for a loan based on loan amount, interest rate, and number of periods. Get payment amount and total payment."
+        "desc": "Calculate periodic payment for a loan based on loan amount, interest rate, and number of periods. Get payment amount and total payment.",
+        "tags": "financial, investment, loan, payment"
     },
     "map_distance": {
-        "desc": "Calculate the distance between two locations on Earth. Get the distance in any unit you prefer, with an option to show the map."
+        "desc": "Calculate the distance between two locations on Earth. Get the distance in any unit you prefer, with an option to show the map.",
+        "tags": "mapping, geography"
     },
     "map_region": {
-        "desc": "Discover the geographic region based on central coordinates and extent. Visualize the area on a map with specified resolution."
+        "desc": "Discover the geographic region based on central coordinates and extent. Visualize the area on a map with specified resolution.",
+        "tags": "mapping, geography"
     },
     "mem": {
-        "desc": "User Memory function helps store and retrieve values for calculations. Customize storage size and clear memory option available."
+        "desc": "User Memory function helps store and retrieve values for calculations. Customize storage size and clear memory option available.",
+        "tags": "user, utility, memory, storage"
     },
     "mesh": {
-        "desc": "Calculate network diagram with mesh nodes and edges, displaying title and edge labels."
+        "desc": "Calculate network diagram with mesh nodes and edges, displaying title and edge labels.",
+        "tags": "chart, visualization, network, graph"
     },
     "molecule": {
-        "desc": "Calculate molecular mass and composition of an element. Get the Hill and Empirical notation, average, nominal, and isotopic mass, atoms, charge, and composition of a molecule."
+        "desc": "Calculate molecular mass and composition of an element. Get the Hill and Empirical notation, average, nominal, and isotopic mass, atoms, charge, and composition of a molecule.",
+        "tags": "chemistry, science, molecular"
     },
     "forecast_fv": {
-        "desc": "Forecast future values of an asset using Monte Carlo simulation. Predicts price series based on starting price, periods, volatility, and drift."
+        "desc": "Forecast future values of an asset using Monte Carlo simulation. Predicts price series based on starting price, periods, volatility, and drift.",
+        "tags": "math"
     },
     "moonphase": {
-        "desc": "Calculate the phase of the moon on a specific date based on lunar cycles. Find out if it's New, Full, or in between."
+        "desc": "Calculate the phase of the moon on a specific date based on lunar cycles. Find out if it's New, Full, or in between.",
+        "tags": "astronomy, science, calendar"
     },
     "new_cal": {
-        "desc": "This calculator function allows you to create custom calculations easily. Simply define your formula and variables."
+        "desc": "This calculator function allows you to create custom calculations easily. Simply define your formula and variables.",
+        "tags": "custom calculation, utility"
     },
     "normal": {
-        "desc": "Calculate the Normal Distribution Curve with mean and standard deviation. Visualize data spread efficiently."
+        "desc": "Calculate the Normal Distribution Curve with mean and standard deviation. Visualize data spread efficiently.",
+        "tags": "math, statistics, probability"
     },
     "nper": {
-        "desc": "Calculate the number of periodic payments needed based on initial, future values, interest rate, and payment intervals."
+        "desc": "Calculate the number of periodic payments needed based on initial, future values, interest rate, and payment intervals.",
+        "tags": "financial, investment, payment, finance"
     },
     "npv": {
-        "desc": "Calculate the Net Present Value (NPV) of future cashflows based on an interest rate."
+        "desc": "Calculate the Net Present Value (NPV) of future cashflows based on an interest rate.",
+        "tags": "financial, investment, cashflow, finance"
     },
     "pareq": {
-        "desc": "Generate parametric equations graphically with this calculator. Customize variables, constants, and labels easily."
+        "desc": "Generate parametric equations graphically with this calculator. Customize variables, constants, and labels easily.",
+        "tags": "chart, visualization, equation, graph"
     },
     "pareto_chart": {
-        "desc": "Create a Pareto chart to visualize data distribution by month. Display counts with a customizable title."
+        "desc": "Create a Pareto chart to visualize data distribution by month. Display counts with a customizable title.",
+        "tags": "chart, visualization"
     },
     "permute": {
-        "desc": "Calculate permutations of a list of values. Enter values and specify the number of items to permute. Display all permutations generated."
+        "desc": "Calculate permutations of a list of values. Enter values and specify the number of items to permute. Display all permutations generated.",
+        "tags": "math, permutation, combinatorics"
     },
     "pgsize": {
-        "desc": "Measure the size of web pages and assets. Analyze page load time. Get insights for website optimization."
+        "desc": "Measure the size of web pages and assets. Analyze page load time. Get insights for website optimization.",
+        "tags": "web, seo, text analytics, performance"
     },
     "pie2_chart": {
-        "desc": "Create a pie chart to visualize tabular data on month-wise temperature. Customize labels and values with percentage and shadow options."
+        "desc": "Create a pie chart to visualize tabular data on month-wise temperature. Customize labels and values with percentage and shadow options.",
+        "tags": "chart, visualization"
     },
     "pie_chart": {
-        "desc": "Create a pie chart to visualize data with labels and values. Customize appearance with options like percentage display and shadows."
+        "desc": "Create a pie chart to visualize data with labels and values. Customize appearance with options like percentage display and shadows.",
+        "tags": "chart, visualization"
     },
     "plaster": {
-        "desc": "Estimate Cement and Sand for Plaster work with ease. Get accurate quantities for your project quickly. Save time and resources."
+        "desc": "Estimate Cement and Sand for Plaster work with ease. Get accurate quantities for your project quickly. Save time and resources.",
+        "tags": "engineering, estimation, construction"
     },
     "portf": {
-        "desc": "Portfolio Optimization function calculates the optimal weights for a portfolio to achieve a target return. It uses historical data to allocate investments efficiently."
+        "desc": "Portfolio Optimization function calculates the optimal weights for a portfolio to achieve a target return. It uses historical data to allocate investments efficiently.",
+        "tags": "financial, investment, portfolio"
     },
     "ppmt": {
-        "desc": "Calculate the periodic payment and cash flow for a financial scenario. Determine the amount to be paid or received at regular intervals."
+        "desc": "Calculate the periodic payment and cash flow for a financial scenario. Determine the amount to be paid or received at regular intervals.",
+        "tags": "financial, investment, payment, finance"
     },
     "pref": {
-        "desc": "Customize calculator settings such as decimal formatting, chart appearance, and search options with qCalc Settings. Save preferences easily."
+        "desc": "Customize calculator settings such as decimal formatting, chart appearance, and search options with qCalc Settings. Save preferences easily.",
+        "tags": "user, utility, settings, preferences"
     },
     "pref2": {
-        "desc": "Customize your calculator with qCalc Settings. Set decimal places, currency format, chart options, and more. Save your preferences easily."
+        "desc": "Customize your calculator with qCalc Settings. Set decimal places, currency format, chart options, and more. Save your preferences easily.",
+        "tags": "settings, preferences"
     },
     "prjrank": {
-        "desc": "Calculate project ranking based on cashflow analysis using discount rate and cashflow intervals. Determine if projects are good, bad, or the best option."
+        "desc": "Calculate project ranking based on cashflow analysis using discount rate and cashflow intervals. Determine if projects are good, bad, or the best option.",
+        "tags": "business, financial, project ranking, finance"
     },
     "prsc": {
-        "desc": "A calculator demonstrating print output with a running sum. Displays demo results and ends after specified runs."
+        "desc": "A calculator demonstrating print output with a running sum. Displays demo results and ends after specified runs.",
+        "tags": "demo, print"
     },
     "purcost": {
-        "desc": "Calculate the total cost of purchasing items based on various factors like demand, transaction cost, and order quantity. Optimize your order quantity for cost efficiency."
+        "desc": "Calculate the total cost of purchasing items based on various factors like demand, transaction cost, and order quantity. Optimize your order quantity for cost efficiency.",
+        "tags": "business, inventory, supply chain, purchase cost"
     },
     "pv": {
-        "desc": "Calculate the present value of future cash and periodic payment based on specified parameters. Get accurate financial insights."
+        "desc": "Calculate the present value of future cash and periodic payment based on specified parameters. Get accurate financial insights.",
+        "tags": "financial, investment, present value"
     },
     "q2f": {
-        "desc": "Convert natural language queries into function calls like `conv(5, 'kilometers', 'miles')` for a unit converter application."
+        "desc": "Convert natural language queries into function calls like `conv(5, 'kilometers', 'miles')` for a unit converter application.",
+        "tags": "admin, utility, ai, natural language"
     },
     "qchat": {
-        "desc": "A chat function that uses AI to respond to your questions. Get instant answers."
+        "desc": "A chat function that uses AI to respond to your questions. Get instant answers.",
+        "tags": "admin, utility, ai, chatbot"
     },
     "qdraw": {
-        "desc": "Generate images from text using AI. Create visual content easily."
+        "desc": "Generate images from text using AI. Create visual content easily.",
+        "tags": "ai, image generation"
     },
     "qrange": {
-        "desc": "Generate quantities within a specified range and increment, with flexible units and rounding options. Display results in a table and chart."
+        "desc": "Generate quantities within a specified range and increment, with flexible units and rounding options. Display results in a table and chart.",
+        "tags": "utility, range, quantity"
     },
     "quadlat": {
-        "desc": "Calculate the area of a quadrilateral using sides, angles, or height. Get accurate results in your preferred units."
+        "desc": "Calculate the area of a quadrilateral using sides, angles, or height. Get accurate results in your preferred units.",
+        "tags": "math, geometry"
     },
     "quadrant_chart": {
-        "desc": "A versatile tool to visually represent data points in four categories on a chart. Find your data trends easily."
+        "desc": "A versatile tool to visually represent data points in four categories on a chart. Find your data trends easily.",
+        "tags": "chart, visualization"
     },
     "rates": {
-        "desc": "Calculate unit costs for items in a price schedule. Get accurate prices per unit for items like brick, sand, and cement."
+        "desc": "Calculate unit costs for items in a price schedule. Get accurate prices per unit for items like brick, sand, and cement.",
+        "tags": "utility, pricing, unit cost"
     },
     "rectland": {
-        "desc": "Calculate the area of a rectangular land by providing its length and width. Get accurate results in your preferred unit of measurement."
+        "desc": "Calculate the area of a rectangular land by providing its length and width. Get accurate results in your preferred unit of measurement.",
+        "tags": "engineering, surveying, geography, land"
     },
     "redo": {
-        "desc": "Calculate and display values based on a mathematical expression with variable input. Customize result and chart display."
+        "desc": "Calculate and display values based on a mathematical expression with variable input. Customize result and chart display.",
+        "tags": "sensitivity, parameter sweep, simulation, analysis"
     },
     "related": {
-        "desc": "Calculate Related: Get information based on country, state, city, and zip code selection. Explore data for specific locations."
+        "desc": "Calculate Related: Get information based on country, state, city, and zip code selection. Explore data for specific locations.",
+        "tags": "utility"
     },
     "scatter_chart": {
-        "desc": "A simple scatter chart calculator to visualize data points in a graph. Customize x and y values with labels and titles."
+        "desc": "A simple scatter chart calculator to visualize data points in a graph. Customize x and y values with labels and titles.",
+        "tags": "chart, visualization"
     },
     "sd_mesh": {
-        "desc": "Calculate source to destination mesh connections with customizable labels. Visualize the network for analysis."
+        "desc": "Calculate source to destination mesh connections with customizable labels. Visualize the network for analysis.",
+        "tags": "business, distribution, supply chain"
     },
     "seo_score": {
-        "desc": "Measure SEO Score of a web page by analyzing page elements like titles, headings, paragraphs, meta tags, images, links, and keyword density. Get detailed insights and recommendations for optimizing your web page."
+        "desc": "Measure SEO Score of a web page by analyzing page elements like titles, headings, paragraphs, meta tags, images, links, and keyword density. Get detailed insights and recommendations for optimizing your web page.",
+        "tags": "web, seo, text analytics"
     },
     "sh0": {
-        "desc": "A calculator that shows or hides values based on a condition. Show y, z, t if x is greater than 2; otherwise, hide y, z, t."
+        "desc": "A calculator that shows or hides values based on a condition. Show y, z, t if x is greater than 2; otherwise, hide y, z, t.",
+        "tags": "utility"
     },
     "sh1": {
-        "desc": "This calculator function shows or hides quantities based on a condition. Supports flexible units."
+        "desc": "This calculator function shows or hides quantities based on a condition. Supports flexible units.",
+        "tags": "utility"
     },
     "sh2": {
-        "desc": "This calculator function shows or hides values based on user input, improving clarity and organization."
+        "desc": "This calculator function shows or hides values based on user input, improving clarity and organization.",
+        "tags": "utility"
     },
     "sh3": {
-        "desc": "This calculator function shows or hides elements based on a condition."
+        "desc": "This calculator function shows or hides elements based on a condition.",
+        "tags": "utility"
     },
     "showhide": {
-        "desc": "This calculator function shows or hides values based on input. Toggle visibility with ease."
+        "desc": "This calculator function shows or hides values based on input. Toggle visibility with ease.",
+        "tags": "utility"
     },
     "showhide2": {
-        "desc": "This calculator function hides selected controls for ease of use. Input values can be customized."
+        "desc": "This calculator function hides selected controls for ease of use. Input values can be customized.",
+        "tags": "utility"
     },
     "sine": {
-        "desc": "Calculate the sine of an angle. Convert the angle to radians and return its sine value."
+        "desc": "Calculate the sine of an angle. Convert the angle to radians and return its sine value.",
+        "tags": "math, trigonometry"
     },
     "sleep_": {
-        "desc": "Calculate the combined length after a specified sleep time. Accurate results for any units."
+        "desc": "Calculate the combined length after a specified sleep time. Accurate results for any units.",
+        "tags": "utility"
     },
     "slist": {
-        "desc": "Convert a string of values separated by a specified character into a list and a table."
+        "desc": "Convert a string of values separated by a specified character into a list and a table.",
+        "tags": "utility"
     },
     "spiral": {
-        "desc": "Create a beautiful spiral curve with adjustable parameters for visualization. Explore different shapes and patterns effortlessly."
+        "desc": "Create a beautiful spiral curve with adjustable parameters for visualization. Explore different shapes and patterns effortlessly.",
+        "tags": "fun, math"
     },
     "stat": {
-        "desc": "Calculate various statistical measures like mean, median, mode, and standard deviation. Also supports weighted calculations."
+        "desc": "Calculate various statistical measures like mean, median, mode, and standard deviation. Also supports weighted calculations.",
+        "tags": "math"
     },
     "std_mesh": {
-        "desc": "Calculate and visualize connections between sources, transits, and destinations in a mesh network. Customize labels and edge styles."
+        "desc": "Calculate and visualize connections between sources, transits, and destinations in a mesh network. Customize labels and edge styles.",
+        "tags": "business, distribution, supply chain"
     },
     "surface3d_chart": {
-        "desc": "A calculator function that creates a 3D surface chart based on given values and expressions. Visualize data in a 3D space efficiently."
+        "desc": "A calculator function that creates a 3D surface chart based on given values and expressions. Visualize data in a 3D space efficiently.",
+        "tags": "chart, visualization"
     },
     "synonym": {
-        "desc": "This calculator finds the synonym of a given word. Discover alternative words easily."
+        "desc": "This calculator finds the synonym of a given word. Discover alternative words easily.",
+        "tags": "text, string"
     },
     "tanno": {
-        "desc": "This calculator function converts between different units of measurement."
+        "desc": "This calculator function converts between different units of measurement.",
+        "tags": "utility"
     },
     "tanno2": {
-        "desc": "Calculate and convert different units with Test Annotation (explicit) function. Customize units and quantities easily."
+        "desc": "Calculate and convert different units with Test Annotation (explicit) function. Customize units and quantities easily.",
+        "tags": "utility"
     },
     "tany2": {
-        "desc": "This calculator function allows you to determine any value based on given inputs."
+        "desc": "This calculator function allows you to determine any value based on given inputs.",
+        "tags": "utility"
     },
     "target_heart_rate": {
-        "desc": "Calculate your target heart rate based on your age, resting heart rate, and training intensity. Keep your heart healthy and stay fit."
+        "desc": "Calculate your target heart rate based on your age, resting heart rate, and training intensity. Keep your heart healthy and stay fit.",
+        "tags": "health, wellness, medical"
     },
     "tarr": {
-        "desc": "A calculator function that tests arrays by returning the array elements and their sum. Ideal for quick calculations."
+        "desc": "A calculator function that tests arrays by returning the array elements and their sum. Ideal for quick calculations.",
+        "tags": "utility"
     },
     "tarr2": {
-        "desc": "Calculate the sum of three arrays. Customize values for quick results."
+        "desc": "Calculate the sum of three arrays. Customize values for quick results.",
+        "tags": "utility"
     },
     "tcal2": {
-        "desc": "Combine areas from different shapes, calculate BMI and provide sunrise time."
+        "desc": "Combine areas from different shapes, calculate BMI and provide sunrise time.",
+        "tags": "utility"
     },
     "tdate": {
-        "desc": "This calculator function determines the time interval between two dates."
+        "desc": "This calculator function determines the time interval between two dates.",
+        "tags": "utility"
     },
     "tdict": {
-        "desc": "A flexible calculator that computes values based on user input. Supports various units of measurement."
+        "desc": "A flexible calculator that computes values based on user input. Supports various units of measurement.",
+        "tags": "utility"
     },
     "temp": {
-        "desc": "This calculator function helps manage temporary files. It can clear them and display their details efficiently."
+        "desc": "This calculator function helps manage temporary files. It can clear them and display their details efficiently.",
+        "tags": "user, utility"
     },
     "testfrm": {
-        "desc": "Calculate Testfrm function helps you perform various calculations with different parameters like velocity, weight, date, text, choice, and more."
+        "desc": "Calculate Testfrm function helps you perform various calculations with different parameters like velocity, weight, date, text, choice, and more.",
+        "tags": "utility"
     },
     "textcase": {
-        "desc": "Format text in various styles like title case, sentence case, lower case, upper case, camel case, or remove punctuations."
+        "desc": "Format text in various styles like title case, sentence case, lower case, upper case, camel case, or remove punctuations.",
+        "tags": "text, string"
     },
     "thide": {
-        "desc": "Calculate Thide function determines values based on input parameters. Calculate Thide can help you with your calculations."
+        "desc": "Calculate Thide function determines values based on input parameters. Calculate Thide can help you with your calculations.",
+        "tags": "utility"
     },
     "tinput": {
-        "desc": "A versatile calculator that accepts various types of inputs for calculations. Calculate with ease using different input formats."
+        "desc": "A versatile calculator that accepts various types of inputs for calculations. Calculate with ease using different input formats.",
+        "tags": "utility"
     },
     "tlay0": {
-        "desc": "A calculator function for test column layout without specific units of measurement. It takes four input values and returns them."
+        "desc": "A calculator function for test column layout without specific units of measurement. It takes four input values and returns them.",
+        "tags": "utility"
     },
     "tlay1": {
-        "desc": "A calculator function for test column layout with unit of measurement. Calculate values based on input parameters."
+        "desc": "A calculator function for test column layout with unit of measurement. Calculate values based on input parameters.",
+        "tags": "utility"
     },
     "tlay2": {
-        "desc": "This calculator function helps you calculate the layout of multiple elements in a column."
+        "desc": "This calculator function helps you calculate the layout of multiple elements in a column.",
+        "tags": "utility"
     },
     "tlay3": {
-        "desc": "This calculator function helps you layout multiple elements in a row for easy calculation."
+        "desc": "This calculator function helps you layout multiple elements in a row for easy calculation.",
+        "tags": "utility"
     },
     "tlay4": {
-        "desc": "This calculator function helps in testing layout by calculating values based on user input."
+        "desc": "This calculator function helps in testing layout by calculating values based on user input.",
+        "tags": "utility"
     },
     "trans": {
-        "desc": "Calculate Trans function transfers data from a source to a destination field."
+        "desc": "Calculate Trans function transfers data from a source to a destination field.",
+        "tags": "utility"
     },
     "transport_opt": {
-        "desc": "Optimize transportation from plant to customer with cost analysis for efficient delivery. Plan routes for maximum efficiency and cost savings."
+        "desc": "Optimize transportation from plant to customer with cost analysis for efficient delivery. Plan routes for maximum efficiency and cost savings.",
+        "tags": "business, distribution, supply chain"
     },
     "transship_opt": {
-        "desc": "Optimize the flow from Plant to Customer through Distribution Center. Visualize the network and solution."
+        "desc": "Optimize the flow from Plant to Customer through Distribution Center. Visualize the network and solution.",
+        "tags": "business, distribution, supply chain"
     },
     "triangle": {
-        "desc": "Calculate the area, sides, and angles of a triangle with this versatile calculator. Perfect for geometry enthusiasts."
+        "desc": "Calculate the area, sides, and angles of a triangle with this versatile calculator. Perfect for geometry enthusiasts.",
+        "tags": "math"
     },
     "tsel2": {
-        "desc": "Calculate the ratio of weight to length and pressure in different countries. Find the values based on specified activities."
+        "desc": "Calculate the ratio of weight to length and pressure in different countries. Find the values based on specified activities.",
+        "tags": "utility"
     },
     "tstany": {
-        "desc": "This calculator function allows you to input any values for x, y, z, and t to perform calculations."
+        "desc": "This calculator function allows you to input any values for x, y, z, and t to perform calculations.",
+        "tags": "utility"
     },
     "tstout": {
-        "desc": "Calculate Tstout: Get single, list, tuple, dict, pie chart, table, and code values for various calculations."
+        "desc": "Calculate Tstout: Get single, list, tuple, dict, pie chart, table, and code values for various calculations.",
+        "tags": "utility"
     },
     "ttable": {
-        "desc": "This calculator function allows you to test and analyze data efficiently. Customize inputs and get accurate results."
+        "desc": "This calculator function allows you to test and analyze data efficiently. Customize inputs and get accurate results.",
+        "tags": "utility"
     },
     "ttable2": {
-        "desc": "A versatile calculator function for testing different inputs and outputs, including tables and various data types."
+        "desc": "A versatile calculator function for testing different inputs and outputs, including tables and various data types.",
+        "tags": "utility"
     },
     "ttpref": {
-        "desc": "This function retrieves user preferences stored in thread local storage."
+        "desc": "This function retrieves user preferences stored in thread local storage.",
+        "tags": "utility"
     },
     "tuom": {
-        "desc": "This calculator function returns the unit of measurement for length. Flexible and customizable."
+        "desc": "This calculator function returns the unit of measurement for length. Flexible and customizable.",
+        "tags": "utility"
     },
     "umatrix": {
-        "desc": "Perform various operations on a matrix such as sum, transpose, determinant, or custom expression. Flexible and efficient matrix calculator."
+        "desc": "Perform various operations on a matrix such as sum, transpose, determinant, or custom expression. Flexible and efficient matrix calculator.",
+        "tags": "math"
     },
     "upcat": {
-        "desc": "Update multiple categories and products in the catalog efficiently with Mass Update Catalog. Flexible units supported."
+        "desc": "Update multiple categories and products in the catalog efficiently with Mass Update Catalog. Flexible units supported.",
+        "tags": "utility"
     },
     "upcur": {
-        "desc": "This function updates currency rates for a calculator. Keep track of the latest rates easily."
+        "desc": "This function updates currency rates for a calculator. Keep track of the latest rates easily.",
+        "tags": "admin, utility"
     },
     "vali": {
-        "desc": "This calculator function validates input fields for autofill, required, read, hidden, disabled, email, and values."
+        "desc": "This calculator function validates input fields for autofill, required, read, hidden, disabled, email, and values.",
+        "tags": "utility"
     },
     "volatility": {
-        "desc": "Calculate volatility and drift from historical values. Estimate future movements."
+        "desc": "Calculate volatility and drift from historical values. Estimate future movements.",
+        "tags": "math"
     },
     "water_intake": {
-        "desc": "Calculate your daily water intake based on your weight. Stay hydrated!"
+        "desc": "Calculate your daily water intake based on your weight. Stay hydrated!",
+        "tags": "health, wellness, medical"
     },
     "wchill": {
-        "desc": "Calculate wind chill and heat loss based on air temperature and wind speed. Ensure temperature is between -50 and +50 degrees and wind speed is at least 3 mph. Output the \"Feel Like\" temperature and \"Heat Loss\" in appropriate units."
+        "desc": "Calculate wind chill and heat loss based on air temperature and wind speed. Ensure temperature is between -50 and +50 degrees and wind speed is at least 3 mph. Output the \"Feel Like\" temperature and \"Heat Loss\" in appropriate units.",
+        "tags": "utility"
     },
     "word_cloud": {
-        "desc": "Generate a stunning word cloud from your text or URL with this tool. Visualize word frequency beautifully!"
+        "desc": "Generate a stunning word cloud from your text or URL with this tool. Visualize word frequency beautifully!",
+        "tags": "web, seo, text analytics"
     },
     "word_freq": {
-        "desc": "This calculator analyzes word frequency in a text or URL, showing top words and their occurrence percentages."
+        "desc": "This calculator analyzes word frequency in a text or URL, showing top words and their occurrence percentages.",
+        "tags": "web, seo, text analytics, nlp"
     },
     "xrange": {
-        "desc": "Calculate points within a specified range and step. Generate CSV, table, or chart output."
+        "desc": "Calculate points within a specified range and step. Generate CSV, table, or chart output.",
+        "tags": "utility"
     },
     "xtime": {
-        "desc": "Calculate the total and average execution time of a function. Measure the time taken for a specific number of runs."
+        "desc": "Calculate the total and average execution time of a function. Measure the time taken for a specific number of runs.",
+        "tags": "utility"
     },
     "xurls": {
-        "desc": "Extract all URLs from a webpage and provide counts and lists of internal and external URLs."
+        "desc": "Extract all URLs from a webpage and provide counts and lists of internal and external URLs.",
+        "tags": "web, seo, text analytics, links"
     },
     "zung": {
-        "desc": "Use the Zung Self-Rating Depression Calculator to determine your anxiety level. Get results ranging from normal to extreme anxiety."
+        "desc": "Use the Zung Self-Rating Depression Calculator to determine your anxiety level. Get results ranging from normal to extreme anxiety.",
+        "tags": "health, wellness, medical"
     },
     "aspect_ratio": {
-        "desc": "Aspect Ratio Calculator for images or videos. Simply input width and height to get the correct aspect ratio."
+        "desc": "Aspect Ratio Calculator for images or videos. Simply input width and height to get the correct aspect ratio.",
+        "tags": "photography, image"
     },
     "depth_of_field": {
-        "desc": "Calculate depth of field based on aperture, focal length, distance to subject, and image sensor size. Get near point, far point, and depth of field."
+        "desc": "Calculate depth of field based on aperture, focal length, distance to subject, and image sensor size. Get near point, far point, and depth of field.",
+        "tags": "photography, image"
     },
     "equivalent_focal_length": {
-        "desc": "Calculate the equivalent focal length by multiplying the focal length with the crop factor."
+        "desc": "Calculate the equivalent focal length by multiplying the focal length with the crop factor.",
+        "tags": "photography, image"
     },
     "exposure_value": {
-        "desc": "Calculate Exposure Value based on aperture, shutter speed, and ISO settings."
+        "desc": "Calculate Exposure Value based on aperture, shutter speed, and ISO settings.",
+        "tags": "photography, image"
     },
     "field_of_view": {
-        "desc": "Calculate the field of view using sensor size and focal length. Get the result in degrees."
+        "desc": "Calculate the field of view using sensor size and focal length. Get the result in degrees.",
+        "tags": "photography, image"
     },
     "hyperfocal_distance": {
-        "desc": "Calculate hyperfocal distance using focal length, aperture, and image sensor size."
+        "desc": "Calculate hyperfocal distance using focal length, aperture, and image sensor size.",
+        "tags": "photography, image"
     },
     "image_print_size": {
-        "desc": "Calculate the print size of an image based on its dimensions and DPI. Get the width and height of the print in inches."
+        "desc": "Calculate the print size of an image based on its dimensions and DPI. Get the width and height of the print in inches.",
+        "tags": "photography, image"
     },
     "image_resolution": {
-        "desc": "Calculate image resolution in megapixels based on width and height. Easy tool for photographers and designers."
+        "desc": "Calculate image resolution in megapixels based on width and height. Easy tool for photographers and designers.",
+        "tags": "photography, image"
     },
     "image_storage_required": {
-        "desc": "Calculate storage requirement for storing a certain number of images with specified dimensions and bit depth."
+        "desc": "Calculate storage requirement for storing a certain number of images with specified dimensions and bit depth.",
+        "tags": "photography, image"
     },
     "shutter_speed": {
-        "desc": "Calculate Shutter Speed: Determine the shutter speed based on focal length and crop factor."
+        "desc": "Calculate Shutter Speed: Determine the shutter speed based on focal length and crop factor.",
+        "tags": "photography, image"
     }
 }

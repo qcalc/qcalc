@@ -200,6 +200,100 @@ class QChart:
         if self.legend_labels and self.legend_loc != 'none': self.show_legend()
         self.fig2b64()
 
+    def _normalize_mark_points(self, mark):
+        if mark is None:
+            return []
+
+        if isinstance(mark, np.ndarray):
+            points = mark.tolist()
+        else:
+            points = list(mark)
+
+        if not points:
+            return []
+
+        first = points[0]
+        if isinstance(first, (int, float, np.integer, np.floating)):
+            return [points]
+
+        return [list(point) for point in points]
+
+    def _normalize_mark_labels(self, label, count):
+        if label is None:
+            return [None] * count
+
+        if isinstance(label, str):
+            labels = [label]
+        elif isinstance(label, np.ndarray):
+            labels = label.tolist()
+        elif isinstance(label, (list, tuple)):
+            labels = list(label)
+        else:
+            labels = [label]
+
+        if not labels:
+            return [None] * count
+
+        if len(labels) == 1 and count > 1:
+            labels = labels * count
+        elif len(labels) < count:
+            labels = labels + [labels[-1]] * (count - len(labels))
+
+        return labels[:count]
+
+    def _draw_mark(self, mark, label=None, show_axis_guides=True, color='red', size=60):
+        if self.fig is None or self.ax is None:
+            raise ValueError('Cannot mark a chart before rendering it')
+
+        if getattr(self.ax, 'name', '') == 'polar':
+            raise ValueError('Marking is not supported for polar charts')
+
+        points = self._normalize_mark_points(mark)
+        if not points:
+            return self
+
+        is_3d = self.projection == '3d'
+        labels = self._normalize_mark_labels(label, len(points))
+
+        for index, point in enumerate(points):
+            point_label = labels[index]
+
+            if is_3d:
+                if len(point) != 3:
+                    raise ValueError('Mark must contain exactly 3 values: x, y, z')
+                x_sol, y_sol, z_sol = point
+                self.ax.scatter([x_sol], [y_sol], [z_sol], color=color, s=size)
+                if point_label:
+                    self.ax.text(x_sol, y_sol, z_sol, f' {point_label}', color=color)
+                if show_axis_guides:
+                    z_min, _ = self.ax.get_zlim()
+                    self.ax.plot([x_sol, x_sol], [y_sol, y_sol], [z_min, z_sol], color=color, linestyle=':')
+                    self.ax.plot([x_sol, x_sol], [y_sol, self.ax.get_ylim()[0]], [z_min, z_min], color=color, linestyle=':')
+                    self.ax.plot([x_sol, self.ax.get_xlim()[0]], [y_sol, y_sol], [z_min, z_min], color=color, linestyle=':')
+            else:
+                if len(point) != 2:
+                    raise ValueError('Mark must contain exactly 2 values: x, y')
+                x_sol, y_sol = point
+                self.ax.scatter([x_sol], [y_sol], color=color, s=size)
+                if point_label:
+                    self.ax.annotate(
+                        f' {point_label}',
+                        xy=(x_sol, y_sol),
+                        xytext=(6, 6),
+                        textcoords='offset points',
+                        color=color,
+                    )
+                if show_axis_guides:
+                    self.ax.axvline(x=x_sol, color=color, linestyle=':', alpha=0.6)
+                    self.ax.axhline(y=y_sol, color=color, linestyle=':', alpha=0.6)
+
+    def mark(self, mark, label=None, show_axis_guides=True, color='red', size=60):
+        """Mark one or more points on the current chart and refresh the image."""
+        self._draw_mark(mark, label=label, show_axis_guides=show_axis_guides, color=color, size=size)
+        self.fig.canvas.draw_idle()
+        self.fig2b64()
+        return self
+
     def render_surface3d(self, xvals: list | None = None, yvals: list | None = None, zvals2d: list | None = None,
                          xlabel='x', ylabel='y', zlabel='z', title='z vs x,y', surface_type='Surface'):
         """Render a 3D surface plot."""

@@ -1,0 +1,27 @@
+{% load qfilter %}
+{% if block.kind == 'tabs' %}
+<ul class="nav nav-tabs layout-tabs" id="{{ block.id }}-{{ input.cid }}-tabs" role="tablist">
+  {% for tab in block.tabs %}
+  <li class="nav-item">
+    <a class="nav-link {% if forloop.first %}active{% endif %}" id="{{ tab.id }}-{{ input.cid }}-tab" data-toggle="tab" href="#{{ tab.id }}-{{ input.cid }}" role="tab" aria-controls="{{ tab.id }}-{{ input.cid }}" aria-selected="{% if forloop.first %}true{% else %}false{% endif %}">{{ tab.title }}</a>
+  </li>
+  {% endfor %}
+</ul>
+<div class="tab-content layout-tab-content" id="{{ block.id }}-{{ input.cid }}-content">
+  {% for tab in block.tabs %}
+  <div class="tab-pane fade {% if forloop.first %}show active{% endif %}" id="{{ tab.id }}-{{ input.cid }}" role="tabpanel" aria-labelledby="{{ tab.id }}-{{ input.cid }}-tab">
+    {% for field in form %}
+    {% if field.name|field_root in tab.fields %}
+    {% include field_include %}
+    {% endif %}
+    {% endfor %}
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+  {% for field in form %}
+  {% if field.name|field_root in block.fields %}
+  {% include field_include %}
+  {% endif %}
+  {% endfor %}
+{% endif %}

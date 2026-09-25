@@ -313,24 +313,78 @@ label.required::after {
   display: none;
 }
 
-.section-input1 {
+/* Dynamic layout tabs: slightly reduce tab label height. */
+.layout-tabs {
+  border-bottom: 1px solid #d7dde5;
+  margin-top: 5px;
+  margin-bottom: 0;
+}
+
+.layout-tabs .nav-item {
+  margin-bottom: -1px;
+  margin-right: 0;
+}
+
+.layout-tabs .nav-link {
+  padding-top: 6px;
+  padding-bottom: 6px;
+  line-height: 1.2;
+  border: 1px solid transparent;
+  margin-bottom: 0;
+  background-color: transparent;
+}
+
+.layout-tabs .nav-link:hover,
+.layout-tabs .nav-link:focus {
+  border-color: #e3e7ec #e3e7ec #d7dde5;
+}
+
+.layout-tabs .nav-link.active,
+.layout-tabs .nav-item.show .nav-link {
+  border-color: #d7dde5 #d7dde5 #fff;
+  background-color: #fff;
+}
+
+.layout-tab-content {
+  border: 1px solid #d7dde5;
+  border-top: 0;
+  background-color: #fff;
+  border-radius: 0 0 3px 3px;
+  margin-top: -1px;
+  padding: 0.45rem 0.7rem;
+}
+
+/* Output tabs: keep a visible top edge around the panel. */
+div.io.section-output1 .layout-tabs,
+div.io.section-output2 .layout-tabs {
+  border-bottom: 0;
+}
+
+div.io.section-output1 .layout-tab-content,
+div.io.section-output2 .layout-tab-content {
+  border-top: 1px solid #d7dde5;
+  border-radius: 3px;
+  margin-top: 0;
+}
+
+div.io.section-input1 {
   background-color: #e0e8f0;
 }
 
-.section-input2 {
+div.io.section-input2 {
   background-color: #e0e8f0;
-  min-width: 0; /* allow child tables to shrink within flex/grid containers */
+  min-width: 320px;
 }
 
-.section-output1 {
+div.io.section-output1 {
   background-color: #f5f3e7;
-  min-width: 0; /* allow child tables to shrink within flex/grid containers */
+  min-width: 320px;
   padding-right: 0.625rem;
   padding-left: 0.625rem;
 }
 
-.section-output2 {
-  min-width: 0; /* allow child tables to shrink within flex/grid containers */
+div.io.section-output2 {
+  min-width: 320px;
   background-color: #fdfaf4;
   padding-right: 0.625rem;
   padding-left: 0.625rem;

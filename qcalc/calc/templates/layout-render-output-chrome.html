@@ -1,0 +1,13 @@
+{% load qfilter %}
+{% if output.doc.message_only %}
+<div class="alert {% if output.doc.message_kind == 'error' %}alert-danger{% elif output.doc.message_kind == 'warning' %}alert-warning{% else %}alert-info{% endif %} mb-2" role="alert">
+	{{ output.doc.message_text }}
+</div>
+{% endif %}
+{% include 'layout-render-side.html' with side_plan=side_plan field_include='insert-calculator-section-output.html' form=output.form %}
+{% include 'insert-calculator-section-outbtns.html' %}
+<div id="status-{{ input.cid }}" class="status"></div>
+{% if output.doc.table_out or input.doc.info.table_out %}
+<script src="{% static_ver 'calc/js/tabulator-out.js' %}"></script>
+{% include 'insert-calculator-init-retry.html' with init_fn='qcalc_InitTabulatorOut' cid=input.cid %}
+{% endif %}

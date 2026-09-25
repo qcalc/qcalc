@@ -55,6 +55,7 @@ class qimage(QFile):  # file 2 MB
 
 
 # qCalc function field.
+# for specified layout use output name as: qfunc_result_filed1, qfunc_result_field2 ..
 class qfunc(str):  # qcalc function
     def __init__(self):
         pass
@@ -204,6 +205,7 @@ qlist_types = {
 
 
 # Fixed dictionary field whose items cannot be added or deleted.
+# for specified layout use output name as: name_key1, name_key2
 class qdict(dict):  # dynamic addition/deletion not possible
     pass
     # def __init__(self):
@@ -235,7 +237,7 @@ def as_qtable(value):
 
 
 # display output fields
-# Display output field containing a QCalc function result.
+# Display output field containing a QCalc function result
 class oqfunc(str):
     def __init__(self, _sfunc):
         pass

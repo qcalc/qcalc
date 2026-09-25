@@ -1,0 +1,140 @@
+{% load qfilter %}
+{% if 'form_top' in input.doc.info.inserts %}
+{{ input.doc.info.inserts.form_top | safe }}
+{% endif %}
+<div class="container-fluid">
+  {% if input.doc.info.layout == 'tb' %}
+  <div class="row">
+    <div class="col">
+      <div id="input-part-{{ input.cid }}" class="inpart">
+        {% include 'layout-render-form-chrome.html' with side_plan=layout_plan.input field_include='insert-calculator-section-input.html' %}
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col">
+      <div id="output-part-{{ input.cid }}" class="outpart">
+        {% if request.method == 'POST' or output.doc.message_only %}
+        {% include 'layout-render-output-chrome.html' with side_plan=layout_plan.output %}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="row">
+    <div class="col">
+      <div id="input-part-{{ input.cid }}" class="inpart">
+        {% include 'layout-render-form-chrome.html' with side_plan=layout_plan.input field_include='insert-calculator-section-input.html' %}
+      </div>
+    </div>
+    <div class="col">
+      <div id="output-part-{{ input.cid }}" class="outpart">
+        {% if request.method == 'POST' or output.doc.message_only %}
+        {% include 'layout-render-output-chrome.html' with side_plan=layout_plan.output %}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% isdebug as dbg %}
+{% if user.is_staff or dbg %}<!-- begin:insert-calculator-section-ioinfo -->
+{% load qfilter %}
+<button type="button" class="card-collapse collapsed btn btn-info btncmd mb-2" href="#io-{{ input.cid }}"
+        data-toggle="collapse" aria-label="io">I/O&nbsp;</button>
+<div class="collapse section-ioinfo" id="io-{{ input.cid }}">
+  <p><b>Technical Data</b>:</p>
+  <p>{% pretty_io request input.cid input.doc.info.name %}</p>
+  <p>Render Ends: <span id="renderends-{{ input.cid }}"></span><p>
+  <p><b>Template</b>: {{ input.doc.info.template }}</p>
+  <p><b>Process</b>: {% upinfo %}</p>
+</div>
+<!-- end:insert-calculator-section-ioinfo -->
+{% endif %}
+<!-- begin:insert-calculator-section-scripts -->
+{{ form.media }}
+
+{% if input.doc.info.qsel2 %}
+<script src="{% static_ver 'calc/js/qsel2.js' %}"></script>
+{% endif %}
+
+{% if input.doc.info.qlist %}
+<script src="{% static_ver 'calc/js/qlist.js' %}"></script>
+{% include 'insert-calculator-init-retry.html' with init_fn='qcalc_InitQlist' cid=input.cid %}
+{% endif %}
+
+{% if input.doc.info.autofill %}
+{% with input.cid|add:"_script_data_autofill" as script_sh_id %}
+{{ input.doc.info.autofill | json_script:script_sh_id }}
+{% endwith %}
+<script src="{% static_ver 'calc/js/seldata-autofill.js' %}"></script>
+{% include 'insert-calculator-init-retry.html' with init_fn='qcalc_InitAutofill' cid=input.cid %}
+{% endif %}
+
+{% if input.doc.info.related %}
+{% with input.cid|add:"_script_data_related" as script_sh_id %}
+{{ input.doc.info.related | json_script:script_sh_id }}
+{% endwith %}
+<script src="{% static_ver 'calc/js/seldata-related.js' %}"></script>
+{% include 'insert-calculator-init-retry.html' with init_fn='qcalc_InitRelated' cid=input.cid %}
+{% endif %}
+
+{% if input.doc.info.showhide %}
+{% with input.cid|add:"_script_data_showhide" as script_sh_id %}
+{{ input.doc.info.showhide | json_script:script_sh_id | safe }}
+{% endwith %}
+<script src="{% static_ver 'calc/js/chdata-showhide.js' %}"></script>
+{% include 'insert-calculator-init-retry.html' with init_fn='qcalc_InitShowhide' cid=input.cid %}
+{% endif %}
+
+{% if input.doc.info.anyof %}
+{% with input.cid|add:"_script_data_anyof" as script_sh_id %}
+{{ input.doc.info.anyof | json_script:script_sh_id | safe }}
+{% endwith %}
+<script src="{% static_ver 'calc/js/chdata-anyof.js' %}"></script>
+{% include 'insert-calculator-init-retry.html' with init_fn='qcalc_InitAnyof' cid=input.cid %}
+{% endif %}
+
+{% if input.doc.info.table_in %}
+<script src="{% static_ver 'calc/js/tabulator-in.js' %}"></script>
+{% include 'insert-calculator-init-retry.html' with init_fn='qcalc_InitTabulatorIn' cid=input.cid %}
+{% endif %}
+
+{% if output.doc.table_out or input.doc.info.table_out %}
+<script src="{% static_ver 'calc/js/tabulator-out.js' %}"></script>
+{% include 'insert-calculator-init-retry.html' with init_fn='qcalc_InitTabulatorOut' cid=input.cid %}
+{% endif %}
+
+{% if request.pref.interactive and input.doc.info.interactive %}
+<script src="{% static_ver 'calc/js/interactive.js' %}"></script>
+{% include 'insert-calculator-init-retry.html' with init_fn='qcalc_InitInteractive' cid=input.cid %}
+{% endif %}
+
+{% if 'out_bottom' in input.doc.info.inserts %}
+{{ input.doc.info.inserts.out_bottom | safe }}
+{% endif %}
+
+{% if input.doc.info.onsubmit != '' %}
+<script>
+$(document).ready(function(){
+  $('#form-{{ input.cid }}').on("submit", function(event){
+      _cid='{{ input.cid }}';
+      {{ input.doc.info.onsubmit | safe }}
+  });
+});
+</script>
+{% endif %}
+
+{% if input.doc.info.script != '' %}
+<script>
+  {{ input.doc.info.script | safe }}
+</script>
+{% endif %}
+
+<script>
+  $(document).ready(function() {
+    //console.log('doc ready from script', '{{ input.cid }}');
+    formReady('{{ input.cid }}');
+  });
+</script>

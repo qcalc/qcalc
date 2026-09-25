@@ -1,0 +1,8 @@
+{% load static %}
+{% include 'layout-render-images.html' with images=input.doc.info.images placement='top' %}
+{% include 'layout-render-side.html' with side_plan=side_plan field_include=field_include form=input.form %}
+{% include 'layout-render-images.html' with images=input.doc.info.images placement='bottom' %}
+<input type="hidden" name="cid" value="{{ input.cid }}">
+<input type="hidden" name="extra" value="{{ input.extra }}" id="extra_{{ input.cid }}">
+<input type="hidden" name="input_id" value="{{ request.input_id }}">
+{% include 'insert-calculator-section-inpbtns.html' %}

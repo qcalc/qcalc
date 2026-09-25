@@ -109,6 +109,10 @@ def field_root(value):
     """
     if not value:
         return value
+    if '--' in value: # qdict x--A -> x
+        return value.split('--')[0]
+    if re.search(r'_\d+$', value): # qlist x_1 -> x
+        return value.rsplit('_', 1)[0]
     return re.sub(r'_(?:\d+_)?part(?:_uom)?$|_uom$', '', value)
 
 

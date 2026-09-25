@@ -1,0 +1,23 @@
+{% load qfilter %}
+{% if side_plan.columns == 1 %}
+<div class="row">
+  <div class="col {{ side_plan.single_class }} io">
+  {% for block in side_plan.blocks %}
+    {% include 'layout-render-block.html' with block=block field_include=field_include form=form %}
+  {% endfor %}
+  </div>
+</div>
+{% else %}
+<div class="row">
+  <div class="col {{ side_plan.col1_class }} io">
+  {% for block in side_plan.column1 %}
+    {% include 'layout-render-block.html' with block=block field_include=field_include form=form %}
+  {% endfor %}
+  </div>
+  <div class="col {{ side_plan.col2_class }} io">
+  {% for block in side_plan.column2 %}
+    {% include 'layout-render-block.html' with block=block field_include=field_include form=form %}
+  {% endfor %}
+  </div>
+</div>
+{% endif %}

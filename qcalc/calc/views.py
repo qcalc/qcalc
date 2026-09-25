@@ -1,9 +1,10 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
-from tempfile import template
 
+from calc.templatetags.qfilter import field_root
 import qvars
-from qcore import qformat, df_formatter, QChart, QMap, QImage, qjson_dumps, step2_pack_value, step2_unpack_for_run, step2_unpack_for_cost
+from qcore import qformat, df_formatter, QChart, QMap, QImage, qjson_dumps, step2_pack_value, step2_unpack_for_run, \
+    step2_unpack_for_cost
 from calc import QTemp, QList, QIO, QFav
 from django.shortcuts import render
 from django.http import HttpResponse
@@ -13,10 +14,10 @@ from qvars import qfunc_dict_layout
 from qcore.mod_anno import *
 from .mod_ucals import get_uc_list
 from .view_form_data import *
+from .mod_layout_dynamic import has_dynamic_layout, build_layout_plan
 from qutil import HtmxHttpRequest, QThread, preprocess_expression, QDateTime, fid2owner, md2html, wrap_md_images
 import qutil as ut
 import json
-import re
 from datetime import date, datetime, time as dt_time
 import pandas as pd
 from qcore import isMeasureQuantity as isPQ
@@ -133,7 +134,9 @@ def q1999_func_to_form(request: HtmxHttpRequest, **dictf):  # main view
         )
         if request.method == 'POST' and not structural:
             template = request.json_doc['info'].get('template', '')
-            if template == '':
+            if template == 'dynamic':
+                template = 'layout-output-dynamic-section.html'
+            elif template == '':
                 template = 'layout-output-1-section.html'
             elif template in ['l2r', 'lr', 't2b', 'tb']:
                 template = 'layout-output-1-section.html'
@@ -561,6 +564,41 @@ def template_name(layout, inp1, out1):
     return template
 
 
+def _normalize_layout_blocks(blocks, spec_source):
+    if not isinstance(blocks, list):
+        return blocks
+
+    result = []
+
+    for block in blocks:
+        if not isinstance(block, dict):
+            continue
+
+        block = dict(block)
+
+        kind_value = block.get('kind')
+        if kind_value is None:
+            kind_value = 'tabs' if block.get('tabs') else 'fields'
+        kind = str(kind_value).strip().lower()
+
+        if kind == 'tabs':
+            block['kind'] = 'tabs'
+            block['tabs'] = [
+                {**tab, 'fields': ut.specified_args(spec_source, tab.get('fields', []))}
+                for tab in block.get('tabs', [])
+                if isinstance(tab, dict)
+            ]
+        else:
+            block['kind'] = 'fields'
+            block['fields'] = ut.specified_args(
+                spec_source, block.get('fields', [])
+            )
+
+        result.append(block)
+
+    return result
+
+
 def q1141_read_func_meta(func_id, __info=None, scope='qpots'):  # __info__
     json_doc = {}
     json_doc['help'] = 'y' if get_help_path(func_id).exists() else 'nohelp.html'  # internal
@@ -583,13 +621,17 @@ def q1141_read_func_meta(func_id, __info=None, scope='qpots'):  # __info__
         # v4.21 {"arg1":{"fields":['shf1','shf2',...], "callback":'fname' or '@ condn' or not mentioned/'' },...}
         'anyof': {},  # v4.21 {"1":{"fields":['aof1','aof2',...]},...}
         # visual aids
-        'images': {},  # {'top':['img1',...],'bottom':['img1',...],'left':['img1',...],'right':['img1',...]}
+        'images': {},  # {'top':['img1',...],'bottom':['img1',...],left and right not supported}
         # layout
         'row': [],  # ['arg1-argN',...] #legacy
         'col': [],  # number or ['arg1-argN',...] # legacy
         'layout': 'lr',  # 'lr' or 'tb'
         'inp1': '*',  # array or css string, parameter filtering
         'out1': '*',  # array or css string, parameter filtering
+        'input_columns': None,  # 1 or 2, used by dynamic renderer
+        'output_columns': None,  # 1 or 2, used by dynamic renderer
+        'input_blocks': [],  # ordered block layout for input side
+        'output_blocks': [],  # ordered block layout for output side
         # 'outcol': '',  # array or css string, legacy
         'template': 'lr',  # internal
         # extra front end logic
@@ -635,6 +677,10 @@ def q1141_read_func_meta(func_id, __info=None, scope='qpots'):  # __info__
         'layout',
         'inp1',
         'out1',
+        'input_columns',
+        'output_columns',
+        'input_blocks',
+        'output_blocks',
         # 'outcol',  # legacy
         # 'template', # internal
         'onsubmit',
@@ -658,17 +704,17 @@ def q1141_read_func_meta(func_id, __info=None, scope='qpots'):  # __info__
 
     if json_doc['info']['layout'] not in ['lr', 'tb']:
         json_doc['info']['layout'] = 'lr'
-    json_doc['info']['template'] = template_name(
-        json_doc['info']['layout'], json_doc['info']['inp1'], json_doc['info']['out1'])
+
+    if has_dynamic_layout(json_doc['info']):
+        json_doc['info']['template'] = 'dynamic'
+    else:
+        json_doc['info']['template'] = template_name(
+            json_doc['info']['layout'], json_doc['info']['inp1'], json_doc['info']['out1'])
 
     if 'images' in func_info:
         images = func_info['images']
         if 'top' in images:
             json_doc['info']['images']['top'] = images['top']
-        if 'left' in images:
-            json_doc['info']['images']['left'] = images['left']
-        if 'right' in images:
-            json_doc['info']['images']['right'] = images['right']
         if 'bottom' in images:
             json_doc['info']['images']['bottom'] = images['bottom']
 
@@ -739,6 +785,11 @@ def q1149_func_to_form_context(request: HtmxHttpRequest, func_id, cid, kwargs):
     #     kwargs.update({'__info': __info})
     request.json_doc = q1141_read_func_meta(func_id, __info)
     request.json_doc['info']['inp1'] = ut.specified_args(func_addr, request.json_doc['info']['inp1'])
+    request.json_doc['info']['input_blocks'] = _normalize_layout_blocks(
+        request.json_doc['info'].get('input_blocks', []),
+        func_addr,
+    )
+    # print('|', request.json_doc['info']['input_blocks'])
     q11429_func_to_form_schema(request, func_addr, func_id, cid, kwargs)
     request.context['input'] = q11469_form_data_create_dynaform_and_fill(
         request, request.json_schema, request.json_data, request.json_s2f,
@@ -777,6 +828,16 @@ def q1149_func_to_form_context(request: HtmxHttpRequest, func_id, cid, kwargs):
     request.context['output'] = q11469_form_data_create_dynaform_and_fill(
         request, request.ojson_schema, request.ojson_data, None,
         request.ojson_doc, cid, 1)  # data, form, doc[table|chart]
+    if request.json_doc['info'].get('template') == 'dynamic':
+        input_ctx = request.context['input']
+        output_ctx = request.context['output']
+        input_form = input_ctx.get('form') if isinstance(input_ctx, dict) else getattr(input_ctx, 'form', None)
+        output_form = output_ctx.get('form') if isinstance(output_ctx, dict) else getattr(output_ctx, 'form', None)
+        request.context['layout_plan'] = build_layout_plan(
+            request.json_doc['info'],
+            input_form,
+            output_form,
+        )
     input_id = request.input_id
     request.context['func_id'] = func_id
     request.context['input_id'] = input_id
@@ -832,9 +893,48 @@ def q1145_result_to_form_schema(request: HtmxHttpRequest, func_id, cid, result, 
         'var_owner': request.var_owner,
         'variant': request.variant,
         'token': request.token,
+        'message_text': '',
+        'message_kind': '',
+        'message_only': False,
     }  # doc for form
     request.ojson_data_type = []
     request.ojson_keep_dumps = qjson_dumps(keep_format(result)) if func_id != 'collect' else {}
+
+    def classify_outcome_message(cmd, success, value):
+        if not isinstance(value, str):
+            return False, '', ''
+
+        txt = value.strip()
+        if txt == '':
+            return False, '', ''
+
+        # Explicit error/warning signatures from execution pipeline.
+        if txt.startswith('Error ('):
+            return True, 'error', txt
+        if txt.startswith('Warning (') or txt.startswith('Warn ('):
+            return True, 'warning', txt
+
+        # Non-calculate commands (save/load/display/etc.) are informational outcomes.
+        if cmd not in ['', 'run']:
+            return True, 'info' if success else 'error', txt
+
+        # For calculate/run, string results are treated as output values by default,
+        # unless already identified as explicit errors/warnings above.
+        return False, '', ''
+
+    is_message_only, message_kind, message_text = classify_outcome_message(
+        request.cmd,
+        request.success,
+        result,
+    )
+    if is_message_only:
+        request.ojson_doc['message_only'] = True
+        request.ojson_doc['message_kind'] = message_kind
+        request.ojson_doc['message_text'] = message_text
+        # For message-only outcomes, bypass output blocks entirely and render one status box.
+        request.json_doc['info']['output_blocks'] = []
+        request.json_doc['info']['out1'] = '*'
+        return
 
     def rs_item(request, arg_name, value):
         request.ojson_d4f[arg_name] = value
@@ -1006,7 +1106,9 @@ def q1145_result_to_form_schema(request: HtmxHttpRequest, func_id, cid, result, 
         logical_result_list = []
         seen_roots = set()
         for name in result_list:
-            root = re.sub(r'_(?:\d+_)?part(?:_uom)?$|_uom$', '', name)
+            # root = re.sub(r'_(?:\d+_)?part(?:_uom)?$|_uom$', '', name)
+            root = field_root(name)
+            # print('|', name, root)
             if root not in seen_roots:
                 logical_result_list.append(root)
                 seen_roots.add(root)
@@ -1016,7 +1118,10 @@ def q1145_result_to_form_schema(request: HtmxHttpRequest, func_id, cid, result, 
         # print('|', logical_result_list)
         # print('|', specified_labels)
         request.json_doc['info']['out1'] = specified_labels
-
+        request.json_doc['info']['output_blocks'] = _normalize_layout_blocks(
+            request.json_doc['info'].get('output_blocks', []),
+            logical_result_list,
+        )
     except Exception as e:
         logger.note(e)
     return

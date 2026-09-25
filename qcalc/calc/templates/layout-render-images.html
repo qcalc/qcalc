@@ -1,0 +1,15 @@
+{% load static %}
+{% if placement == 'top' and 'top' in images %}
+<div class="section-top">
+  {% for image in images.top %}
+  <p><img class="image" src="{% static image %}"></p>
+  {% endfor %}
+</div>
+{% endif %}
+{% if placement == 'bottom' and 'bottom' in images %}
+<div class="section-bottom">
+  {% for image in images.bottom %}
+  <p><img class="image" src="{% static image %}"></p>
+  {% endfor %}
+</div>
+{% endif %}

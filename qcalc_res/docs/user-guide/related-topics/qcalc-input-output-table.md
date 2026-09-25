@@ -4,8 +4,9 @@
   * [1. What these two tables are](#1-what-these-two-tables-are)
   * [2. Input table basics](#2-input-table-basics)
     * [2.1 Enter data in cells](#21-enter-data-in-cells)
-    * [2.2 Save/apply edited table data](#22-saveapply-edited-table-data)
-    * [2.3 Switch between Edit and Display mode](#23-switch-between-edit-and-display-mode)
+    * [2.2 Keyboard and mouse behavior in Edit mode](#22-keyboard-and-mouse-behavior-in-edit-mode)
+    * [2.3 Save/apply edited table data](#23-saveapply-edited-table-data)
+    * [2.4 Switch between Edit and Display mode](#24-switch-between-edit-and-display-mode)
   * [3. Change column header names](#3-change-column-header-names)
   * [4. Input table context menu](#4-input-table-context-menu)
     * [4.1 Actions available in Edit mode](#41-actions-available-in-edit-mode)
@@ -49,14 +50,33 @@ Both tables use page-based viewing with local pagination.
 
 When you change a cell, the Update button becomes enabled.
 
-### 2.2 Save/apply edited table data
+### 2.2 Keyboard and mouse behavior in Edit mode
+
+The input table uses spreadsheet-style movement in Edit mode.
+
+Keyboard:
+- Tab: move to next cell
+- Shift + Tab: move to previous cell
+- Enter: move to next row in the same column; at the bottom row, move to the top cell of the next column
+- Shift + Enter: move to previous row in the same column
+- Typing in an active cell editor replaces the full selected value
+
+Mouse:
+- Click a cell to start editing
+- Double-click inside the editor to select the full cell value
+
+Notes:
+- These keys and mouse actions apply local cell edits only.
+- Final apply/save is still done by clicking Update.
+
+### 2.3 Save/apply edited table data
 
 1. Edit one or more cells.
 2. Click Update.
 
 Use Update after cell edits, row changes, or header title changes.
 
-### 2.3 Switch between Edit and Display mode
+### 2.4 Switch between Edit and Display mode
 
 - Click the Edit or Display button below the table.
 - In Edit mode:
@@ -134,16 +154,19 @@ Behavior:
 ## 7. Limits for rows and columns
 
 Current enforced resize limits:
+
 - Maximum columns: 125
 - Maximum total cells: 50,000
 - Maximum total rows = floor(50,000 / columns)
 
 Examples:
+
 - columns = 5 -> max rows = 10,000
 - columns = 10 -> max rows = 5,000
 - columns = 125 -> max rows = 400
 
 Important behavior note:
+
 - Resize operations are capped by the formula above.
 - CSV import can load larger datasets than this limit.
 
@@ -222,7 +245,7 @@ Use this in both input (especially Display mode) and output tables.
 
 ## 13. Quick reference
 
-- Edit data: Edit mode -> click cell -> type -> click [Update]
+- Edit data: Edit mode -> click cell -> type -> press [Tab]/[Enter] to move -> click [Update]
 - Rename header: Edit mode -> click header title -> type -> click [Update]
 - Resize: set Row and Col -> click [Resize]
 - Row menu: right-click row

@@ -13,10 +13,22 @@ MAX_EXECUTION_TIMEOUT = 900
 
 
 def pref__info():
+    general_options = 'theme, interactive, defa_currency, memory, strict_*, execution_timeout'
+    number_options = 'ignore_decimal_format, decimal, *_decimal, thousands_separator, exponent_*'
+    chart_options = 'chart_*'
+    pane1 = {'title': 'General', 'fields': general_options}
+    pane2 = {'title': 'Number', 'fields': number_options}
+    pane3 = {'title': 'Chart', 'fields': chart_options}
+    input_blocks = [
+        {
+            'column': 1,
+            'tabs': [pane1, pane2, pane3],
+        }
+    ]
     return {
         'title': 'User Preferences',
         'schema': {
-            'request': {'attrs': {'readonly': True}},
+            # 'request': {'attrs': {'readonly': True}},
             'theme': list2options(StdList.theme_list, initial="default"),  # {'type': 'choice', 'choices': theme_list},
             'decimal': {'attrs': {'max': '16', 'min': '2'}},
             'qty_decimal': {'attrs': {'max': '16', 'min': '2'}},
@@ -35,7 +47,8 @@ def pref__info():
         },
         'calculate': 'Save',
         'layout': 'tb',
-        'inp1': 0.5,
+        'input_columns': 1,
+        'input_blocks': input_blocks,
         'script':
             """
 $(document).ready(function() {
@@ -139,9 +152,9 @@ def pref(  # pref-03
 def mem__info():
     return {
         'title': 'User Memory',
-        'schema': {
-            'request': {'attrs': {'readonly': True}},
-        },
+        # 'schema': {
+        #     'request': {'attrs': {'readonly': True}},
+        # },
         'calculate': 'Show'
     }
 

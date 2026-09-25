@@ -1,9 +1,13 @@
-# Configure Layout in `__info()`
+# Configure Simple Split Layout in `__info()`
 
-This guide explains how to control calculator page layout from the metadata function `<name>__info()`.
+Use this page for the classic split layout keys (`layout`, `inp1`, `out1`).
+
+For dynamic block and tab layout (`input_blocks`, `output_blocks`, `input_columns`, `output_columns`), see `info-dynamic-layout.md`.
+
+This guide explains how to control calculator page layout from the metadata function `<name>__info()` using simple split layout keys.
 
 QCalc can have 1 or 2 input sections, as well as 1 or 2 output sections.
-Layout is controlled by a combination of keys:
+Simple split layout is controlled by a combination of keys:
 
 - `layout`: overall page direction, left-input right-output (`lr`) or top-input bottom-output (`tb`)
 - `inp1`: Keep selected inputs to section 1, rest to section 2

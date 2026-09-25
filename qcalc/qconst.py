@@ -4,7 +4,7 @@
 # COMBINE_FINF = {dict,   dict,       dict,      dict,       dict,    list,      dict,    value}
 COMBINE_FINF = {'schema', 'autofill', 'related', 'showhide', 'anyof', 'fargs', 'script'}
 KNOWN_METAS = ['__info', '__input', '__modify', '__command', '__help']
-QCALC_LAYOUTS = ['l2r', 'l2r2', 'lr', 'lr2', 't2b', 't2b2', 'tb', 'tb2']
+QCALC_LAYOUTS = ['l2r', 'l2r2', 'lr', 'lr2', 't2b', 't2b2', 'tb', 'tb2'] # not used
 CODE_TAB = 4
 
 # Field/component suffix tokens used in generated names/ids.

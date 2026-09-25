@@ -288,6 +288,142 @@
         });
     }
 
+    function selectWholeEditorValue(editor) {
+        if (!editor) {
+            return;
+        }
+        if (typeof editor.focus === "function") {
+            editor.focus();
+        }
+        if (typeof editor.select === "function") {
+            editor.select();
+        }
+    }
+
+    function findActiveCellEditor(cell) {
+        const cellElem = cell && cell.getElement ? cell.getElement() : null;
+        if (!cellElem) {
+            return null;
+        }
+        const inCell = cellElem.querySelector("input, textarea");
+        if (inCell) {
+            return inCell;
+        }
+        const active = document.activeElement;
+        if (active && active.matches && active.matches("input, textarea") && cellElem.contains(active)) {
+            return active;
+        }
+        return null;
+    }
+
+    function nextColumnTopCell(cell) {
+        const table = cell && cell.getTable ? cell.getTable() : null;
+        const currentColumn = cell && cell.getColumn ? cell.getColumn() : null;
+        if (!table || !currentColumn || typeof currentColumn.getField !== "function") {
+            return null;
+        }
+
+        const rows = table.getRows("active");
+        if (!rows || rows.length === 0) {
+            return null;
+        }
+
+        const cols = table.getColumns().filter(function(col) {
+            return col && typeof col.getField === "function" && !!col.getField();
+        });
+        const curField = currentColumn.getField();
+        const curIdx = cols.findIndex(function(col) {
+            return col.getField() === curField;
+        });
+        if (curIdx < 0 || curIdx + 1 >= cols.length) {
+            return null;
+        }
+
+        const nextField = cols[curIdx + 1].getField();
+        return rows[0].getCell(nextField);
+    }
+
+    function bindEditorKeyBehavior(cell, editor) {
+        if (!editor || editor.dataset.qcalcEditorBehaviorBound === "1") {
+            return;
+        }
+
+        editor.addEventListener("keydown", function(evt) {
+            if (evt.key !== "Enter") {
+                return;
+            }
+
+            // Keep Enter inside the table editor flow; do not submit outer form.
+            evt.preventDefault();
+            evt.stopPropagation();
+
+            requestAnimationFrame(function() {
+                let movedCell = null;
+                if (evt.shiftKey) {
+                    if (typeof cell.navigateUp === "function") {
+                        movedCell = cell.navigateUp();
+                    } else if (typeof cell.navigatePrev === "function") {
+                        movedCell = cell.navigatePrev();
+                    }
+                } else {
+                    if (typeof cell.navigateDown === "function") {
+                        movedCell = cell.navigateDown();
+                    } else if (typeof cell.navigateNext === "function") {
+                        movedCell = cell.navigateNext();
+                    }
+                    if (!movedCell) {
+                        movedCell = nextColumnTopCell(cell);
+                    }
+                }
+
+                requestAnimationFrame(function() {
+                    const active = document.activeElement;
+                    if (active && active.matches && active.matches("input, textarea")) {
+                        selectWholeEditorValue(active);
+                        return;
+                    }
+
+                    // If navigation did not leave an active editor, reopen editing
+                    // on the navigated cell (or current one) to avoid a dead-focus state.
+                    const targetCell = movedCell && typeof movedCell.edit === "function"
+                        ? movedCell
+                        : cell;
+                    if (targetCell && typeof targetCell.edit === "function") {
+                        targetCell.edit(true);
+                        requestAnimationFrame(function() {
+                            const targetEditor = findActiveCellEditor(targetCell);
+                            if (targetEditor) {
+                                selectWholeEditorValue(targetEditor);
+                            }
+                        });
+                    }
+                });
+            });
+        });
+
+        editor.addEventListener("dblclick", function() {
+            requestAnimationFrame(function() {
+                selectWholeEditorValue(editor);
+            });
+        });
+
+        editor.dataset.qcalcEditorBehaviorBound = "1";
+    }
+
+    function primeCellEditorBehavior(cell, attempt) {
+        const editor = findActiveCellEditor(cell);
+        if (editor) {
+            bindEditorKeyBehavior(cell, editor);
+            selectWholeEditorValue(editor);
+            return;
+        }
+        if (attempt < 3) {
+            setTimeout(function() {
+                primeCellEditorBehavior(cell, attempt + 1);
+            }, 0);
+        }
+    }
+
     // A resize submit stages its intended shape on the table element; packData
     // honors it over the (possibly already re-rendered) row/col inputs and
     // clears it once consumed. This is the single source of truth for a staged
@@ -560,12 +696,19 @@
         });
 
         setUpdateButtonEnabled(tableId, false);
+
         dataTable.on("cellEdited", function() {
             setUpdateButtonEnabled(tableId, true);
         });
+
+        dataTable.on("cellEditing", function(cell) {
+            primeCellEditorBehavior(cell, 0);
+        });
+
         dataTable.on("rowAdded", function() {
             setUpdateButtonEnabled(tableId, true);
         });
+
         dataTable.on("rowDeleted", function() {
             setUpdateButtonEnabled(tableId, true);
         });

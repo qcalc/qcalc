@@ -18,9 +18,9 @@
     * [4.3 `showhide`: Reveal inputs only when needed](#43-showhide-reveal-inputs-only-when-needed)
     * [4.4 `anyof`: Alternative ways to provide one value](#44-anyof-alternative-ways-to-provide-one-value)
   * [5. Layout Keys](#5-layout-keys)
-    * [5.1 `row`](#51-row)
-    * [5.2 `col`](#52-col)
-    * [5.3 `outcol`](#53-outcol)
+        * [5.1 Preferred dynamic layout keys](#51-preferred-dynamic-layout-keys)
+        * [5.2 Simple split layout keys](#52-simple-split-layout-keys)
+        * [5.3 Legacy compatibility keys: `row`, `col`, `outcol`](#53-legacy-compatibility-keys-row-col-outcol)
   * [6. Follow-up Actions and Discovery](#6-follow-up-actions-and-discovery)
     * [6.1 `step2`](#61-step2)
     * [6.2 `kins` and `tags`](#62-kins-and-tags)
@@ -77,9 +77,16 @@ Following table lists down the optional elements or info keys of a metadata func
 | `showhide` | dict | Show or hide inputs when another input changes. |
 | `anyof` | dict | Keep only one value in each group of alternative inputs. |
 | `images` | dict | Place images around the calculator. |
-| `row` | list | Put named inputs on the same row. |
-| `col` | list or integer | Start input columns. |
-| `outcol` | list or string | Put selected output values in a second output column. |
+| `layout` | string | Overall page direction: lr or tb. |
+| `inp1` | list or string | Simple split-input selector for section 1. |
+| `out1` | list or string | Simple split-output selector for section 1. |
+| `input_columns` | integer | Dynamic layout input column count (1 or 2). |
+| `output_columns` | integer | Dynamic layout output column count (1 or 2). |
+| `input_blocks` | list | Dynamic input block and tab layout spec. |
+| `output_blocks` | list | Dynamic output block and tab layout spec. |
+| `row` | list | Legacy key. Put named inputs on the same row. |
+| `col` | list or integer | Legacy key. Start input columns. |
+| `outcol` | list or string | Legacy key. Secondary output column selector. |
 | `step2` | list | Offer a follow-up calculator or action after a successful result. |
 | `kins` | comma-separated string | Related calculators displayed in the Related section. |
 | `tags` | comma-separated string | Search and catalog tags. |
@@ -390,7 +397,46 @@ Suppose you want to calculate the area of a circle by providing either the radiu
 
 qCalc normally displays inputs in one column. Use layout options to change this.
 
-### 5.1 `row`
+For new calculators, use dynamic layout keys described below. For the classic split model, use `layout` with `inp1` and `out1`.
+
+See also:
+
+- `related-topics/info-dynamic-layout.md` (preferred for new calculators)
+- `related-topics/info-specify-layout.md` (simple split layout)
+
+### 5.1 Preferred dynamic layout keys
+
+```python
+'layout': 'tb',
+'input_columns': 1,
+'input_blocks': [
+    {
+        'column': 1,
+        'tabs': [
+            {'title': 'General', 'fields': ['x', 'y']},
+            {'title': 'Advanced', 'fields': ['strict_*']},
+        ],
+    },
+],
+```
+
+Dynamic layout lets you mix plain field blocks and tab blocks and place them by column.
+
+### 5.2 Simple split layout keys
+
+```python
+'layout': 'tb',
+'inp1': ['x-y'],
+'out1': ['Sum'],
+```
+
+This model creates up to two sections by filtering fields into section 1 and placing remaining fields in section 2.
+
+### 5.3 Legacy compatibility keys: `row`, `col`, `outcol`
+
+The following keys are retained for compatibility and older templates. Avoid them for new calculators.
+
+#### `row`
 
 `row` groups fields on the same row. Join field names (from one field to another in parameter list) with hyphens:
 
@@ -400,7 +446,7 @@ qCalc normally displays inputs in one column. Use layout options to change this.
 'row': ['width-height', 'coverage-tin_size']
 ```
 
-### 5.2 `col`
+#### `col`
 
 `col` starts new input columns. It accepts an integer count or field group specifications:
 
@@ -417,7 +463,7 @@ qCalc normally displays inputs in one column. Use layout options to change this.
 * A single-column layout (default) is recommended, as it allows multiple calculators to fit on the screen.
 
 
-### 5.3 `outcol`
+#### `outcol`
 
 ```python
 # Complete example, you can copy/paste to create in front end

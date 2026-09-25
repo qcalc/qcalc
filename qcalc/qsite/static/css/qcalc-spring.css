@@ -318,6 +318,7 @@ label.required::after {
 .layout-tabs .nav-link {
   padding-top: 6px;
   padding-bottom: 6px;
+  font-weight: 500;
   line-height: 1.2;
   border: 1px solid transparent;
   margin-bottom: 0;

@@ -179,13 +179,17 @@ def sample_calc(value: qtexta = "42/7", unit: quomx = "ft", rows: qtable = pd.Da
 
 `__info()` returns a dictionary used to build form behavior and rendering.
 
-[Important keys include:
+Important keys include:
 - `title`, `desc`, `calculate`
 - `schema`: per-field properties (type, choices, attrs, validators, help_text, etc.)
 - `autofill`, `related`, `showhide`, `anyof`
-- Layout keys: `row`, `col`, `outcol`
+- Layout keys: `layout`, `inp1`, `out1`, `input_columns`, `output_columns`, `input_blocks`, `output_blocks`
 - Frontend keys: `script`, `onsubmit`, `inserts`
-- Flow keys: `step2`, `xpr`, `url`, `loop`, `cost`]()
+- Flow keys: `step2`, `xpr`, `url`, `loop`, `cost`
+
+For layout details, see:
+- `related-topics/info-dynamic-layout.md` for preferred dynamic block/tab layout.
+- `related-topics/info-specify-layout.md` for simple split layout (`inp1`/`out1`).
 
 
 ### 5.2 Dynamic `__info`
@@ -280,7 +284,8 @@ Use demo calculators as references under `../../../qcalc/calculators/all/demo`:
 - `dem_validate.py`: validators, required/readonly/disabled, autofill
 - `dem_showhide.py`: conditional visibility via `showhide` and `script`
 - `dem_related.py`: dependent fields via `related`, `autofill`, and `anyof`
-- `dem_test_layout.py`: row/column layout behavior
+- `dem_layout.py`: dynamic block and tab layout behavior
+- `dem_test_layout.py`: legacy row/column layout behavior
 
 Also inspect production calculators for real Qty patterns, for example:
 - `all/science/physics/cal_gas_law.py`
@@ -298,10 +303,21 @@ def mycalc__info(__info=None):
         "title": "My Calculator",
         "desc": "Describe what it computes",
         "calculate": "Calculate",
+        "layout": "tb",
         "schema": {
             "x": {"help_text": "Input quantity"},
             "mode": {"type": "choice", "choices": ["A", "B"]},
         },
+        "input_columns": 1,
+        "input_blocks": [
+            {
+                "column": 1,
+                "tabs": [
+                    {"title": "Main", "fields": ["x", "mode", "y"]},
+                    {"title": "Notes", "fields": ["notes"]},
+                ],
+            }
+        ],
         "showhide": {
             "mode": {"fields": ["y"], "callback": "toggle_y"}
         },
@@ -310,8 +326,6 @@ def mycalc__info(__info=None):
           return [v == 'A']
         }
         """,
-        "row": ["x-mode", "y"],
-        "outcol": ["result"],
     }
 
 

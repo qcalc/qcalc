@@ -9,6 +9,7 @@ import json
 from .mod_mfunc import *
 import pandas as pd
 from qvars import qc_gpref as gs
+from qconst import TOK_UOM, TOK_PART_UOM, TOK_ID_PREFIX, TOK_FIELD_SEP
 from django.conf import settings
 from django.forms import forms
 from django.http import JsonResponse
@@ -71,7 +72,7 @@ def q11429_func_to_form_schema(request: HtmxHttpRequest, func_addr, func_id, cid
 
     q11421_get_extra_form_data_posted(request)
 
-    id_prefix = 'id_' + cid + '_'
+    id_prefix = f'{TOK_ID_PREFIX}{cid}{TOK_FIELD_SEP}'
     i = 0  # | field, can be greater than arguement
     iarg = 0  # | arguement
     for arg_name, arg_value in fargs.items():
@@ -165,16 +166,16 @@ def q11429_func_to_form_schema(request: HtmxHttpRequest, func_addr, func_id, cid
                 child_name = child_meta.get('name')
                 if not child_name or child_name == parent_name:
                     continue
-                if child_name.startswith(parent_name + '_') and ('_uom' in child_name or '_part_uom' in child_name):
+                if child_name.startswith(parent_name + '_') and (TOK_UOM in child_name or TOK_PART_UOM in child_name):
                     child_meta.setdefault('attrs', {})
                     child_meta['attrs']['readonly'] = True
-                elif child_name.endswith('_uom') and child_name.startswith(parent_name):
+                elif child_name.endswith(TOK_UOM) and child_name.startswith(parent_name):
                     child_meta.setdefault('attrs', {})
                     child_meta['attrs']['readonly'] = True
 
             if 'comp' in request.json_schema[parent_index]:
                 for child_name, child_meta in request.json_schema[parent_index]['comp'].items():
-                    if child_name.endswith('_uom') or child_name.endswith('_part_uom') or '_part_uom' in child_name:
+                    if child_name.endswith(TOK_UOM) or child_name.endswith(TOK_PART_UOM) or TOK_PART_UOM in child_name:
                         child_meta.setdefault('attrs', {})
                         child_meta['attrs']['readonly'] = True
 

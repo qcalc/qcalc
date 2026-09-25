@@ -1,5 +1,8 @@
 // qCalc live form interaction
 (function() {
+    const TOK_FORM_PREFIX = 'form-';
+    const TOK_OUTPUT_PREFIX = '#output-part-';
+
     function updateInteractiveButton(button, enabled) {
         var icon = button.querySelector('i');
         if (icon) {
@@ -11,10 +14,10 @@
     }
 
     function updateInteractiveTarget(form, enabled) {
-        var cid = form.id.replace('form-', '');
+        var cid = form.id.replace(TOK_FORM_PREFIX, '');
         form.setAttribute('data-interactive', 'true');
         form.setAttribute('hx-sync', 'this:replace');
-        form.setAttribute('hx-target', '#output-part-' + cid);
+        form.setAttribute('hx-target', TOK_OUTPUT_PREFIX + cid);
         form.setAttribute('hx-swap', 'outerHTML');
         if (window.htmx) {
             htmx.process(form);
@@ -32,7 +35,7 @@
         updateInteractiveTarget(form, enabled);
         updateInteractiveButton(button, enabled);
         if (window.updateExtra) {
-            updateExtra(form.id.replace('form-', ''), {
+            updateExtra(form.id.replace(TOK_FORM_PREFIX, ''), {
                 interactive_enabled: enabled ? '1' : '0'
             });
         }
@@ -44,7 +47,7 @@
 
     function resolveForm(formOrElemOrCid) {
         if (typeof formOrElemOrCid === 'string') {
-            return document.getElementById('form-' + formOrElemOrCid);
+            return document.getElementById(TOK_FORM_PREFIX + formOrElemOrCid);
         }
         if (formOrElemOrCid && formOrElemOrCid.tagName === 'FORM') {
             return formOrElemOrCid;

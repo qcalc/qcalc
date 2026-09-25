@@ -1,6 +1,12 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2024-2026 Debasish C Saha
 
+const TOK_PART = "_part";
+const TOK_UOM = "_uom";
+const TOK_FIELD_SEP = "_";
+const TOK_ID_PREFIX = "id_";
+const TOK_SCRIPT_DATA_SHOWHIDE_SUFFIX = "_script_data_showhide";
+
 (function() {
     if (window.__qcalc_ShowhideBootstrapped) {
         return;
@@ -46,7 +52,7 @@
     }
 
     function initShowhideByCid(cid) {
-        var scriptId = cid + "_script_data_showhide";
+        var scriptId = cid + TOK_SCRIPT_DATA_SHOWHIDE_SUFFIX;
         var scriptElem = document.getElementById(scriptId);
         if (!scriptElem) {
             return;
@@ -59,7 +65,7 @@
             return;
         }
 
-        var idPrefix = "id_" + cid + "_";
+        var idPrefix = TOK_ID_PREFIX + cid + TOK_FIELD_SEP;
         var indepFields = [];
 
         Object.entries(showhideObj).forEach(function(entry) {
@@ -100,12 +106,14 @@
     function initShowhideInScope(rootElem) {
         var $root = rootElem ? $(rootElem) : $(document);
         var $scripts = $root
-            .find('script[type="application/json"][id$="_script_data_showhide"]')
-            .add($root.filter('script[type="application/json"][id$="_script_data_showhide"]'));
+            .find('script[type="application/json"][id$="' + TOK_SCRIPT_DATA_SHOWHIDE_SUFFIX + '"]')
+            .add($root.filter('script[type="application/json"][id$="' + TOK_SCRIPT_DATA_SHOWHIDE_SUFFIX + '"]'));
 
         $scripts.each(function() {
             var scriptId = this.id || "";
-            var cid = scriptId.replace(/_script_data_showhide$/, "");
+            var cid = scriptId.endsWith(TOK_SCRIPT_DATA_SHOWHIDE_SUFFIX)
+                ? scriptId.slice(0, -TOK_SCRIPT_DATA_SHOWHIDE_SUFFIX.length)
+                : "";
             if (cid) {
                 initShowhideByCid(cid);
             }
@@ -131,8 +139,8 @@
 
         // Some swap paths can leave script-data outside the immediate target.
         // Fallback keeps rebind reliable after calculate/refresh flows.
-        var scopedHasData = $(root).find('script[type="application/json"][id$="_script_data_showhide"]').length > 0
-            || $(root).is('script[type="application/json"][id$="_script_data_showhide"]');
+        var scopedHasData = $(root).find('script[type="application/json"][id$="' + TOK_SCRIPT_DATA_SHOWHIDE_SUFFIX + '"]').length > 0
+            || $(root).is('script[type="application/json"][id$="' + TOK_SCRIPT_DATA_SHOWHIDE_SUFFIX + '"]');
         if (!scopedHasData) {
             initShowhideInScope(document);
         }
@@ -175,15 +183,15 @@ function showhide_elem_and_parts(cid, sh)
     // Most fields render label/help in a sibling mt-1 block just before input/widget.
     const adjacentLabelBlock = element.prev('div.mt-1');
     // Qty-like split parts (e.g. _part, _part_uom) that should follow parent visibility.
-    const parts = $('[id^="' + cid + '"][id*="_part"]');
+    const parts = $('[id^="' + cid + '"][id*="' + TOK_PART + '"]');
     // Table-in style widgets: hidden input + immediate sibling wrapper containing the real UI.
     const ownWrapper = element.next('.elem-wrapper');
     // Code/editor style widgets: field itself may sit inside an elem-wrapper container.
     const parentWrapper = element.closest('.elem-wrapper');
     // Composite controls generated with the same field prefix (row/col/resize/update, uploads, etc.).
-    const prefixedElements = $('[id^="' + cid + '_"]');
+    const prefixedElements = $('[id^="' + cid + TOK_FIELD_SEP + '"]');
     // Labels attached to those composite controls.
-    const prefixedLabels = $('label[for^="' + cid + '_"]');
+    const prefixedLabels = $('label[for^="' + cid + TOK_FIELD_SEP + '"]');
 
     if(sh){
         element.show();
@@ -196,7 +204,7 @@ function showhide_elem_and_parts(cid, sh)
     }
 
     showhide_elem(element, sh)
-    showhide_elem($('#'+cid+'_uom'), sh)
+    showhide_elem($('#' + cid + TOK_UOM), sh)
     // Toggle wrapped widgets regardless of whether the wrapper is sibling or parent.
     ownWrapper.each(function(){
         showhide_elem($(this), sh)

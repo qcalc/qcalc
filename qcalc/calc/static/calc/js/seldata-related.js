@@ -2,6 +2,10 @@
 // Copyright (c) 2024-2026 Debasish C Saha
 
 (function() {
+    const TOK_ID_PREFIX = "id_";
+    const TOK_FIELD_SEP = "_";
+    const TOK_SCRIPT_DATA_RELATED_SUFFIX = "_script_data_related";
+
     if (window.__qcalc_RelatedBootstrapped) {
         return;
     }
@@ -78,7 +82,7 @@
         const relFields = Object.keys(groupValue.fields || {});
         const initialData = Object.values(groupValue.fields || {});
         const relatedData = groupValue.relation || {};
-        const idPrefix = "id_" + cid + "_";
+        const idPrefix = TOK_ID_PREFIX + cid + TOK_FIELD_SEP;
 
         if (relFields.length === 0) {
             return;
@@ -111,7 +115,7 @@
     }
 
     function initRelatedByCid(cid) {
-        const scriptId = cid + "_script_data_related";
+        const scriptId = cid + TOK_SCRIPT_DATA_RELATED_SUFFIX;
         const scriptElem = document.getElementById(scriptId);
         if (!scriptElem) {
             return;
@@ -133,12 +137,14 @@
     function initRelatedInScope(rootElem) {
         const $root = rootElem ? $(rootElem) : $(document);
         const $scripts = $root
-            .find('script[type="application/json"][id$="_script_data_related"]')
-            .add($root.filter('script[type="application/json"][id$="_script_data_related"]'));
+            .find('script[type="application/json"][id$="' + TOK_SCRIPT_DATA_RELATED_SUFFIX + '"]')
+            .add($root.filter('script[type="application/json"][id$="' + TOK_SCRIPT_DATA_RELATED_SUFFIX + '"]'));
 
         $scripts.each(function() {
             const scriptId = this.id || "";
-            const cid = scriptId.replace(/_script_data_related$/, "");
+            const cid = scriptId.endsWith(TOK_SCRIPT_DATA_RELATED_SUFFIX)
+                ? scriptId.slice(0, -TOK_SCRIPT_DATA_RELATED_SUFFIX.length)
+                : "";
             if (cid) {
                 initRelatedByCid(cid);
             }

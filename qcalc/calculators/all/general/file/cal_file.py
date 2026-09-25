@@ -91,7 +91,7 @@ def csv_editor__info():
         'script':
             """
 $(document).ready(function() {
-    load_button_id = 'id_' + getCid() + '_@load';
+    load_button_id = QCALC_TOK_ID_PREFIX + getCid() + '_@load';
     $("#"+load_button_id).on("click", function() {
         cid = getCidOf($(this));
         updateExtra(cid, {

@@ -9,6 +9,7 @@ import pandas as pd
 import json
 from qutil import resize_df
 from qcore.mod_anno import wrap_actions
+from qconst import TOK_ROW, TOK_COL, TOK_TABLE_RESIZE, TOK_TABLE_ED, TOK_TABLE_UPDATE, TOK_ID_PREFIX, TOK_FIELD_SEP
 
 
 class ButtonWidget(Widget):
@@ -327,23 +328,35 @@ class TabulatorWidget(Widget):
         # if mode == 'edit' and extra_cols == 0:
         #     html = html
 
+        id_base = f'{TOK_ID_PREFIX}{self.cid}{TOK_FIELD_SEP}{name}'
+        row_name = f'{name}{TOK_ROW}'
+        col_name = f'{name}{TOK_COL}'
+        row_id = f'{id_base}{TOK_ROW}'
+        col_id = f'{id_base}{TOK_COL}'
+        resize_name = f'{name}{TOK_TABLE_RESIZE}'
+        resize_id = f'{id_base}{TOK_TABLE_RESIZE}'
+        ed_name = f'{name}{TOK_TABLE_ED}'
+        ed_id = f'{id_base}{TOK_TABLE_ED}'
+        update_name = f'{name}{TOK_TABLE_UPDATE}'
+        update_id = f'{id_base}{TOK_TABLE_UPDATE}'
+
         ed = 'Display' if mode == 'edit' else 'Edit'
-        row_inp = f'<label for="id_{self.cid}_{name}_row">Row:</label>' + \
-                  f'<input type="text" name="{name}_row" value="{row}" id="id_{self.cid}_{name}_row" class="vt mr-2" data-interactive-ignore="true">'
-        col_inp = f'<label for="id_{self.cid}_{name}_col">Col:</label>' + \
-                  f'<input type="text" name="{name}_col" value="{col}" id="id_{self.cid}_{name}_col" class="vt mr-2" data-interactive-ignore="true">'
-        rsz_btn = f'<button type="button" name="{name}_table_resize" id="id_{self.cid}_{name}_table_resize" ' + \
-                  f'class="btn btn-info btncmd mr-2" data-interactive-ignore="true">Resize</button>'
-        ed_btn = f'<button type="button" name="{name}_table_ed" id="id_{self.cid}_{name}_table_ed" ' + \
-                 f'class="btn btn-info btncmd tbl-ed" data-interactive-ignore="true">{ed}</button>'
+        row_inp = f'<label for="{row_id}">Row:</label>' + \
+              f'<input type="text" name="{row_name}" value="{row}" id="{row_id}" class="vt mr-2" data-interactive-ignore="true">'
+        col_inp = f'<label for="{col_id}">Col:</label>' + \
+              f'<input type="text" name="{col_name}" value="{col}" id="{col_id}" class="vt mr-2" data-interactive-ignore="true">'
+        rsz_btn = f'<button type="button" name="{resize_name}" id="{resize_id}" ' + \
+              f'class="btn btn-info btncmd mr-2" data-interactive-ignore="true">Resize</button>'
+        ed_btn = f'<button type="button" name="{ed_name}" id="{ed_id}" ' + \
+             f'class="btn btn-info btncmd tbl-ed" data-interactive-ignore="true">{ed}</button>'
 
         if mode == 'edit':
-            upd_btn = f'<button type="button" name="{name}_table_update" id="id_{self.cid}_{name}_table_update" ' + \
+            upd_btn = f'<button type="button" name="{update_name}" id="{update_id}" ' + \
                       f'class="btn btn-info btncmd mr-2" data-interactive-ignore="true" disabled>Update</button>'
             html += f'<span>{upd_btn}{row_inp}{col_inp}{rsz_btn}{ed_btn}</span>'
         else:
             html += f'<span>{row_inp}{col_inp}{rsz_btn}{ed_btn}</span>'
 
-        hidden_field = f'<input type="hidden" name="{name}" value="" id="id_{self.cid}_{name}">'
+        hidden_field = f'<input type="hidden" name="{name}" value="" id="{id_base}">'
         html = hidden_field + wrap_actions(html, 'table-wrap')
         return mark_safe(html)

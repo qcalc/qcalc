@@ -39,7 +39,7 @@ def pref__info():
         'script':
             """
 $(document).ready(function() {
-    theme_choice_id = 'id_' + getCid() + '_@theme';
+    theme_choice_id = QCALC_TOK_ID_PREFIX + getCid() + '_@theme';
     themeChanger(theme_choice_id);
 });
 """

@@ -10,6 +10,22 @@
     const tableDf = {};
     const colNames = {};
     const colTitles = {};
+    const TOK_ROW = "_row";
+    const TOK_COL = "_col";
+    const TOK_TABLE_UPDATE = "_table_update";
+    const TOK_TABLE_RESIZE = "_table_resize";
+    const TOK_TABLE_ED = "_table_ed";
+    const TOK_ID_PREFIX = "id_";
+    const TOK_FORM_PREFIX = "form-";
+    const TOK_EXTRA_PREFIX = "extra_";
+
+    function tableDataFieldId(tableId) {
+        return TOK_ID_PREFIX + tableId;
+    }
+
+    function tableControlId(tableId, suffixToken) {
+        return tableDataFieldId(tableId) + suffixToken;
+    }
 
     // Parse one CSV line with quoted-field handling (double quotes escaped as "").
     function parseCsvLine(line) {
@@ -286,16 +302,16 @@
         [tableDf[tableId], colNames[tableId]] = adict2list(dataTable.getData());
         colTitles[tableId] = columnTitles(dataTable);
         if (updateShape && !stagedShape(dataTable.element)) {
-            const dataFieldId = "id_" + tableId;
-            $("#" + dataFieldId + "_row").val(tableDf[tableId].length);
-            $("#" + dataFieldId + "_col").val(colTitles[tableId].length);
+            const dataFieldId = tableDataFieldId(tableId);
+            $("#" + dataFieldId + TOK_ROW).val(tableDf[tableId].length);
+            $("#" + dataFieldId + TOK_COL).val(colTitles[tableId].length);
         }
     }
 
     function packData(dataTable) {
         const tableId = dataTable.element.id;
-        const dataFieldId = "id_" + tableId;
-        const edButtonId = "id_" + tableId + "_table_ed";
+        const dataFieldId = tableDataFieldId(tableId);
+        const edButtonId = tableControlId(tableId, TOK_TABLE_ED);
         const mode = $("#" + edButtonId).text() === "Edit" ? "display" : "edit";
         const obj = {};
         obj.data = tableDf[tableId];
@@ -305,7 +321,7 @@
             obj.shape = staged;
             delete dataTable.element.dataset.qcalc_StagedShape;
         } else {
-            obj.shape = [$("#" + dataFieldId + "_row").val(), $("#" + dataFieldId + "_col").val()];
+            obj.shape = [$("#" + dataFieldId + TOK_ROW).val(), $("#" + dataFieldId + TOK_COL).val()];
         }
         obj.mode = mode;
         $("#" + dataFieldId).val(JSON.stringify(obj));
@@ -343,11 +359,11 @@
     function updateId(cid, tblidx = 0) {
         const htmlTables = $(".table-responsive.table-in." + cid);
         const tableId = htmlTables[tblidx].id;
-        return "id_" + tableId + "_table_update";
+        return tableControlId(tableId, TOK_TABLE_UPDATE);
     }
 
     function setUpdateButtonEnabled(tableId, enabled) {
-        $("#id_" + tableId + "_table_update").prop("disabled", !enabled);
+        $("#" + tableControlId(tableId, TOK_TABLE_UPDATE)).prop("disabled", !enabled);
     }
 
     // Interactive mode routes normal submits to an output-only region
@@ -402,7 +418,7 @@
     }
 
     function bindTableButtons(tableId) {
-        const updateButton = $("#id_" + tableId + "_table_update");
+        const updateButton = $("#" + tableControlId(tableId, TOK_TABLE_UPDATE));
         if (updateButton.length > 0 && !updateButton.data("qcalc_Bound")) {
             updateButton.on("click", function() {
                 const form = this.closest("form");
@@ -429,15 +445,16 @@
             updateButton.data("qcalc_Bound", "1");
         }
 
-        const resizeButton = $("#id_" + tableId + "_table_resize");
+        const resizeButton = $("#" + tableControlId(tableId, TOK_TABLE_RESIZE));
         if (resizeButton.length > 0 && !resizeButton.data("qcalc_Bound")) {
             resizeButton.on("click", function() {
                 const form = this.closest("form");
                 if (form && form.qcalcSuspendInteractive) {
                     form.qcalcSuspendInteractive();
                 }
-                const $rowField = $("#id_" + tableId + "_row");
-                const $colField = $("#id_" + tableId + "_col");
+                const dataFieldId = tableDataFieldId(tableId);
+                const $rowField = $("#" + dataFieldId + TOK_ROW);
+                const $colField = $("#" + dataFieldId + TOK_COL);
                 const clampedRow = Math.max(1, parseInt($rowField.val(), 10) || 1);
                 const clampedCol = Math.max(1, parseInt($colField.val(), 10) || 1);
                 $rowField.val(clampedRow);
@@ -451,7 +468,7 @@
                     tableElem.dataset.qcalc_StagedShape = JSON.stringify([String(clampedRow), String(clampedCol)]);
                 }
                 const cid = getCidOf($(this));
-                const extraFieldId = "extra_" + cid;
+                const extraFieldId = TOK_EXTRA_PREFIX + cid;
                 $("#" + extraFieldId).val(JSON.stringify({"cmd": "resize"}));
                 rememberFullscreenTableState(tableId);
                 submitWithFullFormSwap(cid);
@@ -459,7 +476,7 @@
             resizeButton.data("qcalc_Bound", "1");
         }
 
-        const edButton = $("#id_" + tableId + "_table_ed");
+        const edButton = $("#" + tableControlId(tableId, TOK_TABLE_ED));
         if (edButton.length > 0 && !edButton.data("qcalc_Bound")) {
             edButton.on("click", function() {
                 const form = this.closest("form");
@@ -469,7 +486,7 @@
                 updateAllData($(this));
                 setUpdateButtonEnabled(tableId, false);
                 const cid = getCidOf($(this));
-                const extraFieldId = "extra_" + cid;
+                const extraFieldId = TOK_EXTRA_PREFIX + cid;
                 const extra = JSON.stringify({"cmd": this.innerText});
                 $("#" + extraFieldId).val(extra);
                 rememberFullscreenTableState(tableId);
@@ -489,7 +506,7 @@
             return;
         }
         $form.on("submit", function() {
-            const cid = $form.find('input[name="cid"]').val() || formElem.id.replace("form-", "");
+            const cid = $form.find('input[name="cid"]').val() || formElem.id.replace(TOK_FORM_PREFIX, "");
             updateTables(cid);
         });
         $form.data("qcalc_TableInSubmitBound", "1");
@@ -510,7 +527,7 @@
         if (!tableId) {
             return;
         }
-        const edButtonId = "id_" + tableId + "_table_ed";
+        const edButtonId = tableControlId(tableId, TOK_TABLE_ED);
         const mode = $("#" + edButtonId).text() === "Edit" ? "display" : "edit";
         const selector = "#" + tableId;
         const existingTables = normalizeTableList(Tabulator.findTable(selector));

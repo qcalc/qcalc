@@ -2,6 +2,8 @@
 // Copyright (c) 2024-2026 Debasish C Saha
 
 (function() {
+    const TOK_FORM_PREFIX = "form-";
+
     if (window.__qcalc_QlistBootstrapped) {
         return;
     }
@@ -77,8 +79,8 @@
     function initQlistInScope(rootElem) {
         var $root = rootElem ? $(rootElem) : $(document);
         var $forms = $root
-            .find("form[id^='form-']")
-            .add($root.filter("form[id^='form-']"));
+            .find("form[id^='" + TOK_FORM_PREFIX + "']")
+            .add($root.filter("form[id^='" + TOK_FORM_PREFIX + "']"));
 
         $forms.each(function() {
             var hasQlistButtons = $(this).find("button[id*='_list_add_'], button[id*='_list_del_']").length > 0;
@@ -90,7 +92,7 @@
 
     window.qcalc_InitQlist = function(formOrElemOrCid) {
         if (typeof formOrElemOrCid === "string") {
-            var formElem = document.getElementById("form-" + formOrElemOrCid);
+            var formElem = document.getElementById(TOK_FORM_PREFIX + formOrElemOrCid);
             if (formElem) {
                 initQlistInScope(formElem);
             }

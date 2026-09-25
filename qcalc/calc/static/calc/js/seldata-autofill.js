@@ -2,6 +2,10 @@
 // Copyright (c) 2024-2026 Debasish C Saha
 
 (function() {
+    const TOK_ID_PREFIX = "id_";
+    const TOK_FIELD_SEP = "_";
+    const TOK_SCRIPT_DATA_AUTOFILL_SUFFIX = "_script_data_autofill";
+
     if (window.__qcalc_AutofillBootstrapped) {
         return;
     }
@@ -47,7 +51,7 @@
     }
 
     function initAutofillByCid(cid) {
-        var scriptId = cid + "_script_data_autofill";
+        var scriptId = cid + TOK_SCRIPT_DATA_AUTOFILL_SUFFIX;
         var scriptElem = document.getElementById(scriptId);
         if (!scriptElem) {
             return;
@@ -60,7 +64,7 @@
             return;
         }
 
-        var idPrefix = "id_" + cid + "_";
+        var idPrefix = TOK_ID_PREFIX + cid + TOK_FIELD_SEP;
 
         Object.entries(autofillObj).forEach(function(entry) {
             var key = entry[0];
@@ -86,12 +90,14 @@
     function initAutofillInScope(rootElem) {
         var $root = rootElem ? $(rootElem) : $(document);
         var $scripts = $root
-            .find('script[type="application/json"][id$="_script_data_autofill"]')
-            .add($root.filter('script[type="application/json"][id$="_script_data_autofill"]'));
+            .find('script[type="application/json"][id$="' + TOK_SCRIPT_DATA_AUTOFILL_SUFFIX + '"]')
+            .add($root.filter('script[type="application/json"][id$="' + TOK_SCRIPT_DATA_AUTOFILL_SUFFIX + '"]'));
 
         $scripts.each(function() {
             var scriptId = this.id || "";
-            var cid = scriptId.replace(/_script_data_autofill$/, "");
+            var cid = scriptId.endsWith(TOK_SCRIPT_DATA_AUTOFILL_SUFFIX)
+                ? scriptId.slice(0, -TOK_SCRIPT_DATA_AUTOFILL_SUFFIX.length)
+                : "";
             if (cid) {
                 initAutofillByCid(cid);
             }

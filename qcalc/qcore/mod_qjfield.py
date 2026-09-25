@@ -8,6 +8,7 @@ from qvars import qc_gpref as gs
 from qutil import QDateTime
 import pandas as pd
 from qcore import str_type, Qty
+from qconst import TOK_UOM, TOK_PART, TOK_PART_UOM
 
 
 class QJField:  # 11422
@@ -46,7 +47,7 @@ class QJField:  # 11422
             self.doc_info['table_in'] = True
         else:
             acl = self.jf['attrs']['class']
-            if acl in ['inp', 'val', 'chr'] and arg_name.endswith('_part'):
+            if acl in ['inp', 'val', 'chr'] and arg_name.endswith(TOK_PART):
                 acl = 'val-pp'
 
             self.jf['attrs']['class'] = ut.joinx([acl, self.inf_class])
@@ -271,7 +272,7 @@ class QJField:  # 11422
         parent_attrs = dict(self.jf.get('attrs', {}))
         readonly = bool(parent_attrs.get('readonly', False))
         for j in range(ln):
-            namej = self.name + '_' + str(j + 1) + '_part' if j > 0 else self.name
+            namej = self.name + '_' + str(j + 1) + TOK_PART if j > 0 else self.name
             typej = 'float' if j == ln - 1 else 'integer'
             type_sizej = typej + full_part
             var_qt = Qty(qval[j])
@@ -286,11 +287,11 @@ class QJField:  # 11422
                 self.jf['attrs']['class'] = 'val' + full_part
 
             if j == 0 and ln == 1:
-                namej = self.name + '_uom'
+                namej = self.name + TOK_UOM
             elif j == 0 and ln > 1:
-                namej = self.name + '_part_uom'
+                namej = self.name + TOK_PART_UOM
             else:
-                namej = self.name + '_' + str(j + 1) + '_part_uom'
+                namej = self.name + '_' + str(j + 1) + TOK_PART_UOM
             unit_field = QJField(namej, uom_type, var_qt.uom, self.id_prefix, True)
             if readonly:
                 unit_field.jf['attrs']['readonly'] = True
@@ -317,8 +318,8 @@ class QJField:  # 11422
 
         vals = []
         for j in range(ln):
-            namej = self.name + '_' + str(j + 1) + '_part' if j > 0 else self.name
-            sufxj = str(j + 1) + '_part' if j > 0 else ''
+            namej = self.name + '_' + str(j + 1) + TOK_PART if j > 0 else self.name
+            sufxj = str(j + 1) + TOK_PART if j > 0 else ''
             typej = 'float' if j == ln - 1 else 'integer'
             type_sizej = typej + full_part
             var_qt = Qty(qval[j])
@@ -329,14 +330,14 @@ class QJField:  # 11422
             vals.append(var_qt.val)
 
             if j == 0 and ln == 1:
-                namej = self.name + '_uom'
+                namej = self.name + TOK_UOM
                 sufxj = 'uom'
             elif j == 0 and ln > 1:
-                namej = self.name + '_part_uom'
+                namej = self.name + TOK_PART_UOM
                 sufxj = 'part_uom'
             else:
-                namej = self.name + '_' + str(j + 1) + '_part_uom'
-                sufxj = str(j + 1) + '_part_uom'
+                namej = self.name + '_' + str(j + 1) + TOK_PART_UOM
+                sufxj = str(j + 1) + TOK_PART_UOM
             unit_field = QJField(namej, uom_type, var_qt.uom, self.id_prefix, True, sufx=sufxj)
             if readonly:
                 unit_field.jf['attrs']['readonly'] = True

@@ -2,6 +2,11 @@
 // Copyright (c) 2024-2026 Debasish C Saha
 
 (function() {
+    const TOK_ID_PREFIX = "id_";
+    const TOK_FIELD_SEP = "_";
+    const TOK_SCRIPT_DATA_ANYOF_SUFFIX = "_script_data_anyof";
+    const TOK_PART = "_part";
+
     if (window.__qcalc_AnyofBootstrapped) {
         return;
     }
@@ -13,7 +18,7 @@
             fieldElem.value = "";
         }
 
-        var partItems = document.querySelectorAll('[id^="' + fieldId + '"][id$="_part"]');
+        var partItems = document.querySelectorAll('[id^="' + fieldId + '"][id$="' + TOK_PART + '"]');
         for (var k = 0; k < partItems.length; k++) {
             partItems[k].value = "";
         }
@@ -49,13 +54,13 @@
 
     function initAnyofGroup(groupId, groupValue, cid) {
         var groupFields = (groupValue && groupValue.fields) ? groupValue.fields : [];
-        var idPrefix = "id_" + cid + "_";
+        var idPrefix = TOK_ID_PREFIX + cid + TOK_FIELD_SEP;
 
         for (var i = 0; i < groupFields.length; i++) {
             var baseFieldId = idPrefix + groupFields[i];
             bindAnyofField(groupId, groupFields, idPrefix, i, baseFieldId);
 
-            var partItems = document.querySelectorAll('[id^="' + baseFieldId + '"][id$="_part"]');
+            var partItems = document.querySelectorAll('[id^="' + baseFieldId + '"][id$="' + TOK_PART + '"]');
             for (var k = 0; k < partItems.length; k++) {
                 bindAnyofField(groupId, groupFields, idPrefix, i, partItems[k].id);
             }
@@ -70,7 +75,7 @@
     }
 
     function initAnyofByCid(cid) {
-        var scriptId = cid + "_script_data_anyof";
+        var scriptId = cid + TOK_SCRIPT_DATA_ANYOF_SUFFIX;
         var scriptElem = document.getElementById(scriptId);
         if (!scriptElem) {
             return;
@@ -93,12 +98,14 @@
     function initAnyofInScope(rootElem) {
         var $root = rootElem ? $(rootElem) : $(document);
         var $scripts = $root
-            .find('script[type="application/json"][id$="_script_data_anyof"]')
-            .add($root.filter('script[type="application/json"][id$="_script_data_anyof"]'));
+            .find('script[type="application/json"][id$="' + TOK_SCRIPT_DATA_ANYOF_SUFFIX + '"]')
+            .add($root.filter('script[type="application/json"][id$="' + TOK_SCRIPT_DATA_ANYOF_SUFFIX + '"]'));
 
         $scripts.each(function() {
             var scriptId = this.id || "";
-            var cid = scriptId.replace(/_script_data_anyof$/, "");
+            var cid = scriptId.endsWith(TOK_SCRIPT_DATA_ANYOF_SUFFIX)
+                ? scriptId.slice(0, -TOK_SCRIPT_DATA_ANYOF_SUFFIX.length)
+                : "";
             if (cid) {
                 initAnyofByCid(cid);
             }

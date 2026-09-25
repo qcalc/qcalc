@@ -3,6 +3,16 @@
 
 /* qCalc JavaScript */
 
+const QCALC_TOK_TABLE_UPDATE = '_table_update';
+const QCALC_TOK_UOM = '_uom';
+const QCALC_TOK_FORM_PREFIX = 'form-';
+const QCALC_TOK_OUTPUT_PREFIX = '#output-part-';
+const QCALC_TOK_CARD_PREFIX = 'card-holder-';
+const QCALC_TOK_EXTRA_PREFIX = 'extra_';
+const QCALC_TOK_CALCULATE_PREFIX = 'calculate_';
+const QCALC_TOK_ID_PREFIX = 'id_';
+const QCALC_TOK_FIELD_SEP = '_';
+
 // ---- structural (full-form) submit machinery ---------------------------
 // A "structural" submit is one whose response must replace the WHOLE form
 // (e.g. input-table Resize/Edit re-renders the table's own markup), as
@@ -53,7 +63,7 @@
     }
 
     function qcalcFindOpenSingleton(funcName) {
-        var cards = document.querySelectorAll('[id^="card-holder-"][data-qcalc-single-instance="1"]');
+        var cards = document.querySelectorAll('[id^="' + QCALC_TOK_CARD_PREFIX + '"][data-qcalc-single-instance="1"]');
         for (var i = 0; i < cards.length; i++) {
             var card = cards[i];
             var cardFunc = (card.dataset.qcalcFunc || '').trim().toLowerCase();
@@ -72,7 +82,7 @@
             if (requestedFunc) {
                 var existing = qcalcFindOpenSingleton(requestedFunc);
                 if (existing) {
-                    var existingCid = existing.dataset.qcalcCid || existing.id.replace('card-holder-', '');
+                    var existingCid = existing.dataset.qcalcCid || existing.id.replace(QCALC_TOK_CARD_PREFIX, '');
                     jumpTo(existingCid);
                     event.preventDefault();
                     return;
@@ -108,8 +118,8 @@
         if (form.getAttribute('hx-target') !== 'this') {
             return;
         }
-        var cid = form.id.replace('form-', '');
-        form.setAttribute('hx-target', '#output-part-' + cid);
+        var cid = form.id.replace(QCALC_TOK_FORM_PREFIX, '');
+        form.setAttribute('hx-target', QCALC_TOK_OUTPUT_PREFIX + cid);
         form.setAttribute('hx-swap', 'outerHTML');
         form.removeAttribute('hx-vals');
     });
@@ -135,7 +145,7 @@ function getCid() //use this function only when document is ready otherwise cid 
 
 function getCidOf(jqelem) //can use anytime, get cid knowing an element inside the form having cid in it's id
 {
-    return jqelem.closest("form")[0].id.replace('form-',''); //$(this)
+    return jqelem.closest("form")[0].id.replace(QCALC_TOK_FORM_PREFIX,''); //$(this)
 }
 
 function getCidFrom(jqelem, parentElemClass, parentIdPrefix) //can use anytime, get cid knowing an element inside a parent having cid in it's id
@@ -159,16 +169,16 @@ function toggleLoadButton()
 function qcalc_EnableTableUpdateAfterSwap(cid) {
     const swapSync = function(evt) {
         const target = evt && evt.detail ? evt.detail.target : null;
-        if (!target || target.id !== ("form-" + cid)) {
+        if (!target || target.id !== (QCALC_TOK_FORM_PREFIX + cid)) {
             return;
         }
         document.body.removeEventListener("htmx:afterSwap", swapSync);
         setTimeout(function() {
-            const form = document.getElementById("form-" + cid);
+            const form = document.getElementById(QCALC_TOK_FORM_PREFIX + cid);
             if (!form) {
                 return;
             }
-            const updateBtn = form.querySelector("button[id$='_table_update']");
+            const updateBtn = form.querySelector("button[id$='" + QCALC_TOK_TABLE_UPDATE + "']");
             if (updateBtn) {
                 updateBtn.disabled = false;
             }
@@ -233,7 +243,7 @@ function formReady(cid) {
                 $sel.append(newOption).trigger('change');
             }
         } // function
-        $('#card-holder-'+cid).find('select').each(function() {
+        $('#' + QCALC_TOK_CARD_PREFIX + cid).find('select').each(function() {
             var $sel = $(this);
             var isReadOnly = $sel.attr('readonly') !== undefined || $sel.data('readonly') === true;
             if (isReadOnly) {
@@ -251,7 +261,7 @@ function formReady(cid) {
             updateExtra(cid, {"ignoredec":hasIcon(button, 'icon-eye2')?"1":"0"})
         }
 
-        elem = $('#card-holder-'+cid).find('#renderends') //renderedns time
+        elem = $('#' + QCALC_TOK_CARD_PREFIX + cid).find('#renderends') //renderedns time
         elem.text(Date.now()/1000);
 
         if (window.innerWidth <= 768) {
@@ -374,12 +384,12 @@ function uploadCodeMirrorWidget(input, textareaId) {
 
 function closeCard(cid)
 {
-    var card = document.getElementById('card-holder-' + cid);
+    var card = document.getElementById(QCALC_TOK_CARD_PREFIX + cid);
     if (!card) {
         return;
     }
 
-    var form = document.getElementById('form-' + cid);
+    var form = document.getElementById(QCALC_TOK_FORM_PREFIX + cid);
     var tokenInput = form ? form.querySelector('input[name="csrfmiddlewaretoken"]') : null;
 
     if (tokenInput && tokenInput.value) {
@@ -398,7 +408,7 @@ function closeCard(cid)
 
 function idPrefix()
 {
-    id_prefix = 'id_'+getCid()+ '_';
+    id_prefix = QCALC_TOK_ID_PREFIX + getCid() + QCALC_TOK_FIELD_SEP;
     return id_prefix;
 }
 
@@ -420,7 +430,7 @@ function clearForm(ele) {
             case 'number':
             case 'text':
             case 'textarea':
-                if(!this.name.endsWith('_uom'))
+                if(!this.name.endsWith(QCALC_TOK_UOM))
                     $(this).val('');
                 break;
             case 'checkbox':
@@ -509,7 +519,7 @@ function jumpLast(){ // jump to last card
     //lastCid = jsCid won't work, the event will always use the very first assigned value
     cidLast = document.getElementsByName('cid').length - 1;
     lastCid = document.getElementsByName('cid')[cidLast].value;
-    var top = document.getElementById('card-holder-'+lastCid).offsetTop; //Getting Y of target element
+    var top = document.getElementById(QCALC_TOK_CARD_PREFIX + lastCid).offsetTop; //Getting Y of target element
     window.scrollTo(0, top);
 }
 
@@ -546,7 +556,7 @@ function elementIsVisibleInViewport(el, visibility = 2){
 }
 
 function jumpTo(cid){ // jump to card having cid
-    var el = document.getElementById('card-holder-'+cid);
+    var el = document.getElementById(QCALC_TOK_CARD_PREFIX + cid);
     if(!elementIsVisibleInViewport(el, 2)){
         var top = el.offsetTop;
         window.scrollTo(0, top);
@@ -562,7 +572,7 @@ function jumpToElemId(elemId){ // jump to element id
 }
 
 function get_card_once(cid){
-  var el = document.getElementById('card-holder-'+cid);
+    var el = document.getElementById(QCALC_TOK_CARD_PREFIX + cid);
   if(el !== null){
     jumpTo(cid); // move to the card
     return false;  // no need to get
@@ -572,7 +582,7 @@ function get_card_once(cid){
 }
 
 function updateExtra(cid,dict){
-    extra_field_id = "extra_" + cid;
+    extra_field_id = QCALC_TOK_EXTRA_PREFIX + cid;
     extra_cur_val = $('#'+extra_field_id).val();
     if (extra_cur_val == null) extra_cur_val = "{}";
     let oriObj = JSON.parse(extra_cur_val);
@@ -586,7 +596,7 @@ function updateExtra(cid,dict){
 }
 
 function clearExtraCmd(cid){
-    const extraField = document.getElementById('extra_' + cid);
+    const extraField = document.getElementById(QCALC_TOK_EXTRA_PREFIX + cid);
     if (!extraField) {
         return;
     }
@@ -608,7 +618,7 @@ function clearExtraCmd(cid){
 }
 
 function calClick(cid){
-    calc_btn_id = "calculate_" + cid;
+    calc_btn_id = QCALC_TOK_CALCULATE_PREFIX + cid;
     $('#'+calc_btn_id).trigger('click');
 }
 
@@ -620,7 +630,7 @@ function calClick(cid){
 // the response re-carries the normal interactive hx-target and
 // interactive.js re-initializes on htmx:afterSwap, restoring interactivity.
 function qcalc_FullFormSubmit(cid){
-    const form = document.getElementById('form-' + cid);
+    const form = document.getElementById(QCALC_TOK_FORM_PREFIX + cid);
     if (!form) {
         return;
     }
@@ -631,7 +641,7 @@ function qcalc_FullFormSubmit(cid){
     form.setAttribute('hx-vals', '{"qcalc_structural_cmd": "1"}');
     form.setAttribute('hx-target', 'this');
     form.setAttribute('hx-swap', 'innerHTML');
-    $('#calculate_' + cid).trigger('click');
+    $('#' + QCALC_TOK_CALCULATE_PREFIX + cid).trigger('click');
 }
 
 function calWithCmd(cid, fname, cmd){ // cmd='save_input', 'save_io', 'save_var', 'create_var'
@@ -640,7 +650,7 @@ function calWithCmd(cid, fname, cmd){ // cmd='save_input', 'save_io', 'save_var'
 }
 
 async function saveInputToFile(cid, fname){
-    const form = document.getElementById('form-' + cid);
+    const form = document.getElementById(QCALC_TOK_FORM_PREFIX + cid);
     if (!form) {
         return;
     }
@@ -664,7 +674,7 @@ async function saveInputToFile(cid, fname){
         }
     }
 
-    const extraField = document.getElementById('extra_' + cid);
+    const extraField = document.getElementById(QCALC_TOK_EXTRA_PREFIX + cid);
     const originalExtra = extraField ? (extraField.value || '{}') : null;
 
     if (extraField) {
@@ -728,11 +738,11 @@ document.addEventListener('htmx:afterRequest', function(event) {
     const form = elt && elt.tagName === 'FORM'
         ? elt
         : (elt && elt.closest ? elt.closest('form') : null);
-    if (!form || !form.id || !form.id.startsWith('form-')) {
+    if (!form || !form.id || !form.id.startsWith(QCALC_TOK_FORM_PREFIX)) {
         return;
     }
 
-    const cid = form.id.replace('form-', '');
+    const cid = form.id.replace(QCALC_TOK_FORM_PREFIX, '');
     clearExtraCmd(cid);
 });
 

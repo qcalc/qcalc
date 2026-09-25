@@ -12,9 +12,15 @@ from qsite import STATIC_VERSION
 from django.utils.html import format_html
 from django.conf import settings
 from calc import QCals, StdList, get_html, ancestors, QPref, QInput, cur_loader
+from qconst import TOK_UOM, TOK_PART
 import re
 
 register = template.Library()
+
+_TOKEN_PART_WITH_OPTIONAL_INDEX = rf'_(?:\d+)?{re.escape(TOK_PART)}'
+_FIELD_ROOT_SUFFIX_PATTERN = re.compile(
+    rf'{_TOKEN_PART_WITH_OPTIONAL_INDEX}(?:{re.escape(TOK_UOM)})?$|{re.escape(TOK_UOM)}$'
+)
 
 
 # | start of lineless ------------------
@@ -113,7 +119,7 @@ def field_root(value):
         return value.split('--')[0]
     if re.search(r'_\d+$', value): # qlist x_1 -> x
         return value.rsplit('_', 1)[0]
-    return re.sub(r'_(?:\d+_)?part(?:_uom)?$|_uom$', '', value)
+    return _FIELD_ROOT_SUFFIX_PATTERN.sub('', value)
 
 
 @register.simple_tag
@@ -382,7 +388,7 @@ def pagelink(pageurl, caption, link_class='', icon_class='', card=False):
 
 @register.filter
 def showlabel(field):
-    return ('_uom' not in field.name and '_part' not in field.name
+    return (TOK_UOM not in field.name and TOK_PART not in field.name
             and not field.is_hidden and field.label)
 
 
@@ -437,7 +443,7 @@ def endswith(string: str, suffix: str):
 @register.filter
 def qtyval(fname, frm):  # weight_rq_uom
     # | used to determine value of qty to be used in conv() func link
-    vfield = fname.replace('_uom', '')
+    vfield = fname.replace(TOK_UOM, '')
     # | v = frm[vfield].value() if vfield in frm else None  # frm is not a dict
     try:
         v = frm[vfield].value()

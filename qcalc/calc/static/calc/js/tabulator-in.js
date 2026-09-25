@@ -406,10 +406,24 @@
         if (updateButton.length > 0 && !updateButton.data("qcalc_Bound")) {
             updateButton.on("click", function() {
                 const form = this.closest("form");
+                const shouldResumeInteractive = form
+                    && form.dataset
+                    && form.dataset.interactiveEnabled === 'true';
                 if (form && form.qcalcSuspendInteractive) {
                     form.qcalcSuspendInteractive();
                 }
                 updateAllData($(this));
+                if (shouldResumeInteractive) {
+                    if (form && form.qcalcResumeInteractive) {
+                        form.qcalcResumeInteractive();
+                    }
+                    const calculateButton = form
+                        ? form.querySelector('button[type="submit"]')
+                        : null;
+                    if (calculateButton && !calculateButton.disabled) {
+                        calculateButton.click();
+                    }
+                }
                 $(this).prop("disabled", true);
             });
             updateButton.data("qcalc_Bound", "1");

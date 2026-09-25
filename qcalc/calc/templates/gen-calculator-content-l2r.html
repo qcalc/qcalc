@@ -159,6 +159,11 @@
       {% load qfilter %}
 <div id="output-part-{{ input.cid }}" class="row outpart">
 <div class="col section-output1 io">
+        {% if output.doc.message_only %}
+        <div class="alert {% if output.doc.message_kind == 'error' %}alert-danger{% elif output.doc.message_kind == 'warning' %}alert-warning{% else %}alert-info{% endif %} mb-2" role="alert">
+            {{ output.doc.message_text }}
+        </div>
+        {% endif %}
     {% if 'out_top' in input.doc.info.inserts %}
     <br>
     {{ input.doc.info.inserts.out_top | safe }}

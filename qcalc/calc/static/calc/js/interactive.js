@@ -88,6 +88,10 @@
             form.dataset.interactiveEnabled = 'false';
         };
 
+        form.qcalcResumeInteractive = function() {
+            form.dataset.interactiveEnabled = 'true';
+        };
+
         function isSelect2Control(target) {
             return target.matches('select.select2-hidden-accessible, select.select2');
         }

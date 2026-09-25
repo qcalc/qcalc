@@ -4,7 +4,7 @@
 from qcore.mod_anno import *
 
 
-def demo_layout__info():
+def demo_layout_tabbed__info():
     input_blocks = [
         {
             'column': 1,
@@ -182,7 +182,7 @@ def demo_layout__info():
         },
     ]
     return {
-        'title': 'Demonstrating Various Input Types for Layout Testing',
+        'title': 'Demonstrating Various Input Types in a Dynamic Tabbed Layout',
         'interactive': True,
         'layout': 'tb',
         'input_columns': 2,
@@ -295,7 +295,7 @@ def demo_layout__info():
     }
 
 
-def demo_layout(
+def demo_layout_tabbed(
     bool_input: bool = True,
     float_input: float = 5.67,
     int_input: int = 123,

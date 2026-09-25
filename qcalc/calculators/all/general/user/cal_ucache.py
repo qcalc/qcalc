@@ -12,6 +12,13 @@ MIN_EXECUTION_TIMEOUT = 1
 MAX_EXECUTION_TIMEOUT = 900
 
 
+def _normalize_theme(theme_name, fallback='default'):
+    choices = StdList.theme_list.get('choices', []) if isinstance(StdList.theme_list, dict) else []
+    if choices and theme_name not in choices:
+        return fallback
+    return theme_name
+
+
 def pref__info():
     general_options = 'theme, interactive, defa_currency, memory, strict_*, execution_timeout'
     number_options = 'ignore_decimal_format, decimal, *_decimal, thousands_separator, exponent_*'
@@ -65,6 +72,7 @@ def pref__input(_kwargs):  # alternative to func__info() 'schema':{}'
     req = QThread.get_req()
     if req.recall:  # if refresh button is clicked, recall will False
         us.update(QPref.getp())  # User's Session Defaults
+    us['theme'] = _normalize_theme(us.get('theme', 'default'))
     return {  # pref-02
         # 'request': '__req__',
         'theme': us['theme'],
@@ -115,6 +123,7 @@ def pref(  # pref-03
     except (TypeError, ValueError):
         execution_timeout = float(gs.get('execution_timeout', 60))
     execution_timeout = max(MIN_EXECUTION_TIMEOUT, min(MAX_EXECUTION_TIMEOUT, execution_timeout))
+    theme = _normalize_theme(theme)
 
     # user settings
     us = {  # pref-04

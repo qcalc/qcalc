@@ -40,7 +40,7 @@
   margin: 0;
   padding: 0 1rem;
   line-height: 2rem;
-  color: #ff9800;
+  color: #c77700;
   position: relative;
 }
 
@@ -73,12 +73,12 @@
 
 .tree li a {
   text-decoration: none;
-  color: #ff9800;
+  color: #c77700;
 }
 
 .tree li button, .tree li button:active, .tree li button:focus {
   text-decoration: none;
-  color: #ff9800;
+  color: #c77700;
   border: none;
   background: transparent;
   margin: 0px 0px 0px 0px;

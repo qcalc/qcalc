@@ -7,7 +7,6 @@ set "scss_folder=%QCALC_DOCK_PATH%\qcalc\qsite\static\css\scss\"
 set "css_folder=%QCALC_DOCK_PATH%\qcalc\qsite\static\css\"
 
 for %%f in (qcalc-default ^
-             qcalc-dark ^
              qcalc-elegance ^
              qcalc-lumen ^
              qcalc-serenity ^
@@ -16,7 +15,6 @@ for %%f in (qcalc-default ^
              qcalc-vibe ^
              tree-default ^
              tree-elegance ^
-             tree-dark ^
              tree-lumen ^
              tree-serenity ^
              tree-spring ^

@@ -23,8 +23,8 @@
 /* Bright coral */
 /* Bright sunflower yellow */
 /* Dark teal */
-/* Bright coral */
-/* Vivid red */
+/* Darker coral red */
+/* Deeper red hover */
 .categ {
   cursor: pointer;
   font-weight: bold;
@@ -60,7 +60,7 @@
   margin: 0;
   padding: 0 1rem;
   line-height: 2rem;
-  color: #ff6f61;
+  color: #e35f52;
   position: relative;
 }
 
@@ -93,12 +93,12 @@
 
 .tree li a {
   text-decoration: none;
-  color: #ff6f61;
+  color: #e35f52;
 }
 
 .tree li button, .tree li button:active, .tree li button:focus {
   text-decoration: none;
-  color: #ff6f61;
+  color: #e35f52;
   border: none;
   background: transparent;
   margin: 0px 0px 0px 0px;

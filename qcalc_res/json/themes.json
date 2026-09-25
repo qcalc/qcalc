@@ -3,7 +3,6 @@
   "initial": "default",
   "choices": [
     "default", 
-    "dark", 
     "elegance",
     "lumen", 
     "serenity", 

@@ -313,6 +313,9 @@ def static_ver(path):
 @register.simple_tag
 def static_ver_theme(request, file):
     theme = QPref.getp1('theme', 'default')
+    valid_themes = StdList.theme_list.get('choices', []) if isinstance(StdList.theme_list, dict) else []
+    if valid_themes and theme not in valid_themes:
+        theme = 'default'
     return static_ver(f'css/{file}-{theme}.css')
 
 

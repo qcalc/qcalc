@@ -23,16 +23,16 @@
 /* Medium gray for spinner borders */
 /* Text and Icon Colors */
 /* Standard checkmark */
-/* Darker slate gray for strong contrast on headers */
+/* Soft white for clear contrast on blue-slate headers */
 /* Darker gray for marked text, providing clear visibility */
 /* Button and Link Colors */
-/* Bright blue for buttons, inviting yet professional */
+/* Muted blue for a calmer, more elegant button tone */
 /* Dark blue for links, ensuring visibility and style */
 /* Deep navy for hover, providing strong contrast */
 /* Very dark blue for active links, reinforcing interaction */
 /* Consistent dark blue for visited links */
 /* Background Colors for Emphasis */
-/* Darker soft light blue-gray for headers */
+/* Muted blue-slate for a more defined Elegance header */
 /* Soft lavender gray for emphasis, providing a gentle contrast */
 /* Other Interactive Elements */
 /* Light blue for spinner borders, ensuring a smooth loading experience */
@@ -122,14 +122,14 @@
 }
 
 /* Trial: fullscreen behavior for table-in and table-out wrappers. */
-/* 1. Lighten the inner grid wrapper block */
-.tabulator .tabulator-tableholder .tabulator-table {
-  background-color: #f9f9f9 !important; /* Your preferred light color */
+/* Keep table surfaces aligned with each themed section while preserving control contrast. */
+.elem-wrapper.table-wrap .tabulator .tabulator-tableholder .tabulator-table {
+  background-color: var(--table-control-bg, var(--layout-tab-panel-bg, #fff)) !important;
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0));
 }
 
-/* 2. Ensure the main container matches so the entire empty space is uniform */
-.tabulator .tabulator-tableholder {
-  background-color: #f9f9f9 !important;
+.elem-wrapper.table-wrap .tabulator .tabulator-tableholder {
+  background-color: var(--table-control-bg, var(--layout-tab-panel-bg, #fff)) !important;
 }
 
 .elem-wrapper.table-wrap {
@@ -149,12 +149,24 @@
   width: 100%;
   max-width: 100%;
   overflow: auto;
+  background-color: var(--table-control-bg, var(--layout-tab-panel-bg, #fff));
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  border-radius: 4px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
 /* Trial: keep Tabulator width within wrapper and allow inner horizontal scroll. */
 .elem-wrapper.table-wrap .tabulator {
   width: 100% !important;
   max-width: 100%;
+  background: transparent;
+  border-radius: 4px;
+}
+
+.elem-wrapper.table-wrap .tabulator .tabulator-header {
+  background-color: var(--table-head-bg, var(--table-control-bg, var(--layout-tab-panel-bg, #fff)));
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.16));
+  border-bottom: 1px solid rgba(0, 0, 0, 0.2);
 }
 
 .elem-wrapper.table-wrap .tabulator-tableholder {
@@ -330,26 +342,33 @@ label.required::after {
   padding-bottom: 6px;
   font-weight: 500;
   line-height: 1.2;
-  border: 1px solid transparent;
+  border: 1px solid rgba(0, 0, 0, 0.24);
   margin-bottom: 0;
-  background-color: transparent;
+  background-color: rgba(255, 255, 255, 0.82);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.78), 0 1px 1px rgba(0, 0, 0, 0.05);
 }
 
 .layout-tabs .nav-link:hover,
 .layout-tabs .nav-link:focus {
-  border-color: #e3e7ec #e3e7ec #d7dde5;
+  border-color: rgba(0, 0, 0, 0.42) rgba(0, 0, 0, 0.42) #b2c2d4;
+  background-color: rgba(255, 255, 255, 0.96);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.86), 0 1px 2px rgba(0, 0, 0, 0.08);
 }
 
 .layout-tabs .nav-link.active,
 .layout-tabs .nav-item.show .nav-link {
-  border-color: #d7dde5 #d7dde5 #fff;
-  background-color: #fff;
+  border-color: #aebfd1 #aebfd1 var(--layout-tab-panel-bg, #fff);
+  background-color: var(--layout-tab-panel-bg, #fff);
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0.18));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
 }
 
 .layout-tab-content {
-  border: 1px solid #d7dde5;
+  border: 1px solid #b8c7d8;
   border-top: 0;
-  background-color: #fff;
+  background-color: var(--layout-tab-panel-bg, #fff);
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.62);
   border-radius: 0 0 3px 3px;
   margin-top: -1px;
   padding: 0.45rem 0.7rem;
@@ -370,15 +389,24 @@ div.io.section-output2 .layout-tab-content {
 
 div.io.section-input1 {
   background-color: rgba(255, 255, 255, 0.85);
+  --layout-tab-panel-bg: rgba(255, 255, 255, 0.85);
+  --table-control-bg: rgba(255, 255, 255, 0.85);
+  --table-head-bg: rgba(255, 255, 255, 0.85);
 }
 
 div.io.section-input2 {
   background-color: rgba(255, 255, 255, 0.85);
+  --layout-tab-panel-bg: rgba(255, 255, 255, 0.85);
+  --table-control-bg: rgba(255, 255, 255, 0.85);
+  --table-head-bg: rgba(255, 255, 255, 0.85);
   min-width: 320px;
 }
 
 div.io.section-output1 {
   background-color: #f0f2f5;
+  --layout-tab-panel-bg: #f0f2f5;
+  --table-control-bg: #f0f2f5;
+  --table-head-bg: #f0f2f5;
   min-width: 320px;
   padding-right: 0.625rem;
   padding-left: 0.625rem;
@@ -387,13 +415,16 @@ div.io.section-output1 {
 div.io.section-output2 {
   min-width: 320px;
   background-color: rgba(255, 255, 255, 0.98);
+  --layout-tab-panel-bg: rgba(255, 255, 255, 0.98);
+  --table-control-bg: rgba(255, 255, 255, 0.98);
+  --table-head-bg: rgba(255, 255, 255, 0.98);
   padding-right: 0.625rem;
   padding-left: 0.625rem;
 }
 
 .btncmd {
   border: 1px solid;
-  background: #007bff;
+  background: #4a84b6;
   margin-top: 2px; /* looks best below a input table e.g. umatrix() */
   margin-right: 8px;
   padding: 3px 8px 3px 8px;
@@ -593,12 +624,14 @@ label {
 }
 
 .bg-card-header {
-  background-color: #d0d7de !important; /* logo blue */
+  background-color: #5f7f99 !important; /* logo blue */
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(0, 0, 0, 0.08));
+  border-bottom: 1px solid rgba(0, 0, 0, 0.18);
   /* background-color: #17a2b8 !important; */
 }
 
 .card-title {
-  color: #2c3e50;
+  color: #f7fafc;
 }
 
 .card-collapse {

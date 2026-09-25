@@ -8,11 +8,12 @@ from .mod_qfvalidators import validate_file_size
 
 
 class QFieldHandler:
-    formfields = {}
-
     # Create "DynaForm" input/output fields from json_schema
 
     def __init__(self, sname, json_schema, cid, json_s2f, post_data, proper_dict):
+        # Keep fields instance-scoped so insertion order is rebuilt per form.
+        # A shared class dict can leak prior ordering between requests/calculators.
+        self.formfields = {}
         self.sname = sname
         self.cid = cid
         self.list_added = {}  # dict of list

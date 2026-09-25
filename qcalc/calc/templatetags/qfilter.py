@@ -17,7 +17,7 @@ import re
 
 register = template.Library()
 
-_TOKEN_PART_WITH_OPTIONAL_INDEX = rf'_(?:\d+)?{re.escape(TOK_PART)}'
+_TOKEN_PART_WITH_OPTIONAL_INDEX = rf'(?:_\d+)?{re.escape(TOK_PART)}'
 _FIELD_ROOT_SUFFIX_PATTERN = re.compile(
     rf'{_TOKEN_PART_WITH_OPTIONAL_INDEX}(?:{re.escape(TOK_UOM)})?$|{re.escape(TOK_UOM)}$'
 )

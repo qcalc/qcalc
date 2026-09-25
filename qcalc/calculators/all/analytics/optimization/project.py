@@ -166,6 +166,7 @@ def optima_project__info():
             'project_rules': table_project_rules('project_rules'),
             'project_budget_limit': {'initial': 220, 'help_text': 'Set empty for no budget cap on selected projects.'},
             'project_resource_limit': {
+                'type': 'float',
                 'initial': None,
                 'help_text': "Optional total resource cap; requires 'Resource' column in projects.",
             },

@@ -997,8 +997,8 @@ document.addEventListener('DOMContentLoaded', function() {
     if (document.body) {
         document.body.addEventListener('htmx:afterSwap', function(evt) {
             qcalcInitHelpTooltips(evt.target);
-            qmdEnhanceCodeBlocks(evt.target);
-            qmdEnhanceImages(evt.target);
+            qmdEnhanceCodeBlocks(document);
+            qmdEnhanceImages(document);
         });
     }
 });

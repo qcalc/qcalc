@@ -23,10 +23,11 @@ import qenv
 from .forms import ContactForm
 
 
-def serve_app_static_file(relative_path:str, content_type):
+def serve_app_static_file(relative_path: str, content_type):
     def view(request):
         path = Path(settings.APP_DIR) / "static" / "qsite" / Path(relative_path)
         return FileResponse(path.open("rb"), content_type=content_type)
+
     return view
 
 
@@ -65,7 +66,7 @@ def _license_text():
     license_path = Path(settings.PROJ_DIR) / 'LICENSE'
     if not license_path.exists():
         return ''
-    return mark_safe(escape(_read_doc_text(license_path)))
+    return mark_safe(escape(ut.read_doc_text(license_path)))
 
 
 def about_data(request: HtmxHttpRequest):
@@ -124,19 +125,12 @@ def show_tour(request: HtmxHttpRequest):
 def q1_add_page_help(request: HtmxHttpRequest, **kwargs):
     pname = kwargs.get('pname', "").strip()
     template = 'page-help-partial.html'
-    context = {'dyn_html': ''}
     help_path = get_help_path('page_' + pname)
     help_exists = help_path.exists()
 
-    if help_exists:
-        if help_path.suffix == '.html':
-            context['help_html'] = help_path.as_posix()
-        else:  # .md
-            document_html = wrap_md_images(md2html(help_path.read_text(encoding='utf-8')))
-            context['help_html'] = ""
-            context['dyn_html'] = document_html
-    else:
-        context['help_html'] = 'nohelp.html'
+    context = ut.read_doc_content(help_path)
+    if context is None:
+        context = {'dyn_html': '', 'help_html': 'nohelp.html'}
 
     current_user = request.user
     if current_user.is_active and current_user.is_staff:
@@ -149,34 +143,15 @@ def q1_add_page_help(request: HtmxHttpRequest, **kwargs):
     return ut.get_page(request, template, context, page=f'page_{pname}_help', as_card=True)
 
 
-def _read_doc_text(doc_path):
-    # source files may be saved as utf-8 or utf-16 (BOM); fall back to replacing bad bytes rather than 500ing
-    raw = doc_path.read_bytes()
-    if raw.startswith(b'\xff\xfe') or raw.startswith(b'\xfe\xff'):
-        return raw.decode('utf-16')
-    try:
-        return raw.decode('utf-8-sig')
-    except UnicodeDecodeError:
-        return raw.decode('utf-8', errors='replace')
-
-
 def q1_add_doc(request: HtmxHttpRequest, **kwargs):
     pname = kwargs.get('pname', "").strip()
     template = 'page-help-partial.html'
     doc_path = get_doc_path(pname)
     doc_exists = doc_path.exists()
 
-    if doc_exists and doc_path.suffix == '.md':
-        document_html = wrap_md_images(md2html(_read_doc_text(doc_path)))
-        document_html = fix_doc_links(document_html, pname)
-        context = {'help_html': '', 'dyn_html': document_html}
-    elif doc_exists and doc_path.suffix in ['.txt']:  # ,'', '.py'
-        # plain text has no markup, so escape it and turn newlines into <br> to preserve line breaks
-        from django.utils.html import escape, linebreaks
-        document_html = linebreaks(escape(_read_doc_text(doc_path)))
-        context = {'dyn_html': document_html, 'help_html': ''}
-    else:  # .html
-        context = {'dyn_html': '', 'help_html': doc_path.as_posix() if doc_exists else 'nodoc.html'}
+    context = ut.read_doc_content(doc_path, allow_text=True, md_postprocess=lambda html: fix_doc_links(html, pname))
+    if context is None:
+        context = {'dyn_html': '', 'help_html': 'nodoc.html'}
 
     current_user = request.user
     if current_user.is_active and current_user.is_staff:

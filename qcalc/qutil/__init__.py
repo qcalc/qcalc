@@ -13,6 +13,7 @@ from .mod_settings import *
 from .mod_code import *
 from .mod_data import *
 from .mod_db import *
+from .mod_file import *
 from .mod_tree import TreeNode, create_category_node
 from .timed_thread import thread_with_timeout, QThread
 from .timed_signal import run_with_timeout

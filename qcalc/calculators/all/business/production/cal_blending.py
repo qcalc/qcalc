@@ -326,7 +326,7 @@ def optima_blending__info():
             'show_zero': field_show_zero(),
         },
         'layout': 'lr',
-        'out1': ['Summary', 'Optimal Mix', 'Property Compliance'],
+        # 'out1': ['Summary', 'Optimal Mix', 'Property Compliance'],
         'tags': 'optimization, blending, product mix, linear programming',
     }
 

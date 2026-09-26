@@ -525,13 +525,13 @@ def q1_add_func_help(request: HtmxHttpRequest, **kwargs):
         context['dyn_html'] = dyn_html
         help_path = get_help_path(func_id)
         help_exists = help_path.exists()
-        if help_exists:
-            if help_path.suffix == '.html':
-                context['help_html'] = help_path.as_posix()
-            else:  # .md
-                document_html = wrap_md_images(md2html(help_path.read_text(encoding='utf-8')))
+        doc_context = ut.read_doc_content(help_path)
+        if doc_context:
+            if help_path.suffix == '.md':
                 context['help_html'] = ""
-                context['dyn_html'] += document_html
+                context['dyn_html'] += doc_context['dyn_html']
+            else:
+                context['help_html'] = doc_context['help_html']
         else:
             context['help_html'] = "" if dyn_html else 'nohelp.html'
 

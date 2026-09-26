@@ -18,7 +18,12 @@
     "desc": "How to select results for further processing and presenting in table and chart",
     "order": "1.10.20"
   },
-
+  "user-guide/related-topics/interactivity-guide-end-user.md": {
+    "title": "Dealing with interactivity",
+    "desc": "Interactive mode lets a calculator run automatically after input changes, so you do not need to press Calculate every time.",
+    "order": "1.10.25"
+  },
+  
   "author-guide": {
     "order": "0.20"
   },
@@ -69,9 +74,19 @@
     "order": "2.00.30"
   },
   "author-guide/related-topics/info-specify-layout.md": {
-    "title": "How to specify layout in __info() function",
+    "title": "How to specify simple layout in __info() function",
     "desc": "How to specify calculator input and output layout inside a calculator metadata function",
     "order": "2.00.35"
+  },
+  "author-guide/related-topics/info-dynamic-layout.md": {
+    "title": "How to specify dynamic layout in __info() function",
+    "desc": "How to specify dynamic tabbed input and output layout inside a calculator metadata function",
+    "order": "2.00.36"
+  },
+  "author-guide/related-topics/info-interactive.md": {
+    "title": "How to specify interactivity in __info() function",
+    "desc": "How to turn your calculator interactive",
+    "order": "2.00.38"
   },
   "author-guide/related-topics/info-specify-next-step.md": {
     "title": "How to specify next step in __info() function",

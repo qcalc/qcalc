@@ -20,6 +20,8 @@ from .mod_shared_data import (
     get_shared_dataset,
 )
 from .mod_feasible_region import *
+from .mod_optima_core import *
+from .mod_optima_tables import *
 
 import os
 import signal

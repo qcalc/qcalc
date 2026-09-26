@@ -18,7 +18,7 @@ import math
 
 def transport_opt__info():
     return {
-        'title': 'Transportation Optimization - Plant to Customer'
+        'title': 'Optimization: Transportation - Plant to Customer'
     }
 
 
@@ -45,7 +45,7 @@ def transport_opt(
 
 def transship_opt__info():
     return {
-        'title': 'Transshipment Optimization - Plant -> Distribution Center -> Customer'
+        'title': 'Optimization: Transshipment - Plant -> Distribution Center -> Customer'
     }
 
 
@@ -361,7 +361,7 @@ def std_mesh(sources: qtexta = 'S1, S2, S3', transits: qtexta = 'T1,T2',
 
 def facility_opt__info():
     return {
-        'title': 'Facility Location Optimization - Facility to Customer',
+        'title': 'Optimization: Facility Location - Facility to Customer',
         'layout': 'tb',
         'inp1': '1',
         'out1': '~allocation_table',

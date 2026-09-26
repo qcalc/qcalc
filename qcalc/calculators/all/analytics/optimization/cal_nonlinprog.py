@@ -7,7 +7,7 @@ from scipy.optimize import minimize
 
 from qcore import qlist, qtext, QChart
 from calculators.all.general.chart import surface_contour3d_chart
-from .opt_core import optimization_status_description
+from calc import optimization_status_description
 from qutil import preprocess_expression
 
 
@@ -148,7 +148,7 @@ def _make_scipy_constraint(constraint_text, variable_names):
 
 def nonlinprog__info():
     return {
-        "title": "Nonlinear Programming",
+        "title": "Optimization: Nonlinear Programming",
         'kins': 'linprog',
         'tags': 'optimization, non-linear programming',
         'desc': (

@@ -8,8 +8,8 @@ import pulp
 from qcore import as_qtable, qtable
 from qutil.mod_runtime_validate import validate_schema_if_needed
 
-from .cal_optima import field_show_zero, table_blend_materials, table_blend_specs
-from .opt_core import safe_objective_value, solver, slack_table
+from calc import field_show_zero, table_blend_materials, table_blend_specs
+from calc import safe_objective_value, solver, slack_table
 
 
 def _is_blank(value):

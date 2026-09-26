@@ -7,13 +7,13 @@ from qcore import as_qtable, qtable
 from qutil.mod_runtime_validate import validate_schema_if_needed
 from qutil import parse_optional_number, require_unique_values, require_values_subset
 
-from .cal_optima import (
+from calc import (
     field_show_zero,
     table_material_demand,
     table_supplier_item_cost,
     table_supplier_master,
 )
-from .opt_core import safe_objective_value, solver, slack_table
+from calc import safe_objective_value, solver, slack_table
 
 
 def optima_supplier_selection(

@@ -7,12 +7,12 @@ from qcore import as_qtable, qtable
 from qutil.mod_runtime_validate import validate_schema_if_needed
 from qutil import require_unique_values
 
-from .cal_optima import (
+from calc import (
     field_show_zero,
     table_workforce_shift_demand,
     table_workforce_staff,
 )
-from .opt_core import safe_objective_value, solver, slack_table
+from calc import safe_objective_value, solver, slack_table
 
 
 def _skills_set(value):

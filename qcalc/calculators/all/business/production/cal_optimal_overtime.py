@@ -6,7 +6,7 @@ from qcore import Qty, QChart
 
 def optimal_overtime__info():
     return {
-        'title': 'Optimal Overtime Level',
+        'title': 'Optimization: Optimal Overtime Level',
         'desc': (
             'Find overtime hours that minimize total production-related cost '
             'with overtime efficiency deterioration and shortfall penalty.'

@@ -9,7 +9,7 @@ from qutil import is_debug, require_columns
 
 def production_mix_profit__info():
     return {
-        'title': 'Production Mix Profitability',
+        'title': 'Optimization: Production Mix Profitability',
         'desc': (
             'Optimize product quantities to maximize monthly contribution profit '
             'subject to machine time, labor time, demand, and ramp-change constraints.'

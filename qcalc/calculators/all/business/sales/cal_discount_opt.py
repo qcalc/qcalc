@@ -8,7 +8,7 @@ from qcore import Qty, QChart
 
 def discount_opt__info():
     return {
-        'title': 'Sales Discount Optimization',
+        'title': 'Optimization: Sales Discount',
         'desc': (
             'Find the discount that maximizes profit using a saturating '
             'conversion response, with capacity and margin-floor constraints.'

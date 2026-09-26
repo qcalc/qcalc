@@ -4,13 +4,13 @@ import pulp
 
 from qcore import qlist, qtext
 from calculators.all.general.chart import feasible_chart
-from .opt_core import optimization_status_description
+from calc import optimization_status_description
 from qutil import preprocess_expression
 
 
 def linprog__info():
     return {
-        "title": "Linear Programming",
+        "title": "Optimization: Linear Programming",
         'kins': 'nonlinprog',
         'tags': 'optimization, linear programming',
         'desc': (

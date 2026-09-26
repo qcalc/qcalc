@@ -7,8 +7,8 @@ from qcore import as_qtable, qtable
 from qutil.mod_runtime_validate import validate_schema_if_needed
 from qutil import require_complete_pair_grid, require_values_subset
 
-from .cal_optima import field_show_zero, table_agents, table_assign_cost, table_tasks
-from .opt_core import safe_objective_value, solver, slack_table
+from calc import field_show_zero, table_agents, table_assign_cost, table_tasks
+from calc import safe_objective_value, solver, slack_table
 
 
 def optima_assignment(

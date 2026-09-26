@@ -6,14 +6,14 @@ import pulp
 from qcore import as_qtable, qtable
 from qutil.mod_runtime_validate import validate_schema_if_needed
 
-from .cal_optima import (
+from calc import (
     field_show_zero,
     table_capacity_object,
     table_placement_object,
     table_redundancy_object,
     table_routing_object,
 )
-from .opt_core import safe_objective_value, solver, slack_table
+from calc import safe_objective_value, solver, slack_table
 
 
 def optima_capacity(

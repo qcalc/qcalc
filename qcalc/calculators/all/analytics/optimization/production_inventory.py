@@ -274,7 +274,7 @@ def optima_production_inventory__info():
             'show_zero': field_show_zero(),
         },
         'layout': 'lr',
-        'out1': ['Summary', 'Decision Table'],
+        # 'out1': ['Summary', 'Decision Table'],
         'tags': 'optimization, production planning, inventory, lot sizing, linear programming',
     }
 

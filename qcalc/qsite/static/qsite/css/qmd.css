@@ -61,7 +61,7 @@
   padding: 0;
   white-space: pre;
   color: var(--qmd-pre-text);
-  font-family: Consolas, "Courier New", monospace;
+  font-family: 'IBM Plex Mono', Consolas, monospace;
   font-size: 0.9rem;
   line-height: 1.5;
 }

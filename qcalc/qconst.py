@@ -1,11 +1,20 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
+import re
+
 # COMBINE_FINF = {dict,   dict,       dict,      dict,       dict,    list,      dict,    value}
 COMBINE_FINF = {'schema', 'autofill', 'related', 'showhide', 'anyof', 'fargs', 'script'}
 KNOWN_METAS = ['__info', '__input', '__modify', '__command', '__help']
-QCALC_LAYOUTS = ['l2r', 'l2r2', 'lr', 'lr2', 't2b', 't2b2', 'tb', 'tb2'] # not used
+QCALC_LAYOUTS = ['lr', 'tb']
 CODE_TAB = 4
+
+# Marker tokens used in nested function/dict metadata and script placeholders.
+DICT_CLASS_FUNC = '@'
+DICT_CLASS_PLAIN = '#'
+DICT_KEY_SEP = '--'
+SCRIPT_RUNTIME_VAR = '@'
+DICT_KEY_LABEL_SEP = ': '
 
 # Field/component suffix tokens used in generated names/ids.
 # Keep as full token fragments so migrations can be granular.
@@ -19,6 +28,15 @@ TOK_TABLE_RESIZE = '_table_resize'
 TOK_TABLE_ED = '_table_ed'
 TOK_ID_PREFIX = 'id_'
 TOK_FIELD_SEP = '_'
+TOK_RESULT_SUFFIX = '__r'
+
+TOK_RESULT_SUFFIX_PATTERN = r'__r[a-z]?'
+TOK_LIST_INDEX_PATTERN = r'_\d+$'
+
+_TOKEN_PART_WITH_OPTIONAL_INDEX = rf'(?:_\d+)?{re.escape(TOK_PART)}'
+FIELD_ROOT_SUFFIX_PATTERN = re.compile(
+    rf'{_TOKEN_PART_WITH_OPTIONAL_INDEX}(?:{re.escape(TOK_UOM)})?$|{re.escape(TOK_UOM)}$'
+)
 
 # Token usage map (2026-09-25 analysis):
 # - These TOK_* values are backend/frontend contracts. If any token here changes,

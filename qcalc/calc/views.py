@@ -702,7 +702,7 @@ def q1141_read_func_meta(func_id, __info=None, scope='qpots'):  # __info__
         if key in func_info:
             json_doc['info'][key] = func_info[key]
 
-    if json_doc['info']['layout'] not in ['lr', 'tb']:
+    if json_doc['info']['layout'] not in qconst.QCALC_LAYOUTS:
         json_doc['info']['layout'] = 'lr'
 
     if has_dynamic_layout(json_doc['info']):
@@ -938,7 +938,7 @@ def q1145_result_to_form_schema(request: HtmxHttpRequest, func_id, cid, result, 
 
     def rs_item(request, arg_name, value):
         request.ojson_d4f[arg_name] = value
-        name = ut.title_to_variable(arg_name, '__r')
+        name = ut.title_to_variable(arg_name, qconst.TOK_RESULT_SUFFIX)
         if isPQ(value):  # quantity
             request.json_doc['info']['cost'] = True
             # name = name + 'q' #@05.09.26

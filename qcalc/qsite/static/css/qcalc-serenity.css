@@ -2,7 +2,7 @@
 /* Modern Serenity Theme */
 /* qCalc Variables Common */
 /* 0.82rem, 0.906 */
-/* 500 */
+/* 700 */
 /* select and select2 1.879rem */
 /* 12rem; */
 /* -1rem */
@@ -168,6 +168,7 @@
   background-color: var(--table-head-bg, var(--table-control-bg, var(--layout-tab-panel-bg, #fff)));
   background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.16));
   border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+  font-weight: 600;
 }
 
 .elem-wrapper.table-wrap .tabulator-tableholder {
@@ -182,7 +183,7 @@
   color: inherit;
   border: 0 !important;
   box-shadow: none;
-  font-weight: 700;
+  font-weight: 600;
   padding: 0;
   margin: 3px;
   line-height: inherit;
@@ -334,7 +335,7 @@
 }
 
 body {
-  font-family: "Roboto", "Open Sans", "Lato", Arial, sans-serif;
+  font-family: "IBM Plex Sans", sans-serif;
   font-weight: 400;
   font-size: 0.94rem;
   line-height: 1.6;
@@ -368,7 +369,7 @@ label.required::after {
   position: absolute;
   left: 0.4rem;
   content: "✓";
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .hidden {
@@ -390,7 +391,7 @@ label.required::after {
 .layout-tabs .nav-link {
   padding-top: 6px;
   padding-bottom: 6px;
-  font-weight: 500;
+  font-weight: 600;
   line-height: 1.2;
   border: 1px solid rgba(0, 0, 0, 0.24);
   margin-bottom: 0;
@@ -483,6 +484,16 @@ div.io.section-output2 {
   border-radius: 4px;
 }
 
+/* Reduce gap between top helper buttons (Help/Related/...) and calculator body. */
+.card-body > button.card-collapse.btncmd {
+  margin-bottom: 0.25rem !important;
+}
+
+.card-body > hr {
+  margin-top: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
 .nowrap {
   white-space: nowrap;
 }
@@ -517,6 +528,32 @@ button, input, optgroup, select, textarea {
   /* border-radius: 4px; */
 }
 
+/* Keep Add Calculator input and plus button vertically aligned. */
+#nav-add-calc .input-group .form-control,
+#nav-add-calc .input-group .btn,
+#card-space .input-group .form-control,
+#card-space .input-group .btn {
+  margin-bottom: 0;
+  height: 2rem;
+}
+
+#nav-add-calc .input-group .btn,
+#card-space .input-group .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+#btn_fname_sb,
+#btn_fname_cs {
+  height: 2rem !important;
+  min-height: 2rem;
+  margin-bottom: 0 !important;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
 /* Keep native single-line inputs/selects visually consistent with Select2 controls. */
 input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=image]):not([type=submit]):not([type=reset]):not([type=button]):not([type=hidden]),
 select:not([multiple]):not([size]),
@@ -529,15 +566,42 @@ select:not([multiple]):not([size]),
 }
 
 /* Keep native single-select controls visually aligned with neighboring inputs. */
-select:not([multiple]):not([size]) {
+select:not([multiple]):not([size]):not(.tabulator-page-size) {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath fill='%236b7785' d='M0 0h10L5 6z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.65rem center;
+  background-size: 0.56rem 0.35rem;
   padding-right: 1.8rem;
 }
 
+select:not([multiple]):not([size]):not(.tabulator-page-size)::-ms-expand {
+  display: none;
+}
+
+/* Keep Tabulator pager size control on native browser arrow styling. */
+.tabulator .tabulator-footer .tabulator-paginator .tabulator-page-size {
+  -webkit-appearance: auto;
+  -moz-appearance: auto;
+  appearance: auto;
+  background-image: none;
+}
+
 textarea {
+  border: 1px solid #ced4da;
   border-radius: 4px;
   resize: both;
   max-width: 100%;
   overflow: auto;
+}
+
+/* Console-like code areas. */
+.qconsole,
+.qconsole .command,
+.qconsole .response {
+  font-family: "IBM Plex Mono", Consolas, monospace;
 }
 
 .texte {
@@ -551,7 +615,7 @@ textarea {
 }
 
 .select2-selection {
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .select2-container--default .select2-selection--single {
@@ -611,7 +675,7 @@ textarea {
 /* search-container */
 .categ {
   cursor: pointer;
-  font-weight: bold;
+  font-weight: 600;
   color: #4a708b;
 }
 
@@ -652,7 +716,7 @@ div.radio, div.mcheck {
 
 label {
   margin-bottom: 0.1rem;
-  font-weight: 500; /* 600 */
+  font-weight: 600;
   margin-right: 0.4rem;
 }
 

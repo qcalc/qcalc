@@ -125,8 +125,7 @@ def preprocess_expression(qexpr, disp=False):  # deb@13.08.23, @25.11.23
 
 
 def title_to_variable(title, data_type=''):
-    # __r(esult), __rf(loat), __ri(nt), __rq(ty)
-    title = title.replace(': ', '--').replace(' ', '_').lower()
+    title = title.replace(': ', qconst.DICT_KEY_SEP).replace(' ', '_').lower()
     title = title + data_type
     return title
 
@@ -136,23 +135,6 @@ def doc_title(name):
     var = titlecase(var).replace('Qcalc', 'qCalc')
     return var
 
-
-# def variable_to_title(var):
-#     var = re.sub(r'__r[a-z]?', '', var).replace('_', ' ').replace('--', ': ')
-#     var = titlecase(var)
-#     return var
-
-# def variable_to_title(var):
-#     var = re.sub(r'__r[a-z]?', '', var).replace('_', ' ').replace('--', ': ')
-#     var = titlecase(var)
-#
-#     words = var.split()
-#     for i in range(1, len(words)):
-#         word = words[i].lower()
-#         if word in PROPER_WORDS.keys():
-#             words[i] = PROPER_WORDS.keys(word)
-#
-#     return ' '.join(words)
 
 # titlecase automatically considers some special words
 # but not all special words, e.g. "per" ref: curx()
@@ -171,7 +153,7 @@ def css2proper_dict(css: str) -> dict:
 
 def variable_to_title(var, pdict: dict | None = None):
     word_dict = PROPER_WORDS if pdict is None else {**PROPER_WORDS, **pdict}
-    var = re.sub(r'__r[a-z]?', '', var).replace('_', ' ').replace('--', ': ')
+    var = re.sub(qconst.TOK_RESULT_SUFFIX_PATTERN, '', var).replace('_', ' ').replace(qconst.DICT_KEY_SEP, ': ')
     words = [str(word_dict.get(word.lower(), word)) for word in titlecase(var).split()]
     return ' '.join(words)
 
@@ -333,35 +315,3 @@ def unspecified_args(func_or_args, spec):
 
     specified_set = set(specified)
     return [arg for arg in all_args if arg not in specified_set]
-
-
-if __name__ == '__main__':
-    print(variable_to_title('gold__rq_uom'))
-    assert variable_to_title('gold__rq_uom') == 'Gold Uom'
-    print(variable_to_title('gold__rq'))
-    assert variable_to_title('gold__rq') == 'Gold'
-    print(variable_to_title('count__ri'))
-    assert variable_to_title('count__ri') == 'Count'
-    print(variable_to_title('age__rf'))
-    assert variable_to_title('age__rf') == 'Age'
-    print(variable_to_title('name__r'))
-    assert variable_to_title('name__r') == 'Name'
-
-    print(title_to_variable('Gold', '__rq'))
-    assert title_to_variable('Gold', '__rq') == 'gold__rq'
-    print(title_to_variable('Gold', '__rq') + '_uom')
-    assert title_to_variable('Gold', '__rq') + '_uom' == 'gold__rq_uom'
-    print(title_to_variable('Interest Rate', '__rf'))
-    assert title_to_variable('Interest Rate', '__rf') == 'interest_rate__rf'
-
-    print(title_to_variable('Func Xyz: Parameter 1'))
-    assert title_to_variable('Func Xyz: Parameter 1') == 'func_xyz--parameter_1'
-    print(variable_to_title('func_xyz--parameter_1'))
-    assert variable_to_title('func_xyz--parameter_1') == 'Func Xyz: Parameter 1'
-    print(fid2names('abc-def'))
-    print(fid2names('abc'))
-
-    tests = ['3.5m', '5 to ft', '3.5*m as yd, ft, inch', "bmi(weight='60kg')", '3e5', '0x1A', '1_000', 'x=2ft',
-             '3.5m/s to ft/s', '5kg+2g', 'x=1', '3.5 m', '2(3+4)', '3j', 'x==1', '5 in inch', "3.5*m/s"]
-    for t in tests:
-        print(repr(t), '->', repr(insert_implicit_multiply(t)))

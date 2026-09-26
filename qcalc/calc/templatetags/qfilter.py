@@ -12,15 +12,10 @@ from qsite import STATIC_VERSION
 from django.utils.html import format_html
 from django.conf import settings
 from calc import QCals, StdList, get_html, ancestors, QPref, QInput, cur_loader
-from qconst import TOK_UOM, TOK_PART
+import qconst
 import re
 
 register = template.Library()
-
-_TOKEN_PART_WITH_OPTIONAL_INDEX = rf'(?:_\d+)?{re.escape(TOK_PART)}'
-_FIELD_ROOT_SUFFIX_PATTERN = re.compile(
-    rf'{_TOKEN_PART_WITH_OPTIONAL_INDEX}(?:{re.escape(TOK_UOM)})?$|{re.escape(TOK_UOM)}$'
-)
 
 
 # | start of lineless ------------------
@@ -115,11 +110,11 @@ def field_root(value):
     """
     if not value:
         return value
-    if '--' in value: # qdict x--A -> x
-        return value.split('--')[0]
-    if re.search(r'_\d+$', value): # qlist x_1 -> x
+    if qconst.DICT_KEY_SEP in value:  # qdict x--A -> x
+        return value.split(qconst.DICT_KEY_SEP)[0]
+    if re.search(qconst.TOK_LIST_INDEX_PATTERN, value):  # qlist x_1 -> x
         return value.rsplit('_', 1)[0]
-    return _FIELD_ROOT_SUFFIX_PATTERN.sub('', value)
+    return qconst.FIELD_ROOT_SUFFIX_PATTERN.sub('', value)
 
 
 @register.simple_tag
@@ -391,7 +386,7 @@ def pagelink(pageurl, caption, link_class='', icon_class='', card=False):
 
 @register.filter
 def showlabel(field):
-    return (TOK_UOM not in field.name and TOK_PART not in field.name
+    return (qconst.TOK_UOM not in field.name and qconst.TOK_PART not in field.name
             and not field.is_hidden and field.label)
 
 
@@ -446,7 +441,7 @@ def endswith(string: str, suffix: str):
 @register.filter
 def qtyval(fname, frm):  # weight_rq_uom
     # | used to determine value of qty to be used in conv() func link
-    vfield = fname.replace(TOK_UOM, '')
+    vfield = fname.replace(qconst.TOK_UOM, '')
     # | v = frm[vfield].value() if vfield in frm else None  # frm is not a dict
     try:
         v = frm[vfield].value()

@@ -85,6 +85,14 @@ class CodeWidget_codemirror(Widget):
                 height: 250px;
                 min-height: 100px;
                 resize: vertical;
+                font-family: 'IBM Plex Mono', Consolas, monospace !important;
+            }
+            .CodeMirror pre,
+            .CodeMirror textarea,
+            .CodeMirror .CodeMirror-line,
+            .CodeMirror .CodeMirror-line-like,
+            .CodeMirror .CodeMirror-code {
+                font-family: 'IBM Plex Mono', Consolas, monospace !important;
             }
             .CodeMirror-lines {
                 position: relative;

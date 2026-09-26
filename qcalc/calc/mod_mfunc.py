@@ -5,7 +5,13 @@
 from .mod_qcals import QCals
 from qcore import qfunc, qdict
 import inspect
-from qconst import COMBINE_FINF
+from qconst import (
+    COMBINE_FINF,
+    DICT_CLASS_FUNC,
+    DICT_CLASS_PLAIN,
+    DICT_KEY_SEP,
+    SCRIPT_RUNTIME_VAR,
+)
 from qvars import qfunc_info
 from qutil import thread_with_timeout, run_with_timeout, QThread
 from qvars import qc_gpref as gs
@@ -40,10 +46,10 @@ def q0164_execute_qfunc(func_id, unflat_args: dict, timeout, pref, request):
     for arg, val in unflat_args.items():
         if isinstance(val, dict):
             dict_class = next(iter(val))
-            if dict_class == '@':
+            if dict_class == DICT_CLASS_FUNC:
                 csfunc = val.pop(dict_class)
                 unflat_args[arg] = q0164_execute_qfunc(csfunc, val, timeout, pref, request)
-            elif dict_class == '#':
+            elif dict_class == DICT_CLASS_PLAIN:
                 _ = val.pop(dict_class)
                 unflat_args[arg] = q0164_execute_qfunc(None, val, timeout, pref, request)
             else:
@@ -103,7 +109,7 @@ def q0164_execute_qfunc(func_id, unflat_args: dict, timeout, pref, request):
 def q0162_dictify_fargs(flat_func_args: dict) -> dict:
     unflat_dict = {}
     for arg, val in flat_func_args.items():
-        spnames = arg.split("--")
+        spnames = arg.split(DICT_KEY_SEP)
         n = len(spnames)
         if n >= 2:
             unflat = unflat_dict
@@ -123,17 +129,17 @@ def q0162_dictify_fargs(flat_func_args: dict) -> dict:
 def flatten_fargs(func_args: dict, prefix='') -> dict:
     flat_dict = {}
     for arg, val in func_args.items():
-        # | only qfunc/qdict chained args are sentinel-tagged ('@'/'#') by get_fdef() and
+        # | only qfunc/qdict chained args are sentinel-tagged by get_fdef() and
         # | meant to be split into subfields here - a plain dict (e.g. a qtbl default) must
         # | stay a single opaque field value
-        if isinstance(val, dict) and next(iter(val), None) in ('@', '#'):
-            sqfunc = arg if prefix == '' else prefix + "--" + arg
+        if isinstance(val, dict) and next(iter(val), None) in (DICT_CLASS_FUNC, DICT_CLASS_PLAIN):
+            sqfunc = arg if prefix == '' else prefix + DICT_KEY_SEP + arg
             flat_dict.update(flatten_fargs(val, prefix=sqfunc))
         else:
             if prefix == '':
                 flat_dict[arg] = val
             else:
-                flat_dict[prefix + "--" + arg] = val
+                flat_dict[prefix + DICT_KEY_SEP + arg] = val
     return flat_dict
 
 
@@ -142,15 +148,15 @@ def flatten_finfo(func_args: dict, prefix='') -> dict:
     for arg, val in func_args.items():
         if isinstance(val, dict) or isinstance(val, list):
             at = next(iter(val))
-            if at != '@':
+            if at != DICT_CLASS_FUNC:
                 if arg in COMBINE_FINF:
                     if prefix != '':
                         if isinstance(val, dict):
                             keylist = list(val.keys())
                             for key in keylist:
-                                val[prefix + "--" + key] = val.pop(key, None)
+                                val[prefix + DICT_KEY_SEP + key] = val.pop(key, None)
                         else:  # list
-                            val = [prefix + "--" + key for key in val]  # @28.09.24
+                            val = [prefix + DICT_KEY_SEP + key for key in val]  # @28.09.24
 
                     flat_dict[arg] = val
 
@@ -160,21 +166,21 @@ def flatten_finfo(func_args: dict, prefix='') -> dict:
                         elif arg == 'related':  # val is dict of fields
                             for key in flat_dict[arg]:
                                 fields = flat_dict[arg][key]['fields']
-                                fields = {prefix + '--' + field: val for field, val in fields.items()}
+                                fields = {prefix + DICT_KEY_SEP + field: val for field, val in fields.items()}
                                 flat_dict[arg][key]['fields'] = fields
                         elif arg in ['showhide', 'autofill', 'anyof']:  # val is dict of fields
                             for key in flat_dict[arg]:
                                 fields = flat_dict[arg][key]['fields']
-                                fields = [prefix + '--' + field for field in fields]
+                                fields = [prefix + DICT_KEY_SEP + field for field in fields]
                                 flat_dict[arg][key]['fields'] = fields
                 else:
                     if prefix == '':
                         flat_dict[arg] = val
                     else:
-                        flat_dict[prefix + "--" + arg] = val
-            elif at == '@' and isinstance(val, dict):
-                sqfunc = arg if prefix == '' else prefix + "--" + arg
-                _ = val.pop('@')
+                        flat_dict[prefix + DICT_KEY_SEP + arg] = val
+            elif at == DICT_CLASS_FUNC and isinstance(val, dict):
+                sqfunc = arg if prefix == '' else prefix + DICT_KEY_SEP + arg
+                _ = val.pop(DICT_CLASS_FUNC)
                 child_flat_dict = flatten_finfo(val, prefix=sqfunc)
                 for key in child_flat_dict:
                     if key in flat_dict:
@@ -183,9 +189,9 @@ def flatten_finfo(func_args: dict, prefix='') -> dict:
                         flat_dict[key] = child_flat_dict[key]
         elif arg == 'script':
             if prefix == '':
-                flat_dict[arg] = val.replace('@', '')
+                flat_dict[arg] = val.replace(SCRIPT_RUNTIME_VAR, '')
             else:
-                flat_dict[arg] = val.replace('@', prefix + '--')
+                flat_dict[arg] = val.replace(SCRIPT_RUNTIME_VAR, prefix + DICT_KEY_SEP)
 
     return flat_dict
 
@@ -248,14 +254,14 @@ def get_fdef(func_addr, func_id, __info=None):
                 fid = fadr_or_id.__name__
                 fadr = fadr_or_id
             fk, fa, fi = get_fdef(fadr, fid)
-            qargs[arg] = {'@': fid, **fk}
-            annos[arg] = {'@': fid, **fa}
-            infs[arg] = {'@': fid, **fi}
+            qargs[arg] = {DICT_CLASS_FUNC: fid, **fk}
+            annos[arg] = {DICT_CLASS_FUNC: fid, **fa}
+            infs[arg] = {DICT_CLASS_FUNC: fid, **fi}
         elif ann is not None and ann == qdict:
             fk = flatten_fargs(qargs[arg])
-            qargs[arg] = {'#': arg, **fk}
-            annos[arg] = {'#': arg}
-            infs[arg] = {'#': arg}
+            qargs[arg] = {DICT_CLASS_PLAIN: arg, **fk}
+            annos[arg] = {DICT_CLASS_PLAIN: arg}
+            infs[arg] = {DICT_CLASS_PLAIN: arg}
     # kwargs = {'func': func, 'kwargs': kwargs}
     return qargs, annos, infs
 

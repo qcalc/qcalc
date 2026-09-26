@@ -53,23 +53,6 @@ def val_de_quote(val):
     return val
 
 
-# def _plain_fxpr_value(val):
-#     if isinstance(val, Qty):
-#         return val_de_quote(str(val))
-#     if isinstance(val, (date, datetime, dt_time)):
-#         return val_de_quote(str(QDateTime(val)))
-#     if isinstance(val, pd.DataFrame):
-#         return {
-#             'columns': [str(col) for col in val.columns],
-#             'data': [_plain_fxpr_value(row) for row in val.to_numpy().tolist()],
-#         }
-#     if isinstance(val, dict):
-#         return {key: _plain_fxpr_value(item) for key, item in val.items()}
-#     if isinstance(val, list):
-#         return [_plain_fxpr_value(item) for item in val]
-#     return val
-
-
 def furl_from_json(func_id, json_data, json_data_type):
     # print(json_data)
     json_data_copy = json_data
@@ -120,9 +103,6 @@ def scalar_or_none(val, jdata_type: str):
 
 def fxpr_from_json(func_id, json_data, json_data_type, forced=False):
     # print('j', func_id, json_data, json_data_type)
-    # if func_id in ['eva', 'redo']:
-    #     if not forced:
-    #         return ''
 
     # if func_id in ['eva']: #, 'redo', 'compare', 'monte_carlo' has variables inside code]:
     #     # Expression is whatever inside codeedit field
@@ -149,13 +129,13 @@ def fxpr_from_json(func_id, json_data, json_data_type, forced=False):
                 'data': val.to_numpy().tolist(),
             }
         elif isinstance(val, dict):
-            if '@' in val:
-                cfname = val.pop('@')
+            if qconst.DICT_CLASS_FUNC in val:
+                cfname = val.pop(qconst.DICT_CLASS_FUNC)
                 cfname_type = json_data_type_copy[name]
                 json_data_copy[name] = fxpr_from_json(cfname, val, cfname_type)
                 # print('func',json_data_copy[name])
-            elif '#' in val:
-                cfname = val.pop('#')
+            elif qconst.DICT_CLASS_PLAIN in val:
+                cfname = val.pop(qconst.DICT_CLASS_PLAIN)
                 cfname_type = json_data_type_copy[name]
                 json_data_copy[name] = fxpr_from_json(cfname, val, cfname_type)
             # else:
@@ -227,19 +207,6 @@ def json_to_func_call(func_id, json_var):
 
     return func_call_str
 
-
-# def floop_from_json(func_id, json_data, json_data_type):
-#     # if func_id == 'redo':
-#     #     return ''
-#     if func_id in ['redo', 'compare', 'monte_carlo']:
-#         return ''
-#     if func_id == 'eva':
-#         func_call_str = fxpr_from_json(func_id, json_data, json_data_type, forced=True).replace("eva(code=", '')[1:-2]
-#     else:
-#         func_call_str = fxpr_from_json(func_id, json_data, json_data_type)
-#     func_call_str = func_call_str + "/varx_start/1/varx_stop/1/varx_step/1/step_round/2"
-#     # print('func_call_str', func_call_str)
-#     return func_call_str
 
 def xpr2loop(xpr: str):
     return xpr + "/varx_start/1/varx_stop/1/varx_step/1/step_round/2"

@@ -24,15 +24,13 @@ Vendored static assets (qcalc/qsite/static/vendor/)
  Intro.js (optional)  7.2.0      AGPL-3.0*    https://introjs.com
 
 
-Vendored Google Fonts (qcalc/qsite/static/vendor/fonts/google/)
----------------------------------------------------------------
+Vendored IBM Plex Fonts (qcalc/qsite/static/vendor/fonts/ibm/)
+--------------------------------------------------------------
 
- Font         License   URL
- -----------  --------  -----------------------------------------------
- Roboto       Apache-2.0 https://fonts.google.com/specimen/Roboto
- Lato         OFL-1.1    https://fonts.google.com/specimen/Lato
- Montserrat   OFL-1.1    https://fonts.google.com/specimen/Montserrat
- Open Sans    Apache-2.0 https://fonts.google.com/specimen/Open+Sans
+ Font           License   URL
+ --------------  --------  -----------------------------------------------
+ IBM Plex Sans   OFL-1.1   https://fonts.google.com/specimen/IBM+Plex+Sans
+ IBM Plex Mono   OFL-1.1   https://fonts.google.com/specimen/IBM+Plex+Mono
 
 
 SIL Open Font License text: https://scripts.sil.org/OFL

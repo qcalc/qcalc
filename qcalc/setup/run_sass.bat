@@ -10,14 +10,12 @@ for %%f in (qcalc-default ^
              qcalc-elegance ^
              qcalc-lumen ^
              qcalc-serenity ^
-             qcalc-spring ^
              qcalc-tranquil ^
              qcalc-vibe ^
              tree-default ^
              tree-elegance ^
              tree-lumen ^
              tree-serenity ^
-             tree-spring ^
              tree-tranquil ^
              tree-vibe ^
              ) do (

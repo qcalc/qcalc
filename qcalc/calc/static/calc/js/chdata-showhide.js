@@ -6,6 +6,8 @@ const TOK_UOM = "_uom";
 const TOK_FIELD_SEP = "_";
 const TOK_ID_PREFIX = "id_";
 const TOK_SCRIPT_DATA_SHOWHIDE_SUFFIX = "_script_data_showhide";
+// Keep aligned with qconst.SCRIPT_RUNTIME_VAR.
+const SCRIPT_RUNTIME_VAR = "@";
 
 (function() {
     if (window.__qcalc_ShowhideBootstrapped) {
@@ -17,8 +19,8 @@ const TOK_SCRIPT_DATA_SHOWHIDE_SUFFIX = "_script_data_showhide";
         var tf_va;
         if (typeof callback === "string" && callback === "") {
             tf_va = !changedVal;
-        } else if (typeof callback === "string" && callback.indexOf("@") !== -1) {
-            tf_va = eval(callback.replace("@", changedVal));
+        } else if (typeof callback === "string" && callback.indexOf(SCRIPT_RUNTIME_VAR) !== -1) {
+            tf_va = eval(callback.replace(SCRIPT_RUNTIME_VAR, changedVal));
         } else if (callback !== null && typeof callback === "object" && callback.constructor === Object) {
             tf_va = JSON.parse(callback[changedVal]);
         } else if (typeof window[callback] === "function") {

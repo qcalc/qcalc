@@ -3,6 +3,7 @@
 
 from .base import *  # noqa
 from .base import env
+
 print(f"Reading {__file__} ...")
 
 ACCOUNT_EMAIL_VERIFICATION = "none"
@@ -29,7 +30,7 @@ elif QCALC_PROFILING == 'cprofile':
     MIDDLEWARE += ["django_cprofile_middleware.middleware.ProfilerMiddleware"]  # noqa F405
     DJANGO_CPROFILE_MIDDLEWARE_REQUIRE_STAFF = False
 elif QCALC_PROFILING == 'silk':
-    #pip install django-silk==5.1.0
+    # pip install django-silk==5.1.0
     INSTALLED_APPS += ["silk"]  # noqa F405
     MIDDLEWARE += ["silk.middleware.SilkyMiddleware"]
     SILKY_PYTHON_PROFILER = True
@@ -81,3 +82,5 @@ AUTH_PASSWORD_VALIDATORS = [
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"
     },
 ]
+
+ALLOWED_HOSTS += ["*"]

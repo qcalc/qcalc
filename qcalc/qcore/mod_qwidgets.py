@@ -365,6 +365,23 @@ class TabulatorWidget(Widget):
         else:
             html += f'<span>{row_inp}{col_inp}{rsz_btn}{ed_btn}</span>'
 
-        hidden_field = f'<input type="hidden" name="{name}" value="" id="{id_base}">'
+        # Seed the hidden table payload on first render so POST already has
+        # a valid table value even before tabulator-in.js runs its sync step.
+        payload = {
+            "data": [
+                ["" if pd.isna(cell) else cell for cell in row_vals]
+                for row_vals in df.values.tolist()
+            ],
+            "columns": [str(col_name) for col_name in df.columns.tolist()],
+            "shape": [str(row), str(col)],
+            "mode": mode,
+        }
+        # Keep JSON serialization tolerant of numpy/pandas scalar objects.
+        payload_json = json.dumps(
+            payload,
+            default=lambda value: value.item() if hasattr(value, "item") else str(value),
+        )
+        # HTML-escape JSON because it is embedded inside an attribute value.
+        hidden_field = f'<input type="hidden" name="{name}" value="{escape(payload_json)}" id="{id_base}">'
         html = hidden_field + wrap_actions(html, 'table-wrap')
         return mark_safe(html)

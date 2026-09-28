@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
+import socket
 
 import qenv
 from .timed_thread import QThread
@@ -30,6 +31,10 @@ def user_ip(request=None):
     if forwarded:
         return forwarded.split(',')[0].strip()
     return request.META.get('REMOTE_ADDR')
+
+
+def local_ip():
+    return socket.gethostbyname(socket.gethostname())
 
 
 def is_loggedin(request):

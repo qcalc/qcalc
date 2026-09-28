@@ -199,12 +199,16 @@ def table_items(field_name):
     }
 
 
+def _supplier_selection_default_items():
+    return ['I1', 'I2', 'I3']
+
+
 def table_material_demand(field_name):
     # Generic use: per-item demand requirement that procurement must satisfy.
     # Example use: raw material plans, SKU replenishment, component needs.
     return {
         'initial': pd.DataFrame({
-            'Item': ['I1', 'I2', 'I3'],
+            'Item': _supplier_selection_default_items(),
             'Demand': [100, 80, 60],
         }),
         'validators': [table_columns_validator(field_name, required_cols=['Item', 'Demand'])],
@@ -242,13 +246,30 @@ def table_supplier_master(field_name):
 def table_supplier_item_cost(field_name):
     # Generic use: provider-item variable cost table with optional pairwise max limit.
     # Example use: contract pricing grids, lane rates, source-specific unit costs.
+    items = _supplier_selection_default_items()
+    suppliers = ['S1', 'S2', 'S3']
+    unit_cost_map = {
+        'S1': [11, 13, 12],
+        'S2': [10, 14, 13],
+        'S3': [12, 12, 11],
+    }
+    max_qty_map = {
+        'S1': [100, 80, 60],
+        'S2': [100, 80, 60],
+        'S3': [100, 80, 60],
+    }
+    rows = []
+    for supplier in suppliers:
+        for idx, item in enumerate(items):
+            rows.append({
+                'Supplier': supplier,
+                'Item': item,
+                'Unit Cost': unit_cost_map[supplier][idx],
+                'Max Qty': max_qty_map[supplier][idx],
+            })
+
     return {
-        'initial': pd.DataFrame({
-            'Supplier': ['S1', 'S1', 'S1', 'S2', 'S2', 'S2', 'S3', 'S3', 'S3'],
-            'Item': ['RM1', 'RM2', 'RM3', 'RM1', 'RM2', 'RM3', 'RM1', 'RM2', 'RM3'],
-            'Unit Cost': [11, 13, 12, 10, 14, 13, 12, 12, 11],
-            'Max Qty': [100, 80, 60, 100, 80, 60, 100, 80, 60],
-        }),
+        'initial': pd.DataFrame(rows),
         'validators': [
             table_columns_validator(
                 field_name,

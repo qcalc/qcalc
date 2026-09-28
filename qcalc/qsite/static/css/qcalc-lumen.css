@@ -921,6 +921,15 @@ div.io {
     min-width: 500px;
   }
 }
+/* Table overflow guard: keep tabulator wrappers shrinkable in narrow content areas
+   (mobile, and landscape when sidebars reduce usable width). */
+.elem-wrapper.table-wrap,
+.elem-wrapper.table-wrap .table-responsive.table-in,
+.elem-wrapper.table-wrap .table-responsive.table-out,
+.elem-wrapper.table-wrap .tabulator {
+  min-width: 0;
+}
+
 /* Input part: 350px and wider; display calculate caption */
 @container inpart (min-width: 350px) {
   .calimg {

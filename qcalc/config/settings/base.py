@@ -6,7 +6,7 @@ Base settings to build other settings files upon.
 """
 
 import logging
-
+import socket
 import qenv
 
 NOTE_LEVEL = 35
@@ -511,6 +511,19 @@ SELECT2_CACHE_BACKEND = DEFAULT_CACHE_ALIAS
 QCALC_SCHEME = env("QCALC_SCHEME", default='http')
 QCALC_DOMAIN = env("QCALC_DOMAIN", default="127.0.0.1:8000")
 
+# Browsers reject SameSite=None cookies unless Secure=True.
+# For local HTTP development (including local_ip access), use Lax + non-secure.
+if QCALC_SCHEME.lower() == "https":
+    SESSION_COOKIE_SAMESITE = "None"
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SAMESITE = "None"
+    CSRF_COOKIE_SECURE = True
+else:
+    SESSION_COOKIE_SAMESITE = "Lax"
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SAMESITE = "Lax"
+    CSRF_COOKIE_SECURE = False
+
 # Split the domain string at the colon
 domain_parts = QCALC_DOMAIN.split(':')
 QCALC_PORT = domain_parts[1] if len(domain_parts) > 1 else ""
@@ -521,15 +534,20 @@ QCALC_HOST = domain_parts[0].replace("www.", "")
 # ==========================================
 # https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
 
+local_ip = socket.gethostbyname(socket.gethostname())
 
 ALLOWED_HOSTS = [
     "127.0.0.1",
     "localhost",
     "testserver",
+    f"{local_ip}",
 ]
+
 CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1",
     "http://localhost",
+    f'http://{local_ip}',
+    f'http://{local_ip}:8000',
     "http://testserver",
     "http://127.0.0.1:8000",
     "http://localhost:8000",

@@ -3,7 +3,7 @@
 
 from datetime import datetime, date
 from calculators.all.general.map import geo_location
-from qcore import Qty, qfunc, QGeo
+from qcore import Qty, qfunc, QGeo, qhtml
 from math import fmod, radians, degrees, sqrt, ceil, acos
 from .cal_coord import *
 from qutil import nzv, qc_tzinfo, julian_date, j2iso, QDateTime
@@ -123,7 +123,30 @@ def jday(on_date=date.today()):
     return {"Julian Day Number": jday}
 
 
-def moonphase__info(): return {'title': 'Calculate Moonphase on a Date'}
+def moonphase__info():
+    return {
+        'title': 'Calculate Moonphase on a Date',
+    }
+
+
+def _moonphase_label(phase_name: str):
+    symbol_map = {
+        'New': '🌑',
+        'Waxing Crescent': '🌒',
+        'First Qtr': '🌓',
+        'Waxing Gibbous': '🌔',
+        'Full': '🌕',
+        'Waning Gibbous': '🌖',
+        'Third Qtr': '🌗',
+        'Waning Crescent': '🌘',
+    }
+    symbol = symbol_map.get(phase_name, '🌑')
+    return qhtml(
+        f'<span class="moon-phase" style="white-space:nowrap;">'
+        f'<span class="moon-icon" aria-hidden="true" '
+            f'style="display:inline-block;font-size:4em;line-height:1;vertical-align:-0.12em;">{symbol}</span>'
+        f'</span>'
+    )
 
 
 def moonphase(on_date=date.today()):
@@ -144,15 +167,19 @@ def moonphase(on_date=date.today()):
     day_since_new = julian_day - jday_20000106
     moon_age = day_since_new % lunar_cycle_length
     # this take into account of -ve automatically e.g. -1%5=4
-    phases = ['New', 'Waning Crescent',
-              'Third Qtr', 'Waning Gibbous', 'Full',
-              'Waxing Gibbous', 'First Qtr',
-              'Waxing Crescent', 'New'
+    phases = ['New', 'Waxing Crescent',
+              'First Qtr', 'Waxing Gibbous', 'Full',
+              'Waning Gibbous', 'Third Qtr',
+              'Waning Crescent', 'New'
               ]
     ph_interval = lunar_cycle_length / 8
     ph_num = int(round(moon_age / ph_interval, 0))
     moon_phase = phases[ph_num]
-    return {"Moon Age": Qty(moon_age, 'd'), "Moon Phase": moon_phase}
+    return {
+        "Moon Age": Qty(moon_age, 'd'),
+        "Moon Phase": moon_phase,
+        "Moon Icon": _moonphase_label(moon_phase),
+    }
 
 
 def coord__info():

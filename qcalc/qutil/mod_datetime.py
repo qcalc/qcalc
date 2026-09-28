@@ -13,7 +13,8 @@ from timezonefinderL import TimezoneFinder
 # Europe/London 2026-08-09 05:36:09 +0100
 # Following is not strictly ISO 8601 format which is '%Y-%m-%dT%H:%M:%S%z' but closer and cleaner and compatible
 QC_DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S %z'
-ISO_8601_DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%S%z' # not used
+ISO_8601_DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%S%z'  # not used
+
 
 def is_number(value: str) -> bool:
     try:
@@ -21,6 +22,7 @@ def is_number(value: str) -> bool:
         return True
     except (ValueError, TypeError):
         return False
+
 
 class QDateTime:
     dt_value: date | datetime | dt_time | None
@@ -88,6 +90,11 @@ class QDateTime:
     def __str__(self):
         return qc_datetime_to_str(self.dt_value)
 
+    def day_name(self, short: bool = False) -> str | None:
+        if isinstance(self.dt_value, (date, datetime)):
+            return self.dt_value.strftime('%a' if short else '%A')
+        return None
+
     @property
     def val(self) -> None | date | datetime | dt_time:
         return self.dt_value  # DateTime or None
@@ -132,15 +139,15 @@ def qc_datetime_to_str(dtime: datetime | date | dt_time | None):  # qc date/time
     return dtime.strftime(QC_DATETIME_FORMAT)
 
 
-def qc_str_to_datetime(sdatetime_iso_qc: str): # risk
+def qc_str_to_datetime(sdatetime_iso_qc: str):  # risk
     return QDateTime(sdatetime_iso_qc).val
 
 
-def qc_str_to_date_and_time(sdatetime_iso_qc: str): # risk
+def qc_str_to_date_and_time(sdatetime_iso_qc: str):  # risk
     return QDateTime(sdatetime_iso_qc).date_time
 
 
-def is_str_date(sdatetime_iso_qc: str) -> bool: # risk
+def is_str_date(sdatetime_iso_qc: str) -> bool:  # risk
     return QDateTime(sdatetime_iso_qc).is_date
 
 
@@ -155,9 +162,11 @@ def timestamp_to_dt(timestamp: float) -> str:
     """Convert a timestamp to a datetime string in YYYY-MM-DD HH:MM:SS UTC+0000 format."""
     return qc_datetime_to_str(datetime.fromtimestamp(timestamp, tz=timezone.utc))
 
+
 def timestamp_to_date(timestamp: float) -> str:
     """Convert a timestamp to a date string in YYYY-MM-DD."""
     return qc_datetime_to_str(datetime.fromtimestamp(timestamp, tz=timezone.utc))[:10]
+
 
 def qc_timezone_ll(latitude: float, longitude: float):
     tf = TimezoneFinder()
@@ -203,8 +212,11 @@ def qc_tzinfo(time_zone: str) -> None | tzinfo:
 
 def julian_date(local_date: date):
     """ Julian day numbers are a system of counting days since a specific day (January 1, 4713, BC) """
-    time_stamp = datetime.timestamp(datetime(local_date.year, local_date.month, local_date.day))
-    jdate = time_stamp / 86400 + 2440587.5  # (based on 01.01.1970 unix time)
+    if isinstance(local_date, datetime):
+        local_date = local_date.date()
+
+    # Use an epoch-independent conversion so dates before 1970 work on every platform.
+    jdate = local_date.toordinal() + 1721424.5
     # lprint(f'julian_date={jdate}')
     return jdate
 
@@ -226,4 +238,5 @@ def j2iso(jdy: float, tz: tzinfo):
 
 if __name__ == '__main__':
     from tests.test_qdatetime import test_qdatetime
+
     test_qdatetime()

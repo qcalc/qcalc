@@ -503,6 +503,7 @@ def _add_all_units():
     _add_unit('milligm', '1.e-3*g', 'milligram')
     _add_unit('microgm', '1.e-6*g', 'microgram')
     _add_unit('mcg', '1.e-6*g', 'microgram')
+    _add_unit('ng', '1.e-9*g', 'nanogram')
     _add_unit('nanogm', '1.e-9*g', 'nanogram')
     _add_unit('picogm', '1.e-12*g', 'picogram')
     _add_unit('femtogm', '1.e-15*g', 'femtogram')
@@ -513,7 +514,8 @@ def _add_all_units():
     _add_unit('quectogm', '1.e-30*g', 'quectogram')
 
     # Concentration
-    _add_unit('gpL', 'g/l', 'gram per deciliter')
+    _add_unit('gpL', 'g/l', 'gram per liter')
+    _add_unit('gpdL', 'g/dl', 'gram per deciliter')
     _add_unit('mgpdL', 'mg/dl', 'mg per deciliter')
     _add_unit('mmol_GCpL', '18.015588*mg/dl', 'mmol Glucose per liter')
 

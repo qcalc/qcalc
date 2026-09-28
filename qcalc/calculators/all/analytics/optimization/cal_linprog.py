@@ -74,8 +74,8 @@ def linprog(
     sense = pulp.LpMaximize if objective == "Maximize" else pulp.LpMinimize
     model = pulp.LpProblem("Linear_Programming", sense)
 
-    # Keep chart constraints in the user's original form.
-    # chart_constraints = list(constraints)
+    # Keep chart constraints in solver-equivalent form, including variable bounds.
+    chart_constraints = list(constraints)
 
     # Create decision variables
     variables = {}
@@ -85,13 +85,13 @@ def linprog(
 
         if ">=" in definition:
             name, bound = definition.split(">=", 1)
-            # chart_constraints.append(f"{name}>={bound}")
+            chart_constraints.append(f"{name}>={bound}")
             variables[name] = pulp.LpVariable(
                 name, lowBound=float(bound), cat="Continuous"
             )
         elif "<=" in definition:
             name, bound = definition.split("<=", 1)
-            # chart_constraints.append(f"{name}<={bound}")
+            chart_constraints.append(f"{name}<={bound}")
             variables[name] = pulp.LpVariable(
                 name, upBound=float(bound), cat="Continuous"
             )
@@ -105,6 +105,7 @@ def linprog(
             variables[definition] = pulp.LpVariable(
                 definition, lowBound=0, cat="Continuous"
             )
+            chart_constraints.append(f"{definition}>=0")
     # Build expressions using the variables
     namespace = variables
 
@@ -160,7 +161,7 @@ def linprog(
         var_names = sorted(variables.keys())
         result.update(feasible_chart(
             objective=objective_function,
-            constraints=constraints,
+            constraints=chart_constraints,
             solution=[result[var_names[0]], result[var_names[1]]],
         ))
 

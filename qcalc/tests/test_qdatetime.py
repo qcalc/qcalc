@@ -1,4 +1,6 @@
-from qutil import QDateTime, is_str_date, is_number
+from datetime import date
+
+from qutil import QDateTime, is_str_date, is_number, julian_date
 
 
 def test_qdatetime():
@@ -77,6 +79,8 @@ def test_qdatetime():
     a = QDateTime('2024-09-23')
     assert a.is_date
     assert str(a) == '2024-09-23'
+
+    assert julian_date(date(1967, 7, 1)) == 2439672.5
 
     b = QDateTime('18:06')
     assert b.is_time

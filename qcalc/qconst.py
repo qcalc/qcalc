@@ -8,6 +8,8 @@ COMBINE_FINF = {'schema', 'autofill', 'related', 'showhide', 'anyof', 'fargs', '
 KNOWN_METAS = ['__info', '__input', '__modify', '__command', '__help']
 QCALC_LAYOUTS = ['lr', 'tb']
 CODE_TAB = 4
+CHART_WIDTH = 800
+CHART_HEIGHT = 800
 
 # Marker tokens used in nested function/dict metadata and script placeholders.
 DICT_CLASS_FUNC = '@'

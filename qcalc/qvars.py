@@ -4,6 +4,7 @@
 import environ
 import json
 import os
+import qconst
 
 qfunc_dict_layout = {  # dict of function name and template version
     'default': 'lr',
@@ -44,8 +45,8 @@ qc_gpref = {  # pref-01
     'defa_currency': 'USD',
     'memory': 10,  # 10
     'chart_color_scheme': 'tab20',
-    'chart_width': 620,
-    'chart_height': 620,
+    'chart_width': qconst.CHART_WIDTH,
+    'chart_height': qconst.CHART_HEIGHT,
     # 'page_font_size': 82,
     'chart_legend': 'lower center',
     'strict_assign': False,

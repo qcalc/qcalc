@@ -7,10 +7,10 @@ from PIL import Image
 import io
 import cv2
 from .mod_qfile import QFile, qf2bio
-
+import qconst
 
 class QImage:
-    imgsize = (620, 620)
+    imgsize = (qconst.CHART_WIDTH, qconst.CHART_HEIGHT)
 
     def __init__(self, bio):
         self.b64 = None

@@ -12,6 +12,7 @@ import networkx as nx
 from qutil import QThread, joinx
 import matplotlib.dates as mdates  # requires for 3D as 3D cant natively handle date axes
 from datetime import date, datetime
+import qconst
 
 color_schemes = [
     'Accent', 'Accent_r', 'Blues', 'Blues_r', 'BrBG', 'BrBG_r', 'BuGn', 'BuGn_r', 'BuPu', 'BuPu_r', 'CMRmap',
@@ -46,6 +47,58 @@ legend_locations = [
 ]
 
 
+def auto_limit_bounds(
+    values,
+    *,
+    padding_ratio: float = 0.12,
+    min_padding_ratio: float = 0.05,
+    epsilon: float = 1e-10,
+) -> tuple[float, float]:
+    """Return padded plot limits that tightly frame the supplied values."""
+    values = np.asarray(values, dtype=float)
+    min_value = float(np.min(values))
+    max_value = float(np.max(values))
+
+    span = max_value - min_value
+    reference = max(abs(min_value), abs(max_value), 1.0)
+    padding = max(span * padding_ratio, reference * min_padding_ratio)
+
+    if span <= epsilon:
+        center = min_value
+        return (center - padding, center + padding)
+
+    return (min_value - padding, max_value + padding)
+
+
+def plot_implicit_line(
+    ax,
+    a: float,
+    b: float,
+    c: float,
+    x_values,
+    *,
+    label: str | None = None,
+    linestyle: str | None = None,
+    epsilon: float = 1e-10,
+):
+    """Draw an implicit line ax + by = c, handling vertical lines too."""
+    if abs(b) > epsilon:
+        y_values = (c - a * x_values) / b
+        kwargs = {"label": label}
+        if linestyle is not None:
+            kwargs["linestyle"] = linestyle
+        return ax.plot(x_values, y_values, **kwargs)
+
+    if abs(a) > epsilon:
+        x_value = c / a
+        kwargs = {"label": label}
+        if linestyle is not None:
+            kwargs["linestyle"] = linestyle
+        return [ax.axvline(x_value, **kwargs)]
+
+    return []
+
+
 class QChart:
 
     def __init__(self, width: int = None, aspect: float = 0.0,
@@ -56,8 +109,8 @@ class QChart:
         self.color_scheme = color_scheme or QThread.get_pref('chart_color_scheme', 'tab20')
 
         # | Handle width and height
-        self.width = width or QThread.get_pref('chart_width', 620)
-        self.height = int(self.width * aspect) if aspect > 0.0 else QThread.get_pref('chart_height', 620)
+        self.width = width or QThread.get_pref('chart_width', qconst.CHART_WIDTH)
+        self.height = int(self.width * aspect) if aspect > 0.0 else QThread.get_pref('chart_height', qconst.CHART_WIDTH)
         self.figsize = (self.width / 100, self.height / 100)
         self.aspect = self.height / self.width
 

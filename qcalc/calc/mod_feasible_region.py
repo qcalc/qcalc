@@ -6,6 +6,7 @@ import re
 import numpy as np
 import sympy as sp
 from matplotlib.figure import Figure
+from qcore.mod_qchart import auto_limit_bounds, plot_implicit_line
 
 from sympy.parsing.sympy_parser import (
     parse_expr,
@@ -14,9 +15,86 @@ from sympy.parsing.sympy_parser import (
 )
 
 
-transformations = standard_transformations + (
-    implicit_multiplication_application,
-)
+transformations = standard_transformations + (implicit_multiplication_application,)
+
+
+EPSILON = 1e-10
+
+
+def _flip_operator(operator: str) -> str:
+    if operator == ">":
+        return "<"
+    if operator == ">=":
+        return "<="
+    if operator == "<":
+        return ">"
+    if operator == "<=":
+        return ">="
+    return operator
+
+
+def _has_lower_bound(
+    chart_constraints: list[tuple[float, float, str, float]],
+    *,
+    for_x: bool,
+) -> bool:
+    for a, b, operator, c in chart_constraints:
+        coefficient = a if for_x else b
+        other = b if for_x else a
+
+        if abs(other) > EPSILON or abs(coefficient) <= EPSILON:
+            continue
+
+        normalized_operator = operator
+        if coefficient < 0:
+            normalized_operator = _flip_operator(operator)
+
+        if normalized_operator in (">", ">=", "="):
+            return True
+
+    return False
+
+
+def _format_constraint_label(
+    a: float,
+    b: float,
+    operator: str,
+    c: float,
+    x_name: str,
+    y_name: str,
+) -> str:
+    if abs(b) <= EPSILON and abs(a) > EPSILON:
+        normalized_operator = operator
+        if a < 0:
+            normalized_operator = _flip_operator(operator)
+        return f"{x_name} {normalized_operator} {c / a:g}"
+
+    if abs(a) <= EPSILON and abs(b) > EPSILON:
+        normalized_operator = operator
+        if b < 0:
+            normalized_operator = _flip_operator(operator)
+        return f"{y_name} {normalized_operator} {c / b:g}"
+
+    terms = []
+
+    for coefficient, variable_name in ((a, x_name), (b, y_name)):
+        if abs(coefficient) <= EPSILON:
+            continue
+
+        magnitude = abs(coefficient)
+        term = f"{magnitude:g}{variable_name}"
+
+        if not terms:
+            if coefficient < 0:
+                term = f"-{term}"
+        else:
+            sign = "+" if coefficient >= 0 else "-"
+            term = f" {sign} {term}"
+
+        terms.append(term)
+
+    lhs = "".join(terms) if terms else "0"
+    return f"{lhs} {operator} {c:g}"
 
 
 def feasible_region(
@@ -73,11 +151,7 @@ def feasible_region(
             .replace("=", " ")
         )
 
-        parsed = parse_expr(
-            expression,
-            transformations=transformations,
-            local_dict=local_symbols,
-        )
+        parsed = parse_expr(expression, transformations=transformations, local_dict=local_symbols)
 
         symbols.update(parsed.free_symbols)
 
@@ -97,16 +171,11 @@ def feasible_region(
     obj = parse_expr(
         objective,
         transformations=transformations,
-        local_dict={
-            str(x_var): x_var,
-            str(y_var): y_var,
-        },
+        local_dict={str(x_var): x_var, str(y_var): y_var},
     )
 
-    objective_coefficients = (
-        float(obj.coeff(x_var)),
-        float(obj.coeff(y_var)),
-    )
+    objective_coefficients = (float(obj.coeff(x_var)), float(obj.coeff(y_var)))
+    objective_constant = float(obj.subs({x_var: 0, y_var: 0}))
 
     # ---------------------------------------------------------
     # Parse constraints
@@ -127,28 +196,20 @@ def feasible_region(
         elif "=" in constraint:
             operator = "="
         else:
-            raise ValueError(
-                f"Invalid constraint: '{constraint}'"
-            )
+            raise ValueError(f"Invalid constraint: '{constraint}'")
 
         lhs, rhs = constraint.split(operator, 1)
 
         lhs = parse_expr(
             lhs,
             transformations=transformations,
-            local_dict={
-                str(x_var): x_var,
-                str(y_var): y_var,
-            },
+            local_dict={str(x_var): x_var, str(y_var): y_var},
         )
 
         rhs = parse_expr(
             rhs,
             transformations=transformations,
-            local_dict={
-                str(x_var): x_var,
-                str(y_var): y_var,
-            },
+            local_dict={str(x_var): x_var, str(y_var): y_var},
         )
 
         # Move everything to:
@@ -161,33 +222,20 @@ def feasible_region(
         a = float(expression.coeff(x_var))
         b = float(expression.coeff(y_var))
 
-        constant = float(
-            expression.subs({
-                x_var: 0,
-                y_var: 0,
-            })
-        )
+        constant = float(expression.subs({x_var: 0, y_var: 0}))
 
         c = -constant
 
-        chart_constraints.append(
-            (a, b, operator, c)
-        )
+        chart_constraints.append((a, b, operator, c))
 
     # ---------------------------------------------------------
     # Add non-negativity constraints
     # ---------------------------------------------------------
 
-    if not any(
-        a == 1 and b == 0 and operator == ">=" and c == 0
-        for a, b, operator, c in chart_constraints
-    ):
+    if not _has_lower_bound(chart_constraints, for_x=True):
         chart_constraints.append((1, 0, ">=", 0))
 
-    if not any(
-        a == 0 and b == 1 and operator == ">=" and c == 0
-        for a, b, operator, c in chart_constraints
-    ):
+    if not _has_lower_bound(chart_constraints, for_x=False):
         chart_constraints.append((0, 1, ">=", 0))
 
     # ---------------------------------------------------------
@@ -227,20 +275,14 @@ def feasible_region(
         x = (d1 * b2 - d2 * b1) / determinant
         y = (a1 * d2 - a2 * d1) / determinant
 
-        if all(
-            a * x + b * y <= c + 1e-9
-            for a, b, c in inequalities
-        ):
+        if all(a * x + b * y <= c + 1e-9 for a, b, c in inequalities):
             points.append((x, y))
 
     if not points:
         raise ValueError("No feasible region exists.")
 
     # Remove duplicate points
-    points = list({
-        (round(x, 10), round(y, 10))
-        for x, y in points
-    })
+    points = list({(round(x, 10), round(y, 10)) for x, y in points})
 
     points = np.array(points)
 
@@ -250,10 +292,7 @@ def feasible_region(
 
     center = points.mean(axis=0)
 
-    angles = np.arctan2(
-        points[:, 1] - center[1],
-        points[:, 0] - center[0],
-    )
+    angles = np.arctan2(points[:, 1] - center[1], points[:, 0] - center[0])
 
     points = points[np.argsort(angles)]
 
@@ -266,26 +305,17 @@ def feasible_region(
         ax = fig.subplots()
 
     # Feasible region
-    ax.fill(
-        points[:, 0],
-        points[:, 1],
-        alpha=0.25,
-        label="Feasible Region",
-    )
+    ax.fill(points[:, 0], points[:, 1], alpha=0.25, label="Feasible Region")
 
     # ---------------------------------------------------------
     # Determine plot limits
     # ---------------------------------------------------------
 
     if xlim is None:
-        xmax = max(points[:, 0]) * 1.2
-        xmax = max(xmax, 1)
-        xlim = (0, xmax)
+        xlim = auto_limit_bounds(points[:, 0], epsilon=EPSILON)
 
     if ylim is None:
-        ymax = max(points[:, 1]) * 1.2
-        ymax = max(ymax, 1)
-        ylim = (0, ymax)
+        ylim = auto_limit_bounds(points[:, 1], epsilon=EPSILON)
 
     x = np.linspace(xlim[0], xlim[1], 500)
 
@@ -294,24 +324,8 @@ def feasible_region(
     # ---------------------------------------------------------
 
     for a, b, operator, c in chart_constraints:
-
-        if abs(b) > 1e-10:
-            y = (c - a * x) / b
-
-            ax.plot(
-                x,
-                y,
-                label=f"{a:g}x + {b:g}y {operator} {c:g}",
-            )
-
-        elif abs(a) > 1e-10:
-            # Vertical constraint: x = c/a
-            x_value = c / a
-
-            ax.axvline(
-                x_value,
-                label=f"x {operator} {x_value:g}",
-            )
+        label = _format_constraint_label(a, b, operator, c, str(x_var), str(y_var))
+        plot_implicit_line(ax, a, b, c, x, label=label, epsilon=EPSILON)
 
     # ---------------------------------------------------------
     # Optimal solution
@@ -326,22 +340,11 @@ def feasible_region(
             x_opt = float(solution[0])
             y_opt = float(solution[1])
         else:
-            raise ValueError('Solution must be a dict {var: value} or a 2-item sequence')
+            raise ValueError("Solution must be a dict {var: value} or a 2-item sequence")
 
-        ax.scatter(
-            x_opt,
-            y_opt,
-            s=80,
-            zorder=5,
-            label="Optimal Solution",
-        )
+        ax.scatter(x_opt, y_opt, s=80, zorder=5, label="Optimal Solution")
 
-        ax.annotate(
-            f"({x_opt:g}, {y_opt:g})",
-            (x_opt, y_opt),
-            xytext=(8, 8),
-            textcoords="offset points",
-        )
+        ax.annotate(f"({x_opt:g}, {y_opt:g})", (x_opt, y_opt), xytext=(8, 8), textcoords="offset points")
 
     # ---------------------------------------------------------
     # Objective function through optimal solution
@@ -354,34 +357,14 @@ def feasible_region(
         x0 = x_opt
         y0 = y_opt
 
-        objective_value = float(
-            obj.subs({
-                x_var: x0,
-                y_var: y0,
-            })
-        )
+        objective_value = float(obj.subs({x_var: x0, y_var: y0}))
 
-        if abs(ob) > 1e-10:
+        objective_rhs = objective_value - objective_constant
 
-            y_obj = (
-                objective_value - oa * x
-            ) / ob
-
-            ax.plot(
-                x,
-                y_obj,
-                linestyle="--",
-                label=f"Objective = {objective_value:g}",
-            )
-
-        elif abs(oa) > 1e-10:
-
-            x_obj = objective_value / oa
-
-            ax.axvline(
-                x_obj,
-                linestyle="--",
-                label=f"Objective = {objective_value:g}",
+        if abs(ob) > EPSILON or abs(oa) > EPSILON:
+            plot_implicit_line(
+                ax, oa, ob, objective_rhs, x,
+                linestyle="--", label=f"Objective = {objective_value:g}", epsilon=EPSILON,
             )
 
     # ---------------------------------------------------------

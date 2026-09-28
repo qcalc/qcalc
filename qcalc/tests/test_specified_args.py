@@ -387,6 +387,18 @@ class TestSpecifiedArgs(unittest.TestCase):
             [],
         )
 
+    def test_unknown_positive_selector_returns_empty(self):
+        self.assertEqual(
+            specified_args(["a", "b", "c"], "d"),
+            [],
+        )
+
+    def test_mixed_known_and_unknown_selectors(self):
+        self.assertEqual(
+            specified_args(["a", "b", "c"], "a,d,e,f"),
+            ["a"],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

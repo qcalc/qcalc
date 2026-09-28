@@ -331,8 +331,26 @@ class QChart:
         self.set_labels(xlabel, ylabel, zlabel, title, grid=True)
         self.render_done()
 
+    @staticmethod
+    def _select_tick_positions(total_points, max_ticks):
+        if total_points <= 0:
+            return []
+        if max_ticks is None or max_ticks <= 0 or total_points <= max_ticks:
+            return list(range(total_points))
+
+        step = (total_points - 1) / (max_ticks - 1)
+        positions = sorted({int(round(i * step)) for i in range(max_ticks)})
+        if positions[0] != 0:
+            positions.insert(0, 0)
+        if positions[-1] != total_points - 1:
+            positions.append(total_points - 1)
+        return positions
+
     def render_lines(self, xvals: list | None = None, yvalsm: list | None = None,
-                     xlabel='x', ylabels: list | None = None, ylabel='y', title='y vs x'):
+                     xlabel='x', ylabels: list | None = None, ylabel='y', title='y vs x',
+                     x_tick_positions: list | None = None, x_tick_labels: list | None = None,
+                     x_tick_rotation: float | int | None = None,
+                     x_tick_max_labels: int | None = None):
         """Render line chart(s)."""
         if xvals is None: xvals = []
         if yvalsm is None: yvalsm = []
@@ -343,6 +361,23 @@ class QChart:
         for yvals in yvalsm:
             ax.plot(xvals, yvals, label=ylabels[i])
             i += 1
+
+        if x_tick_positions is None and x_tick_labels is not None and x_tick_max_labels is not None:
+            limit = min(len(xvals), len(x_tick_labels))
+            positions = self._select_tick_positions(limit, x_tick_max_labels)
+            ax.set_xticks([xvals[p] for p in positions])
+            ax.set_xticklabels([x_tick_labels[p] for p in positions])
+        elif x_tick_positions is not None and x_tick_labels is not None:
+            ax.set_xticks(x_tick_positions)
+            ax.set_xticklabels(x_tick_labels)
+        elif x_tick_max_labels is not None and len(xvals) > 0:
+            positions = self._select_tick_positions(len(xvals), x_tick_max_labels)
+            ax.set_xticks([xvals[p] for p in positions])
+            ax.set_xticklabels([str(xvals[p]) for p in positions])
+
+        if x_tick_rotation is not None:
+            for tick in ax.get_xticklabels():
+                tick.set_rotation(x_tick_rotation)
 
         self.set_labels(xlabel=xlabel, ylabel=ylabel, title=title, grid=True)
         if ylabels: self.set_legend(ylabels)

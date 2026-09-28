@@ -9,7 +9,7 @@ import json
 from .mod_mfunc import *
 import pandas as pd
 from qvars import qc_gpref as gs
-from qconst import TOK_UOM, TOK_PART_UOM, TOK_ID_PREFIX, TOK_FIELD_SEP
+from qconst import TOK_UOM, TOK_PART_UOM, TOK_ID_PREFIX, TOK_FIELD_SEP, TOK_INDEX_SEP
 from django.conf import settings
 from django.forms import forms
 from django.http import JsonResponse
@@ -166,7 +166,7 @@ def q11429_func_to_form_schema(request: HtmxHttpRequest, func_addr, func_id, cid
                 child_name = child_meta.get('name')
                 if not child_name or child_name == parent_name:
                     continue
-                if child_name.startswith(parent_name + '_') and (TOK_UOM in child_name or TOK_PART_UOM in child_name):
+                if child_name.startswith(parent_name + TOK_INDEX_SEP) and (TOK_UOM in child_name or TOK_PART_UOM in child_name):
                     child_meta.setdefault('attrs', {})
                     child_meta['attrs']['readonly'] = True
                 elif child_name.endswith(TOK_UOM) and child_name.startswith(parent_name):
@@ -200,7 +200,7 @@ def q11422_form_data_modify_after_post(request, func_id, sig_type, arg_name, arg
             # | not loading list from json input file
             new_arg_value = []
             for arg in request.POST.keys():
-                if arg.startswith(arg_name + '_') or arg == arg_name:
+                if arg.startswith(arg_name + TOK_INDEX_SEP) or arg == arg_name:
                     new_arg_value.append(request.POST.get(arg))
             arg_value = new_arg_value
             if func_id == 'collect':
@@ -462,7 +462,7 @@ def q11441_data_for_function(request: HtmxHttpRequest):  # , kwargs):
             arr = [value]
             fname = name
             for name, value in json_data_list:
-                if name.startswith(fname + '_'):
+                if name.startswith(fname + TOK_INDEX_SEP):
                     i += 1
                     arr.append(value)
             request.json_d4f[fname] = arr

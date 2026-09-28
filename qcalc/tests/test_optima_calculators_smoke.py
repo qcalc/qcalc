@@ -10,22 +10,25 @@ qsett.init()
 from calculators.all.analytics.optimization import (
     optima_assignment,
     optima_assignment__info,
-    optima_blending,
-    optima_blending__info,
     optima_capacity,
     optima_capacity__info,
     optima_knapsack,
     optima_knapsack__info,
     optima_placement,
     optima_placement__info,
-    optima_production_inventory,
-    optima_production_inventory__info,
-    optima_project,
-    optima_project__info,
     optima_redundancy,
     optima_redundancy__info,
     optima_routing,
     optima_routing__info,
+)
+
+from calculators.all.business import (
+    optima_blending,
+    optima_blending__info,
+    optima_production_inventory,
+    optima_production_inventory__info,
+    optima_project,
+    optima_project__info,
     optima_supplier_selection,
     optima_supplier_selection__info,
     optima_transport,
@@ -33,7 +36,6 @@ from calculators.all.analytics.optimization import (
     optima_workforce,
     optima_workforce__info,
 )
-
 
 def _inputs_from_info(info_fn):
     schema = info_fn()['schema']

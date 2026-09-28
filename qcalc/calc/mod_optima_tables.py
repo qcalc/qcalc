@@ -57,8 +57,7 @@ def table_columns_validator(field_name, required_cols, optional_cols=None):
 
 def field_show_zero():
     return {
-        'type': 'choice',
-        'choices': {False: 'No', True: 'Yes'},
+        'type': 'checkbox',
         'initial': False,
         'help_text': 'Show zero-valued decisions in output',
     }
@@ -246,7 +245,7 @@ def table_supplier_item_cost(field_name):
     return {
         'initial': pd.DataFrame({
             'Supplier': ['S1', 'S1', 'S1', 'S2', 'S2', 'S2', 'S3', 'S3', 'S3'],
-            'Item': ['I1', 'I2', 'I3', 'I1', 'I2', 'I3', 'I1', 'I2', 'I3'],
+            'Item': ['RM1', 'RM2', 'RM3', 'RM1', 'RM2', 'RM3', 'RM1', 'RM2', 'RM3'],
             'Unit Cost': [11, 13, 12, 10, 14, 13, 12, 12, 11],
             'Max Qty': [100, 80, 60, 100, 80, 60, 100, 80, 60],
         }),
@@ -477,6 +476,160 @@ def table_prodinv_production(field_name):
             )
         ],
         'help_text': 'Period-item production table. Max Production uses same quantity units as demand/inventory; Unit Cost is per one quantity unit.',
+    }
+
+
+def table_sop_product_master(field_name):
+    # Generic use: product planning economics and per-product bounds for S&OP.
+    return {
+        'initial': pd.DataFrame({
+            'Product': ['A', 'B', 'C'],
+            'Opening Inventory': [20, 10, 15],
+            'Safety Stock': [5, 4, 6],
+            'Production Cost': [7.0, 6.5, 7.5],
+            'Holding Cost': [1.4, 1.0, 1.2],
+            'Max Production': [65, 55, 60],
+            'Backlog Penalty': [12, 10, 14],
+            'Setup Cost': [20, 15, 18],
+        }),
+        'validators': [
+            table_columns_validator(
+                field_name,
+                required_cols=[
+                    'Product',
+                    'Opening Inventory',
+                    'Safety Stock',
+                    'Production Cost',
+                    'Holding Cost',
+                    'Max Production',
+                    'Backlog Penalty',
+                ],
+                optional_cols=['Setup Cost'],
+            )
+        ],
+        'help_text': (
+            'Product planning table with opening inventory, safety stock, production cost, holding cost, '
+            'max production, and backlog penalty. Setup Cost is optional and used only when positive.'
+        ),
+    }
+
+
+def table_sop_demand(field_name):
+    # Generic use: period demand by product.
+    return {
+        'initial': pd.DataFrame({
+            'Period': ['1', '1', '2', '2', '3', '3'],
+            'Product': ['A', 'B', 'A', 'B', 'A', 'B'],
+            'Demand': [50, 45, 55, 40, 60, 50],
+        }),
+        'validators': [
+            table_columns_validator(
+                field_name,
+                required_cols=['Period', 'Product', 'Demand'],
+            )
+        ],
+        'help_text': 'Period-wise demand by product. Demand units should match Opening Inventory and Max Production units.',
+    }
+
+
+def table_sop_capacity(field_name):
+    # Generic use: period capacity limit for the aggregate production plan.
+    return {
+        'initial': pd.DataFrame({
+            'Period': ['1', '2', '3'],
+            'Capacity': [120, 115, 125],
+        }),
+        'validators': [
+            table_columns_validator(
+                field_name,
+                required_cols=['Period', 'Capacity'],
+            )
+        ],
+        'help_text': 'Production capacity table for each period. Capacity must use the same quantity basis as product production.',
+    }
+
+
+def table_sop_overtime(field_name):
+    # Generic use: optional extra production capacity and per-unit overtime cost by period.
+    return {
+        'initial': pd.DataFrame({
+            'Period': ['1', '2', '3'],
+            'Overtime Capacity': [0, 0, 0],
+            'Overtime Cost': [0, 0, 0],
+        }),
+        'validators': [
+            table_columns_validator(
+                field_name,
+                required_cols=['Period', 'Overtime Capacity', 'Overtime Cost'],
+            )
+        ],
+        'help_text': 'Optional overtime capacity table for extra production by period. Overtime Capacity uses the same quantity basis as product production.',
+    }
+
+
+def table_sop_previous_plan(field_name):
+    # Generic use: previous approved production plan used for stability penalties.
+    return {
+        'initial': pd.DataFrame({
+            'Period': ['1', '1', '1', '2', '2', '2', '3', '3', '3'],
+            'Product': ['A', 'B', 'C', 'A', 'B', 'C', 'A', 'B', 'C'],
+            'Previous Production': [48, 44, 40, 52, 41, 43, 58, 49, 47],
+        }),
+        'validators': [
+            table_columns_validator(
+                field_name,
+                required_cols=['Period', 'Product', 'Previous Production'],
+            )
+        ],
+        'help_text': 'Optional previous approved production plan. Previous Production uses the same quantity basis as Production.',
+    }
+
+
+def table_sop_material_requirements(field_name):
+    # Generic use: product-to-material consumption coefficients for BOM-driven procurement.
+    return {
+        'initial': pd.DataFrame({
+            'Product': ['A', 'A', 'B', 'B', 'C', 'C'],
+            'Material': ['RM1', 'RM2', 'RM1', 'RM3', 'RM2', 'RM3'],
+            'Qty per Unit': [1.2, 0.4, 1.0, 0.8, 0.6, 1.1],
+        }),
+        'validators': [
+            table_columns_validator(
+                field_name,
+                required_cols=['Product', 'Material', 'Qty per Unit'],
+            )
+        ],
+        'help_text': (
+            'Bill-of-materials / material-requirement table. Qty per Unit is the amount of each Material consumed per one unit of Product production.'
+        ),
+    }
+
+
+def table_sop_scenarios(field_name):
+    # Generic use: scenario multipliers for built-in S&OP reruns.
+    return {
+        'initial': pd.DataFrame({
+            'Scenario': ['Base', 'Demand +10%', 'Demand -10%', 'Capacity -10%'],
+            'Demand Multiplier': [1.0, 1.1, 0.9, 1.0],
+            'Capacity Multiplier': [1.0, 1.0, 1.0, 0.9],
+            'Production Cost Multiplier': [1.0, 1.0, 1.0, 1.0],
+            'Holding Cost Multiplier': [1.0, 1.0, 1.0, 1.0],
+            'Backlog Penalty Multiplier': [1.0, 1.0, 1.0, 1.0],
+        }),
+        'validators': [
+            table_columns_validator(
+                field_name,
+                required_cols=[
+                    'Scenario',
+                    'Demand Multiplier',
+                    'Capacity Multiplier',
+                    'Production Cost Multiplier',
+                    'Holding Cost Multiplier',
+                    'Backlog Penalty Multiplier',
+                ],
+            )
+        ],
+        'help_text': 'Scenario table used to rerun the same S&OP model under demand/capacity/cost multipliers.',
     }
 
 

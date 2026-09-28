@@ -113,7 +113,7 @@ def field_root(value):
     if qconst.DICT_KEY_SEP in value:  # qdict x--A -> x
         return value.split(qconst.DICT_KEY_SEP)[0]
     if re.search(qconst.TOK_LIST_INDEX_PATTERN, value):  # qlist x_1 -> x
-        return value.rsplit('_', 1)[0]
+        return value.rsplit(qconst.TOK_INDEX_SEP, 1)[0]
     return qconst.FIELD_ROOT_SUFFIX_PATTERN.sub('', value)
 
 

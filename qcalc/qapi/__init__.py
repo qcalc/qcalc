@@ -23,7 +23,7 @@ from qcore import (
     QImage, qf2img, nparray_to_bio,
     QChart, QGeo, QMap, SmartCalc
 )
-from qutil import QDateTime, DotDict, user_name, user_process, user_ip, \
+from qutil import QDateTime, DotDict, dd_list, user_name, user_process, user_ip, \
     page_link, calurl, cal_link, command_button, addcal_button, \
     iif, joinx, css2floats, css2ints, css2values, css2strs, vals2css
 from .mod_np import np_names, np
@@ -61,7 +61,7 @@ __evacon__ = [
     "minimum", "iif", "joinx", "css2floats", "css2ints", "css2values", "css2strs", "vals2css",
     "np", "qdf", "qcol", "qrow", "qsum", "qadd", "qsub", "qmul", "qdiv",
     "qtypes", "qmodules", "qsymbols", "qsymstat", "qsymhelp",
-    "QFile", "qf2bio",
+    "QFile", "qf2bio", "dd_list",
     "QImage", "qf2img", "nparray_to_bio",
     "QChart", "QGeo", "QMap", "SmartCalc",
     "user_name", "user_process", "user_ip",

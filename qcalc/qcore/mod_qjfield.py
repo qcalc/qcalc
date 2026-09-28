@@ -8,7 +8,7 @@ from qvars import qc_gpref as gs
 from qutil import QDateTime
 import pandas as pd
 from qcore import str_type, Qty
-from qconst import TOK_UOM, TOK_PART, TOK_PART_UOM
+from qconst import TOK_UOM, TOK_PART, TOK_PART_UOM, TOK_INDEX_SEP
 
 
 class QJField:  # 11422
@@ -272,7 +272,7 @@ class QJField:  # 11422
         parent_attrs = dict(self.jf.get('attrs', {}))
         readonly = bool(parent_attrs.get('readonly', False))
         for j in range(ln):
-            namej = self.name + '_' + str(j + 1) + TOK_PART if j > 0 else self.name
+            namej = self.name + TOK_INDEX_SEP + str(j + 1) + TOK_PART if j > 0 else self.name
             typej = 'float' if j == ln - 1 else 'integer'
             type_sizej = typej + full_part
             var_qt = Qty(qval[j])
@@ -291,7 +291,7 @@ class QJField:  # 11422
             elif j == 0 and ln > 1:
                 namej = self.name + TOK_PART_UOM
             else:
-                namej = self.name + '_' + str(j + 1) + TOK_PART_UOM
+                namej = self.name + TOK_INDEX_SEP + str(j + 1) + TOK_PART_UOM
             unit_field = QJField(namej, uom_type, var_qt.uom, self.id_prefix, True)
             if readonly:
                 unit_field.jf['attrs']['readonly'] = True
@@ -318,7 +318,7 @@ class QJField:  # 11422
 
         vals = []
         for j in range(ln):
-            namej = self.name + '_' + str(j + 1) + TOK_PART if j > 0 else self.name
+            namej = self.name + TOK_INDEX_SEP + str(j + 1) + TOK_PART if j > 0 else self.name
             sufxj = str(j + 1) + TOK_PART if j > 0 else ''
             typej = 'float' if j == ln - 1 else 'integer'
             type_sizej = typej + full_part
@@ -336,7 +336,7 @@ class QJField:  # 11422
                 namej = self.name + TOK_PART_UOM
                 sufxj = 'part_uom'
             else:
-                namej = self.name + '_' + str(j + 1) + TOK_PART_UOM
+                namej = self.name + TOK_INDEX_SEP + str(j + 1) + TOK_PART_UOM
                 sufxj = str(j + 1) + TOK_PART_UOM
             unit_field = QJField(namej, uom_type, var_qt.uom, self.id_prefix, True, sufx=sufxj)
             if readonly:
@@ -398,7 +398,7 @@ class QJField:  # 11422
         self.name_prefix = self.name
         for j in range(arr_size):
             if j > 0:
-                namej = f'{self.name_prefix}_{j}'  # 0 based
+                namej = f'{self.name_prefix}{TOK_INDEX_SEP}{j}'  # 0 based
                 self.jf_ex.append(QJField(namej, qlist_types[arg_type][1], value[j], self.id_prefix))
                 self.jf_ex[-1].jf['attrs']['class'] = qlist_types[arg_type][2]
             else:

@@ -409,7 +409,7 @@
     },
     "forecast_fv": {
         "desc": "Forecast future values of an asset using Monte Carlo simulation. Predicts price series based on starting price, periods, volatility, and drift.",
-        "tags": "math"
+        "tags": "statistics, forecasting"
     },
     "moonphase": {
         "desc": "Calculate the phase of the moon on a specific date based on lunar cycles. Find out if it's New, Full, or in between.",
@@ -737,7 +737,7 @@
     },
     "volatility": {
         "desc": "Calculate volatility and drift from historical values. Estimate future movements.",
-        "tags": "math"
+        "tags": "statistics, forecasting"
     },
     "water_intake": {
         "desc": "Calculate your daily water intake based on your weight. Stay hydrated!",

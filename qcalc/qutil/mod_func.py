@@ -204,6 +204,7 @@ def specified_args(func_or_args, spec):
 
     selected = []
     excluded = set()
+    has_positive_token = False
 
     all_args_lower = [a.lower() for a in all_args]
     all_args_t2v = [title_to_variable(variable_to_title(a)) for a in all_args]
@@ -282,10 +283,12 @@ def specified_args(func_or_args, spec):
         if item.startswith("~"):
             excluded.update(indexes(item[1:]))
         else:
+            has_positive_token = True
             selected.extend(indexes(item))
 
-    # | If nothing was explicitly selected, start with all arguments.
-    if not selected:
+    # | If there were no positive selectors (e.g. exclusions-only or empty spec),
+    # | start from all arguments. Unknown-only positive selectors stay empty.
+    if not selected and not has_positive_token:
         selected = list(range(n))
 
     # | Remove exclusions, preserve order, remove duplicates.

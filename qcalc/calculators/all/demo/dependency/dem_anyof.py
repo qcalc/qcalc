@@ -25,3 +25,22 @@ def demo_any2__info():
 def demo_any2(any: qfunc = demo_any):
     '''any of any--x,any--y,any--z'''
     return any
+
+
+def demo_anyof__info():
+    return {
+        'title': 'Testing AnyOf',
+        'anyof':
+            {
+                '1': {'fields': ['x', 'y', 'z']},
+                '2': {'fields': ['a', 'b']}
+            },
+        'showhide':
+            {
+                'x': {'fields': ['c'], 'callback': '@==100'}
+            },
+    }
+
+
+def demo_anyof(x: int, y: int, z: int, a: int, b: int, c: int):
+    return x, y, z, a, b, c

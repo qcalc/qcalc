@@ -1,18 +1,13 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
-import math
-from statistics import mean, fmean, median, mode, stdev, pstdev, \
+from statistics import fmean, median, mode, stdev, pstdev, \
     geometric_mean, harmonic_mean, median_low, median_high, variance, pvariance, quantiles
 import pandas as pd
 import scipy.stats as ss
 from qutil import css2floats
-from qcore import qchar, qtable, as_qtable
+from qcore import qchar
 from calculators.all.general.chart import pareq
-import numpy as np
-
-
-# correlation, covariance (part of statistics in python 3.10+)
 
 
 def stat__info():
@@ -146,52 +141,3 @@ def normal(
         aspect=0
     )
     return {'chart': chart}
-
-
-def volatility__info():
-    return {
-        'title': 'Volatility and Drift from Historical Values',
-        'step2': [
-            {
-                'step': 'run',
-                'caption': 'Predict Future Values',
-                'spec': {
-                    'starting_price': 'Last Value',
-                    'volatility': 'Volatility',
-                    'drift': 'Drift'
-                }
-            },
-        ]
-    }
-
-
-def volatility(historical_values: qtable = pd.DataFrame(
-    {'Values': [100.8, 97.8, 102.0, 101.3, 98, 101.1, 103.5, 104.2, 101, 99, 99.5]})
-):
-    historical_values = as_qtable(historical_values)
-    # https://quant.stackexchange.com/questions/35194/estimating-the-historical-drift-and-volatility
-    values = historical_values['Values'].astype(float)
-    changes = [math.log(values[i] / values[i - 1]) for i in range(1, len(values))]
-    volatility = pstdev(changes)  # population stdev
-    mean = fmean(changes)  # mean
-    variance = volatility ** 2
-    drift = mean + 0.5 * variance
-    return {
-        'Volatility': volatility,
-        'Drift': drift,
-        'Last Value': values[len(values) - 1]
-    }
-
-
-def forecast_fv__info():
-    return {
-        'title': 'Forecast Future Values of an Asset based on Volatility and Drift'
-    }
-
-
-def forecast_fv(starting_price: float = 100, periods: int = 10, volatility: float = 0.05, drift: float = 0.0):
-    periodic_returns = np.exp(drift + volatility * np.random.randn(periods))
-    price_series = [starting_price]
-    for i in range(1, periods):
-        price_series.append(price_series[i - 1] * periodic_returns[i])
-    return {'Forecast Values': price_series}

@@ -1,13 +1,21 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2024-2026 Debasish C Saha
 
-const TOK_PART = "_part";
-const TOK_UOM = "_uom";
-const TOK_FIELD_SEP = "_";
-const TOK_ID_PREFIX = "id_";
-const TOK_SCRIPT_DATA_SHOWHIDE_SUFFIX = "_script_data_showhide";
+var TOK_PART = "_part";
+var TOK_UOM = "_uom";
+var TOK_FIELD_SEP = "_";
+var TOK_COMPOSITE_SEP = "_";
+var TOK_COMPOSITE_SUFFIXES = [
+    "row",
+    "col",
+    "table_update",
+    "table_resize",
+    "table_ed"
+];
+var TOK_ID_PREFIX = "id_";
+var TOK_SCRIPT_DATA_SHOWHIDE_SUFFIX = "_script_data_showhide";
 // Keep aligned with qconst.SCRIPT_RUNTIME_VAR.
-const SCRIPT_RUNTIME_VAR = "@";
+var SCRIPT_RUNTIME_VAR = "@";
 
 (function() {
     if (window.__qcalc_ShowhideBootstrapped) {
@@ -45,12 +53,103 @@ const SCRIPT_RUNTIME_VAR = "@";
             e = e || window.event;
             var target = e.target || e.srcElement;
             var fieldElem = target || changedElem;
-            var changedVal = fieldElem.value;
+            var changedVal = fieldElem.type === "checkbox" ? fieldElem.checked : fieldElem.value;
             var tf_va = evaluateShowhideValue(changedVal, callback);
             showhide_listof_elems_and_parts(showhideFlds, idPrefix, tf_va, indepFields);
+            var cid = idPrefix.slice(TOK_ID_PREFIX.length, -TOK_FIELD_SEP.length);
+            refreshTabbedPanes(document.getElementById('form-' + cid) || document);
         });
 
         changedElem.dataset.qcalc_ShowhideBound = boundGroups + token;
+    }
+
+    function isEffectivelyVisibleInPane(elem, paneElem) {
+        if (!elem) {
+            return false;
+        }
+        if (elem.hidden) {
+            return false;
+        }
+        if (elem.tagName === 'INPUT' && elem.type === 'hidden') {
+            return false;
+        }
+
+        var node = elem;
+        while (node && node.nodeType === 1 && node !== paneElem) {
+            var style = window.getComputedStyle(node);
+            if (!style || style.display === 'none' || style.visibility === 'hidden') {
+                return false;
+            }
+            node = node.parentElement;
+        }
+        return true;
+    }
+
+    function tabPaneHasVisibleFields($pane) {
+        var paneElem = $pane && $pane.length ? $pane.get(0) : null;
+        return $pane.find('input, textarea, select, .elem-wrapper, .select2-container, label').filter(function() {
+            return isEffectivelyVisibleInPane(this, paneElem);
+        }).length > 0;
+    }
+
+    function refreshTabbedPanes(rootElem) {
+        var $root = rootElem ? $(rootElem) : $(document);
+        $root.find('.tab-content.layout-tab-content').each(function() {
+            var $content = $(this);
+            var $tabs = $content.prev('.nav-tabs.layout-tabs');
+            var $panes = $content.find('.tab-pane');
+            var hasVisiblePane = false;
+            var $firstVisiblePane = null;
+
+            $panes.each(function() {
+                var $pane = $(this);
+                var paneVisible = tabPaneHasVisibleFields($pane);
+                var paneId = this.id || '';
+                var $navLink = paneId ? $tabs.find('a.nav-link[href="#' + paneId + '"]') : $();
+                var $navItem = $navLink.closest('.nav-item');
+
+                $navItem.toggle(paneVisible);
+
+                if (paneVisible) {
+                    hasVisiblePane = true;
+                    if (!$firstVisiblePane) {
+                        $firstVisiblePane = $pane;
+                    }
+                } else {
+                    $pane.removeClass('show active').hide();
+                    $navLink.removeClass('active').attr('aria-selected', 'false');
+                }
+            });
+
+            if (!hasVisiblePane) {
+                $tabs.hide();
+                $content.hide();
+                return;
+            }
+
+            $tabs.show();
+            $content.show();
+
+            var $activePane = $panes.filter('.active').first();
+            if (!$activePane.length || !tabPaneHasVisibleFields($activePane)) {
+                var $targetPane = $firstVisiblePane || $panes.filter(':visible').first();
+                if ($targetPane && $targetPane.length) {
+                    var targetId = $targetPane.attr('id');
+                    var $targetLink = targetId ? $tabs.find('a.nav-link[href="#' + targetId + '"]') : $();
+                    if ($targetLink.length && typeof $targetLink.tab === 'function') {
+                        $targetLink.tab('show');
+                    } else {
+                        $panes.removeClass('show active');
+                        $tabs.find('.nav-link').removeClass('active').attr('aria-selected', 'false');
+                        $targetPane.addClass('show active');
+                        $targetLink.addClass('active').attr('aria-selected', 'true');
+                    }
+                    $targetPane.show();
+                }
+            } else {
+                $activePane.show();
+            }
+        });
     }
 
     function initShowhideByCid(cid) {
@@ -69,6 +168,7 @@ const SCRIPT_RUNTIME_VAR = "@";
 
         var idPrefix = TOK_ID_PREFIX + cid + TOK_FIELD_SEP;
         var indepFields = [];
+        var $form = $('#form-' + cid);
 
         Object.entries(showhideObj).forEach(function(entry) {
             var key = entry[0];
@@ -93,6 +193,13 @@ const SCRIPT_RUNTIME_VAR = "@";
             showhide_listof_elems_and_parts(indepFields, idPrefix, false, []);
         }
 
+        if ($form.length && !$form.data('qcalcShowhideTabRefreshBound')) {
+            $form.data('qcalcShowhideTabRefreshBound', true);
+            $form.on('shown.bs.tab.qcalcShowhide', '.nav-tabs.layout-tabs a[data-toggle="tab"]', function() {
+                refreshTabbedPanes($form.get(0));
+            });
+        }
+
         Object.entries(showhideObj).forEach(function(entry) {
             var key = entry[0];
             if (!key.endsWith("__")) {
@@ -103,6 +210,8 @@ const SCRIPT_RUNTIME_VAR = "@";
                 }
             }
         });
+
+        refreshTabbedPanes(document.getElementById('form-' + cid) || document);
     }
 
     function initShowhideInScope(rootElem) {
@@ -177,23 +286,23 @@ function showhide_elem(elem, sh)
     }
 }
 
-function showhide_elem_and_parts(cid, sh)
+function showhide_elem_and_parts(fid, sh)
 {
-    const element = $('#' + cid);
+    const element = $('#' + fid);
     // Main label bound directly to the base field id.
-    const label = $('label[for="' + cid + '"]');
+    const label = $('label[for="' + fid + '"]');
     // Most fields render label/help in a sibling mt-1 block just before input/widget.
     const adjacentLabelBlock = element.prev('div.mt-1');
     // Qty-like split parts (e.g. _part, _part_uom) that should follow parent visibility.
-    const parts = $('[id^="' + cid + '"][id*="' + TOK_PART + '"]');
+    const parts = $('[id^="' + fid + '"][id*="' + TOK_PART + '"]');
     // Table-in style widgets: hidden input + immediate sibling wrapper containing the real UI.
     const ownWrapper = element.next('.elem-wrapper');
     // Code/editor style widgets: field itself may sit inside an elem-wrapper container.
     const parentWrapper = element.closest('.elem-wrapper');
-    // Composite controls generated with the same field prefix (row/col/resize/update, uploads, etc.).
-    const prefixedElements = $('[id^="' + cid + TOK_FIELD_SEP + '"]');
-    // Labels attached to those composite controls.
-    const prefixedLabels = $('label[for^="' + cid + TOK_FIELD_SEP + '"]');
+    // Composite controls attached to a field via known suffixes.
+    const compositeFieldIds = TOK_COMPOSITE_SUFFIXES.map(function(suffix) {
+        return fid + TOK_COMPOSITE_SEP + suffix;
+    });
 
     if(sh){
         element.show();
@@ -206,7 +315,7 @@ function showhide_elem_and_parts(cid, sh)
     }
 
     showhide_elem(element, sh)
-    showhide_elem($('#' + cid + TOK_UOM), sh)
+    showhide_elem($('#' + fid + TOK_UOM), sh)
     // Toggle wrapped widgets regardless of whether the wrapper is sibling or parent.
     ownWrapper.each(function(){
         showhide_elem($(this), sh)
@@ -214,12 +323,11 @@ function showhide_elem_and_parts(cid, sh)
     parentWrapper.each(function(){
         showhide_elem($(this), sh)
     })
-    prefixedElements.each(function(){
-        showhide_elem($(this), sh)
-    })
-    prefixedLabels.each(function(){
-        showhide_elem($(this), sh)
-        showhide_elem($(this).parent(), sh)
+    compositeFieldIds.forEach(function(compositeFid){
+        showhide_elem($('#' + compositeFid), sh)
+        var compositeLabel = $('label[for="' + compositeFid + '"]');
+        showhide_elem(compositeLabel, sh)
+        showhide_elem(compositeLabel.parent(), sh)
     })
 
     parts.each(function(){
@@ -230,8 +338,8 @@ function showhide_elem_and_parts(cid, sh)
 function showhide_listof_elems_and_parts(showhideFlds, id_prefix, tf_va, indepFields)
 {
     for(var i=0; i<showhideFlds.length; i++){
-        var cid = id_prefix+showhideFlds[i]
-        // document.getElementById(cid).style.display = (tf ? 'block': 'none');
+        var fid = id_prefix+showhideFlds[i]
+        // document.getElementById(fid).style.display = (tf ? 'block': 'none');
         // style.display = 'block' will result in qty field to appear in column
         // better to use jQuery .show()/.hide()
         var tf;
@@ -242,6 +350,6 @@ function showhide_listof_elems_and_parts(showhideFlds, id_prefix, tf_va, indepFi
         }
         // indepFields are fields that are to hidden anyway
         tf = tf && !indepFields.includes(showhideFlds[i]);
-        showhide_elem_and_parts(cid, tf);
+        showhide_elem_and_parts(fid, tf);
     }
 }

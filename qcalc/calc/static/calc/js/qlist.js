@@ -3,11 +3,32 @@
 
 (function() {
     const TOK_FORM_PREFIX = "form-";
+    const TOK_FIELD_SEP = "_";
+    const TOK_INDEX_SEP = "__";
+    const TOK_LIST_INDEX_PATTERN = new RegExp("^" + escapeRegExp(TOK_INDEX_SEP) + "\\d+$");
 
     if (window.__qcalc_QlistBootstrapped) {
         return;
     }
     window.__qcalc_QlistBootstrapped = true;
+
+    function escapeRegExp(text) {
+        return String(text).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    }
+
+    function listItemsByPrefix(formElem, listIdPrefix) {
+        return $(formElem).find("[id]").filter(function() {
+            var id = this.id || "";
+            if (id === listIdPrefix) {
+                return true;
+            }
+            if (!id.startsWith(listIdPrefix + TOK_FIELD_SEP)) {
+                return false;
+            }
+            var suffix = id.slice(listIdPrefix.length);
+            return TOK_LIST_INDEX_PATTERN.test(suffix);
+        });
+    }
 
     function bindQlistForm(formElem) {
         if (!formElem || formElem.dataset.qcalc_QlistBound === "1") {
@@ -26,7 +47,7 @@
 
                 var listIdPrefix = addButton.id.replace("list_add_", "");
                 var listNamePrefix = (addButton.name || "").replace("list_add_", "");
-                var arrayElements = $(formElem).find("[id^='" + listIdPrefix + "']");
+                var arrayElements = listItemsByPrefix(formElem, listIdPrefix);
                 if (arrayElements.length === 0) {
                     return;
                 }
@@ -37,8 +58,8 @@
                 var labelElement = $(formElem).find("label[for='" + lastId + "']");
                 var labelPrefix = labelElement.text().replace(/\d+:$/, "");
 
-                inputElement.attr("name", listNamePrefix + "_" + newIndex);
-                inputElement.attr("id", listIdPrefix + "_" + newIndex);
+                inputElement.attr("name", listNamePrefix + TOK_INDEX_SEP + newIndex);
+                inputElement.attr("id", listIdPrefix + TOK_INDEX_SEP + newIndex);
                 inputElement.val("");
 
                 var newLabel = $("<label>")
@@ -55,7 +76,7 @@
                 e.preventDefault();
 
                 var delListIdPrefix = delButton.id.replace("list_del_", "");
-                var delArrayElements = $(formElem).find("[id^='" + delListIdPrefix + "']");
+                var delArrayElements = listItemsByPrefix(formElem, delListIdPrefix);
                 if (delArrayElements.length > 1) {
                     var delInputElement = delArrayElements.last();
                     var delId = delInputElement.attr("id");

@@ -23,7 +23,7 @@
     "desc": "Interactive mode lets a calculator run automatically after input changes, so you do not need to press Calculate every time.",
     "order": "1.10.25"
   },
-  
+
   "author-guide": {
     "order": "0.20"
   },

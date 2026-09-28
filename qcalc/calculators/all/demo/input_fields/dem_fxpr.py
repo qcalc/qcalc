@@ -5,7 +5,6 @@ from qcore.mod_anno import *
 
 
 def demo_fxpr__info():
-    ptrn = r'^\w{3,5}$'
     return {
         'title': 'Demonstrating Various Input Types',
         'interactive': True,

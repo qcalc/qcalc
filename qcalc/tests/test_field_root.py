@@ -4,7 +4,7 @@
 import qsett
 
 from calc.templatetags.qfilter import field_root
-from qconst import TOK_PART, TOK_PART_UOM, TOK_UOM
+from qconst import TOK_INDEX_SEP, TOK_PART, TOK_PART_UOM, TOK_UOM
 
 
 qsett.init()
@@ -22,17 +22,17 @@ def test_field_root_tok_uom_part_and_part_uom_suffixes():
 def test_field_root_indexed_part_and_part_uom_suffixes():
     base = "gold_weight_india"
 
-    assert field_root(f"{base}_1{TOK_PART}") == base
-    assert field_root(f"{base}_1{TOK_PART_UOM}") == base
-    assert field_root(f"{base}_2{TOK_PART}") == base
-    assert field_root(f"{base}_2{TOK_PART_UOM}") == base
-    assert field_root(f"{base}_9{TOK_PART}") == base
-    assert field_root(f"{base}_9{TOK_PART_UOM}") == base
+    assert field_root(f"{base}{TOK_INDEX_SEP}1{TOK_PART}") == base
+    assert field_root(f"{base}{TOK_INDEX_SEP}1{TOK_PART_UOM}") == base
+    assert field_root(f"{base}{TOK_INDEX_SEP}2{TOK_PART}") == base
+    assert field_root(f"{base}{TOK_INDEX_SEP}2{TOK_PART_UOM}") == base
+    assert field_root(f"{base}{TOK_INDEX_SEP}9{TOK_PART}") == base
+    assert field_root(f"{base}{TOK_INDEX_SEP}9{TOK_PART_UOM}") == base
 
 
 def test_field_root_qdict_and_qlist_contracts():
     assert field_root("x--A") == "x"
-    assert field_root("x_1") == "x"
+    assert field_root(f"x{TOK_INDEX_SEP}1") == "x"
 
 
 def test_field_root_falsy_values_passthrough():
@@ -45,12 +45,12 @@ def test_field_root_gold_weight_india_regression_exact_names():
     names = [
         "gold_weight_india",
         "gold_weight_india_part_uom",
-        "gold_weight_india_2_part",
-        "gold_weight_india_2_part_uom",
-        "gold_weight_india_3_part",
-        "gold_weight_india_3_part_uom",
-        "gold_weight_india_4_part",
-        "gold_weight_india_4_part_uom",
+        f"gold_weight_india{TOK_INDEX_SEP}2_part",
+        f"gold_weight_india{TOK_INDEX_SEP}2_part_uom",
+        f"gold_weight_india{TOK_INDEX_SEP}3_part",
+        f"gold_weight_india{TOK_INDEX_SEP}3_part_uom",
+        f"gold_weight_india{TOK_INDEX_SEP}4_part",
+        f"gold_weight_india{TOK_INDEX_SEP}4_part_uom",
     ]
 
     for name in names:
@@ -64,7 +64,7 @@ import unittest
 
 import qsett  # noqa: F401  # ensures Django settings are configured
 from calc.templatetags.qfilter import field_root
-from qconst import TOK_PART, TOK_PART_UOM, TOK_UOM
+from qconst import TOK_INDEX_SEP, TOK_PART, TOK_PART_UOM, TOK_UOM
 
 
 class TestFieldRoot(unittest.TestCase):
@@ -82,25 +82,25 @@ class TestFieldRoot(unittest.TestCase):
         self.assertEqual(field_root('x' + TOK_PART_UOM), 'x')
 
     def test_indexed_tok_part_suffix(self):
-        self.assertEqual(field_root('x_1' + TOK_PART), 'x')
-        self.assertEqual(field_root('x_2' + TOK_PART), 'x')
+        self.assertEqual(field_root('x' + TOK_INDEX_SEP + '1' + TOK_PART), 'x')
+        self.assertEqual(field_root('x' + TOK_INDEX_SEP + '2' + TOK_PART), 'x')
 
     def test_indexed_tok_part_uom_suffix(self):
-        self.assertEqual(field_root('x_1' + TOK_PART_UOM), 'x')
-        self.assertEqual(field_root('x_2' + TOK_PART_UOM), 'x')
+        self.assertEqual(field_root('x' + TOK_INDEX_SEP + '1' + TOK_PART_UOM), 'x')
+        self.assertEqual(field_root('x' + TOK_INDEX_SEP + '2' + TOK_PART_UOM), 'x')
 
     def test_gold_weight_india_field_family(self):
         self.assertEqual(field_root('gold_weight_india'), 'gold_weight_india')
         self.assertEqual(field_root('gold_weight_india' + TOK_PART_UOM), 'gold_weight_india')
-        self.assertEqual(field_root('gold_weight_india_2' + TOK_PART), 'gold_weight_india')
-        self.assertEqual(field_root('gold_weight_india_2' + TOK_PART_UOM), 'gold_weight_india')
+        self.assertEqual(field_root('gold_weight_india' + TOK_INDEX_SEP + '2' + TOK_PART), 'gold_weight_india')
+        self.assertEqual(field_root('gold_weight_india' + TOK_INDEX_SEP + '2' + TOK_PART_UOM), 'gold_weight_india')
 
     def test_qdict_name_contract(self):
         self.assertEqual(field_root('x--A'), 'x')
 
     def test_qlist_name_contract(self):
-        self.assertEqual(field_root('x_1'), 'x')
-        self.assertEqual(field_root('x_20'), 'x')
+        self.assertEqual(field_root('x' + TOK_INDEX_SEP + '1'), 'x')
+        self.assertEqual(field_root('x' + TOK_INDEX_SEP + '20'), 'x')
 
     def test_empty_values(self):
         self.assertEqual(field_root(''), '')

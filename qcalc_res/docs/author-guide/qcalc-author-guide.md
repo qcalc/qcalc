@@ -286,6 +286,7 @@ Use demo calculators as references under `../../../qcalc/calculators/all/demo`:
 - `dem_related.py`: dependent fields via `related`, `autofill`, and `anyof`
 - `dem_layout.py`: dynamic block and tab layout behavior
 - `dem_test_layout.py`: legacy row/column layout behavior
+- `calculator-field-naming.md`: field naming limits, token contracts, and safe naming rules
 
 Also inspect production calculators for real Qty patterns, for example:
 - `all/science/physics/cal_gas_law.py`

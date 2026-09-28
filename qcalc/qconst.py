@@ -21,21 +21,35 @@ DICT_KEY_LABEL_SEP = ': '
 TOK_UOM = '_uom'
 TOK_PART = '_part'
 TOK_PART_UOM = '_part_uom'
-TOK_ROW = '_row'
-TOK_COL = '_col'
-TOK_TABLE_UPDATE = '_table_update'
-TOK_TABLE_RESIZE = '_table_resize'
-TOK_TABLE_ED = '_table_ed'
 TOK_ID_PREFIX = 'id_'
+
+# Separator between cid and field name in generated DOM ids (e.g. id_<cid>_<field>).
 TOK_FIELD_SEP = '_'
+# Separator between a list field root and its numeric index suffix (e.g. value__2).
+TOK_INDEX_SEP = '__' # was _ before changed @ 27.09.26
+# Separator between a base field and composite control suffixes (row/col/table_update/table_resize/table_ed).
+TOK_COMPOSITE_SEP = '_'
+
+_row_suffix = 'row'
+_col_suffix = 'col'
+_table_update_suffix = 'table_update'
+_table_resize_suffix = 'table_resize'
+_table_ed_suffix = 'table_ed'
+
+TOK_ROW = f'{TOK_COMPOSITE_SEP}{_row_suffix}'
+TOK_COL = f'{TOK_COMPOSITE_SEP}{_col_suffix}'
+TOK_TABLE_UPDATE = f'{TOK_COMPOSITE_SEP}{_table_update_suffix}'
+TOK_TABLE_RESIZE = f'{TOK_COMPOSITE_SEP}{_table_resize_suffix}'
+TOK_TABLE_ED = f'{TOK_COMPOSITE_SEP}{_table_ed_suffix}'
+
 TOK_RESULT_SUFFIX = '__r'
 
 TOK_RESULT_SUFFIX_PATTERN = r'__r[a-z]?'
-TOK_LIST_INDEX_PATTERN = r'_\d+$'
+TOK_LIST_INDEX_PATTERN = rf'{re.escape(TOK_INDEX_SEP)}\d+$'
 
-_TOKEN_PART_WITH_OPTIONAL_INDEX = rf'(?:_\d+)?{re.escape(TOK_PART)}'
+_token_part_with_optional_index = rf'(?:{re.escape(TOK_INDEX_SEP)}\d+)?{re.escape(TOK_PART)}'
 FIELD_ROOT_SUFFIX_PATTERN = re.compile(
-    rf'{_TOKEN_PART_WITH_OPTIONAL_INDEX}(?:{re.escape(TOK_UOM)})?$|{re.escape(TOK_UOM)}$'
+    rf'{_token_part_with_optional_index}(?:{re.escape(TOK_UOM)})?$|{re.escape(TOK_UOM)}$'
 )
 
 # Token usage map (2026-09-25 analysis):
@@ -52,6 +66,8 @@ FIELD_ROOT_SUFFIX_PATTERN = re.compile(
 #   TOK_TABLE_ED     -> TOK_TABLE_ED
 #   TOK_ID_PREFIX    -> TOK_ID_PREFIX, QCALC_TOK_ID_PREFIX
 #   TOK_FIELD_SEP    -> TOK_FIELD_SEP, QCALC_TOK_FIELD_SEP
+#   TOK_INDEX_SEP    -> TOK_INDEX_SEP (qlist index suffix separator)
+#   TOK_COMPOSITE_SEP-> TOK_COMPOSITE_SEP (showhide composite controls)
 # - JS-only tokens are intentionally kept local in frontend files (not imported
 #   by Python), e.g. TOK_FORM_PREFIX, TOK_OUTPUT_PREFIX, TOK_EXTRA_PREFIX,
 #   TOK_SCRIPT_DATA_*_SUFFIX, and qsite-scoped QCALC_TOK_* UI constants.

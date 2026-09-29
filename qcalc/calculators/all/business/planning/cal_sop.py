@@ -7,7 +7,7 @@ import pulp
 from calc import QResults
 from qcore import as_qtable, qhtml, qtable
 from qutil import require_unique_pairs, require_unique_values, require_values_subset
-from qutil.mod_runtime_validate import validate_schema_if_needed
+from qutil import validate_schema_if_needed, as_bool
 
 from calc import (
     field_show_zero,
@@ -39,31 +39,9 @@ def _product_sort_key(value):
     return str(value).strip()
 
 
-def _as_bool(value):
-    if isinstance(value, bool):
-        return value
-    if value is None:
-        return False
-    if isinstance(value, (int, float)):
-        return value != 0
-    text = str(value).strip().lower()
-    if text in ('1', 'true', 'yes', 'y', 'on'):
-        return True
-    if text in ('0', 'false', 'no', 'n', 'off', ''):
-        return False
-    return bool(value)
-
-
 def _extract_previous_plan(previous_plan_df: pd.DataFrame | None, products, periods):
     if previous_plan_df is None or previous_plan_df.empty:
         return {}, False
-
-    required_cols = {'Period', 'Product', 'Previous Production'}
-    missing_cols = required_cols - set(previous_plan_df.columns)
-    if missing_cols:
-        raise Exception(
-            'sop_previous_plan is missing required columns: ' + ', '.join(sorted(missing_cols))
-        )
 
     previous_plan_df = previous_plan_df.copy()
     previous_plan_df['Product'] = previous_plan_df['Product'].astype(str).str.strip()
@@ -100,7 +78,8 @@ def _apply_scenario_multipliers(product_df, demand_df, capacity_df, scenario_row
     scen_demand_df['Demand'] = scen_demand_df['Demand'].astype(float) * demand_multiplier
     scen_capacity_df['Capacity'] = scen_capacity_df['Capacity'].astype(float) * capacity_multiplier
 
-    scen_product_df['Opening Inventory'] = scen_product_df['Opening Inventory'].astype(float) * opening_inventory_multiplier
+    scen_product_df['Opening Inventory'] = scen_product_df['Opening Inventory'].astype(
+        float) * opening_inventory_multiplier
     scen_product_df['Safety Stock'] = scen_product_df['Safety Stock'].astype(float) * safety_stock_multiplier
     scen_product_df['Production Cost'] = scen_product_df['Production Cost'].astype(float) * production_cost_multiplier
     scen_product_df['Holding Cost'] = scen_product_df['Holding Cost'].astype(float) * holding_cost_multiplier
@@ -130,13 +109,6 @@ def _build_material_requirements(product_df, product_rows, sop_material_requirem
     bom_df = as_qtable(sop_material_requirements if sop_material_requirements is not None else pd.DataFrame())
     if bom_df.empty:
         return pd.DataFrame(), pd.DataFrame()
-
-    required_cols = {'Product', 'Material', 'Qty per Unit'}
-    missing_cols = required_cols - set(bom_df.columns)
-    if missing_cols:
-        raise Exception(
-            'sop_material_requirements is missing required columns: ' + ', '.join(sorted(missing_cols))
-        )
 
     bom_df = bom_df.copy()
     bom_df['Product'] = bom_df['Product'].astype(str).str.strip()
@@ -254,6 +226,14 @@ def _attach_procurement_model(
         'supplier_master',
         'Supplier',
     )
+    require_values_subset(
+        bom_df,
+        'sop_material_requirements',
+        'Material',
+        supplier_item_cost_df,
+        'supplier_item_cost',
+        'Item',
+    )
 
     bom_map = {(str(r['Product']), str(r['Material'])): float(r['Qty per Unit']) for _, r in bom_df.iterrows()}
     materials = sorted({material for _, material in bom_map.keys()}, key=_product_sort_key)
@@ -270,10 +250,6 @@ def _attach_procurement_model(
         pair_cost[pair] = float(row['Unit Cost'])
         if 'Max Qty' in supplier_item_cost_df.columns and str(row.get('Max Qty', '')).strip() != '':
             pair_max_qty[pair] = float(row['Max Qty'])
-
-    for material in materials:
-        if not any(pair_material == material for _, pair_material in pair_cost.keys()):
-            raise Exception(f'No supplier-item cost row found for material: {material}')
 
     purchase = pulp.LpVariable.dicts('Buy', list(pair_cost.keys()), lowBound=0, cat=qty_cat)
     supplier_use = pulp.LpVariable.dicts('UseSupplier', supplier_rows, lowBound=0, upBound=1, cat=pulp.LpBinary)
@@ -293,7 +269,8 @@ def _attach_procurement_model(
         )
 
     variable_cost_expr = pulp.lpSum(pair_cost[pair] * purchase[pair] for pair in pair_cost)
-    fixed_cost_expr = pulp.lpSum(float(supplier_fixed_cost[supplier]) * supplier_use[supplier] for supplier in supplier_rows)
+    fixed_cost_expr = pulp.lpSum(
+        float(supplier_fixed_cost[supplier]) * supplier_use[supplier] for supplier in supplier_rows)
 
     for supplier in supplier_rows:
         supplier_pairs = [pair for pair in pair_cost if pair[0] == supplier]
@@ -305,7 +282,8 @@ def _attach_procurement_model(
     for supplier, material in pair_cost:
         fallback_max = float(supplier_capacity[supplier])
         pair_max = float(pair_max_qty.get((supplier, material), fallback_max))
-        prob += purchase[(supplier, material)] <= pair_max * supplier_use[supplier], f'procurement_link_{supplier}_{material}'
+        prob += purchase[(supplier, material)] <= pair_max * supplier_use[
+            supplier], f'procurement_link_{supplier}_{material}'
 
     max_suppliers_val = int(max_suppliers or 0)
     if max_suppliers_val > 0:
@@ -361,7 +339,8 @@ def _attach_procurement_model(
     }
 
 
-def _build_sop_output(base_result, use_stability, overtime_enabled, scenario_enabled, scenarios_enabled_df, product_df, demand_df, capacity_df, previous_lookup, objective, solve_plan):
+def _build_sop_output(base_result, use_stability, overtime_enabled, scenario_enabled, scenarios_enabled_df, product_df,
+                      demand_df, capacity_df, previous_lookup, objective, solve_plan):
     summary_row = dict(base_result['summary'])
     summary_row['Status Description'] = optimization_status_description(str(summary_row.get('Status', 'Unknown')))
     output = {
@@ -396,7 +375,8 @@ def _build_sop_output(base_result, use_stability, overtime_enabled, scenario_ena
         scenario_rows = []
         for _, row in scenarios_enabled_df.iterrows():
             scenario_name = str(row['Scenario']).strip() or 'Scenario'
-            scen_product_df, scen_demand_df, scen_capacity_df = _apply_scenario_multipliers(product_df, demand_df, capacity_df, row)
+            scen_product_df, scen_demand_df, scen_capacity_df = _apply_scenario_multipliers(product_df, demand_df,
+                                                                                            capacity_df, row)
             scen_result = solve_plan(
                 scen_product_df,
                 scen_demand_df,
@@ -467,9 +447,9 @@ def _prepare_sop_inputs(
         raise Exception('sop_demand must contain at least one row')
     if capacity_df.empty:
         raise Exception('sop_capacity must contain at least one row')
-    if _as_bool(overtime_enabled) and overtime_df.empty:
+    if as_bool(overtime_enabled) and overtime_df.empty:
         raise Exception('sop_overtime must contain at least one row when overtime is enabled')
-    if _as_bool(bom_enabled) and bom_df.empty:
+    if as_bool(bom_enabled) and bom_df.empty:
         raise Exception('sop_material_requirements must contain at least one row when BOM is enabled')
 
     product_df = product_df.copy()
@@ -489,7 +469,7 @@ def _prepare_sop_inputs(
         if col not in product_df.columns:
             raise Exception(f'Missing required column in sop_product_master: {col}')
 
-    if _as_bool(overtime_enabled) and not overtime_df.empty:
+    if as_bool(overtime_enabled) and not overtime_df.empty:
         overtime_df = overtime_df.copy()
         overtime_df['Period'] = overtime_df['Period'].astype(str).str.strip()
         overtime_df['Overtime Capacity'] = pd.to_numeric(overtime_df['Overtime Capacity'])
@@ -554,7 +534,7 @@ def _prepare_sop_inputs(
 
     overtime_capacity = {}
     overtime_cost = {}
-    if _as_bool(overtime_enabled) and not overtime_df.empty:
+    if as_bool(overtime_enabled) and not overtime_df.empty:
         overtime_periods = set(overtime_df['Period'].tolist())
         missing_overtime_periods = [period for period in periods if period not in overtime_periods]
         if missing_overtime_periods:
@@ -573,9 +553,9 @@ def _prepare_sop_inputs(
         backlog_policy_raw = 'allow'
     backlog_policy = str(backlog_policy_raw).strip().lower()
 
-    stability_enabled = _as_bool(stability_enabled)
+    stability_enabled = as_bool(stability_enabled)
     scenario_flag = enable_scenarios if enable_scenarios is not None else scenarios_enabled
-    scenario_enabled = _as_bool(scenario_flag)
+    scenario_enabled = as_bool(scenario_flag)
     backlog_cap_pct = float(max_backlog_pct)
     service_floor_pct = float(service_level_floor_pct)
     stability_penalty = float(stability_penalty)
@@ -625,7 +605,7 @@ def _prepare_sop_inputs(
         'demand_df': demand_df,
         'capacity_df': capacity_df,
         'overtime_df': overtime_df,
-        'bom_enabled': _as_bool(bom_enabled),
+        'bom_enabled': as_bool(bom_enabled),
         'bom_df': bom_df,
         'overtime_capacity': overtime_capacity,
         'overtime_cost': overtime_cost,
@@ -718,8 +698,8 @@ def optima_sop(
     scenario_enabled = prepared['scenario_enabled']
     use_stability = prepared['use_stability']
     previous_lookup = prepared['previous_lookup']
-    overtime_allowed = _as_bool(overtime_enabled) and not overtime_df.empty
-    procurement_allowed = _as_bool(procurement_enabled)
+    overtime_allowed = as_bool(overtime_enabled) and not overtime_df.empty
+    procurement_allowed = as_bool(procurement_enabled)
 
     def solve_plan(product_frame, demand_frame, capacity_frame, previous_lookup_map=None, build_details=True):
         local_product_df = product_frame.copy()
@@ -751,12 +731,15 @@ def optima_sop(
             for _, r in local_capacity_df.iterrows()
         }
 
-        local_opening_inventory = dict(zip(local_product_df['Product'], pd.to_numeric(local_product_df['Opening Inventory'])))
+        local_opening_inventory = dict(
+            zip(local_product_df['Product'], pd.to_numeric(local_product_df['Opening Inventory'])))
         local_safety_stock = dict(zip(local_product_df['Product'], pd.to_numeric(local_product_df['Safety Stock'])))
-        local_production_cost = dict(zip(local_product_df['Product'], pd.to_numeric(local_product_df['Production Cost'])))
+        local_production_cost = dict(
+            zip(local_product_df['Product'], pd.to_numeric(local_product_df['Production Cost'])))
         local_holding_cost = dict(zip(local_product_df['Product'], pd.to_numeric(local_product_df['Holding Cost'])))
         local_max_production = dict(zip(local_product_df['Product'], pd.to_numeric(local_product_df['Max Production'])))
-        local_backlog_penalty = dict(zip(local_product_df['Product'], pd.to_numeric(local_product_df['Backlog Penalty'])))
+        local_backlog_penalty = dict(
+            zip(local_product_df['Product'], pd.to_numeric(local_product_df['Backlog Penalty'])))
         local_setup_cost = {}
         local_has_setup = 'Setup Cost' in local_product_df.columns
         if local_has_setup:
@@ -794,7 +777,8 @@ def optima_sop(
         has_positive_setup = local_has_setup and any(float(local_setup_cost[p]) > 0 for p in local_products)
         if has_positive_setup:
             setup_use = pulp.LpVariable.dicts(
-                'Setup', [(p, t) for p in local_products for t in local_periods], lowBound=0, upBound=1, cat=pulp.LpBinary
+                'Setup', [(p, t) for p in local_products for t in local_periods], lowBound=0, upBound=1,
+                cat=pulp.LpBinary
             )
 
         overtime_use = {}
@@ -888,10 +872,12 @@ def optima_sop(
                 objective_expr -= 1e-6 * procurement_cost_expr
 
         if use_stability and previous_lookup_map:
-            objective_expr += stability_penalty * pulp.lpSum(abs_change[(p, t)] for p in local_products for t in local_periods)
+            objective_expr += stability_penalty * pulp.lpSum(
+                abs_change[(p, t)] for p in local_products for t in local_periods)
             if objective == 'service_level':
                 objective_expr = pulp.lpSum(fulfilled[(p, t)] for p in local_products for t in local_periods)
-                objective_expr -= stability_penalty * pulp.lpSum(abs_change[(p, t)] for p in local_products for t in local_periods)
+                objective_expr -= stability_penalty * pulp.lpSum(
+                    abs_change[(p, t)] for p in local_products for t in local_periods)
                 objective_expr -= 1e-6 * pulp.lpSum(production[(p, t)] for p in local_products for t in local_periods)
                 objective_expr -= 1e-6 * pulp.lpSum(inventory[(p, t)] for p in local_products for t in local_periods)
                 if backlog_allowed:
@@ -901,16 +887,19 @@ def optima_sop(
 
         for product in local_products:
             for period in local_periods:
-                prob += production[(product, period)] <= float(local_max_production[product]), f'max_prod_{product}_{period}'
+                prob += production[(product, period)] <= float(
+                    local_max_production[product]), f'max_prod_{product}_{period}'
                 if has_positive_setup:
                     prob += (
-                        production[(product, period)] <= float(local_max_production[product]) * setup_use[(product, period)],
+                        production[(product, period)] <= float(local_max_production[product]) * setup_use[
+                            (product, period)],
                         f'setup_link_{product}_{period}'
                     )
 
         for period in local_periods:
             prob += (
-                pulp.lpSum(production[(product, period)] for product in local_products) <= float(local_capacity[period]) + (overtime_use[period] if overtime_allowed else 0),
+                pulp.lpSum(production[(product, period)] for product in local_products) <= float(
+                    local_capacity[period]) + (overtime_use[period] if overtime_allowed else 0),
                 f'capacity_{period}'
             )
             if overtime_allowed:
@@ -1009,7 +998,8 @@ def optima_sop(
                 period_capacity = float(local_capacity[period])
                 overtime_value = float(overtime_use[period].value() or 0.0) if overtime_allowed else 0.0
                 overtime_capacity_value = float(overtime_capacity.get(period, 0.0)) if overtime_allowed else 0.0
-                overtime_cost_value = overtime_value * float(overtime_cost.get(period, 0.0)) if overtime_allowed else 0.0
+                overtime_cost_value = overtime_value * float(
+                    overtime_cost.get(period, 0.0)) if overtime_allowed else 0.0
                 period_total_production = sum(float(production[(p, period)].value() or 0.0) for p in local_products)
                 total_capacity = period_capacity + overtime_value
                 capacity_util = (period_total_production / total_capacity * 100.0) if total_capacity else 0.0
@@ -1034,7 +1024,8 @@ def optima_sop(
                 if period == local_periods[-1]:
                     ending_inventory += inv_value
 
-                if build_details and (show_zero or demand_value > 0 or prod_value > 0 or inv_value > 0 or backlog_value > 0):
+                if build_details and (
+                    show_zero or demand_value > 0 or prod_value > 0 or inv_value > 0 or backlog_value > 0):
                     period_rows.append({
                         'Period': period,
                         'Product': product,
@@ -1089,16 +1080,20 @@ def optima_sop(
             for p in local_products for t in local_periods
         )
         total_backlog_cost = (
-            sum(float(local_backlog_penalty[p]) * float(backlog[(p, t)].value() or 0.0) for p in local_products for t in local_periods)
+            sum(float(local_backlog_penalty[p]) * float(backlog[(p, t)].value() or 0.0) for p in local_products for t in
+                local_periods)
             if backlog_allowed else 0.0
         )
         total_setup_cost = (
-            sum(float(local_setup_cost[p]) * float(setup_use[(p, t)].value() or 0.0) for p in local_products for t in local_periods)
+            sum(float(local_setup_cost[p]) * float(setup_use[(p, t)].value() or 0.0) for p in local_products for t in
+                local_periods)
             if has_positive_setup else 0.0
         )
         if overtime_allowed:
             total_overtime_used = sum(float(overtime_use[period].value() or 0.0) for period in local_periods)
-            total_overtime_cost = sum(float(overtime_cost.get(period, 0.0)) * float(overtime_use[period].value() or 0.0) for period in local_periods)
+            total_overtime_cost = sum(
+                float(overtime_cost.get(period, 0.0)) * float(overtime_use[period].value() or 0.0) for period in
+                local_periods)
         total_procurement_cost = 0.0
         procurement_result = {}
         if procurement_ctx is not None:
@@ -1139,13 +1134,19 @@ def optima_sop(
                     'Selected': selected,
                     'Purchased': round(purchased, 6),
                     'Capacity': round(float(procurement_ctx['supplier_capacity'][supplier]), 6),
-                    'Utilization %': round((purchased / float(procurement_ctx['supplier_capacity'][supplier]) * 100.0) if float(procurement_ctx['supplier_capacity'][supplier]) else 0.0, 4),
+                    'Utilization %': round(
+                        (purchased / float(procurement_ctx['supplier_capacity'][supplier]) * 100.0) if float(
+                            procurement_ctx['supplier_capacity'][supplier]) else 0.0, 4),
                     'Fixed Cost': round(float(procurement_ctx['supplier_fixed_cost'][supplier]), 6),
                 }
                 if 'Risk' in procurement_ctx['supplier_master_df'].columns:
-                    supplier_row['Risk'] = round(float(procurement_ctx['supplier_master_df'].loc[procurement_ctx['supplier_master_df']['Supplier'] == supplier, 'Risk'].iloc[0]), 6)
+                    supplier_row['Risk'] = round(float(procurement_ctx['supplier_master_df'].loc[
+                                                           procurement_ctx['supplier_master_df'][
+                                                               'Supplier'] == supplier, 'Risk'].iloc[0]), 6)
                 if 'Quality' in procurement_ctx['supplier_master_df'].columns:
-                    supplier_row['Quality'] = round(float(procurement_ctx['supplier_master_df'].loc[procurement_ctx['supplier_master_df']['Supplier'] == supplier, 'Quality'].iloc[0]), 6)
+                    supplier_row['Quality'] = round(float(procurement_ctx['supplier_master_df'].loc[
+                                                              procurement_ctx['supplier_master_df'][
+                                                                  'Supplier'] == supplier, 'Quality'].iloc[0]), 6)
                 procurement_supplier_rows.append(supplier_row)
 
                 for material in procurement_ctx['materials']:
@@ -1163,15 +1164,22 @@ def optima_sop(
                             'Line Cost': round(unit_cost * qty, 6),
                         })
 
-            total_procurement_cost = sum(float(procurement_ctx['pair_cost'][pair]) * float(procurement_ctx['purchase'][pair].value() or 0.0) for pair in procurement_ctx['pair_cost'])
-            total_procurement_cost += sum(float(procurement_ctx['supplier_fixed_cost'][supplier]) * float(procurement_ctx['supplier_use'][supplier].value() or 0.0) for supplier in procurement_ctx['supplier_rows'])
+            total_procurement_cost = sum(
+                float(procurement_ctx['pair_cost'][pair]) * float(procurement_ctx['purchase'][pair].value() or 0.0) for
+                pair in procurement_ctx['pair_cost'])
+            total_procurement_cost += sum(float(procurement_ctx['supplier_fixed_cost'][supplier]) * float(
+                procurement_ctx['supplier_use'][supplier].value() or 0.0) for supplier in
+                                          procurement_ctx['supplier_rows'])
             procurement_result = {
                 'Procurement Summary': pd.DataFrame([{
                     'Model': 'Integrated Procurement',
                     'Status': status,
                     'Objective': round(total_procurement_cost, 6),
-                    'Selected Suppliers': int(sum(int(round(float(procurement_ctx['supplier_use'][supplier].value() or 0.0))) for supplier in procurement_ctx['supplier_rows'])),
-                    'Total Purchased': round(sum(float(procurement_ctx['purchase'][pair].value() or 0.0) for pair in procurement_ctx['pair_cost']), 6),
+                    'Selected Suppliers': int(sum(
+                        int(round(float(procurement_ctx['supplier_use'][supplier].value() or 0.0))) for supplier in
+                        procurement_ctx['supplier_rows'])),
+                    'Total Purchased': round(sum(float(procurement_ctx['purchase'][pair].value() or 0.0) for pair in
+                                                 procurement_ctx['pair_cost']), 6),
                     'Total Demand': round(sum(material_demand_map.values()), 6),
                 }]),
                 'Material Requirement Detail': pd.DataFrame(material_requirement_rows),
@@ -1185,13 +1193,15 @@ def optima_sop(
         service_level_pct = (total_fulfilled / demand_total * 100.0) if demand_total else 0.0
         avg_capacity_utilization = (
             sum(
-                (sum(float(production[(p, period)].value() or 0.0) for p in local_products) / float(local_capacity[period]) * 100.0)
+                (sum(float(production[(p, period)].value() or 0.0) for p in local_products) / float(
+                    local_capacity[period]) * 100.0)
                 if float(local_capacity[period]) else 0.0
                 for period in local_periods
             ) / len(local_periods)
         ) if local_periods else 0.0
         max_capacity_utilization = max(
-            ((sum(float(production[(p, period)].value() or 0.0) for p in local_products) / float(local_capacity[period]) * 100.0)
+            ((sum(float(production[(p, period)].value() or 0.0) for p in local_products) / float(
+                local_capacity[period]) * 100.0)
              if float(local_capacity[period]) else 0.0)
             for period in local_periods
         ) if local_periods else 0.0
@@ -1222,17 +1232,20 @@ def optima_sop(
         if build_details:
             capacity_rows = []
             for period in local_periods:
-                period_production = sum(float(production[(product, period)].value() or 0.0) for product in local_products)
+                period_production = sum(
+                    float(production[(product, period)].value() or 0.0) for product in local_products)
                 cap = float(local_capacity[period])
                 overtime_value = float(overtime_use[period].value() or 0.0) if overtime_allowed else 0.0
                 capacity_rows.append({
                     'Period': period,
                     'Capacity': round(cap, 6),
-                    'Overtime Capacity': round(float(overtime_capacity.get(period, 0.0)), 6) if overtime_allowed else 0.0,
+                    'Overtime Capacity': round(float(overtime_capacity.get(period, 0.0)),
+                                               6) if overtime_allowed else 0.0,
                     'Overtime Used': round(overtime_value, 6),
                     'Overtime Cost': round(float(overtime_cost.get(period, 0.0)) * overtime_value, 6),
                     'Production Used': round(period_production, 6),
-                    'Capacity Utilization %': round((period_production / (cap + overtime_value) * 100.0) if (cap + overtime_value) else 0.0, 4),
+                    'Capacity Utilization %': round(
+                        (period_production / (cap + overtime_value) * 100.0) if (cap + overtime_value) else 0.0, 4),
                 })
 
             return {

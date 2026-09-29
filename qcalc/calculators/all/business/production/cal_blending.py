@@ -1,62 +1,21 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
-import re
-
 import pandas as pd
 import pulp
 from qcore import as_qtable, qtable
-from qutil.mod_runtime_validate import validate_schema_if_needed
+from qutil import (
+    is_blank,
+    normalize_name,
+    to_float,
+    to_fraction,
+    to_optional_float,
+    to_optional_fraction,
+    validate_schema_if_needed,
+)
 
 from calc import field_show_zero, table_blend_materials, table_blend_specs
 from calc import safe_objective_value, solver, slack_table
-
-
-def _is_blank(value):
-    if value is None:
-        return True
-    text = str(value).strip().lower()
-    return text in {'', 'none', 'null', 'nan', 'na'}
-
-
-def _to_float(value, field_name):
-    if _is_blank(value):
-        raise Exception(f"{field_name} cannot be blank")
-    if isinstance(value, (int, float)):
-        return float(value)
-
-    text = str(value).strip()
-    text = text.replace(',', '')
-    text = re.sub(r'(?i)\s*(usd|inr|eur|gbp)\b', '', text)
-    text = text.replace('%', '')
-    match = re.search(r'[-+]?\d*\.?\d+(?:[eE][-+]?\d+)?', text)
-    if not match:
-        raise Exception(f"Invalid numeric value for {field_name}: {value}")
-    return float(match.group(0))
-
-
-def _to_optional_float(value, field_name):
-    if _is_blank(value):
-        return None
-    return _to_float(value, field_name)
-
-
-def _to_fraction(value, field_name):
-    raw = _to_float(value, field_name)
-    return raw / 100.0
-
-
-def _to_optional_fraction(value, field_name):
-    if _is_blank(value):
-        return None
-    return _to_fraction(value, field_name)
-
-
-def _normalize_name(name):
-    text = str(name).strip().lower()
-    text = text.replace('%', '')
-    text = text.replace('_', ' ')
-    return ' '.join(text.split())
 
 
 def optima_blending(
@@ -75,7 +34,7 @@ def optima_blending(
     if blend_materials.empty:
         raise Exception('blend_materials must contain at least one material row')
 
-    batch_size_val = _to_float(batch_size, 'batch_size')
+    batch_size_val = to_float(batch_size, 'batch_size')
     if batch_size_val <= 0:
         raise Exception('batch_size must be greater than zero')
 
@@ -88,23 +47,24 @@ def optima_blending(
     max_qty = {}
 
     for idx, row in materials_df.iterrows():
-        material = str(row['Material']).strip() if not _is_blank(row['Material']) else f'Material {len(material_names) + 1}'
+        material = str(row['Material']).strip() if not is_blank(
+            row['Material']) else f'Material {len(material_names) + 1}'
         if material in material_names:
             raise Exception(f"Duplicate material name found: {material}")
 
-        cost = _to_float(row['Unit Cost'], f'blend_materials.Unit Cost (row {idx + 1})')
+        cost = to_float(row['Unit Cost'], f'blend_materials.Unit Cost (row {idx + 1})')
         if cost < 0:
             raise Exception(f'Unit Cost must be non-negative for material: {material}')
 
         lo = 0.0
         if 'Min Qty' in materials_df.columns:
-            min_val = _to_optional_float(row.get('Min Qty'), f'blend_materials.Min Qty (row {idx + 1})')
+            min_val = to_optional_float(row.get('Min Qty'), f'blend_materials.Min Qty (row {idx + 1})')
             if min_val is not None:
                 lo = float(min_val)
 
         hi = None
         if 'Max Qty' in materials_df.columns:
-            max_val = _to_optional_float(row.get('Max Qty'), f'blend_materials.Max Qty (row {idx + 1})')
+            max_val = to_optional_float(row.get('Max Qty'), f'blend_materials.Max Qty (row {idx + 1})')
             if max_val is not None:
                 hi = float(max_val)
 
@@ -123,24 +83,25 @@ def optima_blending(
     property_col_map = {}
     reserved = {'material', 'unit cost', 'min qty', 'max qty'}
     for col in materials_df.columns:
-        key = _normalize_name(col)
+        key = normalize_name(col)
         if key in reserved:
             continue
         if key:
             property_col_map[key] = col
 
     if not property_col_map:
-        raise Exception('blend_materials must include at least one property column besides Material/Unit Cost/Min Qty/Max Qty')
+        raise Exception(
+            'blend_materials must include at least one property column besides Material/Unit Cost/Min Qty/Max Qty')
 
     spec_rows = []
     for idx, row in specs_df.iterrows():
         prop_raw = row.get('Property')
-        if _is_blank(prop_raw):
+        if is_blank(prop_raw):
             continue
         prop_name = str(prop_raw).strip()
-        prop_key = _normalize_name(prop_name)
-        min_frac = _to_optional_fraction(row.get('Min %'), f'blend_specs.Min % (row {idx + 1})')
-        max_frac = _to_optional_fraction(row.get('Max %'), f'blend_specs.Max % (row {idx + 1})')
+        prop_key = normalize_name(prop_name)
+        min_frac = to_optional_fraction(row.get('Min %'), f'blend_specs.Min % (row {idx + 1})')
+        max_frac = to_optional_fraction(row.get('Max %'), f'blend_specs.Max % (row {idx + 1})')
 
         if min_frac is None and max_frac is None:
             continue
@@ -172,9 +133,10 @@ def optima_blending(
         comp[material] = {}
         for spec in spec_rows:
             col = property_col_map[spec['key']]
-            frac = _to_fraction(row[col], f"blend_materials.{col} ({material})")
+            frac = to_fraction(row[col], f"blend_materials.{col} ({material})")
             if frac < 0 or frac > 1:
-                raise Exception(f'Composition must be between 0% and 100% for material {material}, property {spec["name"]}')
+                raise Exception(
+                    f'Composition must be between 0% and 100% for material {material}, property {spec["name"]}')
             comp[material][spec['key']] = float(frac)
 
     min_total = sum(min_qty[m] for m in material_names)
@@ -329,8 +291,3 @@ def optima_blending__info():
         # 'out1': ['Summary', 'Optimal Mix', 'Property Compliance'],
         'tags': 'optimization, blending, product mix, linear programming',
     }
-
-
-
-
-

@@ -5,7 +5,7 @@ import pandas as pd
 import pulp
 from qcore import as_qtable, qtable
 from qutil.mod_runtime_validate import validate_schema_if_needed
-from qutil import require_unique_values
+from qutil import css2set, require_unique_values
 
 from calc import (
     field_show_zero,
@@ -13,12 +13,6 @@ from calc import (
     table_workforce_staff,
 )
 from calc import safe_objective_value, solver, slack_table
-
-
-def _skills_set(value):
-    if value in ('', None):
-        return set()
-    return {token.strip().lower() for token in str(value).split(',') if token.strip()}
 
 
 def optima_workforce(
@@ -63,7 +57,7 @@ def optima_workforce(
     worker_skills = {worker: set() for worker in workers}
     if 'Skills' in staff_df.columns:
         worker_skills = {
-            str(row['Worker']).strip(): _skills_set(row['Skills'])
+            str(row['Worker']).strip(): css2set(row['Skills'])
             for _, row in staff_df.iterrows()
         }
 
@@ -205,15 +199,11 @@ def optima_workforce__info():
                 'initial': True,
                 'help_text': 'Allow unmet shift demand with penalty instead of infeasible solve.',
             },
-            'shortage_penalty': {'initial': 1000, 'help_text': 'Penalty per one unfilled shift-assignment unit (typically one worker-slot shortage).'},
+            'shortage_penalty': {'initial': 1000,
+                                 'help_text': 'Penalty per one unfilled shift-assignment unit (typically one worker-slot shortage).'},
             'show_zero': field_show_zero(),
         },
         'layout': 'lr',
         'out1': ['Summary', 'Decision Table', 'Coverage Table', 'Worker Utilization'],
         'tags': 'optimization, workforce, scheduling, staffing, mixed integer programming',
     }
-
-
-
-
-

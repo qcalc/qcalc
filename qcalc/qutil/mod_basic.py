@@ -112,6 +112,17 @@ def css2strs(cs_string, separator=','):
     return list_strings
 
 
+def css2set(cs_string, separator=','):
+    if cs_string is None:
+        return set()
+    text = str(cs_string).strip().lower()
+    if text in {'', 'none', 'null', 'nan', 'na'}:
+        return set()
+    if isinstance(cs_string, set):
+        return {str(item).strip().lower() for item in cs_string if str(item).strip()}
+    return {item.strip().lower() for item in css2strs(cs_string, separator) if item.strip()}
+
+
 def css2floats(cs_string, separator=','):
     if isinstance(cs_string, list): return cs_string
     cs_string = cs_string.strip()
@@ -184,6 +195,7 @@ def replace_variables(str_to_replace, variables_dict, case_sensitive=True):
     )
 
     return replaced_str
+
 
 import re
 
@@ -308,6 +320,7 @@ def replace_parameter_values(
         )
 
     return pattern.sub(replace, xpr_to_replace)
+
 
 def key_val(spath):
     # ref: https://stackoverflow.com/questions/28128942/

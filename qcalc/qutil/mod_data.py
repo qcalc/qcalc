@@ -2,8 +2,71 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 import json
+import re
 from datetime import date, datetime, time as dt_time
+
 from .mod_datetime import QDateTime
+
+
+def as_bool(value):
+    if isinstance(value, bool):
+        return value
+    if value is None:
+        return False
+    if isinstance(value, (int, float)):
+        return value != 0
+    text = str(value).strip().lower()
+    if text in ('1', 'true', 'yes', 'y', 'on'):
+        return True
+    if text in ('0', 'false', 'no', 'n', 'off', ''):
+        return False
+    return bool(value)
+
+
+def is_blank(value):
+    if value is None:
+        return True
+    text = str(value).strip().lower()
+    return text in {'', 'none', 'null', 'nan', 'na'}
+
+
+def to_float(value, field_name):
+    if is_blank(value):
+        raise Exception(f"{field_name} cannot be blank")
+    if isinstance(value, (int, float)):
+        return float(value)
+
+    text = str(value).strip()
+    text = text.replace(',', '')
+    text = text.replace('%', '')
+    match = re.search(r'[-+]?\d*\.?\d+(?:[eE][-+]?\d+)?', text)
+    if not match:
+        raise Exception(f"Invalid numeric value for {field_name}: {value}")
+    return float(match.group(0))
+
+
+def to_optional_float(value, field_name):
+    if is_blank(value):
+        return None
+    return to_float(value, field_name)
+
+
+def to_fraction(value, field_name):
+    raw = to_float(value, field_name)
+    return raw / 100.0
+
+
+def to_optional_fraction(value, field_name):
+    if is_blank(value):
+        return None
+    return to_fraction(value, field_name)
+
+
+def normalize_name(name):
+    text = str(name).strip().lower()
+    text = text.replace('%', '')
+    text = text.replace('_', ' ')
+    return ' '.join(text.split())
 
 
 def pretty_json(json_data):
@@ -83,9 +146,9 @@ def time2float(tm: dt_time, time2val: str) -> float:
     total_seconds = tm.hour * 3600 + tm.minute * 60 + tm.second + tm.microsecond / 1_000_000
 
     if time2val == 'hr':
-        return total_seconds/3600  # Return in hours
+        return total_seconds / 3600  # Return in hours
     elif time2val == 'min':
-        return total_seconds/60  # Return in minutes
+        return total_seconds / 60  # Return in minutes
     elif time2val == 's':
         return total_seconds  # Return in seconds
     elif time2val == 'ms':
@@ -98,8 +161,8 @@ def time2float(tm: dt_time, time2val: str) -> float:
 
 def _test():
     t = dt_time(1, 30, 15, 500000)  # 1 hour, 30 minutes, 15 seconds, and 500 milliseconds
-    print(time2float(t, 's'))    # Output: 5415.5 seconds
-    print(time2float(t, 'ms'))   # Output: 5415500 milliseconds
+    print(time2float(t, 's'))  # Output: 5415.5 seconds
+    print(time2float(t, 'ms'))  # Output: 5415500 milliseconds
     print(time2float(t, 'mics'))  # Output: 5415500000 microseconds
 
 

@@ -203,6 +203,10 @@ def _supplier_selection_default_items():
     return ['I1', 'I2', 'I3']
 
 
+def _sop_default_materials():
+    return ['RM1', 'RM2', 'RM3']
+
+
 def table_material_demand(field_name):
     # Generic use: per-item demand requirement that procurement must satisfy.
     # Example use: raw material plans, SKU replenishment, component needs.
@@ -246,7 +250,7 @@ def table_supplier_master(field_name):
 def table_supplier_item_cost(field_name):
     # Generic use: provider-item variable cost table with optional pairwise max limit.
     # Example use: contract pricing grids, lane rates, source-specific unit costs.
-    items = _supplier_selection_default_items()
+    items = _sop_default_materials()
     suppliers = ['S1', 'S2', 'S3']
     unit_cost_map = {
         'S1': [11, 13, 12],

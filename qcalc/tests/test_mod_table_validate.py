@@ -3,10 +3,11 @@
 
 import pandas as pd
 import pytest
+import qconst
+from qutil import to_cast
 
-from qutil import (
+from calc import (
     QThread,
-    parse_optional_number,
     require_columns,
     require_complete_pair_grid,
     require_unique_pairs,
@@ -126,14 +127,14 @@ def test_require_complete_pair_grid_raises_on_missing_pair():
         )
 
 
-def test_parse_optional_number_behaves_for_blank_valid_and_invalid():
-    assert parse_optional_number('', 'budget_limit', float) is None
-    assert parse_optional_number(None, 'budget_limit', float) is None
-    assert parse_optional_number('12.5', 'budget_limit', float) == 12.5
-    assert parse_optional_number('7', 'max_selected', int) == 7
+def test_to_cast_behaves_for_blank_valid_and_invalid():
+    assert to_cast('', 'budget_limit', float) is None
+    assert to_cast(None, 'budget_limit', float) is None
+    assert to_cast('12.5', 'budget_limit', float) == 12.5
+    assert to_cast('7', 'max_selected', int) == 7
 
     with pytest.raises(Exception, match='Invalid numeric value'):
-        parse_optional_number('x7', 'max_selected', int)
+        to_cast('x7', 'max_selected', int)
 
 
 def test_require_columns_strict_table_input_raises_for_suspicious_optional_alias():
@@ -192,3 +193,62 @@ def test_require_columns_strict_allows_unexpected_columns_for_open_schema():
         ['Location', 'Demand'],
         columns_can_grow=True,
     )
+
+
+def test_require_columns_rejects_header_unit_without_required_col_uoms():
+    df = pd.DataFrame({
+        'Capacity | unit/mo': [100],
+        'Location': ['L1'],
+    })
+
+    with pytest.raises(Exception, match=f"{qconst.TBL_UOM_SEP}"):
+        require_columns(df, 'facility', ['Location', 'Capacity'])
+
+
+def test_require_columns_validates_header_unit_compatibility_and_trims_spaces():
+    df = pd.DataFrame({
+        'Machine Time   |   min/unit': [5],
+        'Product': ['A'],
+    })
+
+    resolved = require_columns(
+        df,
+        'products',
+        ['Product', 'Machine Time'],
+        required_col_uoms={'Machine Time': 'hr/unit'},
+    )
+
+    assert resolved['Machine Time'] == 'Machine Time | min/unit'
+    assert list(df.columns) == ['Machine Time | min/unit', 'Product']
+
+
+def test_require_columns_rejects_header_unit_for_unknown_base_column_mapping():
+    df = pd.DataFrame({
+        'Custom Metric | hr/mo': [1],
+        'Product': ['A'],
+    })
+
+    with pytest.raises(Exception, match='does not allow units'):
+        require_columns(
+            df,
+            'products',
+            ['Product'],
+            required_col_uoms={'Machine Time': 'hr/unit'},
+        )
+
+
+def test_require_columns_qtbl_validates_and_normalizes_header_uom_spacing():
+    table = {
+        'columns': ['Product', 'Machine Time   |   min/unit'],
+        'data': [['A', 5]],
+    }
+
+    resolved = require_columns(
+        table,
+        'products',
+        ['Product', 'Machine Time'],
+        required_col_uoms={'Machine Time': 'hr/unit'},
+    )
+
+    assert resolved['Machine Time'] == 'Machine Time | min/unit'
+    assert table['columns'] == ['Product', 'Machine Time | min/unit']

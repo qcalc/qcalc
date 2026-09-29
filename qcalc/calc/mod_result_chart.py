@@ -7,6 +7,7 @@ import datetime
 from .mod_result import result_values
 from qcore import Qty, QChart
 from qutil import css2strs, variable_to_title, title_to_variable, specified_args
+import qconst
 
 
 class QResults:
@@ -148,7 +149,7 @@ class QResults:
         chart = QChart()
         yvals = QResults.df2histo_data(df, y_column)
         chart.render_histogram(values=yvals, bin_count=bin_count, density=density,
-                       xlabel=xlabel, ylabel=ylabel, title=chart_title)
+                               xlabel=xlabel, ylabel=ylabel, title=chart_title)
         return chart
 
     @staticmethod
@@ -269,7 +270,8 @@ class QResults:
                 data_columns.append(rkey)
                 y = variable_to_title(rkey)
                 if rkey in ruoms:
-                    y = y + ' (' + ruoms[rkey] + ')'
+                    suffix = f'{qconst.TBL_UOM_SEP} {ruoms[rkey]}'
+                    y = f'{y} {suffix}'  # + ')'
                 data_changed_titles.append(y)
 
                 if chart_ok:

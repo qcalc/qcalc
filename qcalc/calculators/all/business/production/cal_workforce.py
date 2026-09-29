@@ -4,8 +4,8 @@
 import pandas as pd
 import pulp
 from qcore import as_qtable, qtable
-from qutil.mod_runtime_validate import validate_schema_if_needed
-from qutil import css2set, require_unique_values
+from calc import validate_schema_if_needed, require_unique_values
+from qutil import css2set
 
 from calc import (
     field_show_zero,

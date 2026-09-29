@@ -4,11 +4,10 @@
 import json
 import re
 from datetime import date, datetime, time as dt_time
-
 from .mod_datetime import QDateTime
 
 
-def as_bool(value):
+def to_bool(value) -> bool:
     if isinstance(value, bool):
         return value
     if value is None:
@@ -23,16 +22,20 @@ def as_bool(value):
     return bool(value)
 
 
-def is_blank(value):
+def is_blank(value) -> bool:
     if value is None:
         return True
     text = str(value).strip().lower()
     return text in {'', 'none', 'null', 'nan', 'na'}
 
 
-def to_float(value, field_name):
+def to_float(value, field_name="value", required=True) -> None | float:
     if is_blank(value):
-        raise Exception(f"{field_name} cannot be blank")
+        if required:
+            raise Exception(f"{field_name} cannot be blank")
+        else:
+            return None
+
     if isinstance(value, (int, float)):
         return float(value)
 
@@ -45,21 +48,54 @@ def to_float(value, field_name):
     return float(match.group(0))
 
 
-def to_optional_float(value, field_name):
+def to_cast(value, field_name, cast=float, required=False) -> None | float:
+    """Parse optional scalar number, returning None for blank input.
+
+    `cast` can be `float`, `int`, or any callable that accepts one value.
+    """
     if is_blank(value):
+        if required:
+            raise Exception(f"{field_name} cannot be blank")
+        else:
+            return None
+    try:
+        return cast(value)
+    except Exception as e:
+        raise Exception(f"Invalid numeric value for {field_name}: {value}")
+
+
+def as_float(value, field_name='value', required=False) -> None | float:
+    def _as_float_or_none(value, field_name="value"):
+        if isinstance(value, bool):
+            return None
+        if isinstance(value, (int, float)):
+            return float(value)
+        if value in ('', None):
+            return None
+        if isinstance(value, str):
+            text = value.strip()
+            if text == '':
+                return None
+            try:
+                return float(text)
+            except Exception:
+                return None
         return None
-    return to_float(value, field_name)
+
+    number = _as_float_or_none(value)
+    if number is None:
+        if required:
+            raise Exception(f"{field_name} must be numeric")
+        else:
+            return None
+    return number
 
 
-def to_fraction(value, field_name):
-    raw = to_float(value, field_name)
+def to_fraction(value, field_name, required=True):
+    raw = to_float(value, field_name, required=required)
+    if raw is None:
+        return None
     return raw / 100.0
-
-
-def to_optional_fraction(value, field_name):
-    if is_blank(value):
-        return None
-    return to_fraction(value, field_name)
 
 
 def normalize_name(name):
@@ -157,14 +193,3 @@ def time2float(tm: dt_time, time2val: str) -> float:
         return total_seconds * 1_000_000  # Convert to microseconds
     else:
         raise ValueError("Invalid time2val argument. Use 's', 'ms', or 'mics'.")
-
-
-def _test():
-    t = dt_time(1, 30, 15, 500000)  # 1 hour, 30 minutes, 15 seconds, and 500 milliseconds
-    print(time2float(t, 's'))  # Output: 5415.5 seconds
-    print(time2float(t, 'ms'))  # Output: 5415500 milliseconds
-    print(time2float(t, 'mics'))  # Output: 5415500000 microseconds
-
-
-if __name__ == '__main__':
-    _test()

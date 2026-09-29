@@ -4,7 +4,7 @@
 import pandas as pd
 import pulp
 from qcore import as_qtable, qtable
-from qutil.mod_runtime_validate import validate_schema_if_needed
+from calc.mod_runtime_validate import validate_schema_if_needed
 
 from calc import field_show_zero, table_items
 from calc import safe_objective_value, solver, slack_table

@@ -101,6 +101,19 @@ def scalar_or_none(val, jdata_type: str):
     # return None
 
 
+def _plain_fxpr_value(value):
+    """Serialize plain nested values for fxpr while escaping path-breaking chars."""
+    if isinstance(value, str):
+        return val_de_quote(value)
+    if isinstance(value, list):
+        return [_plain_fxpr_value(v) for v in value]
+    if isinstance(value, tuple):
+        return tuple(_plain_fxpr_value(v) for v in value)
+    if isinstance(value, dict):
+        return {k: _plain_fxpr_value(v) for k, v in value.items()}
+    return value
+
+
 def fxpr_from_json(func_id, json_data, json_data_type, forced=False):
     # print('j', func_id, json_data, json_data_type)
 
@@ -124,10 +137,10 @@ def fxpr_from_json(func_id, json_data, json_data_type, forced=False):
             ]
         elif isinstance(val, pd.DataFrame):
             # json_data_copy[name] = val
-            json_data_copy[name] = {
+            json_data_copy[name] = _plain_fxpr_value({
                 'columns': [str(col) for col in val.columns],
                 'data': val.to_numpy().tolist(),
-            }
+            })
         elif isinstance(val, dict):
             if qconst.DICT_CLASS_FUNC in val:
                 cfname = val.pop(qconst.DICT_CLASS_FUNC)
@@ -138,8 +151,8 @@ def fxpr_from_json(func_id, json_data, json_data_type, forced=False):
                 cfname = val.pop(qconst.DICT_CLASS_PLAIN)
                 cfname_type = json_data_type_copy[name]
                 json_data_copy[name] = fxpr_from_json(cfname, val, cfname_type)
-            # else:
-            #     json_data_copy[name] = _plain_fxpr_value(val)
+            else:
+                json_data_copy[name] = _plain_fxpr_value(val)
         elif json_data_type[name] in complex_input_xpr:
             return ''
             json_data_copy[name] = None

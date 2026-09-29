@@ -281,8 +281,8 @@ def q11449_form_data_postprocess_and_run(request, func_id):  # cid
                 field_label = 'Form' if field == '__all__' else field
                 joined = '; '.join(str(err) for err in errors)
                 error_chunks.append(f"{field_label}: {joined}")
-            return 'Input validation failed: ' + ' | '.join(error_chunks)
-        return 'Input validation failed. Please review the highlighted input fields.'
+            return 'Error (VLD): Input validation failed: ' + ' | '.join(error_chunks)
+        return 'Error (VLD): Input validation failed. Please review the highlighted input fields.'
 
     if ((request.method == 'POST' and request.json_doc['clean']) or
         request.cmd in ['run', 'save_io',

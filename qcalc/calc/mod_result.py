@@ -1,8 +1,10 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
+import pandas as pd
+import qconst
 from qutil import title_to_variable, replace_words, replace_variables, replace_parameter_values
-from qcore import isMeasureQuantity as isPQ
+from qcore import isMeasureQuantity as isPQ, as_qtable, Qty, is_str_qty
 
 
 def is_scalar(value):
@@ -17,13 +19,14 @@ def scalar_results(xpr: str, variable: str, var_vals: list, variation_target: st
 
     def filter_scalar(result) -> dict | list | None:
         if is_scalar(result):
-            return [result]
+            return result
 
         filtered = []
         if isinstance(result, set) or isinstance(result, tuple) or isinstance(result, list):
             for value in result:
                 if is_scalar(value):
                     filtered.append(value)
+
             return filtered
 
         if isinstance(result, dict):
@@ -50,11 +53,13 @@ def scalar_results(xpr: str, variable: str, var_vals: list, variation_target: st
             else: # 'v'
                 code = replace_variables(xpr, {variable: str(var_val)})
                 # code = replace_words(xpr, [variable], str(var_val))
+
         try:
             result = eva(code=code)
         except Exception:
             failed += 1
             continue
+
         sc = filter_scalar(result)
         if isinstance(sc, (dict, list)) and not sc:
             # every field was filtered out (e.g. the expression errored for this
@@ -127,3 +132,74 @@ def result_values(result):
             del result['chart']
     process_result(result)  # after removing table and chart from the result dictionary
     return ojson_data, ojson_uoms
+
+
+def df2unit_normalized(df) -> pd.DataFrame:
+    """Return an Excel-friendly DataFrame with Qty units moved into headers.
+
+    Each Qty-valued column is converted to its scalar qty values, and the
+    column title is renamed as "<column> (<unit>)".
+    """
+    df = as_qtable(df)
+    if not isinstance(df, pd.DataFrame) or df.empty:
+        return df
+
+    obj_cols = df.select_dtypes(include=['object', 'string']).columns
+    if len(obj_cols) == 0:
+        return df
+
+    normalized_df = df.copy()
+    rename_map = {}
+
+    for col in obj_cols:
+        col_unit = ''
+        can_convert = True
+        has_qty = False
+        col_values = normalized_df[col].tolist()
+        qty_values = [None] * len(col_values)
+
+        def _to_qty(value):
+            if isPQ(value):
+                return value
+            if isinstance(value, str) and is_str_qty(value.strip()):
+                return Qty(value.strip())
+            return None
+
+        # pre-check all values: convert only when the whole non-empty column is Qty
+        # or qty string, and all qty values share one common unit.
+        for i, value in enumerate(col_values):
+            if value is None:
+                continue
+
+            qty_value = _to_qty(value)
+            if qty_value is not None:
+                qty_values[i] = qty_value
+                has_qty = True
+                value_unit = str(qty_value.uom).strip()
+                if value_unit:
+                    if col_unit == '':
+                        col_unit = value_unit
+                    elif value_unit != col_unit:
+                        can_convert = False
+                        break
+            else:
+                can_convert = False
+                break
+
+        if not (can_convert and has_qty):
+            continue
+
+        values = [None if value is None else qty_values[i].val for i, value in enumerate(col_values)]
+
+        normalized_df[col] = values
+        if col_unit:
+            col_name = str(col)
+            # suffix = f'({col_unit})'
+            suffix = f'{qconst.TBL_UOM_SEP} {col_unit}'
+            if not col_name.strip().endswith(suffix):
+                rename_map[col] = f'{col_name} {suffix}'
+
+    if rename_map:
+        normalized_df = normalized_df.rename(columns=rename_map)
+
+    return normalized_df

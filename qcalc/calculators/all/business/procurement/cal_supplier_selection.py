@@ -4,8 +4,9 @@
 import pandas as pd
 import pulp
 from qcore import as_qtable, qtable
-from qutil.mod_runtime_validate import validate_schema_if_needed
-from qutil import parse_optional_number, require_unique_values, require_values_subset
+from qutil import to_cast
+from calc import validate_schema_if_needed
+from calc import require_unique_values, require_values_subset
 
 from calc import (
     field_show_zero,
@@ -110,12 +111,12 @@ def optima_supplier_selection(
                 f'min_order_{supplier}'
             )
 
-    max_suppliers_val = parse_optional_number(max_suppliers, 'max_suppliers', int)
+    max_suppliers_val = to_cast(max_suppliers, 'max_suppliers', int)
     max_suppliers_val = 0 if max_suppliers_val is None else max_suppliers_val
     if max_suppliers_val > 0:
         prob += pulp.lpSum(y[supplier] for supplier in suppliers) <= max_suppliers_val, 'max_suppliers'
 
-    budget_limit_val = parse_optional_number(budget_limit, 'budget_limit', float)
+    budget_limit_val = to_cast(budget_limit, 'budget_limit', float)
     if budget_limit_val is not None:
         prob += variable_cost_expr + fixed_cost_expr <= budget_limit_val, 'budget_limit'
 
@@ -123,7 +124,7 @@ def optima_supplier_selection(
     if total_demand <= 0:
         raise Exception('Total demand must be greater than zero')
 
-    min_avg_quality_val = parse_optional_number(min_avg_quality, 'min_avg_quality', float)
+    min_avg_quality_val = to_cast(min_avg_quality, 'min_avg_quality', float)
     if min_avg_quality_val is not None:
         if 'Quality' not in supplier_master.columns:
             raise Exception("supplier_master must include 'Quality' when min_avg_quality is used")
@@ -136,7 +137,7 @@ def optima_supplier_selection(
             'min_avg_quality'
         )
 
-    max_avg_risk_val = parse_optional_number(max_avg_risk, 'max_avg_risk', float)
+    max_avg_risk_val = to_cast(max_avg_risk, 'max_avg_risk', float)
     if max_avg_risk_val is not None:
         if 'Risk' not in supplier_master.columns:
             raise Exception("supplier_master must include 'Risk' when max_avg_risk is used")
@@ -208,6 +209,7 @@ def optima_supplier_selection(
 
 
 def optima_supplier_selection__info():
+    profile = 'supplier_selection'
     return {
         'title': 'Optimization: Supplier Selection',
         'desc': (
@@ -216,9 +218,9 @@ def optima_supplier_selection__info():
         ),
         'calculate': 'Solve',
         'schema': {
-            'material_demand': table_material_demand('material_demand'),
+            'material_demand': table_material_demand('material_demand', profile=profile),
             'supplier_master': table_supplier_master('supplier_master'),
-            'supplier_item_cost': table_supplier_item_cost('supplier_item_cost'),
+            'supplier_item_cost': table_supplier_item_cost('supplier_item_cost', profile=profile),
             'max_suppliers': {'initial': 0, 'help_text': 'Set 0 for no limit on number of suppliers.'},
             'material_qty_type': {
                 'type': 'choice',

@@ -7,6 +7,7 @@ import requests
 from qconst import delimiter_help_text
 from qutil import nzs, to_df, demo_url, md2html
 from qcore.mod_anno import *
+from calc.mod_result import df2unit_normalized
 
 
 def file_reader__info():
@@ -83,7 +84,11 @@ def csv_editor__info():
             },
             'delimiter': {
                 'help_text': delimiter_help_text,
-            }
+            },
+            'normalize_units': {
+                'type': 'checkbox',
+                'help_text': 'Convert compatible quantity columns to numeric values and append units to column titles.',
+            },
         },
         # Prefix calculator arguments with @ so this script can call the
         # calculator function correctly when reused from another calculator.
@@ -107,15 +112,21 @@ $(document).ready(function() {
 
 def csv_editor(upload_csv: qfile = None, csv_url: qurl = demo_url('emp.csv'),
                quoting='1', delimiter: qchar = ',', load: 'btn:0' = 'Load CSV',
-               csv_table: qtable = pd.DataFrame(columns=[])):
+               csv_table: qtable = pd.DataFrame(columns=[]),
+               normalize_units: bool = False):
     if len(csv_table) != 0:
-        return csv_table
+        df = csv_table
     elif csv_url:
-        return to_df(csv_url, delimiter, quoting)
+        df = to_df(csv_url, delimiter, quoting)
     elif upload_csv:
-        return to_df(upload_csv.txt_buf(), delimiter, quoting)
+        df = to_df(upload_csv.txt_buf(), delimiter, quoting)
     else:
         raise Exception(f'Error (CR): A valid CSV File or URL is not found')
+
+    if normalize_units:
+        df = df2unit_normalized(df)
+
+    return df
 
 
 def remove_tags(html):

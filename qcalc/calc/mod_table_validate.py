@@ -3,7 +3,10 @@
 
 
 import re
+import qconst
 
+from qcore import Qty
+from qutil import QThread
 
 def _normalize_token(value):
     """Normalize identifiers for case-insensitive, whitespace-tolerant matching."""
@@ -18,7 +21,7 @@ def _compact_token(value):
 def _is_strict_table_input_enabled():
     """Read strict table validation preference from thread-local request context."""
     try:
-        from .timed_thread import QThread
+        # from .timed_thread import QThread
         return bool(QThread.get_pref('strict_table_input', False))
     except Exception:
         return False
@@ -127,6 +130,15 @@ def _table_column_values(table, column_name):
     return table[column_name].tolist()
 
 
+def _split_column_title_uom(column_name, uom_sep=qconst.TBL_UOM_SEP):
+    """Split a column title into base name and optional unit suffix."""
+    text = str(column_name).strip()
+    if uom_sep not in text:
+        return text, None
+    base_name, header_uom = text.split(uom_sep, 1)
+    return base_name.strip(), header_uom.strip()
+
+
 def require_columns(
     df,
     table_name,
@@ -134,6 +146,7 @@ def require_columns(
     optional_cols=None,
     case_sensitive=False,
     columns_can_grow=True,
+    required_col_uoms=None,
 ):
     """Ensure required columns exist; optionally canonicalize known column names in-place.
 
@@ -143,18 +156,98 @@ def require_columns(
     optional_cols = optional_cols or []
     expected_cols = list(required_cols) + [col for col in optional_cols if col not in required_cols]
     actual_cols = _table_columns(df)
+    required_col_uoms = required_col_uoms or None
+
+    actual_meta = []
+    base_seen = {}
+    duplicate_bases = []
+    unitized_cols = []
+
+    for col in actual_cols:
+        base_name, header_uom = _split_column_title_uom(col)
+        has_uom = qconst.TBL_UOM_SEP in str(col)
+        if has_uom:
+            unitized_cols.append(str(col))
+
+        base_key = base_name if case_sensitive else _normalize_token(base_name)
+        if base_key in base_seen and base_seen[base_key] != col:
+            duplicate_bases.append((base_seen[base_key], col))
+            continue
+
+        base_seen[base_key] = col
+        actual_meta.append({
+            'actual': col,
+            'base': base_name,
+            'uom': header_uom,
+            'has_uom': has_uom,
+            'key': base_key,
+        })
+
+    if duplicate_bases:
+        pairs = ', '.join(f"'{left}' vs '{right}'" for left, right in duplicate_bases)
+        raise Exception(
+            f"Ambiguous column names detected (same base name after trimming/unit split): {pairs}. "
+            'Please keep one canonical version.'
+        )
+
+    if required_col_uoms is None and unitized_cols:
+        preview = ', '.join(f"'{name}'" for name in unitized_cols[:10])
+        raise Exception(
+            f"{table_name}: One or more column headers include a unit using '{qconst.TBL_UOM_SEP}'. "
+            f"This table expects plain header names without units in the title. "
+            f"Please remove the unit from these header(s): {preview}."
+        )
+
+    if required_col_uoms is not None:
+        canonical_required_uoms = {
+            _normalize_token(k): (str(k).strip(), str(v).strip())
+            for k, v in required_col_uoms.items()
+        }
+        for item in actual_meta:
+            if not item['has_uom']:
+                continue
+            base_name = item['base']
+            header_uom = item['uom']
+            base_key = _normalize_token(base_name)
+            if base_key not in canonical_required_uoms:
+                raise Exception(
+                    f"{table_name}: Header '{item['actual']}' includes a unit using '{qconst.TBL_UOM_SEP}', "
+                    f"but this table does not allow units in the '{base_name}' header. "
+                    f"Please remove the unit from this header."
+                )
+            if not header_uom:
+                raise Exception(
+                    f"{table_name} column '{item['actual']}' has an empty unit part after '{qconst.TBL_UOM_SEP}'."
+                )
+
+            _, expected_uom = canonical_required_uoms[base_key]
+            try:
+                Qty(1.0, header_uom, expected_uom)
+            except Exception as e:
+                raise Exception(
+                    f"{table_name} column '{item['actual']}' unit '{header_uom}' is not compatible with "
+                    f"expected unit '{expected_uom}' for '{base_name}'."
+                ) from e
+
+    actual_bases = [item['base'] for item in actual_meta]
 
     if case_sensitive:
-        missing = [col for col in required_cols if col not in actual_cols]
+        missing = [col for col in required_cols if col not in actual_bases]
         if missing:
             expected = ', '.join(expected_cols)
             raise Exception(
                 f"{table_name} missing required column(s): {', '.join(missing)}. "
                 f"Expected columns: {expected}."
             )
-        return {col: col for col in expected_cols if col in actual_cols}
+        return {
+            col: next(item['actual'] for item in actual_meta if item['base'] == col)
+            for col in expected_cols
+            if col in actual_bases
+        }
 
-    lookup = _column_lookup(df)
+    lookup = {item['key']: item['actual'] for item in actual_meta}
+    lookup_base = {item['key']: item['base'] for item in actual_meta}
+
     missing = [col for col in required_cols if _normalize_token(col) not in lookup]
     if missing:
         expected = ', '.join(expected_cols)
@@ -168,12 +261,13 @@ def require_columns(
     if optional_cols and strict_mode:
         expected_keys = {_normalize_token(col) for col in expected_cols}
         suspicious = []
-        for actual_col in actual_cols:
-            actual_key = _normalize_token(actual_col)
+        for item in actual_meta:
+            actual_col = item['actual']
+            actual_key = item['key']
             if actual_key in expected_keys:
                 continue
             for opt_col in optional_cols:
-                if _looks_like_optional_alias(actual_col, opt_col):
+                if _looks_like_optional_alias(lookup_base.get(actual_key, actual_col), opt_col):
                     suspicious.append((actual_col, opt_col))
                     break
         if suspicious:
@@ -187,9 +281,9 @@ def require_columns(
     if strict_mode and not columns_can_grow:
         expected_keys = {_normalize_token(col) for col in expected_cols}
         unexpected = [
-            str(col)
-            for col in actual_cols
-            if _normalize_token(col) not in expected_keys
+            str(item['actual'])
+            for item in actual_meta
+            if item['key'] not in expected_keys
         ]
         if unexpected:
             allowed = ', '.join(expected_cols)
@@ -202,12 +296,24 @@ def require_columns(
     rename_map = {}
     resolved = {}
     for col in expected_cols:
-        actual = lookup.get(_normalize_token(col))
+        key = _normalize_token(col)
+        actual = lookup.get(key)
         if actual is None:
             continue
-        resolved[col] = col
-        if actual != col:
-            rename_map[actual] = col
+        actual_base = lookup_base.get(key, col)
+        _, header_uom = _split_column_title_uom(actual)
+
+        resolved[col] = actual
+        if header_uom:
+            canonical = f'{col} {qconst.TBL_UOM_SEP} {header_uom}'
+        elif actual_base != col:
+            canonical = col
+        else:
+            canonical = actual
+
+        if actual != canonical:
+            rename_map[actual] = canonical
+            resolved[col] = canonical
 
     _rename_columns(df, rename_map)
     return resolved
@@ -286,17 +392,17 @@ def require_unique_values(
     return [seen[key] for key in ordered_keys]
 
 
-def parse_optional_number(value, field_name, cast=float):
-    """Parse optional scalar number, returning None for blank input.
-
-    `cast` can be `float`, `int`, or any callable that accepts one value.
-    """
-    if value in ('', None):
-        return None
-    try:
-        return cast(value)
-    except Exception as e:
-        raise Exception(f"Invalid numeric value for {field_name}: {value}") from e
+# def parse_optional_number(value, field_name, cast=float):
+#     """Parse optional scalar number, returning None for blank input.
+#
+#     `cast` can be `float`, `int`, or any callable that accepts one value.
+#     """
+#     if value in ('', None):
+#         return None
+#     try:
+#         return cast(value)
+#     except Exception as e:
+#         raise Exception(f"Invalid numeric value for {field_name}: {value}") from e
 
 
 def require_unique_pairs(
@@ -504,7 +610,7 @@ def _usage_examples():
         require_unique_pairs(cost, 'cost', 'From', 'To')
 
     Optional scalar numeric parsing:
-        budget = parse_optional_number(budget_limit, 'budget_limit', float)
-        max_selected = parse_optional_number(project_max_selected, 'project_max_selected', int)
+        budget = to_cast(budget_limit, 'budget_limit', float)
+        max_selected = to_cast(project_max_selected, 'project_max_selected', int)
     """
     return None

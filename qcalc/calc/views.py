@@ -13,6 +13,7 @@ import catalog.views
 from qvars import qfunc_dict_layout
 from qcore.mod_anno import *
 from .mod_ucals import get_uc_list
+from .mod_result import df2unit_normalized
 from .view_form_data import *
 from .mod_layout_dynamic import has_dynamic_layout, build_layout_plan
 from qutil import HtmxHttpRequest, QThread, preprocess_expression, QDateTime, fid2owner, md2html, wrap_md_images
@@ -951,6 +952,8 @@ def q1145_result_to_form_schema(request: HtmxHttpRequest, func_id, cid, result, 
         elif isinstance(value, pd.DataFrame):  # table
             # request.json_doc['info']['loop'] = False
             table_id = f"{cid}_{name}"
+            # Normalize the DataFrame to move units into headers before formatting
+            value = df2unit_normalized(value) # e.g. discount_opt()
             value = value.apply(lambda col: col.map(df_formatter))  # apply format for table-out
             request.ojson_data[name] = qhtml(
                 wrap_actions(

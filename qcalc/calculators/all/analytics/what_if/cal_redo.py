@@ -45,7 +45,6 @@ def redo(variation_target='v', xpr: qcode = "sine('x deg')", variable: qchar = '
     results, xvals = scalar_results(
         xpr=xpr, variable=variable, var_vals=var_vals, variation_target=variation_target
     )
-
     qr = QResults(results, xvals=xvals, variable=variable,
                   table_columns=table_columns, table_units=table_units, show=show)
     qr.setup_chart(chart_columns=chart_columns, chart_units=chart_units,

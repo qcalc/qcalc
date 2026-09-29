@@ -23,6 +23,7 @@ def eva__info():
             'form_top': command_button('eva', 'Format Code', '__modify', kwargs={'code': 'format'})
         },
         'kins': 'mycal',
+        'layout': 'tb',
     }
 
 

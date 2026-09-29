@@ -2,12 +2,17 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 import re
-
 import pandas as pd
 
-from qcore import Qty
-from qutil import css2strs, specified_args
+from qcore import as_qtable, Qty
+from qutil import as_float, css2strs, specified_args
 from .mod_result_chart import QResults
+
+
+def _as_qfloat(value, field_name='value', required=False):
+    if isinstance(value, Qty):
+        return float(value.val)
+    return as_float(value, field_name, required=required)
 
 
 def _split_title_unit(title: str):
@@ -15,42 +20,6 @@ def _split_title_unit(title: str):
     if match:
         return match.group(1).strip(), match.group(2).strip()
     return str(title).strip(), ''
-
-
-def _to_df(table):
-    if isinstance(table, pd.DataFrame):
-        return table.copy()
-
-    if not isinstance(table, dict):
-        raise Exception('Scenario table must be a table dictionary or DataFrame')
-
-    columns = table.get('columns', [])
-    data = table.get('data', [])
-    if not columns or not isinstance(columns, list):
-        raise Exception("Scenario table must include a 'columns' list")
-    if not isinstance(data, list):
-        raise Exception("Scenario table must include a 'data' list")
-    return pd.DataFrame(data, columns=columns)
-
-
-def _as_float(value):
-    if isinstance(value, Qty):
-        return float(value.val)
-    if isinstance(value, bool):
-        return None
-    if isinstance(value, (int, float)):
-        return float(value)
-    if value in ('', None):
-        return None
-    if isinstance(value, str):
-        text = value.strip()
-        if text == '':
-            return None
-        try:
-            return float(text)
-        except Exception:
-            return None
-    return None
 
 
 def _select_metric_columns(df, metric_columns: str, metric_units: str,
@@ -93,7 +62,7 @@ def _delta_column_name(column, delta_type):
 def _delta_values(values: list, base_value, delta_type):
     output = []
     for value in values:
-        number = _as_float(value)
+        number = _as_qfloat(value)
         if number is None or base_value is None:
             output.append(None)
             continue
@@ -132,18 +101,11 @@ def _resolve_metric(metric_columns: list[str], metric_name: str, field_name='met
     return names[0]
 
 
-def _to_float_or_raise(value, field_name='value'):
-    number = _as_float(value)
-    if number is None:
-        raise Exception(f"{field_name} must be numeric")
-    return number
-
-
 def _default_numeric_metric(df, metric_columns):
     for column in metric_columns:
         if column not in df.columns:
             continue
-        if df[column].apply(_as_float).notna().any():
+        if df[column].apply(_as_qfloat).notna().any():
             return column
     return metric_columns[0] if metric_columns else ''
 
@@ -158,7 +120,7 @@ def _safe_df2chart(df, x_column, y_columns, ylabel, chart_title, chart_type):
 
     numeric_columns = []
     for column, series in zip(chart_data['ylabels'], chart_data['yvalsm']):
-        if any(_as_float(value) is not None for value in series):
+        if any(_as_qfloat(value) is not None for value in series):
             numeric_columns.append(column)
 
     if not numeric_columns:
@@ -200,7 +162,7 @@ def _mode_rank(df, metric_columns, id_columns, variable_columns,
         rank_metric = _default_numeric_metric(output_df, metric_columns)
     ascending = str(rank_order).lower() in ('asc', 'ascending', 'low')
 
-    output_df['_rank_value'] = output_df[rank_metric].apply(_as_float)
+    output_df['_rank_value'] = output_df[rank_metric].apply(_as_qfloat)
     output_df = output_df.sort_values(by='_rank_value', ascending=ascending, na_position='last').reset_index(drop=True)
     output_df['Rank'] = list(range(1, len(output_df) + 1))
     output_df = output_df.drop(columns=['_rank_value'])
@@ -211,7 +173,7 @@ def _mode_rank(df, metric_columns, id_columns, variable_columns,
     chart = None
     if show in ('both', 'chart') and len(output_df) > 0:
         chart_df = output_df[[variation_column, rank_metric]].copy()
-        chart_df[rank_metric] = chart_df[rank_metric].apply(_as_float)
+        chart_df[rank_metric] = chart_df[rank_metric].apply(_as_qfloat)
         chart = _safe_df2chart(
             chart_df,
             x_column=variation_column,
@@ -237,8 +199,8 @@ def _build_filter_mask(series, operator_name, filter_value, filter_value2=''):
         needle = str(filter_value).strip().lower()
         return series.apply(lambda value: needle in str(value).lower())
 
-    numbers = series.apply(_as_float)
-    left = _to_float_or_raise(filter_value, field_name='filter_value')
+    numbers = series.apply(_as_qfloat)
+    left = _as_qfloat(filter_value, field_name='filter_value', required=True)
     if operator_name in ('>', 'gt'):
         return numbers.apply(lambda value: value is not None and value > left)
     if operator_name in ('>=', 'ge'):
@@ -248,7 +210,7 @@ def _build_filter_mask(series, operator_name, filter_value, filter_value2=''):
     if operator_name in ('<=', 'le'):
         return numbers.apply(lambda value: value is not None and value <= left)
     if operator_name in ('between',):
-        right = _to_float_or_raise(filter_value2, field_name='filter_value2')
+        right = _as_qfloat(filter_value2, field_name='filter_value2', required=True)
         low = min(left, right)
         high = max(left, right)
         return numbers.apply(lambda value: value is not None and low <= value <= high)
@@ -287,7 +249,7 @@ def _mode_filter(df, metric_columns, id_columns, variable_columns,
     if show in ('both', 'chart') and len(filtered) > 0:
         chart_df = filtered[[variation_column] + metric_columns].copy()
         for column in metric_columns:
-            chart_df[column] = chart_df[column].apply(_as_float)
+            chart_df[column] = chart_df[column].apply(_as_qfloat)
         chart = _safe_df2chart(
             chart_df,
             x_column=variation_column,
@@ -382,7 +344,7 @@ def _mode_score(df, metric_columns, id_columns, variable_columns,
 
     normalized = {metric: [] for metric in metric_columns}
     for metric in metric_columns:
-        vals = [_as_float(value) for value in output_df[metric].tolist()]
+        vals = [_as_qfloat(value) for value in output_df[metric].tolist()]
         valid_vals = [value for value in vals if value is not None]
         if not valid_vals:
             normalized[metric] = [None] * len(vals)
@@ -474,7 +436,7 @@ def _mode_delta(df, metric_columns, id_columns, variable_columns,
     delta_columns = []
     for column in metric_columns:
         values = output_df[column].tolist()
-        base_value = _as_float(values[baseline_index])
+        base_value = _as_qfloat(values[baseline_index])
         dcol = _delta_column_name(column, delta_type)
         output_df[dcol] = _delta_values(values, base_value, delta_type)
         delta_columns.append(dcol)
@@ -525,7 +487,7 @@ def postprocess_scenarios(
     chart_title='Scenario Analysis',
     chart_type='bars',
 ):
-    df = _to_df(scenario_table)
+    df = as_qtable(scenario_table)
     id_cols = css2strs(id_columns)
     if not id_cols:
         id_cols = ['Variation']

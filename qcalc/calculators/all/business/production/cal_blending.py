@@ -4,14 +4,12 @@
 import pandas as pd
 import pulp
 from qcore import as_qtable, qtable
+from calc import validate_schema_if_needed
 from qutil import (
     is_blank,
     normalize_name,
     to_float,
     to_fraction,
-    to_optional_float,
-    to_optional_fraction,
-    validate_schema_if_needed,
 )
 
 from calc import field_show_zero, table_blend_materials, table_blend_specs
@@ -58,13 +56,13 @@ def optima_blending(
 
         lo = 0.0
         if 'Min Qty' in materials_df.columns:
-            min_val = to_optional_float(row.get('Min Qty'), f'blend_materials.Min Qty (row {idx + 1})')
+            min_val = to_float(row.get('Min Qty'), f'blend_materials.Min Qty (row {idx + 1})', required=False)
             if min_val is not None:
                 lo = float(min_val)
 
         hi = None
         if 'Max Qty' in materials_df.columns:
-            max_val = to_optional_float(row.get('Max Qty'), f'blend_materials.Max Qty (row {idx + 1})')
+            max_val = to_float(row.get('Max Qty'), f'blend_materials.Max Qty (row {idx + 1})', required=False)
             if max_val is not None:
                 hi = float(max_val)
 
@@ -100,8 +98,8 @@ def optima_blending(
             continue
         prop_name = str(prop_raw).strip()
         prop_key = normalize_name(prop_name)
-        min_frac = to_optional_fraction(row.get('Min %'), f'blend_specs.Min % (row {idx + 1})')
-        max_frac = to_optional_fraction(row.get('Max %'), f'blend_specs.Max % (row {idx + 1})')
+        min_frac = to_fraction(row.get('Min %'), f'blend_specs.Min % (row {idx + 1})', required=False)
+        max_frac = to_fraction(row.get('Max %'), f'blend_specs.Max % (row {idx + 1})', required=False)
 
         if min_frac is None and max_frac is None:
             continue

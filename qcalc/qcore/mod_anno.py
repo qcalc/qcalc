@@ -225,13 +225,31 @@ class qtbl(dict):  # {'columns': [...], 'data': [[...]]} - safe table, no DataFr
     pass
 
 
+def _trim_table_columns_inplace(table):
+    """Trim leading/trailing spaces from string column names in-place."""
+    if not hasattr(table, 'columns'):
+        return table
+
+    rename_map = {}
+    for col in list(table.columns):
+        if isinstance(col, str):
+            trimmed = col.strip()
+            if trimmed != col:
+                rename_map[col] = trimmed
+
+    if rename_map:
+        table.rename(columns=rename_map, inplace=True)
+    return table
+
+
 def as_qtable(value):
     if isinstance(value, qtable):
-        return value
+        return _trim_table_columns_inplace(value)
     if isinstance(value, pd.DataFrame):
-        return value
+        return _trim_table_columns_inplace(value)
     if isinstance(value, dict) and {"columns", "data"} <= value.keys():
-        return qtable(value["data"], columns=value["columns"])
+        cols = [col.strip() if isinstance(col, str) else col for col in value["columns"]]
+        return qtable(value["data"], columns=cols)
 
     raise TypeError("Expected qtable or {'columns', 'data'}")
 

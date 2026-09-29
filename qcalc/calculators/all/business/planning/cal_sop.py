@@ -6,8 +6,9 @@ import pulp
 
 from calc import QResults
 from qcore import as_qtable, qhtml, qtable
-from qutil import require_unique_pairs, require_unique_values, require_values_subset
-from qutil import validate_schema_if_needed, as_bool
+from calc import require_unique_pairs, require_unique_values, require_values_subset
+from calc import validate_schema_if_needed
+from qutil import to_bool
 
 from calc import (
     field_show_zero,
@@ -99,8 +100,8 @@ def _chart_metric_for_objective(objective):
     return 'Total Cost'
 
 
-def _optional_table_schema(table_builder, field_name):
-    schema = dict(table_builder(field_name))
+def _optional_table_schema(table_builder, field_name, **kwargs):
+    schema = dict(table_builder(field_name, **kwargs))
     schema.pop('validators', None)
     return schema
 
@@ -447,29 +448,16 @@ def _prepare_sop_inputs(
         raise Exception('sop_demand must contain at least one row')
     if capacity_df.empty:
         raise Exception('sop_capacity must contain at least one row')
-    if as_bool(overtime_enabled) and overtime_df.empty:
+    if to_bool(overtime_enabled) and overtime_df.empty:
         raise Exception('sop_overtime must contain at least one row when overtime is enabled')
-    if as_bool(bom_enabled) and bom_df.empty:
+    if to_bool(bom_enabled) and bom_df.empty:
         raise Exception('sop_material_requirements must contain at least one row when BOM is enabled')
 
     product_df = product_df.copy()
     demand_df = demand_df.copy()
     capacity_df = capacity_df.copy()
 
-    required_product_cols = [
-        'Product',
-        'Opening Inventory',
-        'Safety Stock',
-        'Production Cost',
-        'Holding Cost',
-        'Max Production',
-        'Backlog Penalty',
-    ]
-    for col in required_product_cols:
-        if col not in product_df.columns:
-            raise Exception(f'Missing required column in sop_product_master: {col}')
-
-    if as_bool(overtime_enabled) and not overtime_df.empty:
+    if to_bool(overtime_enabled) and not overtime_df.empty:
         overtime_df = overtime_df.copy()
         overtime_df['Period'] = overtime_df['Period'].astype(str).str.strip()
         overtime_df['Overtime Capacity'] = pd.to_numeric(overtime_df['Overtime Capacity'])
@@ -534,7 +522,7 @@ def _prepare_sop_inputs(
 
     overtime_capacity = {}
     overtime_cost = {}
-    if as_bool(overtime_enabled) and not overtime_df.empty:
+    if to_bool(overtime_enabled) and not overtime_df.empty:
         overtime_periods = set(overtime_df['Period'].tolist())
         missing_overtime_periods = [period for period in periods if period not in overtime_periods]
         if missing_overtime_periods:
@@ -553,9 +541,9 @@ def _prepare_sop_inputs(
         backlog_policy_raw = 'allow'
     backlog_policy = str(backlog_policy_raw).strip().lower()
 
-    stability_enabled = as_bool(stability_enabled)
+    stability_enabled = to_bool(stability_enabled)
     scenario_flag = enable_scenarios if enable_scenarios is not None else scenarios_enabled
-    scenario_enabled = as_bool(scenario_flag)
+    scenario_enabled = to_bool(scenario_flag)
     backlog_cap_pct = float(max_backlog_pct)
     service_floor_pct = float(service_level_floor_pct)
     stability_penalty = float(stability_penalty)
@@ -605,7 +593,7 @@ def _prepare_sop_inputs(
         'demand_df': demand_df,
         'capacity_df': capacity_df,
         'overtime_df': overtime_df,
-        'bom_enabled': as_bool(bom_enabled),
+        'bom_enabled': to_bool(bom_enabled),
         'bom_df': bom_df,
         'overtime_capacity': overtime_capacity,
         'overtime_cost': overtime_cost,
@@ -698,8 +686,8 @@ def optima_sop(
     scenario_enabled = prepared['scenario_enabled']
     use_stability = prepared['use_stability']
     previous_lookup = prepared['previous_lookup']
-    overtime_allowed = as_bool(overtime_enabled) and not overtime_df.empty
-    procurement_allowed = as_bool(procurement_enabled)
+    overtime_allowed = to_bool(overtime_enabled) and not overtime_df.empty
+    procurement_allowed = to_bool(procurement_enabled)
 
     def solve_plan(product_frame, demand_frame, capacity_frame, previous_lookup_map=None, build_details=True):
         local_product_df = product_frame.copy()
@@ -1291,6 +1279,7 @@ def optima_sop(
 
 
 def optima_sop__info():
+    profile = 'sop'
     return {
         'title': 'Planning: S&OP Optimization',
         'desc': (
@@ -1575,7 +1564,11 @@ def optima_sop__info():
                 'help_text': 'Enable a companion multi-supplier procurement module fed by the BOM-driven material requirements.',
             },
             'supplier_master': _optional_table_schema(table_supplier_master, 'supplier_master'),
-            'supplier_item_cost': _optional_table_schema(table_supplier_item_cost, 'supplier_item_cost'),
+            'supplier_item_cost': _optional_table_schema(
+                table_supplier_item_cost,
+                'supplier_item_cost',
+                profile=profile,
+            ),
             'procurement_max_suppliers': {
                 'initial': 0,
                 'help_text': 'Maximum number of suppliers to use in the procurement submodel. Use 0 for no limit.',

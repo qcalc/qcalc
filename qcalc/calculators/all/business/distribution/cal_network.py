@@ -2,8 +2,8 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 from qcore import qtable, qtexta, QScreen, QChart, as_qtable
-from qutil import (
-    css2strs,
+from qutil import css2strs
+from calc import (
     is_debug,
     require_complete_pair_grid,
     require_columns,

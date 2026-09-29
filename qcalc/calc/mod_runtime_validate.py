@@ -2,10 +2,8 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 import inspect
-
 from django.core.exceptions import ValidationError
-
-from .timed_thread import QThread
+from qutil.timed_thread import QThread
 
 
 def _schema_from_info_function(func_id: str, caller):

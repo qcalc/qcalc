@@ -154,6 +154,26 @@ class TestFxprFromJson(unittest.TestCase):
 
         self.assertEqual(result, "")
 
+    def test_escapes_slash_in_qtbl_header_units(self):
+        json_data = {
+            "products": {
+                "columns": [
+                    "Product",
+                    "Selling Price | USD/unit",
+                ],
+                "data": [["A", "50"]],
+            },
+        }
+        json_data_type = {
+            "products": "tbl",
+        }
+
+        result = fxpr_from_json("production_mix_profit", json_data, json_data_type)
+
+        self.assertIn("production_mix_profit(", result)
+        self.assertIn("Selling Price | USD!unit", result)
+        self.assertNotIn("Selling Price | USD/unit", result)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -16,7 +16,7 @@ import pandas as pd
 from django.core.exceptions import ValidationError
 
 from qcore import as_qtable
-from qutil import require_columns
+from .mod_table_validate import require_columns
 
 
 def _coerce_table_for_validation(value, field_name):
@@ -199,20 +199,32 @@ def table_items(field_name):
     }
 
 
-def _supplier_selection_default_items():
-    return ['I1', 'I2', 'I3']
+_PROFILE_DEFAULTS = {
+    'supplier_selection': {
+        'items': ['I1', 'I2', 'I3'],
+    },
+    'sop': {
+        'items': ['RM1', 'RM2', 'RM3'],
+    },
+}
 
 
-def _sop_default_materials():
-    return ['RM1', 'RM2', 'RM3']
+def _get_profile_defaults(profile, data):
+    profile_key = str(profile).lower()
+    profile_data = _PROFILE_DEFAULTS.get(profile_key, {})
+    return profile_data.get(data, [])
 
 
-def table_material_demand(field_name):
+def table_material_demand(field_name, profile='supplier_selection', **kwargs):
     # Generic use: per-item demand requirement that procurement must satisfy.
     # Example use: raw material plans, SKU replenishment, component needs.
+    # Backward compatibility: allow older call sites using context=...
+    if kwargs.get('context') is not None:
+        profile = kwargs['context']
+    items = _get_profile_defaults(profile, 'items')
     return {
         'initial': pd.DataFrame({
-            'Item': _supplier_selection_default_items(),
+            'Item': items,
             'Demand': [100, 80, 60],
         }),
         'validators': [table_columns_validator(field_name, required_cols=['Item', 'Demand'])],
@@ -247,10 +259,13 @@ def table_supplier_master(field_name):
     }
 
 
-def table_supplier_item_cost(field_name):
+def table_supplier_item_cost(field_name, profile='supplier_selection', **kwargs):
     # Generic use: provider-item variable cost table with optional pairwise max limit.
     # Example use: contract pricing grids, lane rates, source-specific unit costs.
-    items = _sop_default_materials()
+    # Backward compatibility: allow older call sites using context=...
+    if kwargs.get('context') is not None:
+        profile = kwargs['context']
+    items = _get_profile_defaults(profile, 'items')
     suppliers = ['S1', 'S2', 'S3']
     unit_cost_map = {
         'S1': [11, 13, 12],

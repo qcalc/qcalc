@@ -28,9 +28,11 @@ TOK_ID_PREFIX = 'id_'
 # Separator between cid and field name in generated DOM ids (e.g. id_<cid>_<field>).
 TOK_FIELD_SEP = '_'
 # Separator between a list field root and its numeric index suffix (e.g. value__2).
-TOK_INDEX_SEP = '__' # was _ before changed @ 27.09.26
+TOK_INDEX_SEP = '__'  # was _ before changed @ 27.09.26
 # Separator between a base field and composite control suffixes (row/col/table_update/table_resize/table_ed).
 TOK_COMPOSITE_SEP = '_'
+# Unit of measure separator in tables
+TBL_UOM_SEP = '|'  # ref. debt_invest() for output, production_mix_profit() for input
 
 _row_suffix = 'row'
 _col_suffix = 'col'

@@ -3,9 +3,10 @@
 
 import pandas as pd
 import pulp
+from qutil import to_cast
 from qcore import as_qtable, qtable
-from qutil.mod_runtime_validate import validate_schema_if_needed
-from qutil import parse_optional_number, require_unique_values, require_values_subset
+from calc import validate_schema_if_needed
+from calc import require_unique_values, require_values_subset
 
 from calc import (
     field_show_zero,
@@ -49,10 +50,10 @@ def optima_project(
         if has_must_do else {p: 0 for p in project_list}
     )
 
-    budget_limit = parse_optional_number(project_budget_limit, 'project_budget_limit', float)
-    resource_limit = parse_optional_number(project_resource_limit, 'project_resource_limit', float)
-    max_selected = parse_optional_number(project_max_selected, 'project_max_selected', int)
-    min_selected = parse_optional_number(project_min_selected, 'project_min_selected', int)
+    budget_limit = to_cast(project_budget_limit, 'project_budget_limit', float)
+    resource_limit = to_cast(project_resource_limit, 'project_resource_limit', float)
+    max_selected = to_cast(project_max_selected, 'project_max_selected', int)
+    min_selected = to_cast(project_min_selected, 'project_min_selected', int)
     max_selected = 0 if max_selected is None else max_selected
     min_selected = 0 if min_selected is None else min_selected
 

@@ -2,9 +2,11 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 import pulp
+import qconst
 
 from qcore import Qty, qtbl
-from qutil import is_debug, require_columns
+from qutil import is_debug
+from calc import require_columns
 
 
 def production_mix_profit__info():
@@ -24,18 +26,18 @@ def production_mix_profit(
     products: qtbl = {
         'columns': [
             'Product',
-            'Selling Price',
-            'Variable Cost',
-            'Machine Time',
-            'Labor Time',
-            'Max Demand',
-            'Current Production Quantity',
-            'Max Ramp Change',
+            'Selling Price | USD/unit',
+            'Variable Cost | USD/unit',
+            'Machine Time | min/unit',
+            'Labor Time | min/unit',
+            'Max Demand | unit/mo',
+            'Current Production Quantity | unit/mo',
+            'Max Ramp Change | unit/mo',
         ],
         'data': [
-            ['A', '50 USD/unit', '30 USD/unit', '5 min/unit', '3 min/unit', '7500 unit/mo', '4200 unit/mo', '1200 unit/mo'],
-            ['B', '80 USD/unit', '48 USD/unit', '7 min/unit', '4 min/unit', '5000 unit/mo', '2600 unit/mo', '900 unit/mo'],
-            ['C', '110 USD/unit', '60 USD/unit', '15 min/unit', '8 min/unit', '2000 unit/mo', '900 unit/mo', '500 unit/mo'],
+            ['A', 50, 30, 5, 3, 7500, 4200, 1200],
+            ['B', 80, 48, 7, 4, 5000, 2600, 900],
+            ['C', 110, 60, 15, 8, 2000, 900, 500],
         ],
     },
     available_machine_time='1000 hr/mo',
@@ -51,8 +53,43 @@ def production_mix_profit(
         'Current Production Quantity',
         'Max Ramp Change',
     ]
+    required_col_uoms = {
+        'Selling Price': 'USD/unit',
+        'Variable Cost': 'USD/unit',
+        'Machine Time': 'hr/unit',
+        'Labor Time': 'hr/unit',
+        'Max Demand': 'unit/mo',
+        'Current Production Quantity': 'unit/mo',
+        'Max Ramp Change': 'unit/mo',
+    }
+
+    def _split_header_uom(title):
+        text = str(title).strip()
+        if qconst.TBL_UOM_SEP not in text:
+            return text, None
+        base, uom = text.split(qconst.TBL_UOM_SEP, 1)
+        return base.strip(), uom.strip()
+
+    def _qty_cell_value(raw_value, header_title, target_uom):
+        _, header_uom = _split_header_uom(header_title)
+        if header_uom:
+            try:
+                scalar_value = float(raw_value)
+            except Exception as e:
+                raise Exception(
+                    f"Expected unitless numeric value because column '{header_title}' declares unit '{header_uom}'. "
+                    f"Found: {raw_value}"
+                ) from e
+            return Qty(scalar_value, header_uom, target_uom).val
+        return Qty(raw_value, target_uom).val
+
     try:
-        require_columns(products, 'products', required_cols)
+        resolved_cols = require_columns(
+            products,
+            'products',
+            required_cols,
+            required_col_uoms=required_col_uoms,
+        )
     except Exception as e:
         return str(e)
 
@@ -60,7 +97,7 @@ def production_mix_profit(
     if not rows:
         return 'Products table is empty.'
 
-    col_idx = {c: products['columns'].index(c) for c in required_cols}
+    col_idx = {c: products['columns'].index(resolved_cols[c]) for c in required_cols}
 
     q_cap = Qty(available_machine_time, 'hr/mo')
     cap_hr_mo = float(q_cap.val)
@@ -68,8 +105,13 @@ def production_mix_profit(
     labor_cap_hr_mo = float(q_labor_cap.val)
 
     # Use first product currency as reporting currency.
-    first_price = Qty(rows[0][col_idx['Selling Price']])
-    to_cur = first_price.uom.split('/')[0]
+    selling_price_col = resolved_cols['Selling Price']
+    _, price_header_uom = _split_header_uom(selling_price_col)
+    if price_header_uom:
+        to_cur = price_header_uom.split('/')[0].strip()
+    else:
+        first_price = Qty(rows[0][col_idx['Selling Price']])
+        to_cur = first_price.uom.split('/')[0]
 
     product_names = []
     margin_per_unit = {}
@@ -85,15 +127,19 @@ def production_mix_profit(
             if not p:
                 p = f'Product {i + 1}'
 
-            price = Qty(row[col_idx['Selling Price']], f'{to_cur}/unit').val
-            var_cost = Qty(row[col_idx['Variable Cost']], f'{to_cur}/unit').val
+            price = _qty_cell_value(row[col_idx['Selling Price']], resolved_cols['Selling Price'], f'{to_cur}/unit')
+            var_cost = _qty_cell_value(row[col_idx['Variable Cost']], resolved_cols['Variable Cost'], f'{to_cur}/unit')
             margin = float(price - var_cost)
 
-            mtime = Qty(row[col_idx['Machine Time']], 'hr/unit').val
-            ltime = Qty(row[col_idx['Labor Time']], 'hr/unit').val
-            dcap = Qty(row[col_idx['Max Demand']], 'unit/mo').val
-            current_q = Qty(row[col_idx['Current Production Quantity']], 'unit/mo').val
-            ramp = Qty(row[col_idx['Max Ramp Change']], 'unit/mo').val
+            mtime = _qty_cell_value(row[col_idx['Machine Time']], resolved_cols['Machine Time'], 'hr/unit')
+            ltime = _qty_cell_value(row[col_idx['Labor Time']], resolved_cols['Labor Time'], 'hr/unit')
+            dcap = _qty_cell_value(row[col_idx['Max Demand']], resolved_cols['Max Demand'], 'unit/mo')
+            current_q = _qty_cell_value(
+                row[col_idx['Current Production Quantity']],
+                resolved_cols['Current Production Quantity'],
+                'unit/mo',
+            )
+            ramp = _qty_cell_value(row[col_idx['Max Ramp Change']], resolved_cols['Max Ramp Change'], 'unit/mo')
 
             product_names.append(p)
             margin_per_unit[p] = margin

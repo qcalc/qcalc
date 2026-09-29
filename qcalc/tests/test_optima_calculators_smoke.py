@@ -37,6 +37,7 @@ from calculators.all.business import (
     optima_workforce__info,
 )
 
+
 def _inputs_from_info(info_fn):
     schema = info_fn()['schema']
     payload = {}
@@ -61,7 +62,6 @@ def test_optima_transport_smoke_with_schema_defaults():
     assert result['Summary'].iloc[0]['Model'] == 'Transportation'
 
 
-
 def test_optima_assignment_smoke_with_schema_defaults():
     payload = _inputs_from_info(optima_assignment__info)
     result = optima_assignment(**payload)
@@ -70,14 +70,12 @@ def test_optima_assignment_smoke_with_schema_defaults():
     assert result['Summary'].iloc[0]['Model'] == 'Assignment'
 
 
-
 def test_optima_knapsack_smoke_with_schema_defaults():
     payload = _inputs_from_info(optima_knapsack__info)
     result = optima_knapsack(**payload)
 
     _assert_common_output_shape(result)
     assert result['Summary'].iloc[0]['Model'] == 'Knapsack'
-
 
 
 def test_optima_supplier_selection_smoke_with_schema_defaults():
@@ -153,7 +151,6 @@ def test_optima_production_inventory_smoke_with_schema_defaults():
 
     _assert_common_output_shape(result)
     assert result['Summary'].iloc[0]['Model'] == 'Production and Inventory Planning'
-
 
 
 def test_schema_initial_table_defaults_are_not_shared_between_calls():

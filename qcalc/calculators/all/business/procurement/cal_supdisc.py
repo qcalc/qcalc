@@ -5,7 +5,7 @@ import numpy as np
 
 from qcore import Qty, qtbl
 from qapi import qdf
-from qutil import require_columns
+from calc import require_columns
 
 
 def supdisc__info():

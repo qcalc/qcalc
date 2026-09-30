@@ -5,7 +5,9 @@ import markdown
 from bs4 import BeautifulSoup
 
 # 'toc' adds slug ids to headings (e.g. #1-getting-started) so in-doc TOC/bookmark links resolve
-MARKDOWN_EXTENSIONS = extensions = ['extra', 'fenced_code', 'tables', 'mdx_math', 'toc']
+# 'sane_lists' preserves explicit ordered-list numbering (start=...) when blocks (like math)
+# split list items into separate <ol> sections during parsing.
+MARKDOWN_EXTENSIONS = extensions = ['extra', 'fenced_code', 'tables', 'mdx_math', 'toc', 'sane_lists']
 MARKDOWN_CONFIGS = {
     'mdx_math': {
         'enable_dollar_delimiter': True,
@@ -17,6 +19,7 @@ fenced_code: multiline code blocks by wrapping them in three backticks (```) ins
 tables: standard data grids using traditional pipe and dash separators (| and -).
 mdx_math: Intercepts math syntax (like $ .. $ and $$ .. $$) so LaTeX math equations can be prepared for browser rendering.
 toc: to generate a dynamic, hyperlinked Table of Contents.
+sane_lists: keeps explicit ordered-list numbering instead of restarting at 1 for each split block.
 """
 
 def md2html(md_text:str):

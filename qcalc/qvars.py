@@ -52,6 +52,7 @@ qc_gpref = {  # pref-01
     'strict_assign': False,
     'strict_table_input': False,
     'execution_timeout': 60,  # 60
+    'xpr_max_table_cells': qconst.TABLE_MAX_CELLS_XPR,
     # global settings
     'range_limit': 1000,  # 10-2000
     'demo_mode': True,  # allows arbitrary function to addfunc

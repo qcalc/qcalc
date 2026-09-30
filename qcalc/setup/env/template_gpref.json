@@ -21,5 +21,6 @@
   "demo_mode": true,
   "schema_cache": false,
   "uom_v2": true,
-  "execution_mode": "0"
+  "execution_mode": "0",
+  "xpr_max_table_cells": 1000
 }

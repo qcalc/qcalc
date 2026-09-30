@@ -10,7 +10,7 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.dev")
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from calc.mod_cutil import furl_from_json, fxpr_from_json
+from calc.mod_cutil import furl_from_json, fxpr_from_json, json_to_func_call
 
 """
 furl_from_json() builds URL paths from scalar inputs
@@ -173,6 +173,39 @@ class TestFxprFromJson(unittest.TestCase):
         self.assertIn("production_mix_profit(", result)
         self.assertIn("Selling Price | USD!unit", result)
         self.assertNotIn("Selling Price | USD/unit", result)
+
+
+class TestJsonToFuncCall(unittest.TestCase):
+    def test_builds_conv2_like_call_with_scalar_and_list_args(self):
+        json_var = {
+            "quantity": "L",
+            "mode": "u2u",
+            "value": "1.0",
+            "from_unit": ["femtom", "ft"],
+            "from_qty": "l_earth_moon",
+            "to_units": ["lyr", "m"],
+            "to_qty": "",
+            "unit_cost": "None UNC!ft",
+        }
+
+        result = json_to_func_call("conv2", json_var)
+
+        self.assertEqual(
+            result,
+            "conv2(quantity='L', mode='u2u', value='1.0', from_unit=['femtom', 'ft'], from_qty='l_earth_moon', to_units=['lyr', 'm'], to_qty='', unit_cost='None UNC!ft')",
+        )
+
+    def test_keeps_nested_function_call_string_unquoted(self):
+        json_var = {
+            "land_image": "image_reader(image_url='http:!!127.0.0.1:8000!static!demo!irg_land.jpg', show_exif_tags=False)",
+        }
+
+        result = json_to_func_call("irg_landimg", json_var)
+
+        self.assertEqual(
+            result,
+            "irg_landimg(land_image=image_reader(image_url='http:!!127.0.0.1:8000!static!demo!irg_land.jpg', show_exif_tags=False))",
+        )
 
 
 if __name__ == "__main__":

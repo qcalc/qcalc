@@ -283,8 +283,22 @@
         const editors = root.querySelectorAll('.tabulator-title-editor');
         editors.forEach(function(input) {
             const txt = String(input.value || "").trim();
-            const len = txt.length > 0 ? txt.length : 2;
-            input.size = Math.max(2, Math.min(24, len));
+            if (txt.length === 0) {
+                input.size = 2;
+                return;
+            }
+
+            // Width tuning for proportional fonts:
+            // - base title drives width
+            // - unit suffix after '|' contributes partially
+            // This prevents headers like "Cost | USD/unit" from reserving excess tail space.
+            const parts = txt.split("|");
+            const baseLen = String(parts[0] || "").trim().length;
+            const unitLen = parts.length > 1 ? String(parts.slice(1).join("|") || "").trim().length : 0;
+            const weightedLen = baseLen + Math.ceil(unitLen * 0.6);
+            const len = Math.max(2, weightedLen || txt.length);
+
+            input.size = Math.max(2, Math.min(18, len));
         });
     }
 

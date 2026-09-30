@@ -20,7 +20,7 @@ def _normalize_theme(theme_name, fallback='default'):
 
 
 def pref__info():
-    general_options = 'theme, interactive, defa_currency, memory, strict_*, execution_timeout'
+    general_options = 'theme, interactive, defa_currency, memory, strict_*, execution_timeout, xpr_max_table_cells'
     number_options = 'ignore_decimal_format, decimal, *_decimal, thousands_separator, exponent_*'
     chart_options = 'chart_*'
     pane1 = {'title': 'General', 'fields': general_options}
@@ -50,7 +50,8 @@ def pref__info():
             # 'chart_pie_radius': {'attrs': {'max': '2.0', 'min': '0.2'}},
             'chart_legend': {'type': 'choice', 'choices': legend_locations},
             'chart_color_scheme': {'type': 'select2', 'choices': color_schemes},
-            'execution_timeout': {'attrs': {'max': '900.0', 'min': '1.0'}},
+            'execution_timeout': {'attrs': {'max': MAX_EXECUTION_TIMEOUT, 'min': MIN_EXECUTION_TIMEOUT}},
+            'xpr_max_table_cells': {'attrs': {'max': '10000', 'min': '0'}},
         },
         'calculate': 'Save',
         'layout': 'tb',
@@ -94,6 +95,7 @@ def pref__input(_kwargs):  # alternative to func__info() 'schema':{}'
         'strict_assign': us['strict_assign'],
         'strict_table_input': us['strict_table_input'],
         'execution_timeout': us['execution_timeout'],
+        'xpr_max_table_cells': us['xpr_max_table_cells'],
     }
 
 
@@ -117,14 +119,10 @@ def pref(  # pref-03
     strict_assign: bool,
     strict_table_input: bool,
     execution_timeout: int,
+    xpr_max_table_cells: int,
 ):
-    try:
-        execution_timeout = float(execution_timeout)
-    except (TypeError, ValueError):
-        execution_timeout = float(gs.get('execution_timeout', 60))
-    execution_timeout = max(MIN_EXECUTION_TIMEOUT, min(MAX_EXECUTION_TIMEOUT, execution_timeout))
-    theme = _normalize_theme(theme)
 
+    theme = _normalize_theme(theme)
     # user settings
     us = {  # pref-04
         'theme': theme,
@@ -146,6 +144,7 @@ def pref(  # pref-03
         'strict_assign': strict_assign,
         'strict_table_input': strict_table_input,
         'execution_timeout': int(execution_timeout),
+        'xpr_max_table_cells': xpr_max_table_cells,
     }
     try:
         if memory == 0: QMem.clear()

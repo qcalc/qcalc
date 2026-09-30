@@ -3,7 +3,7 @@
 
 from calc import QMem, QPref, QCache, QKeep, QSave, QInput
 from .mod_cutil import *
-from qutil import HtmxHttpRequest, to_df, user_name, is_loggedin, user_ip
+from qutil import HtmxHttpRequest, to_df, user_name, is_loggedin, user_ip, cell_count
 from qcore import qhidex, qtable, qtbl, QFile, qlist_types, QFieldHandler, QEncoderBase, QJField, convert_to_type
 import json
 from .mod_mfunc import *
@@ -18,6 +18,25 @@ import logging
 import traceback
 
 logger = logging.getLogger(__name__)
+
+
+def _has_large_dataframe(data_dict, max_cells):
+    stack = [data_dict]
+    while stack:
+        current = stack.pop()
+        if isinstance(current, dict):
+            for value in current.values():
+                if cell_count(value) > max_cells:
+                    return True
+                if isinstance(value, (dict, list, tuple)):
+                    stack.append(value)
+        elif isinstance(current, (list, tuple)):
+            for value in current:
+                if cell_count(value) > max_cells:
+                    return True
+                if isinstance(value, (dict, list, tuple)):
+                    stack.append(value)
+    return False
 
 
 def q11429_func_to_form_schema(request: HtmxHttpRequest, func_addr, func_id, cid, kwargs):  # req
@@ -166,7 +185,8 @@ def q11429_func_to_form_schema(request: HtmxHttpRequest, func_addr, func_id, cid
                 child_name = child_meta.get('name')
                 if not child_name or child_name == parent_name:
                     continue
-                if child_name.startswith(parent_name + TOK_INDEX_SEP) and (TOK_UOM in child_name or TOK_PART_UOM in child_name):
+                if child_name.startswith(parent_name + TOK_INDEX_SEP) and (
+                    TOK_UOM in child_name or TOK_PART_UOM in child_name):
                     child_meta.setdefault('attrs', {})
                     child_meta['attrs']['readonly'] = True
                 elif child_name.endswith(TOK_UOM) and child_name.startswith(parent_name):
@@ -310,7 +330,12 @@ def q11449_form_data_postprocess_and_run(request, func_id):  # cid
                 # print('json_data_type', json_data_type)
                 if request.cmd in ['', 'run']:
                     if request.json_doc['info']['xpr']:
-                        request.json_doc['fxpr'] = fxpr_from_json(func_id, request.json_d4f, json_data_type)
+                        max_table_cells = request.pref.get('xpr_max_table_cells', qconst.TABLE_MAX_CELLS_XPR)
+                        if _has_large_dataframe(request.json_d4f, max_table_cells):
+                            request.json_doc['fxpr'] = ''
+                            request.json_doc['info']['xpr'] = False
+                        else:
+                            request.json_doc['fxpr'] = fxpr_from_json(func_id, request.json_d4f, json_data_type)
                         if request.json_doc['fxpr'] == '':
                             request.json_doc['info']['xpr'] = False
                         # if request.json_doc['info']['loop']: it will be true or false depending on
@@ -321,7 +346,7 @@ def q11449_form_data_postprocess_and_run(request, func_id):  # cid
                         request.json_doc['floop'] = xpr2loop(request.json_doc['fxpr'])
                     if request.json_doc['info']['url']:
                         request.json_doc['furl'] = furl_from_json(func_id, request.json_d4f, json_data_type)
-                        if request.json_doc['furl']=='':
+                        if request.json_doc['furl'] == '':
                             request.json_doc['info']['url'] = False
 
                     logger.note("CAL: Calculate clicked | user=%s | ip=%s | func=%s", user_name(request),
@@ -479,7 +504,8 @@ def q11441_data_for_function(request: HtmxHttpRequest):  # , kwargs):
                         try:
                             value = json.loads(sval)
                             # print('d4f value', value['data'], value['columns'])
-                            request.json_d4f[name] = pd.DataFrame(data=value.get('data', []), columns=value.get('columns', []))
+                            request.json_d4f[name] = pd.DataFrame(data=value.get('data', []),
+                                                                  columns=value.get('columns', []))
                         except Exception:
                             logger.warning("Invalid posted table payload for %s; using empty DataFrame", name)
                             request.json_d4f[name] = pd.DataFrame()

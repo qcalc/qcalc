@@ -14,6 +14,7 @@ import pandas as pd
 import logging
 
 logger = logging.getLogger(__name__)
+_FUNC_CALL_RE = re.compile(r'^[a-zA-Z_]\w*\(.*\)$')
 
 
 def ancestors(page_id, page_type='c'):
@@ -127,44 +128,47 @@ def fxpr_from_json(func_id, json_data, json_data_type, forced=False):
     # print('1', json_data_copy)
     # print('2', json_data_type_copy)
 
-    for name in json_data_copy:
+    scalar = scalar_or_none
+    plain_value = _plain_fxpr_value
+    complex_types = complex_input_xpr
+
+    for name, val in json_data_copy.items():
         # print('|', name, json_data_copy[name], json_data_type_copy[name])
-        val = json_data_copy[name]
+        jdata_type = json_data_type_copy[name]
         if isinstance(val, (list, tuple)):
             json_data_copy[name] = [
-                scalar_or_none(list_val, json_data_type[name])
+                scalar(list_val, jdata_type)
                 for list_val in val
             ]
         elif isinstance(val, pd.DataFrame):
             # json_data_copy[name] = val
-            json_data_copy[name] = _plain_fxpr_value({
+            json_data_copy[name] = plain_value({
                 'columns': [str(col) for col in val.columns],
                 'data': val.to_numpy().tolist(),
             })
         elif isinstance(val, dict):
             if qconst.DICT_CLASS_FUNC in val:
-                cfname = val.pop(qconst.DICT_CLASS_FUNC)
-                cfname_type = json_data_type_copy[name]
-                json_data_copy[name] = fxpr_from_json(cfname, val, cfname_type)
+                nested = dict(val)
+                cfname = nested.pop(qconst.DICT_CLASS_FUNC)
+                json_data_copy[name] = fxpr_from_json(cfname, nested, jdata_type)
                 # print('func',json_data_copy[name])
             elif qconst.DICT_CLASS_PLAIN in val:
-                cfname = val.pop(qconst.DICT_CLASS_PLAIN)
-                cfname_type = json_data_type_copy[name]
-                json_data_copy[name] = fxpr_from_json(cfname, val, cfname_type)
+                nested = dict(val)
+                cfname = nested.pop(qconst.DICT_CLASS_PLAIN)
+                json_data_copy[name] = fxpr_from_json(cfname, nested, jdata_type)
             else:
-                json_data_copy[name] = _plain_fxpr_value(val)
-        elif json_data_type[name] in complex_input_xpr:
+                json_data_copy[name] = plain_value(val)
+        elif jdata_type in complex_types:
             return ''
-            json_data_copy[name] = None
         elif val is None:
             json_data_copy[name] = None
         else:
-            sc_val = scalar_or_none(val, json_data_type[name])
+            sc_val = scalar(val, jdata_type)
             if sc_val is None:
                 return ''
             json_data_copy[name] = sc_val
 
-    json_data_copy = {k: v for k, v in json_data_copy.items()}  # if v is not None}
+    # json_data_copy = {k: v for k, v in json_data_copy.items()}  # if v is not None}
     func_call_str = json_to_func_call(func_id, json_data_copy)
     return func_call_str
 
@@ -175,8 +179,12 @@ def is_function_call(call_str):
     - Starts with a valid identifier (function name).
     - Has balanced parentheses.
     """
-    # Ensure the string starts with a valid function name
-    if not re.match(r'^[a-zA-Z_]\w*\(.*\)$', call_str):
+    # Fast rejects avoid regex and parenthesis scan in the common case.
+    if '(' not in call_str or not call_str.endswith(')'):
+        return False
+
+    # Ensure the string starts with a valid function name.
+    if not _FUNC_CALL_RE.match(call_str):
         return False
 
     # Check if parentheses are balanced to allow for nested calls
@@ -199,7 +207,12 @@ def json_to_func_call(func_id, json_var):
 
     for key, value in json_var.items():
         # Convert lists to strings with brackets, otherwise use str(value)
-        if isinstance(value, str) and is_function_call(value):
+        if (
+            isinstance(value, str)
+            and '(' in value
+            and value.endswith(')')
+            and is_function_call(value)
+        ):
             value_str = value  # Use the function call directly
         elif isinstance(value, list):
             value_str = f"[{', '.join(map(repr, value))}]"
@@ -281,25 +294,3 @@ def keep_format(result):
         if v:
             to_be_kept[key] = v
     return to_be_kept
-
-
-def _test():
-    # Example usage
-    json_var = {
-        'quantity': 'L',
-        'mode': 'u2u',
-        'value': '1.0',
-        'from_unit': ['femtom', 'ft'],
-        'from_qty': 'l_earth_moon',
-        'to_units': ['lyr', 'm'],
-        'to_qty': '',
-        'unit_cost': 'None UNC!ft'
-    }
-    print(json_to_func_call('conv2', json_var))
-    json_var = {
-        'land_image': "image_reader(image_url='http:!!127.0.0.1:8000!static!demo!irg_land.jpg', show_exif_tags=False)"}
-    print(json_to_func_call('irg_landimg', json_var))
-
-
-if __name__ == '__main__':
-    _test()

@@ -96,3 +96,21 @@ def validated_col(cols: list, idx: int, cname: str = '') -> str:
         return c
     else:
         raise Exception(f"Column [{c}] not found in the table")
+
+
+def cell_count(value) -> int:
+    if isinstance(value, pd.DataFrame):
+        return value.size
+
+    if isinstance(value, dict) and 'data' in value and 'columns' in value:
+        data_rows = value.get('data', [])
+        if isinstance(data_rows, list):
+            cell_count = 0
+            for row in data_rows:
+                if isinstance(row, list):
+                    cell_count += len(row)
+                elif row is not None:
+                    cell_count += 1
+            return cell_count
+
+    return 0

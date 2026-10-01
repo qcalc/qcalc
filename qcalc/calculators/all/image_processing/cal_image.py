@@ -11,17 +11,47 @@ def image_reader__info():
     return {
         'title': 'Image Reader',
         'calculate': 'Display',
+        'showhide': {
+            'mode': {
+                'fields': ['upload_image', 'image_url'],
+                'callback': 'image_reader_mode_showhide',
+            },
+        },
         'schema': {
+            'mode': {
+                'type': 'choice',
+                'choices': {'File': 'File', 'URL': 'URL'},
+                'initial': 'File',
+                'help_text': 'Choose whether to read the image from an uploaded file or from a URL.',
+            },
             'upload_image': {
                 'help_text': 'Maximum image file size is 10 MB. '
-                             'Either select an image file to upload or enter the Image Url.'
+                             'Use this when mode is File.'
             },
+            'image_url': {
+                'help_text': 'Enter the image URL to load when mode is URL.',
+            },
+        },
+        'script': """
+        function image_reader_mode_showhide(v){
+            return [v === 'File', v === 'URL'];
         }
+        """,
     }
 
 
-def image_reader(upload_image: qimage = None, image_url: qurl = demo_url('dog.jpg'), show_exif_tags=False):
-    qimg = qf2img(upload_image, image_url)
+def image_reader(upload_image: qimage = None, image_url: qurl = demo_url('dog.jpg'), show_exif_tags=False, mode='File'):
+    mode = str(mode).strip().upper()
+    if mode == 'FILE':
+        if upload_image is None:
+            raise Exception('Error (IR): A valid image file is not found')
+        qimg = qf2img(upload_image)
+    elif mode == 'URL':
+        if not image_url:
+            raise Exception('Error (IR): A valid image URL is not found')
+        qimg = qf2img(None, image_url)
+    else:
+        raise Exception("Error (IR): mode must be either 'File' or 'URL'")
     toret = {
         'image': qimg,
     }

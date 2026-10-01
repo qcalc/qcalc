@@ -299,13 +299,18 @@ function showhide_elem_and_parts(fid, sh)
     const ownWrapper = element.next('.elem-wrapper');
     // Code/editor style widgets: field itself may sit inside an elem-wrapper container.
     const parentWrapper = element.closest('.elem-wrapper');
+    const hasWrappedWidget = ownWrapper.length > 0 || parentWrapper.length > 0;
     // Composite controls attached to a field via known suffixes.
     const compositeFieldIds = TOK_COMPOSITE_SUFFIXES.map(function(suffix) {
         return fid + TOK_COMPOSITE_SEP + suffix;
     });
 
     if(sh){
-        element.show();
+        if (!hasWrappedWidget) {
+            element.show();
+        } else {
+            element.hide();
+        }
         label.show().parent().show();
         adjacentLabelBlock.show();
     } else {
@@ -314,7 +319,9 @@ function showhide_elem_and_parts(fid, sh)
         adjacentLabelBlock.hide();
     }
 
-    showhide_elem(element, sh)
+    if (!hasWrappedWidget) {
+        showhide_elem(element, sh)
+    }
     showhide_elem($('#' + fid + TOK_UOM), sh)
     // Toggle wrapped widgets regardless of whether the wrapper is sibling or parent.
     ownWrapper.each(function(){

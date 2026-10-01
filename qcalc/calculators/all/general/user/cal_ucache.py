@@ -36,22 +36,76 @@ def pref__info():
         'title': 'User Preferences',
         'schema': {
             # 'request': {'attrs': {'readonly': True}},
-            'theme': list2options(StdList.theme_list, initial="default"),  # {'type': 'choice', 'choices': theme_list},
-            'decimal': {'attrs': {'max': '16', 'min': '2'}},
-            'qty_decimal': {'attrs': {'max': '16', 'min': '2'}},
-            'currency_decimal': {'attrs': {'max': '16', 'min': '2'}},
+            'theme': {
+                **list2options(StdList.theme_list, initial="default"),  # {'type': 'choice', 'choices': theme_list},
+                'help_text': 'Select qCalc look and feel from the available theme list.',
+            },
+            'interactive': {
+                'help_text': 'Enable or disable interactive mode.',
+            },
+            'ignore_decimal_format': {
+                'help_text': 'Ignore decimal format specified below when displaying numbers.',
+            },
+            'decimal': {
+                'attrs': {'max': '16', 'min': '2'},
+                'help_text': 'Number precision from 2 to 16.',
+            },
+            'qty_decimal': {
+                'attrs': {'max': '16', 'min': '2'},
+                'help_text': 'Quantity precision from 2 to 16.',
+            },
+            'currency_decimal': {
+                'attrs': {'max': '16', 'min': '2'},
+                'help_text': 'Currency precision from 2 to 16.',
+            },
             # 'initial' spec is also an alternative to dynamic assignment
-            'exponent_threshold_min': {'attrs': {'max': '1e-6', 'min': '1e-16'}},
-            'exponent_threshold_max': {'attrs': {'max': '1e16', 'min': '1e9'}},
-            'memory': {'attrs': {'max': '100', 'min': '0'}},
-            'chart_width': {'attrs': {'max': '3000', 'min': '128'}},
-            'chart_height': {'attrs': {'max': '3000', 'min': '128'}},
-            # 'page_font_size': {'attrs': {'max': '125', 'min': '75'}},
-            # 'chart_pie_radius': {'attrs': {'max': '2.0', 'min': '0.2'}},
-            'chart_legend': {'type': 'choice', 'choices': legend_locations},
-            'chart_color_scheme': {'type': 'select2', 'choices': color_schemes},
-            'execution_timeout': {'attrs': {'max': MAX_EXECUTION_TIMEOUT, 'min': MIN_EXECUTION_TIMEOUT}},
-            'xpr_max_table_cells': {'attrs': {'max': '10000', 'min': '0'}},
+            'exponent_threshold_min': {
+                'attrs': {'max': '1e-6', 'min': '1e-16'},
+                'help_text': 'Lower bound for switching to scientific notation, from 1e-16 to 1e-6.',
+            },
+            'exponent_threshold_max': {
+                'attrs': {'max': '1e16', 'min': '1e9'},
+                'help_text': 'Upper bound for switching to scientific notation, from 1e9 to 1e16.',
+            },
+            'defa_currency': {
+                'help_text': 'Currency code used as the default currency.',
+            },
+            'memory': {
+                'attrs': {'max': '100', 'min': '0'},
+                'help_text': 'Number of calculator input data items to keep in memory from 0 to 100; set 0 to clear stored data.',
+            },
+            'chart_width': {
+                'attrs': {'max': '3000', 'min': '128'},
+                'help_text': 'Chart width in pixels from 128 to 3000.',
+            },
+            'chart_height': {
+                'attrs': {'max': '3000', 'min': '128'},
+                'help_text': 'Chart height in pixels from 128 to 3000.',
+            },
+            'chart_legend': {
+                'type': 'choice',
+                'choices': legend_locations,
+                'help_text': 'Choose one of the available chart legend locations.',
+            },
+            'chart_color_scheme': {
+                'type': 'select2',
+                'choices': color_schemes,
+                'help_text': 'Choose one of the available chart color schemes.',
+            },
+            'strict_assign': {
+                'help_text': 'Reject console assignments that do not match known symbol names.',
+            },
+            'strict_table_input': {
+                'help_text': 'Reject input table columns that are not required by the calculator.',
+            },
+            'execution_timeout': {
+                'attrs': {'max': MAX_EXECUTION_TIMEOUT, 'min': MIN_EXECUTION_TIMEOUT},
+                'help_text': 'Calculator execution timeout in seconds from 1 to 900.',
+            },
+            'xpr_max_table_cells': {
+                'attrs': {'max': '10000', 'min': '0'},
+                'help_text': 'Maximum number of table cells expression building can continue with, from 0 to 10000.',
+            },
         },
         'calculate': 'Save',
         'layout': 'tb',

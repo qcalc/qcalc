@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from calc.templatetags.qfilter import field_root
+from qutil import css2strs, specified_args
 
 LAYOUTS = {'lr', 'tb'}
 SIDE_SPECS = (
@@ -55,7 +56,7 @@ def _build_side_plan(
     blocks_def = side_info.get(spec['blocks_key']) or []
 
     if blocks_def:
-        blocks = _normalize_blocks(spec['side'], blocks_def)
+        blocks = _normalize_blocks(spec['side'], blocks_def, field_names)
     else:
         blocks = _legacy_blocks(spec['side'], side_info.get(spec['legacy_group_key']), field_names)
 
@@ -148,7 +149,7 @@ def _legacy_blocks(side_name, group_1, field_names):
     ]
 
 
-def _normalize_blocks(side_name, blocks_def):
+def _normalize_blocks(side_name, blocks_def, field_names):
     blocks = []
     for block_index, block_def in enumerate(blocks_def):
         if not isinstance(block_def, dict):
@@ -173,8 +174,8 @@ def _normalize_blocks(side_name, blocks_def):
             for tab_index, tab_def in enumerate(tab_defs):
                 if not isinstance(tab_def, dict):
                     continue
-                tab_title = tab_def.get('title', tab_def.get('label', f'Tab {tab_index + 1}'))
-                tab_fields = list(tab_def.get('fields', []))
+                tab_title = tab_def.get('title', f'Tab {tab_index + 1}')
+                tab_fields = _resolve_field_spec(field_names, tab_def.get('fields', []))
                 if not tab_fields:
                     continue
                 tabs.append({
@@ -191,7 +192,7 @@ def _normalize_blocks(side_name, blocks_def):
                 })
             continue
 
-        fields = list(block_def.get('fields', []))
+        fields = _resolve_field_spec(field_names, block_def.get('fields', []))
         if fields:
             blocks.append({
                 'id': block_id,
@@ -200,6 +201,16 @@ def _normalize_blocks(side_name, blocks_def):
                 'fields': fields,
             })
     return blocks
+
+
+def _resolve_field_spec(field_names, spec):
+    if spec is None:
+        return []
+    if isinstance(spec, str):
+        return specified_args(field_names, spec, empty_spec='') if field_names else css2strs(spec)
+    if isinstance(spec, (list, tuple)):
+        return specified_args(field_names, spec, empty_spec='') if field_names else list(spec)
+    return specified_args(field_names, [spec], empty_spec='') if field_names else [spec]
 
 
 def _infer_columns(blocks):

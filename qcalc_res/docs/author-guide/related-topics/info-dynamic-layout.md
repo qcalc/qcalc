@@ -56,6 +56,18 @@ fields supports the same field-spec syntax as other qCalc selectors:
 - all fields: ['*']
 - ranges by argument order: ['x-y']
 
+### 3.1 Empty selector behavior in dynamic layout
+
+For `input_blocks` and `output_blocks`, empty field selectors are treated as empty:
+
+- `fields: []` selects no fields
+- `fields: ''` selects no fields
+- missing/None field spec selects no fields
+
+This is intentional for `__info` layout metadata so unmatched or optional tabs do not accidentally expand to all fields.
+
+Note: user-facing selector utilities may use a different default where empty means "all". Dynamic layout uses strict empty behavior.
+
 ## 4. Minimal working examples
 
 ### 4.1 One-column tabbed input layout

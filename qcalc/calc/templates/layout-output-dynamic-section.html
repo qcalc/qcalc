@@ -1,3 +1,6 @@
+{% load qfilter %}
 <div id="output-part-{{ input.cid }}" class="outpart">
 {% include 'layout-render-output-chrome.html' with side_plan=layout_plan.output %}
+{% isdebug as dbg %}
+{% if user.is_staff or dbg %}{% include 'insert-calculator-section-ioinfo.html' %}{% endif %}
 </div>

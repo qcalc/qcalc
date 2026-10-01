@@ -178,7 +178,18 @@ def path_to_title(path, separator='/', sep_display=' > '):
     return path
 
 
-def specified_args(func_or_args, spec):
+def specified_args(func_or_args, spec, empty_spec='*'):
+    """
+    Resolve a field/argument selection spec against func_or_args.
+
+    empty_spec controls how empty selector inputs are interpreted:
+    - '*' : treat None / '' / [] as "select all".
+        Use this for user-facing selector inputs where leaving spec blank
+        conventionally means "include everything".
+    - ''  : treat None / '' / [] as "select none".
+        Use this for metadata-driven layout wiring (__info blocks/tabs)
+        where blank or unmatched field specs must stay empty.
+    """
     if isinstance(func_or_args, str):
         all_args = css2strs(func_or_args)
     elif isinstance(func_or_args, (list, tuple)):
@@ -186,11 +197,23 @@ def specified_args(func_or_args, spec):
     else:
         all_args = inspect.getfullargspec(func_or_args).args
 
+    if empty_spec not in ['*', '']:
+        raise ValueError("empty_spec must be '*' or ''")
+
+    # Default mode keeps legacy behavior for end-user selectors.
+    # Strict mode prevents accidental expansion in layout metadata flows.
+    empty_result = list(all_args) if empty_spec == '*' else []
+
     if spec is None:
-        return list(all_args)
+        return empty_result
 
     if isinstance(spec, str):
+        if spec.strip() == '':
+            return empty_result
         spec = css2strs(spec)  # '*'-> ['*'], '1,2,3'->['1'],['2'],['3']
+
+    if isinstance(spec, (list, tuple)) and len(spec) == 0:
+        return empty_result
 
     if isinstance(spec, (list, tuple)) and "*" in spec:
         return list(all_args)
@@ -198,7 +221,7 @@ def specified_args(func_or_args, spec):
     n = len(all_args)
 
     if isinstance(spec, (int, float)):
-        if 0 < spec < 1:
+        if 0 <= spec <= 1:
             return all_args[:math.ceil(n * spec)]
         raise ValueError("Numeric spec must be between 0 and 1")
 
@@ -303,18 +326,18 @@ def specified_args(func_or_args, spec):
     return result
 
 
-def unspecified_args(func_or_args, spec):
-    if spec is None:
-        return []
-
-    specified = specified_args(func_or_args, spec)
-
+def unspecified_args(func_or_args, spec): # not used
     if isinstance(func_or_args, str):
         all_args = css2strs(func_or_args)
     elif isinstance(func_or_args, (list, tuple)):
         all_args = list(func_or_args)
     else:
         all_args = inspect.getfullargspec(func_or_args).args
+
+    if spec is None:
+        return []
+
+    specified = specified_args(func_or_args, spec)
 
     specified_set = set(specified)
     return [arg for arg in all_args if arg not in specified_set]

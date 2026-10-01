@@ -3,11 +3,175 @@
 
 import inspect
 
+from jsonschema import Draft202012Validator
+
 from qcore.mod_anno import *
 from calc.mod_mfunc import *
 from calc import UCals, QCals
 from qutil import command_button, page_link, format_py_code, ensure_info_function, extract_common_prefix, \
-    get_functions, pretty_json, addcal_button #cal_link, calurl,
+    get_functions, pretty_json, addcal_button 
+
+# Shared numeric schema for ratio-style selector values in the open interval (0, 1).
+FRACTION_SCHEMA = {
+    'type': 'number',
+    'minimum': 0,
+    'maximum': 1,
+}
+
+# Shared selector schema: accepts either a comma-separated string or a list of strings.
+FIELD_SELECTOR_SCHEMA = {
+    'anyOf': [
+        {'type': 'string'},
+        {
+            'type': 'array',
+            'items': {'type': 'string'},
+        },
+        FRACTION_SCHEMA,
+    ]
+}
+
+
+ANYOF_SCHEMA = {
+    'type': 'object',
+    'additionalProperties': {
+        'type': 'object',
+        'properties': {
+            'fields': FIELD_SELECTOR_SCHEMA,
+        },
+        'required': ['fields'],
+        'additionalProperties': True,
+    },
+}
+
+
+AUTOFILL_SCHEMA = {
+    'type': 'object',
+    'additionalProperties': {
+        'type': 'object',
+        'properties': {
+            'fields': FIELD_SELECTOR_SCHEMA,
+            'autofill': {
+                'type': 'object',
+                'additionalProperties': True,
+            },
+        },
+        'required': ['fields'],
+        'additionalProperties': True,
+    },
+}
+
+
+# `related.fields` is a mapping of field names to initial values, not a selector list.
+RELATED_SCHEMA = {
+    'type': 'object',
+    'additionalProperties': {
+        'type': 'object',
+        'properties': {
+            'fields': {
+                'type': 'object',
+                'additionalProperties': True,
+            },
+            'relation': {
+                'type': 'object',
+                'additionalProperties': True,
+            },
+        },
+        'required': ['fields'],
+        'additionalProperties': True,
+    },
+}
+
+
+SHOWHIDE_SCHEMA = {
+    'type': 'object',
+    'additionalProperties': {
+        'type': 'object',
+        'properties': {
+            'fields': FIELD_SELECTOR_SCHEMA,
+            'callback': {'type': 'string'},
+        },
+        'required': ['fields'],
+        'additionalProperties': True,
+    },
+}
+
+
+TAB_SCHEMA = {
+    'type': 'object',
+    'additionalProperties': False,
+    'properties': {
+        'title': {'type': 'string'},
+        'fields': FIELD_SELECTOR_SCHEMA,
+    },
+    'required': ['fields'],
+}
+
+
+BLOCK_SCHEMA = {
+    'type': 'object',
+    'additionalProperties': False,
+    'properties': {
+        'kind': {'type': 'string', 'enum': ['fields', 'tabs']},
+        'column': {'type': 'integer', 'enum': [1, 2]},
+        'fields': FIELD_SELECTOR_SCHEMA,
+        'tabs': {
+            'type': 'array',
+            'items': TAB_SCHEMA,
+        },
+    },
+}
+
+
+INFO_SCHEMA = {
+    'type': 'object',
+    'additionalProperties': False,
+    'properties': {
+        'title': {'type': 'string'},
+        'desc': {'type': 'string'},
+        'calculate': {'type': 'string'},
+        'schema': {
+            'type': 'object',
+            'additionalProperties': {
+                'type': 'object',
+                'properties': {
+                    'type': {'type': 'string'},
+                },
+                'additionalProperties': True,
+            },
+        },
+        'interactive': {'type': 'boolean'},
+        'anyof': ANYOF_SCHEMA,
+        'autofill': AUTOFILL_SCHEMA,
+        'related': RELATED_SCHEMA,
+        'showhide': SHOWHIDE_SCHEMA,
+        'images': {'type': 'object'},
+        'layout': {
+            'type': 'string',
+            'enum': ['lr', 'tb'],
+        },
+        'inp1': FIELD_SELECTOR_SCHEMA,
+        'out1': FIELD_SELECTOR_SCHEMA,
+        'input_columns': {'type': 'integer', 'enum': [1, 2]},
+        'output_columns': {'type': 'integer', 'enum': [1, 2]},
+        'input_blocks': {
+            'type': 'array',
+            'items': BLOCK_SCHEMA,
+        },
+        'output_blocks': {
+            'type': 'array',
+            'items': BLOCK_SCHEMA,
+        },
+        'onsubmit': {'type': 'string'},
+        'script': {'type': 'string'},
+        'kins': {'type': 'string'},
+        'tags': {'type': 'string'},
+        'proper': {'type': 'string'},
+        'inserts': {'type': 'object'},
+    },
+}
+
+
+INFO_VALIDATOR = Draft202012Validator(INFO_SCHEMA)
 
 
 def validate_calculator_defaults(user_code):
@@ -47,14 +211,57 @@ def validate_calculator_defaults(user_code):
     return f"Validation successful: {', '.join(validated)}"
 
 
+def validate_calculator_info(user_code):
+    local_dict = QCals.safe_exec(user_code)
+    functions = {
+        name: function
+        for name, function in local_dict.items()
+        if inspect.isfunction(function) and not name.endswith('__info')
+    }
+
+    if not functions:
+        raise ValueError('No calculator function was found.')
+
+    checked = []
+    for name, function in functions.items():
+        info_name = f'{name}__info'
+        info_function = local_dict.get(info_name)
+        if not inspect.isfunction(info_function):
+            raise ValueError(f"Missing metadata function: '{info_name}'.")
+
+        info_signature = inspect.signature(info_function)
+        if len(info_signature.parameters) > 1:
+            raise ValueError(
+                f"'{info_name}' must accept zero or one argument."
+            )
+
+        try:
+            info = info_function() if len(info_signature.parameters) == 0 else info_function(None)
+        except Exception as e:
+            raise ValueError(f"'{info_name}' failed while building metadata: {e}") from e
+
+        if not isinstance(info, dict):
+            raise ValueError(f"'{info_name}' must return a dict.")
+
+        errors = sorted(INFO_VALIDATOR.iter_errors(info), key=lambda error: list(error.absolute_path))
+        if errors:
+            error = errors[0]
+            path = ' / '.join(str(part) for part in error.absolute_path)
+            location = f" at '{path}'" if path else ''
+            raise ValueError(f"'{info_name}' failed validation{location}: {error.message}")
+
+        checked.append(name)
+
+    return f"Syntax validation successful: {', '.join(checked)}"
+
+
 def mycal__command(fkwargs, extra):
     result = ''
     action = extra['args'][0]
     if action == 'syntax':
         user_code = fkwargs['code']
         try:
-            _ = QCals.safe_exec(user_code)  # | validate and returns exception if invalid code
-            result = 'Syntax check successful'
+            result = validate_calculator_info(user_code)
         except Exception as e:
             result = str(e)
     elif action == 'validate':
@@ -71,21 +278,18 @@ def mycal__modify(arg_name, arg_value, action):
     uc = UCals()
     if arg_name == 'code' and action == 'load':
         cal_name = request.POST.get('cal_name', '').strip()
-        # cal_name = cal_name.split('-')[0]
         if cal_name:
             user_code = uc.get_code(cal_name)
             return user_code or f'{cal_name} not found'
         return 'Enter a calculator name'
     elif arg_name == 'cal_name' and action == 'delete':
         cal_name = arg_value.strip()
-        # cal_name = cal_name.split('-')[0]
         if cal_name:
             return uc.del_cal(cal_name)
         return 'Enter a calculator name'
         # | raise Exception(result)
     elif arg_name == 'code' and action == 'format':
         cal_name = request.POST.get('cal_name', '').strip()
-        # cal_name = cal_name.split('-')[0]
         user_code = arg_value
         user_code, functions = ensure_info_function(user_code, cal_name)
         user_code = format_py_code(user_code)

@@ -45,8 +45,8 @@ missing. Check and adjust the generated title before saving.
 
 ### Check Syntax
 
-Checks whether qCalc can read and run the code. Use this after making changes
-and before saving.
+Checks whether qCalc can read and run the code, and validates each matching
+`__info()` function. Use this after making changes and before saving.
 
 ### Validate Input
 

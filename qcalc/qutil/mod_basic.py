@@ -16,17 +16,6 @@ def iif(condition: bool, truev, falsev):
     return truev if condition else falsev
 
 
-# def idx2names(id_or_names: str, all_args: list[str]) -> list: # use specified_args() instead
-#     # idx2name('x,y,3,4,z,?',['a','b','c','d','x','y','z']) = ['x','y','c','d','z','?']
-#     j = 0
-#     spec_arg_list = css2strs(id_or_names)
-#     for arg_or_sl in spec_arg_list:
-#         if arg_or_sl.isdigit():
-#             spec_arg_list[j] = all_args[int(arg_or_sl) - 1]
-#         j += 1
-#     return spec_arg_list
-
-
 def truncate(txt: str, n: int):
     return txt if len(txt) <= n else (txt[:n] + '... Truncated')
 

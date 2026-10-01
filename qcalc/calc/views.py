@@ -561,7 +561,7 @@ def template_name(layout, inp1, out1):
     icol = '' if inp1 == '*' else '2'
     ocol = '' if out1 == '*' else '2'
     template = f't{icol}b{ocol}' if layout == 'tb' else f'l{icol}r{ocol}'
-    # print('|', template, inp1, out1, outcol)
+    # print('|', template, inp1, out1)
     return template
 
 
@@ -585,14 +585,14 @@ def _normalize_layout_blocks(blocks, spec_source):
         if kind == 'tabs':
             block['kind'] = 'tabs'
             block['tabs'] = [
-                {**tab, 'fields': ut.specified_args(spec_source, tab.get('fields', []))}
+                {**tab, 'fields': ut.specified_args(spec_source, tab.get('fields', []), empty_spec='')}
                 for tab in block.get('tabs', [])
                 if isinstance(tab, dict)
             ]
         else:
             block['kind'] = 'fields'
             block['fields'] = ut.specified_args(
-                spec_source, block.get('fields', [])
+                spec_source, block.get('fields', []), empty_spec=''
             )
 
         result.append(block)
@@ -629,11 +629,12 @@ def q1141_read_func_meta(func_id, __info=None, scope='qpots'):  # __info__
         'layout': 'lr',  # 'lr' or 'tb'
         'inp1': '*',  # array or css string, parameter filtering
         'out1': '*',  # array or css string, parameter filtering
-        'input_columns': None,  # 1 or 2, used by dynamic renderer
-        'output_columns': None,  # 1 or 2, used by dynamic renderer
+        'input_columns': None,  # 1 or 2, used by dynamic renderer, optional, inference from blocks is the default,
+        # but the explicit column count is authoritative
+        'output_columns': None,  # 1 or 2, used by dynamic renderer, optional, inference from blocks is the default,
+        # but the explicit column count is authoritative
         'input_blocks': [],  # ordered block layout for input side
         'output_blocks': [],  # ordered block layout for output side
-        # 'outcol': '',  # array or css string, legacy
         'template': 'lr',  # internal
         # extra front end logic
         'onsubmit': '',
@@ -649,10 +650,10 @@ def q1141_read_func_meta(func_id, __info=None, scope='qpots'):  # __info__
         'loop': False,  # internal, True,
         'step2': [],
         'cost': False,  # internal
-        'single_instance': False,
-        'single_instance_key': '',
-        'provides_data': {},
-        'consumes_data': {},
+        'single_instance': False,  # internal
+        'single_instance_key': '',  # internal
+        'provides_data': {},  # internal
+        'consumes_data': {},  # internal
         'inserts': {},
         # comma separated list of words with proper case that needs to be unchanged
         # during title case conversion for this calculator function
@@ -682,7 +683,6 @@ def q1141_read_func_meta(func_id, __info=None, scope='qpots'):  # __info__
         'output_columns',
         'input_blocks',
         'output_blocks',
-        # 'outcol',  # legacy
         # 'template', # internal
         'onsubmit',
         'script',
@@ -785,7 +785,7 @@ def q1149_func_to_form_context(request: HtmxHttpRequest, func_id, cid, kwargs):
     #     print('__info from recall', __info, kwargs)
     #     kwargs.update({'__info': __info})
     request.json_doc = q1141_read_func_meta(func_id, __info)
-    request.json_doc['info']['inp1'] = ut.specified_args(func_addr, request.json_doc['info']['inp1'])
+    request.json_doc['info']['inp1'] = ut.specified_args(func_addr, request.json_doc['info']['inp1'], empty_spec='')
     request.json_doc['info']['input_blocks'] = _normalize_layout_blocks(
         request.json_doc['info'].get('input_blocks', []),
         func_addr,
@@ -1116,7 +1116,7 @@ def q1145_result_to_form_schema(request: HtmxHttpRequest, func_id, cid, result, 
                 logical_result_list.append(root)
                 seen_roots.add(root)
 
-        specified_labels = ut.specified_args(logical_result_list, request.json_doc['info']['out1'])
+        specified_labels = ut.specified_args(logical_result_list, request.json_doc['info']['out1'], empty_spec='')
         # print('|', result_list)
         # print('|', logical_result_list)
         # print('|', specified_labels)

@@ -12,6 +12,17 @@
 {% if has_owner_examples %}
 @@include('insert-calculator-section-examples.html'){% endif %}
 @@include('insert-calculator-section-top.html')
+
+<script>
+(function(){
+  try {
+    window.__qcalc_tabulator_print_all = false;
+    {% if input.doc.info.print_mode == 'flat' or input.doc.info.tabulator_print_all %}
+    window.__qcalc_tabulator_print_all = true;
+    {% endif %}
+  } catch (e) { window.__qcalc_tabulator_print_all = false; }
+})();
+</script>
 <!--onsubmit="return submitting({{ input.cid }});"-->
 <hr>
 <form method=post hx-post="/calc/{{ input.doc.name }}/"

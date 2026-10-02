@@ -82,6 +82,17 @@
 {% endfor %}
 <!-- end:insert-calculator-section-top -->
 
+
+<script>
+(function(){
+  try {
+    window.__qcalc_tabulator_print_all = false;
+    {% if input.doc.info.print_mode == 'flat' or input.doc.info.tabulator_print_all %}
+    window.__qcalc_tabulator_print_all = true;
+    {% endif %}
+  } catch (e) { window.__qcalc_tabulator_print_all = false; }
+})();
+</script>
 <!--onsubmit="return submitting({{ input.cid }});"-->
 <hr>
 <form method=post hx-post="/calc/{{ input.doc.name }}/"

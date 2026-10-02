@@ -198,6 +198,8 @@ def q1199_func_to_form_common(request: HtmxHttpRequest, **dictf):  # main view
             var_owner = '?'  # wait to determine
 
         execute = request.GET.get('run')
+        # printable mode parameter: 'layout' (default) or 'flat'
+        request.print_mode = (request.GET.get('print') or '').strip().lower() if request.method == 'GET' else ''
     elif request.method == 'POST':
         cid = request.POST.get('cid')
         input_id = int(request.POST.get('input_id', 0))
@@ -264,6 +266,61 @@ def q1199_func_to_form_common(request: HtmxHttpRequest, **dictf):  # main view
 
     try:
         q1149_func_to_form_context(request, sfunc, cid, kwargs)
+        # propagate print mode into context and json_doc.info for templates
+        request.context['print_mode'] = getattr(request, 'print_mode', '')
+        try:
+            if hasattr(request, 'json_doc') and isinstance(request.json_doc, dict):
+                request.json_doc.setdefault('info', {})['print_mode'] = getattr(request, 'print_mode', '')
+        except Exception:
+            pass
+
+        # Server-side flat printable view: prefer static (non-dynamic) tb layout
+        # Use initial values (None or empty lists) so the template selection
+        # falls back to static template logic (template_name) rather than dynamic renderer.
+        if getattr(request, 'print_mode', '') == 'flat':
+            try:
+                info = request.json_doc.setdefault('info', {})
+                # Force top-to-bottom preference for reading order
+                info['layout'] = 'tb'
+                # Set columns to None to prefer template's static resolution
+                info['input_columns'] = None
+                info['output_columns'] = None
+                # Empty block lists ensure has_dynamic_layout() is False
+                info['input_blocks'] = []
+                info['output_blocks'] = []
+                # Ensure simple split keys include all fields (static templates rely on inp1/out1)
+                info['inp1'] = '*'
+                info['out1'] = '*'
+                # Flag for client-side Tabulator initializers to render all rows
+                info['tabulator_print_all'] = True
+                request.context['tabulator_print_all'] = True
+
+                # Recompute template choice so gen-calculator-core will render using
+                # static top-to-bottom template (not dynamic) in flat printable mode.
+                try:
+                    if has_dynamic_layout(info):
+                        info['template'] = 'dynamic'
+                    else:
+                        info['template'] = template_name(info.get('layout', 'lr'), info.get('inp1', '*'), info.get('out1', '*'))
+                except Exception:
+                    # ignore and fall back to whatever template was earlier
+                    pass
+
+                # Ensure any already-built context entries reflect the modified info
+                try:
+                    if isinstance(request.context.get('input'), dict):
+                        doc = request.context['input'].get('doc')
+                        if isinstance(doc, dict):
+                            doc['info'] = info
+                    if isinstance(request.context.get('output'), dict):
+                        doc = request.context['output'].get('doc')
+                        if isinstance(doc, dict):
+                            doc['info'] = info
+                except Exception:
+                    pass
+            except Exception:
+                # Keep minimal failure surface: do nothing if any step fails
+                pass
     except Exception as e:
         request.success &= False
         if settings.DEBUG:

@@ -511,7 +511,8 @@
             {% endif %}
             <a class="dropdown-item" href="javascript:;"
             onclick="saveInputToFile('{{ input.cid }}', '{{ input.doc.name }}');">Save Input to File...</a>
-            <a class="dropdown-item" href="/calc/core/{{ input.doc.name }}/?run" target="_blank">Printable View...</a>
+            <a class="dropdown-item" href="/calc/core/{{ input.doc.name }}/?run&print=layout" target="_blank" aria-label="Printable Layout View">Printable Layout View...</a>
+            <a class="dropdown-item" href="/calc/core/{{ input.doc.name }}/?run&print=flat" target="_blank" aria-label="Printable Flat View">Printable Flat View...</a>
           </div>
           <a class="card-help" href="/calc/help/{{ input.doc.name }}/"
              hx-get="/calc/help/{{ input.doc.name }}/?part=1&token={{request.token}}"

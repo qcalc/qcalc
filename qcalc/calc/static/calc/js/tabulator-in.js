@@ -692,12 +692,8 @@
             return;
         }
 
-        const dataTable = new Tabulator(selector, {
-            pagination: "local",
-            paginationSize: 10,
-            paginationSizeSelector: [5, 10, 25, 50, 100, 250],
-            paginationCounter: "rows",
-            // Render menus in body so they are not clipped by small table wrappers.
+        // Build Tabulator options. If printing flat, disable pagination to show all rows.
+        const dataTableOpts = {
             popupContainer: document.body,
             rowContextMenu: (mode === "edit" ? rowMenuEdit.concat(rowMenuDisplay) : rowMenuDisplay),
             columnDefaults: {
@@ -707,7 +703,24 @@
             },
             clipboard: (mode === "edit" ? true : "copy"),
             clipboardPasteAction: "replace",
-        });
+        };
+        try {
+            if (!window.__qcalc_tabulator_print_all) {
+                dataTableOpts.pagination = "local";
+                dataTableOpts.paginationSize = 10;
+                dataTableOpts.paginationSizeSelector = [5, 10, 25, 50, 100, 250];
+                dataTableOpts.paginationCounter = "rows";
+            } else {
+                dataTableOpts.pagination = false;
+            }
+        } catch (e) {
+            // default to pagination on error
+            dataTableOpts.pagination = "local";
+            dataTableOpts.paginationSize = 10;
+            dataTableOpts.paginationSizeSelector = [5, 10, 25, 50, 100, 250];
+            dataTableOpts.paginationCounter = "rows";
+        }
+        const dataTable = new Tabulator(selector, dataTableOpts);
 
         setUpdateButtonEnabled(tableId, false);
 

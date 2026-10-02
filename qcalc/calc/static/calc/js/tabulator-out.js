@@ -64,18 +64,31 @@
                 return;
             }
 
-            new Tabulator(tableElem, {
-                pagination: "local",
-                paginationSize: 10,
-                paginationSizeSelector: [5, 10, 25, 50, 100, 250],
-                paginationCounter: "rows",
-                //rowHeader: {formatter:"rownum", headerSort:false, hozAlign:"center", resizable:false, frozen:true},
+            // Build Tabulator options and allow printable-flat mode to disable pagination.
+            const tabOpts = {
                 // Render menus in body so they are not clipped by small table wrappers.
                 popupContainer: document.body,
                 rowContextMenu: rowMenuDisplay,
                 columnDefaults: {headerSort: false},
                 clipboard: "copy",
-            });
+            };
+            try {
+                if (!window.__qcalc_tabulator_print_all) {
+                    tabOpts.pagination = "local";
+                    tabOpts.paginationSize = 10;
+                    tabOpts.paginationSizeSelector = [5, 10, 25, 50, 100, 250];
+                    tabOpts.paginationCounter = "rows";
+                } else {
+                    tabOpts.pagination = false;
+                }
+            } catch (e) {
+                // default to pagination on error
+                tabOpts.pagination = "local";
+                tabOpts.paginationSize = 10;
+                tabOpts.paginationSizeSelector = [5, 10, 25, 50, 100, 250];
+                tabOpts.paginationCounter = "rows";
+            }
+            new Tabulator(tableElem, tabOpts);
         });
     }
 

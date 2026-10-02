@@ -369,7 +369,7 @@ def optima_capacity__info():
             'show_zero': field_show_zero(),
         },
         'layout': 'lr',
-        'out1': ['Summary', 'Decision Table'],
+        # 'out1': ['Summary', 'Decision Table'],
         'tags': 'optimization, capacity planning, linear programming',
     }
 
@@ -396,7 +396,7 @@ def optima_routing__info():
             'show_zero': field_show_zero(),
         },
         'layout': 'lr',
-        'out1': ['Summary', 'Decision Table'],
+        # 'out1': ['Summary', 'Decision Table'],
         'tags': 'optimization, routing, network flow, linear programming',
     }
 
@@ -425,7 +425,7 @@ def optima_placement__info():
             'show_zero': field_show_zero(),
         },
         'layout': 'lr',
-        'out1': ['Summary', 'Decision Table'],
+        # 'out1': ['Summary', 'Decision Table'],
         'tags': 'optimization, placement, assignment, mixed integer programming',
     }
 
@@ -445,7 +445,7 @@ def optima_redundancy__info():
             'show_zero': field_show_zero(),
         },
         'layout': 'lr',
-        'out1': ['Summary', 'Decision Table'],
+        # 'out1': ['Summary', 'Decision Table'],
         'tags': 'optimization, redundancy, resilience, mixed integer programming',
     }
 

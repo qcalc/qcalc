@@ -108,7 +108,7 @@ def optima_transport__info():
             'show_zero': field_show_zero(),
         },
         'layout': 'lr',
-        'out1': ['Summary', 'Decision Table'],
+        # 'out1': ['Summary', 'Decision Table'],
         'tags': 'optimization, transportation, linear programming',
     }
 

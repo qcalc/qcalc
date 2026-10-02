@@ -40,7 +40,8 @@ def image_reader__info():
     }
 
 
-def image_reader(upload_image: qimage = None, image_url: qurl = demo_url('dog.jpg'), show_exif_tags=False, mode='File'):
+def image_reader(upload_image: qimage = None, image_url: qurl = demo_url('dog.jpg'), show_exif_tags=False,
+                 mode='URL'):
     mode = str(mode).strip().upper()
     if mode == 'FILE':
         if upload_image is None:

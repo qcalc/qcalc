@@ -15,7 +15,7 @@
   <div class="row">
     <div class="col">
       <div id="output-part-{{ input.cid }}" class="outpart">
-        {% if request.method == 'POST' or output.doc.message_only %}
+        {% if request.method == 'POST' or request.cmd == 'run' or output.doc.message_only %}
         {% include 'layout-render-output-chrome.html' with side_plan=layout_plan.output %}
         {% endif %}
       </div>
@@ -30,7 +30,7 @@
     </div>
     <div class="col">
       <div id="output-part-{{ input.cid }}" class="outpart">
-        {% if request.method == 'POST' or output.doc.message_only %}
+        {% if request.method == 'POST' or request.cmd == 'run' or output.doc.message_only %}
         {% include 'layout-render-output-chrome.html' with side_plan=layout_plan.output %}
         {% endif %}
       </div>

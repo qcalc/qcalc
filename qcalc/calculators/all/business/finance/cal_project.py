@@ -176,7 +176,7 @@ def optima_project__info():
             'show_zero': field_show_zero(),
         },
         'layout': 'lr',
-        'out1': ['Summary', 'Decision Table'],
+        # 'out1': ['Summary', 'Decision Table'],
         'tags': 'optimization, project portfolio, knapsack, mixed integer programming',
     }
 

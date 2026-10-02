@@ -204,6 +204,6 @@ def optima_workforce__info():
             'show_zero': field_show_zero(),
         },
         'layout': 'lr',
-        'out1': ['Summary', 'Decision Table', 'Coverage Table', 'Worker Utilization'],
+        # 'out1': ['Summary', 'Decision Table', 'Coverage Table', 'Worker Utilization'],
         'tags': 'optimization, workforce, scheduling, staffing, mixed integer programming',
     }

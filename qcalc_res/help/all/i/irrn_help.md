@@ -65,14 +65,19 @@ outlay) and `i` counts periods from there. The resulting rate `r` is the
 **Periodic Interest Rate**; the **Annual Interest Rate** restates it as an
 effective annual rate.
 
-When a **Period** column is provided, the same break-even condition is
-solved using explicit period values (normalized so the first listed period
-is treated as the start):
+When a **Period** column is provided, the calculator uses those explicit
+period values as numeric timestamps measured in the same unit as
+**Cashflow Interval** (for example, years when **Cashflow Interval** is
+`yr`). These timestamps are treated as absolute times since time 0 (e.g.
+0.0, 0.5, 1.75) and the calculator searches for the periodic discount rate
+`r` that makes the following condition true:
 
-$$\sum_{k=1}^{m} \dfrac{\text{Cashflow}_k}{(1+r)^{t_k - t_1}} = 0$$
+$$\sum_{k=1}^{m} \dfrac{\text{Cashflow}_k}{(1+r)^{t_k}} = 0$$
 
-This keeps 1, 2, 3, ... equivalent to the consecutive-row model,
-while also supporting sparse periods.
+If your cash flows are listed as 1, 2, 3, ... but you intended the first
+entry to be time 0, supply 0, 1, 2, ... in the **Period** column. Using
+consecutive integers 1,2,3 with the period unit chosen appropriately is
+still equivalent to the consecutive-row model when interpreted consistently.
 
 ## Example
 

@@ -28,6 +28,7 @@ TOK_ID_PREFIX = 'id_'
 # Separator between cid and field name in generated DOM ids (e.g. id_<cid>_<field>).
 TOK_FIELD_SEP = '_'
 # Separator between a list field root and its numeric index suffix (e.g. value__2).
+# Also used for multi widget fields e.g. qtc, qtc2, qty
 TOK_INDEX_SEP = '__'  # was _ before changed @ 27.09.26
 # Separator between a base field and composite control suffixes (row/col/table_update/table_resize/table_ed).
 TOK_COMPOSITE_SEP = '_'

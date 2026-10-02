@@ -187,9 +187,13 @@ def npv(interest_rate='5 pct/yr',
     prd = pd.to_numeric(cashflows[cols['period']], errors='coerce')
     data = pd.DataFrame({'Cashflow': cf, 'Period': prd}).dropna()
     periods = data['Period'].to_numpy(dtype=float)
-    if len(periods) > 0:
-        periods = periods - periods[0]
-    npv_val = np.sum(data['Cashflow'].to_numpy(dtype=float) / ((1 + rate) ** periods))
+    # Periods are treated as numeric timestamps measured in the same unit as cashflow_interval
+    # (e.g. years when cashflow_interval='yr'). They represent time since time 0 and may be
+    # irregular; do not assume regular integer spacing or force a shift to the first cashflow.
+    if len(periods) == 0:
+        npv_val = 0.0
+    else:
+        npv_val = np.sum(data['Cashflow'].to_numpy(dtype=float) / ((1 + rate) ** periods))
     return {
         'Net Present Value': npv_val
     }
@@ -213,8 +217,10 @@ def nfv(interest_rate='5 pct/yr',
     prd = pd.to_numeric(cashflows[cols['period']], errors='coerce')
     data = pd.DataFrame({'Cashflow': cf, 'Period': prd}).dropna()
     periods = data['Period'].to_numpy(dtype=float)
+    # Periods are treated as numeric timestamps measured in the same unit as cashflow_interval
+    # (e.g. years when cashflow_interval='yr'). They represent time since time 0 and may be
+    # irregular; do not assume regular integer spacing or force a shift to the first cashflow.
     if len(periods) > 0:
-        periods = periods - periods[0]
         target_period = np.max(periods)
     else:
         target_period = 0
@@ -279,8 +285,9 @@ def irrn(cashflow_interval='yr',
     data = pd.DataFrame({'Cashflow': cf, 'Period': prd}).dropna()
     values = data['Cashflow'].to_numpy(dtype=float)
     periods = data['Period'].to_numpy(dtype=float)
-    if len(periods) > 0:
-        periods = periods - periods[0]
+    # Periods are treated as numeric timestamps measured in the same unit as cashflow_interval
+    # (e.g. years when cashflow_interval='yr'). They represent absolute times since time 0 and may
+    # be irregular; the IRR search uses these timestamps directly.
     irr_val = irr_for_periods(values, periods) * 100  # pct/intreval
     irr_str = f'{irr_val} pct/{cfiq.uom}'
     interest_rate_for = 'yr'
@@ -313,8 +320,10 @@ def irrm(cashflow_interval='yr',
     data = pd.DataFrame({'Cashflow': cf, 'Period': prd}).dropna()
     values = data['Cashflow'].to_numpy(dtype=float)
     periods = data['Period'].to_numpy(dtype=float)
+    # Periods are treated as numeric timestamps measured in the same unit as cashflow_interval
+    # (e.g. years when cashflow_interval='yr'). They represent time since time 0 and may be
+    # irregular; do not assume regular integer spacing or force a shift to the first cashflow.
     if len(periods) > 0:
-        periods = periods - periods[0]
         horizon = np.max(periods)
     else:
         horizon = 0

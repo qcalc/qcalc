@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import yake
 from qcore import QChart
 from qcore.mod_anno import *
-from qutil import word_count, text2words, url2text, qaddr
+from qutil import word_count, text2words, url2text, qaddr, nzs
 import pandas as pd
 
 example_text = "Data science and data analysis help us understand big data through data visualization and data cleaning. "\
@@ -15,11 +15,30 @@ example_text = "Data science and data analysis help us understand big data throu
 
 def word_freq__info():
     return {
-        'title': 'Word Frequency Analysis'
+        'title': 'Word Frequency Analysis',
+        'showhide': {
+            'mode': {
+                'fields': ['text', 'url'],
+                'callback': 'word_mode_showhide',
+            },
+        },
+        'schema': {
+            'mode': {
+                'type': 'choice',
+                'choices': {'Text': 'Text', 'URL': 'URL'},
+                'initial': 'Text',
+                'help_text': 'Choose whether to analyze direct text input or extract content from a URL.',
+            },
+        },
+        'script': """
+        function word_mode_showhide(v){
+            return [v === 'Text', v === 'URL'];
+        }
+        """,
     }
 
 
-def word_freq(text: qtexta = example_text, url: qurl = qaddr(), top=20):
+def word_freq(text: qtexta = example_text, url: qurl = qaddr(), top=20, mode='Text'):
     def cal_pct(sorted_count_list, word_cnt):
         for i in range(len(sorted_count_list)):
             sorted_count_list[i] = list(sorted_count_list[i])
@@ -27,15 +46,21 @@ def word_freq(text: qtexta = example_text, url: qurl = qaddr(), top=20):
         return sorted_count_list
 
     count_words = dict()
-
-    if text:
+    mode = str(mode).strip().upper()
+    if mode == 'TEXT':
+        if nzs(text) == '':
+            raise Exception('Error (WF): A valid Text is not found')
         text_content = text
-    elif url:
+    elif mode == 'URL':
+        if not url:
+            raise Exception('Error (WF): A valid URL is not found')
         text_content = url2text(url)
     else:
-        return 'Error (WF): Enter text or url'
+        raise Exception("Error (WF): mode must be either 'Text' or 'URL'")
 
     cnt, words = word_count(text_content)
+    if cnt == 0:
+        raise Exception('Error (WF): The selected content has no words to analyze')
 
     for word in words:
         if word in count_words:
@@ -73,21 +98,48 @@ def word_cloud__info():
     return {
         'title': 'Generate Word Cloud',
         'kins': 'html_reader, csv_reader',
+        'showhide': {
+            'mode': {
+                'fields': ['text', 'url'],
+                'callback': 'word_mode_showhide',
+            },
+        },
+        'schema': {
+            'mode': {
+                'type': 'choice',
+                'choices': {'Text': 'Text', 'URL': 'URL'},
+                'initial': 'Text',
+                'help_text': 'Choose whether to generate the cloud from direct text input or URL content.',
+            },
+        },
+        'script': """
+        function word_mode_showhide(v){
+            return [v === 'Text', v === 'URL'];
+        }
+        """,
     }
 
 
 def word_cloud(
     text:qtexta = example_text,
-    url: str = qaddr()
+    url: str = qaddr(),
+    mode='Text'
 ):
-    if text:
+    mode = str(mode).strip().upper()
+    if mode == 'TEXT':
+        if nzs(text) == '':
+            raise Exception('Error (WC): A valid Text is not found')
         text_content = text
-    elif url:
+    elif mode == 'URL':
+        if not url:
+            raise Exception('Error (WC): A valid URL is not found')
         text_content = url2text(url)
     else:
-        return 'Error (WC): Enter text or url'
+        raise Exception("Error (WC): mode must be either 'Text' or 'URL'")
 
     words = text2words(text_content)
+    if len(words) == 0:
+        raise Exception('Error (WC): The selected content has no words to generate cloud')
     stopwords = set(STOPWORDS)
 
     comment_words = ''
@@ -119,10 +171,46 @@ def keywords__info():
         'title': 'Keyword Extractor',
         'desc': 'The lower the score, the more relevant the keyword is',
         'kins': 'html_reader, csv_reader',
+        'showhide': {
+            'mode': {
+                'fields': ['text', 'url'],
+                'callback': 'word_mode_showhide',
+            },
+        },
+        'schema': {
+            'mode': {
+                'type': 'choice',
+                'choices': {'Text': 'Text', 'URL': 'URL'},
+                'initial': 'Text',
+                'help_text': 'Choose whether to extract keywords from direct text input or URL content.',
+            },
+        },
+        'script': """
+        function word_mode_showhide(v){
+            return [v === 'Text', v === 'URL'];
+        }
+        """,
     }
 
 
-def keywords(text: qtexta = example_text, top=20, language: qchar = 'en'):
+def keywords(text: qtexta = example_text, url: qurl = qaddr(), top=20, language: qchar = 'en',
+             mode='Text'):
+    mode = str(mode).strip().upper()
+    if mode == 'TEXT':
+        if nzs(text) == '':
+            raise Exception('Error (KW): A valid Text is not found')
+        text_content = text
+    elif mode == 'URL':
+        if not url:
+            raise Exception('Error (KW): A valid URL is not found')
+        text_content = url2text(url)
+    else:
+        raise Exception("Error (KW): mode must be either 'Text' or 'URL'")
+
+    words = text2words(text_content)
+    if len(words) == 0:
+        raise Exception('Error (KW): The selected content has no words for keyword extraction')
+
     kw_extractor = yake.KeywordExtractor(lan=language, top=top)
     """
     kw_extractor = yake.KeywordExtractor(
@@ -135,6 +223,6 @@ def keywords(text: qtexta = example_text, top=20, language: qchar = 'en'):
         features=None
     )
     """
-    keywords = kw_extractor.extract_keywords(text)
+    keywords = kw_extractor.extract_keywords(text_content)
     df = pd.DataFrame(keywords, columns=['Keyword', 'Relevancy'])
     return df

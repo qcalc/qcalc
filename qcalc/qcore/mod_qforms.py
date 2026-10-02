@@ -109,6 +109,7 @@ class QFieldHandler:
 
             fields.append(f)
             fnames.append(key)
+            # print('|', key)
             fvalues.append(fld_meta['initial'])
             fsufxs.append(fld_meta['sufx'])
         return QtyField(fields, fnames, fvalues, fsufxs, **options)

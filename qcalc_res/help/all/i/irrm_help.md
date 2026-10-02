@@ -78,16 +78,27 @@ Internal Rate of Return** is then the single periodic rate that would grow
 the present value of the financed outflows into the future value of the
 reinvested inflows over the same number of periods.
 
-With normalized periods `t_k - t_1` and final normalized period `T`:
+Using explicit numeric period timestamps `t_k` (measured in the same unit
+as **Cashflow Interval**) and final period `T`, negative cash flows are
+discounted by the Finance Rate using their absolute timestamps and
+positive cash flows are compounded by the Reinvestment Rate to the final
+period:
 
-$$PV_{neg} = \sum_{k \in neg} \dfrac{Cashflow_k}{(1+f)^{(t_k-t_1)}}$$
+$$PV_{neg} = \sum_{k \in neg} \dfrac{Cashflow_k}{(1+f)^{t_k}}$$
 
-$$FV_{pos} = \sum_{k \in pos} Cashflow_k \times (1+r_f)^{T-(t_k-t_1)}$$
+$$FV_{pos} = \sum_{k \in pos} Cashflow_k \times (1+r_f)^{T - t_k}$$
+
+The Modified IRR is then the single periodic rate that equates these two
+quantities over the horizon `T`:
 
 $$IRRM = \left(\dfrac{-FV_{pos}}{PV_{neg}}\right)^{1/T} - 1$$
 
-where `f` is the periodic **Finance Rate** and `r_f` is the periodic
-**Reinvestment Rate**.
+Notes:
+- Period values are treated as absolute numeric timestamps (for example
+  years when **Cashflow Interval** is `yr`); they need not be consecutive
+  and may be irregular.
+- If your data uses 1,2,3... but you meant the first entry to be time 0,
+  supply 0,1,2,... in the **Period** column to reflect that origin.
 
 ## Example
 

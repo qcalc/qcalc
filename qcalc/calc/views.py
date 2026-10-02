@@ -709,8 +709,8 @@ def q1141_read_func_meta(func_id, __info=None, scope='qpots'):  # __info__
         'cost': False,  # internal
         'single_instance': False,  # internal
         'single_instance_key': '',  # internal
-        'provides_data': {},  # internal
-        'consumes_data': {},  # internal
+        'provides_data': {},
+        'consumes_data': {},
         'inserts': {},
         # comma separated list of words with proper case that needs to be unchanged
         # during title case conversion for this calculator function

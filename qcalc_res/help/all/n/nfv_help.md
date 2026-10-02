@@ -58,14 +58,20 @@ $$NFV = \sum_{i=0}^{N} \text{Cashflow}_i (1+r)^{N-i}$$
 
 where `r` is the interval rate.
 
-When an explicit **Period** column is provided, periods are normalized so
-that the first listed period is treated as the start. If the normalized
-periods are `t_k - t_1` and the final normalized period is `T`, then:
+When an explicit **Period** column is provided, the calculator uses those
+explicit period values as numeric timestamps measured in the same unit as
+**Cashflow Interval** (for example, years when **Cashflow Interval** is
+`yr`). These timestamps are treated as absolute times since time 0 (e.g.
+0.0, 0.5, 1.75), and may be irregular — the calculator compounds each
+cash flow using its numeric period value directly. If the final period is
+`T`, then:
 
-$$NFV = \sum_{k=1}^{m} \text{Cashflow}_k (1+r)^{T-(t_k-t_1)}$$
+$$NFV = \sum_{k=1}^{m} \text{Cashflow}_k (1+r)^{T - t_k}$$
 
-This keeps 1, 2, 3, ... equivalent to the consecutive-row model, while
-also supporting sparse periods.
+If your cash flows are listed as 1, 2, 3, ... but you intended the first
+entry to be time 0, supply 0, 1, 2, ... in the **Period** column. Using
+consecutive integers 1,2,3 with the period unit chosen appropriately is
+still equivalent to the consecutive-row model when interpreted consistently.
 
 ## Example
 

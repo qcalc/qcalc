@@ -230,6 +230,16 @@ class QtyWidget(forms.MultiWidget):
                 html += w.render(n, v, attrs=child_attrs or None)
         return mark_safe(html)
 
+    def value_from_datadict(self, data, files, name):
+        # Django MultiWidget defaults to "<parent>_<suffix>" keys during extraction,
+        # but QtyWidget renders children with explicit field names (self.fnames),
+        # which may include TOK_INDEX_SEP ('__'). Read using those exact names so
+        # multipart qty inputs (qtc/qtc2) don't lose unit values on POST.
+        values = []
+        for widget, field_name in zip(self.widgets, self.fnames):
+            values.append(widget.value_from_datadict(data, files, field_name))
+        return values
+
 
 class TabulatorWidget(Widget):
     def __init__(self, cid, class_, *args, **kwargs):

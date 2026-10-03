@@ -3,12 +3,12 @@
 
 import pandas as pd
 import qconst
-from qutil import title_to_variable, replace_words, replace_variables, replace_parameter_values
-from qcore import isMeasureQuantity as isPQ, as_qtable, Qty, is_str_qty
+from qutil import title_to_variable, replace_variables, replace_parameter_values
+from qcore import as_qtable, Qty, str_to_qty, df_formatter
 
 
 def is_scalar(value):
-    return isPQ(value) or isinstance(value, float) or isinstance(value, int) or value is None
+    return isinstance(value, Qty) or isinstance(value, float) or isinstance(value, int) or value is None
 
 
 def scalar_results(xpr: str, variable: str, var_vals: list, variation_target: str = 'p'):
@@ -45,12 +45,12 @@ def scalar_results(xpr: str, variable: str, var_vals: list, variation_target: st
         if isinstance(var_val, dict):
             if variation_target == 'p':
                 code = replace_parameter_values(xpr, var_val)
-            else: # 'v'
+            else:  # 'v'
                 code = replace_variables(xpr, var_val)
         else:
             if variation_target == 'p':
                 code = replace_parameter_values(xpr, {variable: var_val})
-            else: # 'v'
+            else:  # 'v'
                 code = replace_variables(xpr, {variable: str(var_val)})
                 # code = replace_words(xpr, [variable], str(var_val))
 
@@ -87,7 +87,7 @@ def result_values(result):
 
     def rs_item(arg_name, value):
         name = title_to_variable(arg_name)
-        if isPQ(value):
+        if isinstance(value, Qty):
             ojson_data[name] = value.val
             ojson_uoms[name] = value.uom
         elif (
@@ -134,18 +134,20 @@ def result_values(result):
     return ojson_data, ojson_uoms
 
 
-def df2unit_normalized(df) -> pd.DataFrame:
+def df2unit_normalized(df, do_format: bool = False) -> pd.DataFrame:
     """Return an Excel-friendly DataFrame with Qty units moved into headers.
 
     Each Qty-valued column is converted to its scalar qty values, and the
-    column title is renamed as "<column> (<unit>)".
+    column title is renamed as "<column> | <unit>".
+    If do_format=True, every cell is string-formatted for UI rendering and
+    unitized columns use quantity-aware precision.
     """
     df = as_qtable(df)
     if not isinstance(df, pd.DataFrame) or df.empty:
         return df
 
     obj_cols = df.select_dtypes(include=['object', 'string']).columns
-    if len(obj_cols) == 0:
+    if len(obj_cols) == 0 and not do_format:
         return df
 
     normalized_df = df.copy()
@@ -159,10 +161,10 @@ def df2unit_normalized(df) -> pd.DataFrame:
         qty_values = [None] * len(col_values)
 
         def _to_qty(value):
-            if isPQ(value):
+            if isinstance(value, Qty):
                 return value
-            if isinstance(value, str) and is_str_qty(value.strip()):
-                return Qty(value.strip())
+            if isinstance(value, str):
+                return str_to_qty(value.strip())
             return None
 
         # pre-check all values: convert only when the whole non-empty column is Qty
@@ -187,19 +189,32 @@ def df2unit_normalized(df) -> pd.DataFrame:
                 break
 
         if not (can_convert and has_qty):
+            if do_format:
+                normalized_df[col] = normalized_df[col].map(df_formatter)
             continue
 
-        values = [None if value is None else qty_values[i].val for i, value in enumerate(col_values)]
+        if do_format:
+            values = [
+                None if value is None else df_formatter(qty_values[i].val, unit_hint=col_unit, val_only=True)
+                for i, value in enumerate(col_values)
+            ]
+        else:
+            values = [None if value is None else qty_values[i].val for i, value in enumerate(col_values)]
 
         normalized_df[col] = values
         if col_unit:
             col_name = str(col)
-            # suffix = f'({col_unit})'
             suffix = f'{qconst.TBL_UOM_SEP} {col_unit}'
             if not col_name.strip().endswith(suffix):
                 rename_map[col] = f'{col_name} {suffix}'
 
     if rename_map:
         normalized_df = normalized_df.rename(columns=rename_map)
+
+    if do_format:
+        obj_cols_set = set(obj_cols)
+        for col in normalized_df.columns:
+            if col not in obj_cols_set:
+                normalized_df[col] = normalized_df[col].map(df_formatter)
 
     return normalized_df

@@ -22,5 +22,4 @@ from .mod_qimage import QImage, qf2img, nparray_to_bio
 from .mod_qchart import QChart, color_schemes, legend_locations
 from .mod_qgeo import QGeo
 from .mod_qmap import QMap
-from .mod_qtable import QTable
 from .mod_qjfield import QJField

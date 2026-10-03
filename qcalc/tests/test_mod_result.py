@@ -18,6 +18,7 @@ qsett.init()
 
 from calc.mod_result import df2unit_normalized
 from qcore import Qty
+from qutil import QThread
 
 
 class TestDf2UnitNormalized(unittest.TestCase):
@@ -85,12 +86,49 @@ class TestDf2UnitNormalized(unittest.TestCase):
         self.assertTrue(pd.isna(out[dist_col].iloc[2]))
         self.assertEqual(out[dist_col].iloc[3], 3.0)
 
+    def test_can_format_after_normalization_using_header_unit_context(self):
+        QThread.set_pref({
+            'decimal': 5,
+            'qty_decimal': 3,
+            'currency_decimal': 2,
+            'ignore_decimal_format': False,
+            'thousands_separator': False,
+        })
+
+        df = pd.DataFrame({
+            'Distance': [Qty('1.23456 m')],
+            'RawValue': [1.23456],
+        })
+
+        out = df2unit_normalized(df, do_format=True)
+        dist_col = f'Distance {qconst.TBL_UOM_SEP} m'
+
+        self.assertEqual(out[dist_col].iloc[0], '1.235')
+        self.assertEqual(out['RawValue'].iloc[0], '1.23456')
+
+    def test_do_format_formats_qty_strings_in_non_convertible_object_column(self):
+        QThread.set_pref({
+            'decimal': 5,
+            'qty_decimal': 3,
+            'currency_decimal': 2,
+            'ignore_decimal_format': False,
+            'thousands_separator': False,
+        })
+
+        df = pd.DataFrame({
+            'Param3': ['76.1234 deg', '', '65.1234 ft'],
+        })
+        out = df2unit_normalized(df, do_format=True)
+
+        self.assertEqual(list(out.columns), ['Param3'])
+        self.assertEqual(out['Param3'].tolist(), ['76.123 deg', '', '65.123 ft'])
+
     @unittest.skipUnless(
         os.getenv('QCALC_RUN_BENCHMARKS') == '1',
         'Set QCALC_RUN_BENCHMARKS=1 to run benchmark tests.',
     )
     def test_benchmark_df2unit_normalized_vs_baseline(self):
-        from qcore import isMeasureQuantity as isPQ, as_qtable, Qty, is_str_qty
+        from qcore import as_qtable, Qty, is_str_qty
 
         def baseline_df2unit_normalized(df):
             local_df = as_qtable(df)
@@ -103,7 +141,7 @@ class TestDf2UnitNormalized(unittest.TestCase):
                 has_qty = False
 
                 def _to_qty(value):
-                    if isPQ(value):
+                    if isinstance(value, Qty):
                         return value
                     if isinstance(value, str) and is_str_qty(value.strip()):
                         return Qty(value.strip())

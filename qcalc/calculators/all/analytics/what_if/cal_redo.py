@@ -4,7 +4,7 @@
 import re
 
 from calc import show_choice
-from qcore import qchar, QTable
+from qcore import qchar
 from calculators.all.general.utility import valid_range
 from calc import QResults, scalar_results
 from qcore import qcode

@@ -122,8 +122,6 @@ def seo_score(url: qurl = qaddr(), keyword: str = 'calculator'):
                   keyword_score, wcount_score],
     }
     df = pd.DataFrame(result)
-    # df = df.apply(lambda col: col.map(df_formatter))
-    pd.options.display.float_format = '{:.1f}'.format
     return {
         "Title": title,
         "Description": meta_description,

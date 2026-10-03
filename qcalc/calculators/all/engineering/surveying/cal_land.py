@@ -3,7 +3,7 @@
 
 from qcore import Qty, qtable, qformat_q, quom2, qhtml, qfunc, as_qtable
 import pandas as pd
-from qcore import QChart, QTable
+from qcore import QChart
 from calculators.all.mathematics.geometry import triangle
 import numpy as np
 from calculators.all.image_processing import image_reader
@@ -152,10 +152,8 @@ def irg_land2(triangles: qtable = pd.DataFrame(
         arr.append(tri)
 
     df = pd.DataFrame(arr)
-    area = QTable(df)
-    area.format()
 
     # return {'Area': areaq,
     #         'Side a': aq, 'Side b': bq, 'Side c': cq,
     #         'Angle ab': ang_abq, 'Angle bc': ang_bcq, 'Angle ca': ang_caq}
-    return area.df
+    return df

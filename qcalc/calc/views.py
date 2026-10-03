@@ -21,7 +21,7 @@ import qutil as ut
 import json
 from datetime import date, datetime, time as dt_time
 import pandas as pd
-from qcore import isMeasureQuantity as isPQ
+# from qcore import isMeasureQuantity as isPQ
 from django.conf import settings
 import logging
 
@@ -301,7 +301,8 @@ def q1199_func_to_form_common(request: HtmxHttpRequest, **dictf):  # main view
                     if has_dynamic_layout(info):
                         info['template'] = 'dynamic'
                     else:
-                        info['template'] = template_name(info.get('layout', 'lr'), info.get('inp1', '*'), info.get('out1', '*'))
+                        info['template'] = template_name(info.get('layout', 'lr'), info.get('inp1', '*'),
+                                                         info.get('out1', '*'))
                 except Exception:
                     # ignore and fall back to whatever template was earlier
                     pass
@@ -997,7 +998,8 @@ def q1145_result_to_form_schema(request: HtmxHttpRequest, func_id, cid, result, 
     def rs_item(request, arg_name, value):
         request.ojson_d4f[arg_name] = value
         name = ut.title_to_variable(arg_name, qconst.TOK_RESULT_SUFFIX)
-        if isPQ(value):  # quantity
+        # if isPQ(value):  # quantity
+        if isinstance(value, Qty):  # quantity
             request.json_doc['info']['cost'] = True
             # name = name + 'q' #@05.09.26
             fv, fuom = qformat(value.val, value.unit, pref=us)
@@ -1010,15 +1012,13 @@ def q1145_result_to_form_schema(request: HtmxHttpRequest, func_id, cid, result, 
             # request.json_doc['info']['loop'] = False
             table_id = f"{cid}_{name}"
             # Normalize the DataFrame to move units into headers before formatting
-            value = df2unit_normalized(value) # e.g. discount_opt()
-            value = value.apply(lambda col: col.map(df_formatter))  # apply format for table-out
+            value = df2unit_normalized(value, do_format=True)  # e.g. discount_opt()
             request.ojson_data[name] = qhtml(
                 wrap_actions(
                     value.to_html(
                         table_id=table_id,
                         classes=f'table table-responsive table-out {cid}',
                         na_rep='None',
-                        # float_format=qformatter().format,
                         index=False
                     ),
                     'table-wrap'
@@ -1108,7 +1108,7 @@ def q1145_result_to_form_schema(request: HtmxHttpRequest, func_id, cid, result, 
                 for value in result:
                     process_result(value, join_title(name, str(i + 1)) if lnr > 1 else name)
                     i += 1
-        elif isinstance(result, dict) and "data" in result and "columns" in result:  # qtbl
+        elif is_qtbl(result):  # qtbl
             if name == '':
                 name = 'result'
             df = pd.DataFrame(

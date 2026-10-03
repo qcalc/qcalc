@@ -2,8 +2,9 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 from qutil import replace_words, QThread
-from qcore.qc_qty import Qty
+from qcore.qc_qty import Qty, str_to_qty
 import math
+import numbers
 from qvars import qc_gpref as gs
 
 
@@ -11,19 +12,18 @@ def uprefs():
     return QThread.get_prefs()
 
 
-def qformat_qstr(qstr: str, pref=None) -> str:
+def qformat_qstr(qstr: str, val_only=False) -> str:
     qty = Qty(qstr)
-    vstr, ustr = qformat(qty.val, qty.unit, pref)
-    return f'{vstr} {ustr}'
+    return qformat_q(qty, val_only)
 
 
-def qformat_q(qty: Qty, pref=None) -> str:
-    vstr, ustr = qformat(qty.val, qty.unit, pref)
-    return f'{vstr} {ustr}'
+def qformat_q(qty: Qty, val_only=False) -> str:
+    vstr, ustr = qformat(qty.val, qty.unit)
+    return f'{vstr} {ustr}' if not val_only else vstr
 
 
-def qformat_v(val, pref=None) -> str:
-    vstr = qformat(val, pref)
+def qformat_v(val) -> str:
+    vstr = qformat(val)
     return vstr
 
 
@@ -84,13 +84,26 @@ def qformat(val, unit=None, pref=None) -> None | str | list[str]:
     return fv if unit is None else [fv, funame]
 
 
-def df_formatter(var):
+def df_formatter(var, unit_hint=None, val_only=False):
     if isinstance(var, Qty):
-        return qformat_q(var)
-    elif isinstance(var, float) or isinstance(var, int):
+        return qformat_q(var, val_only=val_only)
+
+    if isinstance(var, str):
+        qty = str_to_qty(var.strip())
+        if qty is not None:
+            if unit_hint:
+                qty = Qty(qty, unit_hint)
+            return qformat_q(qty, val_only=val_only)
+        try:
+            var = float(var.strip())
+        except Exception:
+            return var
+
+    if isinstance(var, numbers.Real) and not isinstance(var, bool):
+        if unit_hint:
+            return qformat_q(Qty(var, unit_hint), val_only=val_only)
         return qformat_v(var)
-    else:
-        return var # preserve None
+    return var  # preserve None
 
 
 def replace_cur(val, uname, cur='UNC', pref=None):
@@ -131,12 +144,12 @@ def to_ucur(qty: Qty, cur='UNC', pref=None):
     return Qty(val, uname)
 
 
-
-
-
 if __name__ == '__main__':
     import qsett
+
     qsett.init()
+
+
     def _test():
         qtystr = '120km/inr'
         print(ucur(qtystr, 'INR'))
@@ -144,5 +157,6 @@ if __name__ == '__main__':
         print(ucur('@ft/BDT', 'bdt'))
         qty = Qty('@bdt/s')
         print(replace_cur(qty.val, qty.uom, 'BDT'))
+
 
     _test()

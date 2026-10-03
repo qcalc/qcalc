@@ -3,8 +3,9 @@
 import pandas as pd
 
 import qconst
-from qcore.qc_qty import Qty, is_str_qty
+from qcore.qc_qty import Qty, str_to_qty
 from qcore.qc_mquantity import isMeasureQuantity as is_qty
+from qcore.mod_anno import is_qtbl
 import operator
 import pandas as _pd
 from .mod_autil import to_plain
@@ -152,7 +153,7 @@ def qdf(tbl):
     if not isinstance(tbl, dict):
         raise TypeError("qdf() expects a qtbl dictionary")
 
-    if "columns" not in tbl or "data" not in tbl:
+    if not is_qtbl(tbl):
         raise ValueError(
             "qdf() expects a qtbl with 'columns' and 'data'"
         )
@@ -209,7 +210,10 @@ def _qbinary(a, b, op):
     """Apply a binary operation element-wise to two values or sequences."""
 
     def convert(x):
-        return Qty(x) if is_str_qty(x) else x
+        if not isinstance(x, str):
+            return x
+        q = str_to_qty(x)
+        return q if q is not None else x
 
     if isinstance(a, (list, tuple)) and isinstance(b, (list, tuple)):
         if len(a) != len(b):

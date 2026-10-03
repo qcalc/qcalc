@@ -8,7 +8,7 @@ from django.forms import Widget
 import pandas as pd
 import json
 from qutil import resize_df
-from qcore.mod_anno import wrap_actions
+from qcore.mod_anno import is_qtbl, wrap_actions
 from qconst import TOK_ROW, TOK_COL, TOK_TABLE_RESIZE, TOK_TABLE_ED, TOK_TABLE_UPDATE, TOK_ID_PREFIX, TOK_FIELD_SEP
 
 
@@ -282,7 +282,7 @@ class TabulatorWidget(Widget):
             # print('mode defa', mode)
         elif isinstance(value, dict):  # input from json file
             # orient="split"
-            if "data" in value and "columns" in value:
+            if is_qtbl(value):
                 df = pd.DataFrame(
                     data=value["data"],
                     columns=value["columns"],
@@ -309,7 +309,7 @@ class TabulatorWidget(Widget):
                     df = pd.DataFrame(value)
 
                 elif isinstance(value, dict):
-                    if "data" in value and "columns" in value:
+                    if is_qtbl(value):
                         # orient="split"
                         df = pd.DataFrame(
                             data=value["data"],

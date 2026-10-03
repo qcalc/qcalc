@@ -243,13 +243,17 @@ def _trim_table_columns_inplace(table):
         table.rename(columns=rename_map, inplace=True)
     return table
 
+def is_qtbl(value):
+    # Check if the given value is a safe table (qtbl) dictionary with 'columns' and 'data' keys.
+    return isinstance(value, dict) and {"columns", "data"} <= value.keys()
 
 def as_qtable(value):
+    # Convert various table-like inputs to a dataframe based qtable instance with trimmed column names.
     if isinstance(value, qtable):
         return _trim_table_columns_inplace(value)
     if isinstance(value, pd.DataFrame):
         return _trim_table_columns_inplace(value)
-    if isinstance(value, dict) and {"columns", "data"} <= value.keys():
+    if is_qtbl(value):
         cols = [col.strip() if isinstance(col, str) else col for col in value["columns"]]
         return qtable(value["data"], columns=cols)
 

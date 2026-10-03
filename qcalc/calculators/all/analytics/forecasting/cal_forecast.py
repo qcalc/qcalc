@@ -768,7 +768,9 @@ def _build_forecast_table(point_forecast, confidence_level, sigma, random_mode, 
             _safe_round(hi) if hi != '' else '',
         ])
 
-    return _qtbl(['Period', 'Forecast', f'Lower {confidence_level}%', f'Upper {confidence_level}%'], rows)
+    # Keep interval column names stable and dot-free for table renderers
+    # that interpret "." in field names as nested paths.
+    return _qtbl(['Period', 'Forecast', 'Lower confidence bound', 'Upper confidence bound'], rows)
 
 
 def _build_model_selection_table(diagnostics_rows, selected_model_key, selection_basis):

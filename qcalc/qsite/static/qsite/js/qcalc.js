@@ -273,7 +273,46 @@ function formReady(cid) {
     });
 }
 
+function normalizeCodeLanguage(language) {
+    const lang = (language || '').trim().toLowerCase();
+    const aliases = {
+        py: 'python',
+        python3: 'python',
+        ht: 'html',
+        htm: 'html',
+        xhtml: 'html',
+        md: 'markdown',
+        js: 'javascript',
+        mjs: 'javascript'
+    };
+    if (aliases[lang]) {
+        return aliases[lang];
+    }
+    return lang || 'python';
+}
+
+function codeMirrorMode(language) {
+    const modeByLanguage = {
+        python: 'python',
+        html: 'htmlmixed',
+        markdown: 'markdown',
+        javascript: 'javascript'
+    };
+    return modeByLanguage[language] || 'python';
+}
+
+function codeFileSpec(language) {
+    const specByLanguage = {
+        python: { extension: '.py', mime: 'text/x-python', accept: '.py,text/x-python,text/plain' },
+        html: { extension: '.html', mime: 'text/html', accept: '.html,.htm,text/html,text/plain' },
+        markdown: { extension: '.md', mime: 'text/markdown', accept: '.md,.markdown,text/markdown,text/plain' },
+        javascript: { extension: '.js', mime: 'text/javascript', accept: '.js,.mjs,text/javascript,application/javascript,text/plain' }
+    };
+    return specByLanguage[language] || specByLanguage.python;
+}
+
 function initializeCodeMirrorWidget(textareaId) {
+
     const textarea = document.getElementById(textareaId);
     if (!textarea || textarea.dataset.codemirrorInitialized === 'true') {
         return;
@@ -286,8 +325,16 @@ function initializeCodeMirrorWidget(textareaId) {
         return;
     }
 
+    const language = normalizeCodeLanguage(textarea.dataset.lang || 'python');
+    textarea.dataset.lang = language;
+    const fileSpec = codeFileSpec(language);
+    const uploadInput = document.getElementById(textareaId + '_upload');
+    if (uploadInput) {
+        uploadInput.accept = fileSpec.accept;
+    }
+
     const editor = CodeMirror.fromTextArea(textarea, {
-        mode: 'python',
+        mode: codeMirrorMode(language),
         theme: 'dracula',
         lineNumbers: true,
         matchBrackets: true,
@@ -356,10 +403,12 @@ function downloadCodeMirrorWidget(textareaId) {
     }
 
     const code = textarea.codeMirrorEditor ? textarea.codeMirrorEditor.getValue() : textarea.value;
-    const calNameInput = textarea.form ? textarea.form.elements.namedItem('cal_name') : null;
-    const baseName = calNameInput && calNameInput.value ? calNameInput.value : 'mycal';
-    const filename = baseName.replace(/[\\/:*?"<>|]/g, '_') + '.py';
-    const file = new Blob([code], { type: 'text/x-python;charset=utf-8' });
+    const card = textarea.closest('[id^="' + QCALC_TOK_CARD_PREFIX + '"]');
+    const baseName = (card && card.dataset.qcalcFunc ? card.dataset.qcalcFunc.trim() : '') || 'mycal';
+    const language = normalizeCodeLanguage(textarea.dataset.lang || 'python');
+    const fileSpec = codeFileSpec(language);
+    const filename = baseName.replace(/[\\/:*?"<>|]/g, '_') + fileSpec.extension;
+    const file = new Blob([code], { type: fileSpec.mime + ';charset=utf-8' });
     saveAs(file, filename);
 }
 
@@ -1002,4 +1051,3 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
-

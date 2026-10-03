@@ -90,12 +90,40 @@ def md_reader__info():
                 'initial': 'URL',
                 'help_text': 'Choose whether to read Markdown from a file, URL, or text input.',
             },
+            'markdown_text': {
+                'attrs': {
+                    'data-lang': 'markdown',
+                },
+            },
         },
     }
 
 
 def md_reader(upload_markdown: qfile = None, md_url: qurl = demo_url('demo.md'),
-              markdown_text: qcode = '', mode='URL'):
+              markdown_text: qcode = 
+"""
+# Example Markdown content with LaTeX math equations.
+
+## This is a sample Markdown content.
+
+$$(a + b)^2 = a^2 + 2ab + b^2$$
+
+$a$ and $b$ are variables in the equation.
+
+- Example list item
+- Another list item
+
+*Italic text*
+
+**Bold text**
+
+```python
+# This is a sample Python code block.
+print("Hello, World!")
+```
+
+""", 
+              mode='URL'):
     mode = str(mode).strip().upper()
     if mode == 'URL':
         if not md_url:
@@ -260,12 +288,28 @@ def html_reader__info():
                 'initial': 'URL',
                 'help_text': 'Choose whether to read HTML from a URL or from text input.',
             },
+            'html_text': {
+                'attrs': {
+                    'data-lang': 'html',
+                },
+            },
         },
     }
 
 
 def html_reader(upload_html: qfile = None, html_url: qurl = demo_url('demo.html'),
-                html_text: qcode = '', convert_to_text: bool = False, mode='URL'):
+                html_text: qcode = 
+"""
+<h1>Hello World</h1>
+<h2>Subheading</h2>
+<p>This is a paragraph of text under the subheading.</p>
+<ul>
+    <li>First item</li>
+    <li>Second item</li>
+    <li>Third item</li>
+</ul>
+"""
+    , convert_to_text: bool = False, mode='URL'):
     # https://www.geeksforgeeks.org/remove-all-style-scripts-and-html-tags-using-beautifulsoup/
     mode = str(mode).strip().upper()
     if mode == 'URL':

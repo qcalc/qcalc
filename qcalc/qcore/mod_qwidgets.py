@@ -67,6 +67,11 @@ class CodeWidget_codemirror(Widget):
             ]},
             js=[static("vendor/codemirror/5.65.5/codemirror.min.js"),
                 static("vendor/codemirror/5.65.5/mode/python.min.js"),
+                static("vendor/codemirror/5.65.5/mode/xml.js"),
+                static("vendor/codemirror/5.65.5/mode/javascript.js"),
+                static("vendor/codemirror/5.65.5/mode/css.js"),
+                static("vendor/codemirror/5.65.5/mode/htmlmixed.js"),
+                static("vendor/codemirror/5.65.5/mode/markdown.js"),
                 static("vendor/codemirror/5.65.5/matchbrackets.min.js"),
                 static("vendor/codemirror/5.65.5/closebrackets.min.js"),
                 ]
@@ -77,6 +82,26 @@ class CodeWidget_codemirror(Widget):
         self.id = id_
 
     def render(self, name, value, attrs=None, renderer=None):
+        merged_attrs = dict(self.attrs)
+        if attrs:
+            merged_attrs.update(attrs)
+        merged_attrs.setdefault('data-lang', 'python')
+
+        disabled = bool(merged_attrs.pop('disabled', False))
+        readonly = bool(merged_attrs.pop('readonly', False))
+        merged_attrs.pop('id', None)
+        merged_attrs.pop('name', None)
+
+        extra_attrs = []
+        for key, attr_value in merged_attrs.items():
+            if attr_value is None or attr_value is False:
+                continue
+            if attr_value is True:
+                extra_attrs.append(f' {key}')
+            else:
+                extra_attrs.append(f' {key}="{escape(str(attr_value))}"')
+        extra_attrs_str = ''.join(extra_attrs)
+
         ret = str(self.media)
         ret += '''
         <style>
@@ -113,16 +138,16 @@ class CodeWidget_codemirror(Widget):
         '''
         ret += f'''
         <div class="elem-wrapper" style="width:100%;">
-        <textarea id="{self.id}" name="{name}"{' disabled' if (attrs or {}).get('disabled') else ''}{' readonly' if (attrs or {}).get('readonly') else ''}>{escape(value) if value else ""}</textarea>
+        <textarea id="{self.id}" name="{name}"{extra_attrs_str}{' disabled' if disabled else ''}{' readonly' if readonly else ''}>{escape(value) if value else ""}</textarea>
         <span class="fullscreen-square" onclick="toggleFullscreen(this.closest('.elem-wrapper'))"></span>
          <input type="file" id="{self.id}_upload" accept=".py,text/x-python" class="inputfile"
              onchange="uploadCodeMirrorWidget(this, '{self.id}')">
-         <button type="button" class="btn btn-info btncmd mt-2" title="Upload from Python file"
-              aria-label="Upload from Python file" onclick="document.getElementById('{self.id}_upload').click()">
+         <button type="button" class="btn btn-info btncmd mt-2" title="Upload from file"
+              aria-label="Upload from file" onclick="document.getElementById('{self.id}_upload').click()">
              <i class="icon-file-upload"></i>
          </button>
-        <button type="button" class="btn btn-info btncmd mt-2" title="Save to Python file"
-                aria-label="Save to Python file" onclick="downloadCodeMirrorWidget('{self.id}')">
+        <button type="button" class="btn btn-info btncmd mt-2" title="Save to file"
+                aria-label="Save to file" onclick="downloadCodeMirrorWidget('{self.id}')">
             <i class="icon-file-download"></i>
         </button>
         </div>

@@ -105,6 +105,8 @@ class qtexte(str):  # textedit 65535
 
 
 # Source-code editor input field.
+# Language can be set with schema attrs, e.g. {"attrs": {"data-lang": "markdown"}}.
+# Supported values: python (default), html, markdown, javascript.
 class qcode(str):
     def __init__(self):
         pass

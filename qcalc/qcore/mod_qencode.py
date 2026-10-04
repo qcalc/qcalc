@@ -13,7 +13,6 @@ from qcore import qhtml
 import datetime
 import decimal
 
-
 _UNSERIALIZED = object()
 
 _SERIALIZE_POLICIES = {

@@ -5,6 +5,7 @@ import sys
 import os
 import bisect
 from qutil.mod_data import str2type, time2float
+from qutil.mod_datetime import QDateTime
 from datetime import date, datetime, time as dt_time
 
 
@@ -76,14 +77,30 @@ def css2values(cs_string, separator=',', time2val='hr'):  # '', ('hr','min','s',
         elif data_type == int:
             list_values = [int(x) for x in list_strings]
         elif data_type == date:
-            list_values = [date.fromisoformat(x) for x in list_strings]
+            list_values = []
+            for x in list_strings:
+                parsed = QDateTime(x).val
+                if not (isinstance(parsed, date) and not isinstance(parsed, datetime)):
+                    raise ValueError(f"Error (C2V): Invalid date value: {x}")
+                list_values.append(parsed)
         elif data_type == datetime:
-            list_values = [datetime.fromisoformat(x) for x in list_strings]
+            list_values = []
+            for x in list_strings:
+                parsed = QDateTime(x).val
+                if not isinstance(parsed, datetime):
+                    raise ValueError(f"Error (C2V): Invalid datetime value: {x}")
+                list_values.append(parsed)
         elif data_type == dt_time:
+            parsed_times = []
+            for x in list_strings:
+                parsed = QDateTime(x).val
+                if not isinstance(parsed, dt_time):
+                    raise ValueError(f"Error (C2V): Invalid time value: {x}")
+                parsed_times.append(parsed)
             if time2val == '':
-                list_values = [dt_time.fromisoformat(x) for x in list_strings]
+                list_values = parsed_times
             else:
-                list_values = [time2float(dt_time.fromisoformat(x), time2val) for x in list_strings]
+                list_values = [time2float(x, time2val) for x in parsed_times]
                 data_type = float
         elif data_type == str:
             list_values = list_strings

@@ -227,3 +227,32 @@ def test_qdatetime_subtract_qdatetime_returns_float_days():
     dt1 = QDateTime('2024-09-23T10:30:00')
     dt2 = QDateTime('2024-09-22T22:30:00')
     assert (dt1 - dt2) == 0.5
+
+
+def test_qdatetime_comparison_operators():
+    d1 = QDateTime('2024-09-23')
+    d2 = QDateTime('2024-09-20')
+    assert d1 > d2
+    assert d1 >= d2
+    assert d2 < d1
+    assert d2 <= d1
+    assert d1 == QDateTime('2024-09-23')
+    assert d1 != d2
+
+    t1 = QDateTime('10:30:01')
+    t2 = QDateTime('10:31:00')
+    assert t1 < t2
+
+    dt1 = QDateTime('2024-09-23T10:30:00')
+    dt2 = QDateTime('2024-09-23T10:29:59')
+    assert dt1 > dt2
+
+    assert (d1 == "2024-09-23") is False
+
+
+def test_qdatetime_comparison_rejects_invalid_or_mixed_kinds():
+    with pytest.raises(TypeError):
+        _ = QDateTime(None) == QDateTime('2024-09-23')
+
+    with pytest.raises(TypeError):
+        _ = QDateTime('10:30:01') < QDateTime('2024-09-23')

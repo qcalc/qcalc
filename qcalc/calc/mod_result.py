@@ -3,12 +3,21 @@
 
 import pandas as pd
 import qconst
-from qutil import title_to_variable, replace_variables, replace_parameter_values
+from qutil import title_to_variable, replace_variables, replace_parameter_values, QDateTime
 from qcore import as_qtable, Qty, str_to_qty, df_formatter
+import datetime
 
 
 def is_scalar(value):
-    return isinstance(value, Qty) or isinstance(value, float) or isinstance(value, int) or value is None
+    return value is None or isinstance(value, (
+        Qty,
+        int,
+        float,
+        QDateTime,
+        datetime.datetime,
+        datetime.date,
+        datetime.time,
+    ))
 
 
 def scalar_results(xpr: str, variable: str, var_vals: list, variation_target: str = 'p'):
@@ -87,19 +96,15 @@ def result_values(result):
 
     def rs_item(arg_name, value):
         name = title_to_variable(arg_name)
+
         if isinstance(value, Qty):
             ojson_data[name] = value.val
             ojson_uoms[name] = value.uom
-        elif (
-            isinstance(value, float) or
-            isinstance(value, int)
-        ):
+        elif isinstance(value, QDateTime):
+            ojson_data[name] = value.val
+        elif value is None or isinstance(value, (
+                int, float, datetime.datetime, datetime.date, datetime.time)):
             ojson_data[name] = value
-        elif value is None:
-            ojson_data[name] = None
-        else:
-            pass
-        return
 
     def process_result(result, name=''):  # v2
         if isinstance(result, set):

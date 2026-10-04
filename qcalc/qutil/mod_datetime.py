@@ -151,6 +151,38 @@ class QDateTime:
             return QDateTime(base_datetime - delta)
         return QDateTime(self.dt_value - delta)
 
+    def _comparison_value(self):
+        if self.dt_value is None:
+            raise TypeError("Cannot compare invalid QDateTime values")
+        if self.is_time:
+            return "time", self.dt_value
+        return "datetime", self.date_time
+
+    def _compare_qdatetime(self, other, op):
+        if not isinstance(other, QDateTime):
+            return NotImplemented
+
+        left_kind, left_value = self._comparison_value()
+        right_kind, right_value = other._comparison_value()
+        if left_kind != right_kind:
+            raise TypeError("Cannot compare time-only values with date/datetime values")
+        return op(left_value, right_value)
+
+    def __eq__(self, other):
+        return self._compare_qdatetime(other, lambda a, b: a == b)
+
+    def __lt__(self, other):
+        return self._compare_qdatetime(other, lambda a, b: a < b)
+
+    def __le__(self, other):
+        return self._compare_qdatetime(other, lambda a, b: a <= b)
+
+    def __gt__(self, other):
+        return self._compare_qdatetime(other, lambda a, b: a > b)
+
+    def __ge__(self, other):
+        return self._compare_qdatetime(other, lambda a, b: a >= b)
+
     def day_name(self, short: bool = False) -> str | None:
         if isinstance(self.dt_value, (date, datetime)):
             return self.dt_value.strftime('%a' if short else '%A')

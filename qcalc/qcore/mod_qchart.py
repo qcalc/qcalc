@@ -9,7 +9,7 @@ import numpy as np
 from statistics import fmean, stdev
 import pandas as pd
 import networkx as nx
-from qutil import QThread, joinx
+from qutil import QDateTime, QThread, joinx
 import matplotlib.dates as mdates  # requires for 3D as 3D cant natively handle date axes
 from datetime import date, datetime
 import qconst
@@ -448,51 +448,131 @@ class QChart:
         if ylabels: self.set_legend(ylabels)
         self.render_done()
 
+    @staticmethod
+    def _to_date_num(value):
+        raw = value.val if isinstance(value, QDateTime) else value
+        if isinstance(raw, datetime):
+            return mdates.date2num(raw), (raw.time() != datetime.min.time())
+        if isinstance(raw, date):
+            return mdates.date2num(raw), False
+        return None, False
+
+    def _prepare_date_axis_series(self, yvalsm):
+        has_time_component = False
+        date_nums = []
+        absolute_series = []
+        all_date_like = bool(yvalsm)
+
+        for values in yvalsm:
+            converted_values = []
+            for value in values:
+                if pd.isna(value):
+                    converted_values.append(np.nan)
+                    continue
+                date_num, has_time = self._to_date_num(value)
+                if date_num is None:
+                    all_date_like = False
+                    break
+                has_time_component = has_time_component or has_time
+                date_nums.append(date_num)
+                converted_values.append(date_num)
+            if not all_date_like:
+                break
+            absolute_series.append(converted_values)
+
+        if not all_date_like or not date_nums:
+            return False, False, None, yvalsm
+
+        date_axis_base = min(date_nums)
+        shifted_series = []
+        for values in absolute_series:
+            shifted_series.append([
+                np.nan if pd.isna(value) else value - date_axis_base
+                for value in values
+            ])
+        return True, has_time_component, date_axis_base, shifted_series
+
+    @staticmethod
+    def _apply_date_axis_format(axis, has_time_component):
+        axis.set_major_locator(mdates.AutoDateLocator())
+        if has_time_component:
+            axis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d %H:%M:%S'))
+        else:
+            axis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
+
     def render_bars(self, xvals: list | None = None, yvalsm: list | None = None,
                     xlabel='x', ylabels: list | None = None, ylabel='y', title='Bar Chart', vertical=True):
         """Render a bar chart."""
         if xvals is None: xvals = []
         if yvalsm is None: yvalsm = []
+        use_date_axis, has_time_component, date_axis_base, converted_yvalsm = self._prepare_date_axis_series(yvalsm)
 
         fig, ax = self.create_figure()
-        n_series = len(yvalsm)
+        n_series = len(converted_yvalsm)
+        if n_series == 0:
+            self.set_labels(xlabel=xlabel if vertical else ylabel, ylabel=ylabel if vertical else xlabel, title=title)
+            self.render_done()
+            return
         width = 0.8 / n_series
         colors = self.get_colors(n_series)
 
         if vertical:
             x = np.arange(len(xvals))
-            for i, values in enumerate(yvalsm):
+            for i, values in enumerate(converted_yvalsm):
                 offset = (i - (n_series - 1) / 2) * width
-                ax.bar(x + offset, values, width=width, color=colors[i],
-                       label=ylabels[i] if ylabels else None)
+                if use_date_axis:
+                    ax.bar(x + offset, values, width=width, bottom=date_axis_base, color=colors[i],
+                           label=ylabels[i] if ylabels else None)
+                else:
+                    ax.bar(x + offset, values, width=width, color=colors[i],
+                           label=ylabels[i] if ylabels else None)
 
             ax.set_xticks(x)
             ax.set_xticklabels(xvals)
             self.set_labels(xlabel=xlabel, ylabel=ylabel, title=title)
+            if use_date_axis:
+                self._apply_date_axis_format(ax.yaxis, has_time_component)
 
         else:
             y = np.arange(len(xvals))
-            for i, values in enumerate(yvalsm):
+            for i, values in enumerate(converted_yvalsm):
                 offset = (i - (n_series - 1) / 2) * width
-                ax.barh(y + offset, values, height=width, color=colors[i],
-                        label=ylabels[i] if ylabels else None)
+                if use_date_axis:
+                    ax.barh(y + offset, values, height=width, left=date_axis_base, color=colors[i],
+                            label=ylabels[i] if ylabels else None)
+                else:
+                    ax.barh(y + offset, values, height=width, color=colors[i],
+                            label=ylabels[i] if ylabels else None)
 
             ax.set_yticks(y)
             ax.set_yticklabels(xvals)
             self.set_labels(xlabel=ylabel, ylabel=xlabel, title=title)
+            if use_date_axis:
+                self._apply_date_axis_format(ax.xaxis, has_time_component)
 
         if ylabels: ax.legend()
         self.render_done()
 
     def render_bar(self, labels, vals, label='y', title='Bar Chart', vertical=True):
         """Render a bar chart."""
+        use_date_axis, has_time_component, date_axis_base, converted_series = self._prepare_date_axis_series([vals])
+        converted_vals = converted_series[0] if converted_series else vals
+
         fig, ax = self.create_figure()
         colors = self.get_colors(len(labels))
         if vertical:
-            ax.bar(labels, vals, color=colors)
+            if use_date_axis:
+                ax.bar(labels, converted_vals, bottom=date_axis_base, color=colors)
+                self._apply_date_axis_format(ax.yaxis, has_time_component)
+            else:
+                ax.bar(labels, vals, color=colors)
             self.set_labels(ylabel=label, title=title)
         else:
-            ax.barh(labels, vals, color=colors)
+            if use_date_axis:
+                ax.barh(labels, converted_vals, left=date_axis_base, color=colors)
+                self._apply_date_axis_format(ax.xaxis, has_time_component)
+            else:
+                ax.barh(labels, vals, color=colors)
             self.set_labels(xlabel=label, title=title)
 
         self.render_done()

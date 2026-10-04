@@ -4,6 +4,7 @@
 import pandas as pd
 import datetime
 
+from qutil import QDateTime
 from .mod_result import result_values
 from qcore import Qty, QChart
 from qutil import css2strs, variable_to_title, title_to_variable, specified_args
@@ -130,6 +131,8 @@ class QResults:
             A QChart
         """
         chart_data = QResults.df2chart_data(df, x_column, y_columns)
+        if not chart_data['yvalsm']:
+            return None
         chart = QChart()
         if chart_type == 'lines':
             chart.render_lines(**chart_data, ylabel=ylabel, title=chart_title)
@@ -169,11 +172,16 @@ class QResults:
         for rkey in y_columns:
             yvals = df[rkey]
             skip = False
-            if isinstance(yvals[0], list):
-                yvals = [y[0] for y in yvals]
-            elif isinstance(yvals[0], Qty):
-                yvals = [y.value for y in yvals]
-            elif isinstance(yvals[0], datetime.datetime) or isinstance(yvals[0], str):
+            sample = next((value for value in yvals if pd.notna(value)), None)
+            if sample is None:
+                skip = True
+            elif isinstance(sample, list):
+                yvals = [None if y is None or not y else y[0] for y in yvals]
+            elif isinstance(sample, Qty):
+                yvals = [None if y is None else y.val for y in yvals]
+            elif isinstance(sample, QDateTime):
+                yvals = [None if y is None else y.val for y in yvals]
+            elif isinstance(sample, str):
                 skip = True
 
             if x_column == rkey:

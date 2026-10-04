@@ -143,9 +143,12 @@ def line_chart(
     y_label='y',
     title='y vs x'
 ):
+    """Render a 2D line chart; y_values can be numeric, date, datetime, or time values (time is converted to hours)."""
     # xnums = css2floats(x_values)
     xnums, xtype = css2values(x_values, time2val='hr')
-    ynums = css2floats(y_values)
+    ynums, ytype = css2values(y_values, time2val='hr')
+    if ytype == str:
+        raise ValueError('y_values must be numeric, date, datetime, or time values')
     chart = QChart(xtype=xtype)
     chart.render_lines(xvals=xnums, yvalsm=[ynums], xlabel=x_label, ylabel=y_label, title=title)
     return {'chart': chart}
@@ -166,10 +169,18 @@ def line2_chart(
     y_label='y',
     title='y vs x'
 ):
+    """Render a 2D double-line chart; y_values/y_values2 can be numeric, date, datetime, or time values (time is converted to hours)."""
     # xnums = css2floats(x_values)
     xnums, xtype = css2values(x_values, time2val='hr')
-    ynums = css2floats(y_values)
-    ynums2 = css2floats(y_values2)
+    ynums, ytype = css2values(y_values, time2val='hr')
+    ynums2, ytype2 = css2values(y_values2, time2val='hr')
+    if ytype == str or ytype2 == str:
+        raise ValueError('y_values and y_values2 must be numeric, date, datetime, or time values')
+
+    numeric_types = {int, float}
+    if ytype != ytype2 and {ytype, ytype2} != numeric_types:
+        raise ValueError('y_values and y_values2 must have matching value types')
+
     chart = QChart(xtype=xtype)
     chart.render_lines(xvals=xnums, yvalsm=[ynums, ynums2], xlabel=x_label, ylabels=css2strs(y_labels), ylabel=y_label,
                        title=title)
@@ -190,9 +201,12 @@ def scatter_chart(
     y_label='y',
     title='y vs x'
 ):
+    """Render a 2D scatter chart; y_values can be numeric, date, datetime, or time values (time is converted to hours)."""
     # xnums = css2floats(x_values)
     xnums, xtype = css2values(x_values, time2val='hr')
-    ynums = css2floats(y_values)
+    ynums, ytype = css2values(y_values, time2val='hr')
+    if ytype == str:
+        raise ValueError('y_values must be numeric, date, datetime, or time values')
     items = css2strs(names)
     chart = QChart(xtype=xtype)
     chart.render_scatter(xvals=xnums, yvals=ynums, names=items, xlabel=x_label, ylabel=y_label, title=title)
@@ -216,8 +230,11 @@ def bar_chart(
     title='Month wise Temperature',
     vertical=True
 ):
+    """Render a 2D bar chart; values can be numeric, date, datetime, or time values (time is converted to hours)."""
     names = css2strs(names)
-    nums = css2floats(values)
+    nums, vtype = css2values(values, time2val='hr')
+    if vtype == str:
+        raise ValueError('values must be numeric, date, datetime, or time values')
     chart = QChart(xtype=str)
     chart.render_bar(labels=names, vals=nums, label=label, title=title, vertical=vertical)
     return {'chart': chart}

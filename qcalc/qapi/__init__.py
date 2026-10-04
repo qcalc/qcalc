@@ -25,7 +25,7 @@ from qcore import (
 )
 from qutil import QDateTime, DotDict, dd_list, user_name, user_process, user_ip, local_ip, \
     page_link, calurl, cal_link, command_button, addcal_button, \
-    iif, joinx, css2floats, css2ints, css2values, css2strs, vals2css
+    iif, joinx, css2floats, css2ints, css2values, css2strs, vals2css, today, now
 from .mod_np import np_names, np
 from .mod_qtbl import *
 from .mod_autil import qsymbols, qsymstat, qsymhelp
@@ -67,6 +67,7 @@ __evacon__ = [
     "QChart", "QGeo", "QMap", "SmartCalc",
     "user_name", "user_process", "user_ip", "local_ip",
     "page_link", "calurl", "cal_link", "command_button", "addcal_button",
+    "today", "now",
 ]
 
 

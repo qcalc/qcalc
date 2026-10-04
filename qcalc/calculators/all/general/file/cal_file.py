@@ -9,7 +9,7 @@ import requests
 from qconst import delimiter_help_text
 from qutil import nzs, to_df, demo_url, md2html
 from qcore.mod_anno import *
-from calc.mod_result import df2unit_normalized
+from calc.mod_result import df2normalized
 
 
 def file_reader__info():
@@ -100,7 +100,7 @@ def md_reader__info():
 
 
 def md_reader(upload_markdown: qfile = None, md_url: qurl = demo_url('demo.md'),
-              markdown_text: qcode = 
+              markdown_text: qcode =
 """
 # Example Markdown content with LaTeX math equations.
 
@@ -122,7 +122,7 @@ $a$ and $b$ are variables in the equation.
 print("Hello, World!")
 ```
 
-""", 
+""",
               mode='URL'):
     mode = str(mode).strip().upper()
     if mode == 'URL':
@@ -244,7 +244,7 @@ def csv_editor(upload_csv: qfile = None, csv_url: qurl = demo_url('emp.csv'),
         raise Exception(f'Error (CR): A valid CSV File or URL is not found')
 
     if normalize_units:
-        df = df2unit_normalized(df)
+        df = df2normalized(df)
 
     return df
 
@@ -298,7 +298,7 @@ def html_reader__info():
 
 
 def html_reader(upload_html: qfile = None, html_url: qurl = demo_url('demo.html'),
-                html_text: qcode = 
+                html_text: qcode =
 """
 <h1>Hello World</h1>
 <h2>Subheading</h2>

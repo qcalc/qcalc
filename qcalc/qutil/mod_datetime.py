@@ -28,6 +28,19 @@ class QDateTime:
     dt_value: date | datetime | dt_time | None
 
     @staticmethod
+    def _delta_from_operand(other: int | float | timedelta) -> timedelta:
+        if isinstance(other, timedelta):
+            return other
+        if isinstance(other, bool):
+            raise TypeError("Boolean values are not valid day offsets")
+        if isinstance(other, (int, float)):
+            return timedelta(days=other)
+        raise TypeError(
+            f"Unsupported operand type: {type(other).__name__}. "
+            "Use a day number or timedelta."
+        )
+
+    @staticmethod
     def _looks_like_time_only(value: str) -> bool:
         # Examples: 18:06, 18:06:30, 18:06:30.123456, 6:30 PM
         return bool(re.fullmatch(r"\s*\d{1,2}:\d{2}(?::\d{2}(?:\.\d{1,6})?)?\s*(?:[AaPp][Mm])?\s*", value))
@@ -90,6 +103,29 @@ class QDateTime:
     def __str__(self):
         return qc_datetime_to_str(self.dt_value)
 
+    def __add__(self, other: int | float | timedelta):
+        if self.dt_value is None:
+            raise TypeError("Cannot apply arithmetic on an invalid QDateTime value")
+        if isinstance(self.dt_value, dt_time):
+            raise TypeError("Arithmetic is not supported for time-only QDateTime values")
+        delta = self._delta_from_operand(other)
+        return QDateTime(self.dt_value + delta)
+
+    def __sub__(self, other):
+        if self.dt_value is None:
+            raise TypeError("Cannot apply arithmetic on an invalid QDateTime value")
+        if isinstance(self.dt_value, dt_time):
+            raise TypeError("Arithmetic is not supported for time-only QDateTime values")
+        if isinstance(other, QDateTime):
+            if other.dt_value is None:
+                raise TypeError("Cannot subtract an invalid QDateTime value")
+            if isinstance(other.dt_value, dt_time):
+                raise TypeError("Arithmetic is not supported for time-only QDateTime values")
+            delta = self.dt_value - other.dt_value
+            return delta.total_seconds() / 86400.0
+        delta = self._delta_from_operand(other)
+        return QDateTime(self.dt_value - delta)
+
     def day_name(self, short: bool = False) -> str | None:
         if isinstance(self.dt_value, (date, datetime)):
             return self.dt_value.strftime('%a' if short else '%A')
@@ -137,6 +173,44 @@ def qc_datetime_to_str(dtime: datetime | date | dt_time | None):  # qc date/time
     if dtime.tzinfo is None or dtime.utcoffset() is None:
         return dtime.strftime('%Y-%m-%d %H:%M:%S')
     return dtime.strftime(QC_DATETIME_FORMAT)
+
+
+def today() -> QDateTime:
+    return QDateTime(date.today())
+
+
+def _tz_from_offset_string(tz: str | None) -> tzinfo | None:
+    if tz is None:
+        return None
+    if not isinstance(tz, str):
+        raise TypeError("Timezone must be a string in UTC or offset format")
+
+    value = tz.strip()
+    if not value:
+        return None
+    if value.upper() == "UTC":
+        return timezone.utc
+
+    if value.upper().startswith("UTC"):
+        value = value[3:].strip()
+        if not value:
+            return timezone.utc
+
+    match = re.fullmatch(r"([+-])(\d{2}):?(\d{2})", value)
+    if not match:
+        raise ValueError("Timezone must be 'UTC', '+HHMM', or '+HH:MM' format")
+
+    sign = 1 if match.group(1) == "+" else -1
+    hours = int(match.group(2))
+    minutes = int(match.group(3))
+    if hours > 23 or minutes > 59:
+        raise ValueError("Timezone offset hours must be 00-23 and minutes 00-59")
+
+    return timezone(sign * timedelta(hours=hours, minutes=minutes))
+
+
+def now(tz: str | None = None) -> QDateTime:
+    return QDateTime(datetime.now(tz=_tz_from_offset_string(tz)))
 
 
 def qc_str_to_datetime(sdatetime_iso_qc: str):  # risk
@@ -234,6 +308,7 @@ def ts2iso(time_stamp, tz: tzinfo):
 def j2iso(jdy: float, tz: tzinfo):
     time_stamp = j2ts(jdy)
     return ts2iso(time_stamp, tz)
+
 
 
 if __name__ == '__main__':

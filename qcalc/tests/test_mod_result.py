@@ -16,7 +16,7 @@ import qconst
 
 qsett.init()
 
-from calc.mod_result import df2unit_normalized
+from calc.mod_result import df2normalized
 from qcore import Qty
 from qutil import QThread
 
@@ -28,7 +28,7 @@ class TestDf2UnitNormalized(unittest.TestCase):
             'Label': ['A', 'B', 'C'],
         })
 
-        out = df2unit_normalized(df)
+        out = df2normalized(df)
         length_col = f'Length {qconst.TBL_UOM_SEP} m'
 
         self.assertIn(length_col, out.columns)
@@ -44,7 +44,7 @@ class TestDf2UnitNormalized(unittest.TestCase):
             'data': [[Qty('10 N')], [Qty('20 N')]],
         }
 
-        out = df2unit_normalized(table)
+        out = df2normalized(table)
         force_col = f'Force {qconst.TBL_UOM_SEP} N'
 
         self.assertIsInstance(out, pd.DataFrame)
@@ -58,7 +58,7 @@ class TestDf2UnitNormalized(unittest.TestCase):
             'MixedUnits': [Qty('1 m'), Qty('100 cm'), None],
         })
 
-        out = df2unit_normalized(df)
+        out = df2normalized(df)
         qty_col = f'QtyOk {qconst.TBL_UOM_SEP} kg'
 
         self.assertIn(qty_col, out.columns)
@@ -77,7 +77,7 @@ class TestDf2UnitNormalized(unittest.TestCase):
             'Distance': [Qty('1 m'), '2 m', None, '3 m'],
         })
 
-        out = df2unit_normalized(df)
+        out = df2normalized(df)
         dist_col = f'Distance {qconst.TBL_UOM_SEP} m'
 
         self.assertEqual(list(out.columns), [dist_col])
@@ -100,7 +100,7 @@ class TestDf2UnitNormalized(unittest.TestCase):
             'RawValue': [1.23456],
         })
 
-        out = df2unit_normalized(df, do_format=True)
+        out = df2normalized(df, do_format=True)
         dist_col = f'Distance {qconst.TBL_UOM_SEP} m'
 
         self.assertEqual(out[dist_col].iloc[0], '1.235')
@@ -118,7 +118,7 @@ class TestDf2UnitNormalized(unittest.TestCase):
         df = pd.DataFrame({
             'Param3': ['76.1234 deg', '', '65.1234 ft'],
         })
-        out = df2unit_normalized(df, do_format=True)
+        out = df2normalized(df, do_format=True)
 
         self.assertEqual(list(out.columns), ['Param3'])
         self.assertEqual(out['Param3'].tolist(), ['76.123 deg', '', '65.123 ft'])
@@ -127,10 +127,10 @@ class TestDf2UnitNormalized(unittest.TestCase):
         os.getenv('QCALC_RUN_BENCHMARKS') == '1',
         'Set QCALC_RUN_BENCHMARKS=1 to run benchmark tests.',
     )
-    def test_benchmark_df2unit_normalized_vs_baseline(self):
+    def test_benchmark_df2normalized_vs_baseline(self):
         from qcore import as_qtable, Qty, is_str_qty
 
-        def baseline_df2unit_normalized(df):
+        def baseline_df2normalized(df):
             local_df = as_qtable(df)
             normalized_df = local_df.copy()
             rename_map = {}
@@ -196,8 +196,8 @@ class TestDf2UnitNormalized(unittest.TestCase):
             'Value': [float(i) for i in range(rows)],
         })
 
-        expected = baseline_df2unit_normalized(df)
-        actual = df2unit_normalized(df)
+        expected = baseline_df2normalized(df)
+        actual = df2normalized(df)
         pd.testing.assert_frame_equal(actual, expected)
 
         def _bench(fn, arg, loops=5):
@@ -211,12 +211,12 @@ class TestDf2UnitNormalized(unittest.TestCase):
             durations.sort()
             return durations[len(durations) // 2], durations
 
-        base_median, base_all = _bench(baseline_df2unit_normalized, df)
-        new_median, new_all = _bench(df2unit_normalized, df)
+        base_median, base_all = _bench(baseline_df2normalized, df)
+        new_median, new_all = _bench(df2normalized, df)
         speedup = (base_median / new_median) if new_median > 0 else float('inf')
 
         print(
-            f'Benchmark df2unit_normalized (rows={rows})\\n'
+            f'Benchmark df2normalized (rows={rows})\\n'
             f'baseline median: {base_median:.6f}s runs={base_all}\\n'
             f'optimized median: {new_median:.6f}s runs={new_all}\\n'
             f'speedup: {speedup:.2f}x'

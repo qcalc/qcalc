@@ -134,7 +134,7 @@ def result_values(result):
     return ojson_data, ojson_uoms
 
 
-def df2unit_normalized(df, do_format: bool = False) -> pd.DataFrame:
+def df2normalized(df, do_format: bool = False) -> pd.DataFrame:
     """Return an Excel-friendly DataFrame with Qty units moved into headers.
 
     Each Qty-valued column is converted to its scalar qty values, and the

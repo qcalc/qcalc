@@ -1,6 +1,8 @@
-from datetime import date
+from datetime import date, timedelta
 
-from qutil import QDateTime, is_str_date, is_number, julian_date
+import pytest
+
+from qutil import QDateTime, is_str_date, is_number, julian_date, now, today
 
 
 def test_qdatetime():
@@ -138,3 +140,85 @@ def test_qdatetime():
     assert d.is_datetime
     assert e.is_datetime
     assert qc.is_datetime
+
+    base_date = QDateTime('2024-09-23')
+    assert (base_date + 2).val == date(2024, 9, 25)
+    assert (base_date - 3).val == date(2024, 9, 20)
+    assert (base_date + 1.5).val == date(2024, 9, 24)
+    assert (base_date - timedelta(days=4)).val == date(2024, 9, 19)
+
+    base_datetime = QDateTime('2024-09-23T10:30:00')
+    dt_plus = base_datetime + 0.5
+    dt_minus = base_datetime - timedelta(hours=12)
+    assert dt_plus.is_datetime
+    assert dt_minus.is_datetime
+    assert str(dt_plus) == '2024-09-23 22:30:00'
+    assert str(dt_minus) == '2024-09-22 22:30:00'
+
+
+def test_qdatetime_arithmetic_with_negative_float_days():
+    base_datetime = QDateTime('2024-09-23T10:30:00')
+    shifted = base_datetime + (-0.25)
+    assert shifted.is_datetime
+    assert str(shifted) == '2024-09-23 04:30:00'
+
+
+def test_qdatetime_arithmetic_rejects_invalid_operands():
+    with pytest.raises(TypeError):
+        _ = QDateTime('2024-09-23') + "1"
+
+    with pytest.raises(TypeError):
+        _ = QDateTime('10:30:01') + 1
+
+    with pytest.raises(TypeError):
+        _ = QDateTime('2024-09-23') - QDateTime(None)
+
+    with pytest.raises(TypeError):
+        _ = QDateTime('10:30:01') - QDateTime('2024-09-23')
+
+
+def test_qdatetime_today_returns_qdatetime_date():
+    today_qdt = today()
+    assert isinstance(today_qdt, QDateTime)
+    assert today_qdt.is_date
+    assert today_qdt.val == date.today()
+
+
+def test_qdatetime_now_returns_qdatetime_datetime():
+    now_qdt = now()
+    assert isinstance(now_qdt, QDateTime)
+    assert now_qdt.is_datetime
+
+
+def test_qdatetime_now_accepts_utc_and_offset_strings():
+    utc_now = now("UTC")
+    off_no_colon = now("+0600")
+    off_with_colon = now("+06:00")
+    utc_with_prefix = now("UTC+06:00")
+
+    assert utc_now.is_datetime
+    assert off_no_colon.is_datetime
+    assert off_with_colon.is_datetime
+    assert utc_with_prefix.is_datetime
+    assert utc_now.val.utcoffset() == timedelta(0)
+    assert off_no_colon.val.utcoffset() == timedelta(hours=6)
+    assert off_with_colon.val.utcoffset() == timedelta(hours=6)
+    assert utc_with_prefix.val.utcoffset() == timedelta(hours=6)
+
+
+def test_qdatetime_now_rejects_invalid_timezone_strings():
+    with pytest.raises(ValueError):
+        now("Asia/Dhaka")
+
+    with pytest.raises(ValueError):
+        now("+25:00")
+
+
+def test_qdatetime_subtract_qdatetime_returns_float_days():
+    d1 = QDateTime('2024-09-23')
+    d2 = QDateTime('2024-09-20')
+    assert (d1 - d2) == 3.0
+
+    dt1 = QDateTime('2024-09-23T10:30:00')
+    dt2 = QDateTime('2024-09-22T22:30:00')
+    assert (dt1 - dt2) == 0.5

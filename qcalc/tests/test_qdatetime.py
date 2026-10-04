@@ -144,8 +144,13 @@ def test_qdatetime():
     base_date = QDateTime('2024-09-23')
     assert (base_date + 2).val == date(2024, 9, 25)
     assert (base_date - 3).val == date(2024, 9, 20)
-    assert (base_date + 1.5).val == date(2024, 9, 24)
+    date_plus_half = base_date + 1.5
+    assert date_plus_half.is_datetime
+    assert str(date_plus_half) == '2024-09-24 12:00:00'
     assert (base_date - timedelta(days=4)).val == date(2024, 9, 19)
+    date_minus_half = base_date - 0.5
+    assert date_minus_half.is_datetime
+    assert str(date_minus_half) == '2024-09-22 12:00:00'
 
     base_datetime = QDateTime('2024-09-23T10:30:00')
     dt_plus = base_datetime + 0.5

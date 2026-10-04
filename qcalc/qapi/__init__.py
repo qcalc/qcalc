@@ -9,10 +9,10 @@ import datetime
 
 from qcore import (
     # | Qty class and related functions
-    Qty, base_units, base_dims, unit_desc, prefixes, \
-    uname2lmt as unit2lmt, lmt_title as lmt_desc, str_type, \
-    lmt2categ as lmt2cat, lmt2ulist, lmt2qlist, find_unit, is_str_qty, qx, qxi, \
-    isMeasureUnit as is_unit, isMeasureQuantity as is_qty, read_unit, \
+    Qty, base_units, base_dims, unit_desc, prefixes,
+    uname2lmt as unit2lmt, lmt_title as lmt_desc, str_type,
+    lmt2categ as lmt2cat, lmt2ulist, lmt2qlist, find_unit, is_str_qty, qx, qxi,
+    isMeasureUnit as is_unit, isMeasureQuantity as is_qty, read_unit,
     # | Keep the following annotations
     oqfunc, qchar, qcode, qdate, qdict, qdatetime, qemail, qfl, qfile, qfunc, qhide,
     qhidex, qhtml, qin, qimage, qlist, qpage, qread, qregex, qsel2, qtbl, qtc,
@@ -23,9 +23,15 @@ from qcore import (
     QImage, qf2img, nparray_to_bio,
     QChart, QGeo, QMap, SmartCalc
 )
-from qutil import QDateTime, DotDict, dd_list, user_name, user_process, user_ip, local_ip, \
-    page_link, calurl, cal_link, command_button, addcal_button, \
-    iif, joinx, css2floats, css2ints, css2values, css2strs, vals2css, today, now
+
+from qutil import (
+    QDateTime, today, now, spellnow,  # mod_datetime
+    DotDict, dd_list,  # mod_dict
+    user_name, user_process, user_ip, local_ip,  # mod_user
+    page_link, calurl, cal_link, command_button, addcal_button,  # mod_links
+    iif, joinx, css2floats, css2ints, css2values, css2strs, vals2css, css2set,  # mod_basic
+)
+
 from .mod_np import np_names, np
 from .mod_qtbl import *
 from .mod_autil import qsymbols, qsymstat, qsymhelp
@@ -57,17 +63,18 @@ __qtypes__ = [
 
 # for eva(), mycal() and console
 __evacon__ = [
-    "is_qty", "is_unit", "base_units", "base_dims", "unit_desc", "prefixes", "unit2lmt",
-    "lmt_desc", "str_type", "read_unit", "lmt2cat", "lmt2ulist", "lmt2qlist", "find_unit",
-    "minimum", "iif", "joinx", "css2floats", "css2ints", "css2values", "css2strs", "vals2css",
-    "np", "qdf", "qcol", "qrow", "qsum", "qadd", "qsub", "qmul", "qdiv",
-    "qtypes", "qmodules", "qsymbols", "qsymstat", "qsymhelp",
+    "is_qty", "is_unit", "base_units", "base_dims", "unit_desc", "prefixes", "unit2lmt",  # qcore
+    "lmt_desc", "str_type", "read_unit", "lmt2cat", "lmt2ulist", "lmt2qlist", "find_unit", "is_str_qty",  # qcore
+    "minimum",  # this file
+    "iif", "joinx", "css2floats", "css2ints", "css2values", "css2strs", "vals2css", "css2set",  # qutil.mod_basic
+    "np", "qdf", "qcol", "qrow", "qsum", "qadd", "qsub", "qmul", "qdiv",  # qapi.mod_qtbl
+    "qtypes", "qmodules", "qsymbols", "qsymstat", "qsymhelp",  # qapi.mod_autil
     "QFile", "qf2bio", "dd_list",
     "QImage", "qf2img", "nparray_to_bio",
     "QChart", "QGeo", "QMap", "SmartCalc",
-    "user_name", "user_process", "user_ip", "local_ip",
-    "page_link", "calurl", "cal_link", "command_button", "addcal_button",
-    "today", "now",
+    "user_name", "user_process", "user_ip", "local_ip",  # qutil.mod_user
+    "page_link", "calurl", "cal_link", "command_button", "addcal_button",  # qutil.mod_links
+    "today", "now", "spellnow",  # qutil.mod_datetime
 ]
 
 

@@ -25,7 +25,19 @@ def is_number(value: str) -> bool:
 
 
 class QDateTime:
+    """
+    Timezone behavior:
+    - No fixed/default timezone is assumed for dt_value.
+    - If parsed/input datetime contains an explicit timezone/offset, dt_value is timezone-aware.
+    - If parsed/input datetime has no timezone, dt_value is naive (tzinfo is None).
+    - date values are date-only (no timezone concept).
+    - time values may be naive or timezone-aware, depending on input.
+    """
     dt_value: date | datetime | dt_time | None
+
+    @staticmethod
+    def _has_sub_day_precision(delta: timedelta) -> bool:
+        return delta.seconds != 0 or delta.microseconds != 0
 
     @staticmethod
     def _delta_from_operand(other: int | float | timedelta) -> timedelta:
@@ -103,12 +115,22 @@ class QDateTime:
     def __str__(self):
         return qc_datetime_to_str(self.dt_value)
 
+    def spell(self) -> str:
+        dt = self.date_time
+        if dt is None:
+            return "Invalid date"
+        base = f"{dt.strftime('%A, %B')} {dt.day}, {dt.strftime('%Y, %I:%M %p')}"
+        return f"{base} UTC{dt.strftime('%z')}" if dt.tzinfo and dt.utcoffset() is not None else f"{base} local time"
+
     def __add__(self, other: int | float | timedelta):
         if self.dt_value is None:
             raise TypeError("Cannot apply arithmetic on an invalid QDateTime value")
         if isinstance(self.dt_value, dt_time):
             raise TypeError("Arithmetic is not supported for time-only QDateTime values")
         delta = self._delta_from_operand(other)
+        if self.is_date and self._has_sub_day_precision(delta):
+            base_datetime = datetime.combine(self.dt_value, dt_time.min)
+            return QDateTime(base_datetime + delta)
         return QDateTime(self.dt_value + delta)
 
     def __sub__(self, other):
@@ -124,6 +146,9 @@ class QDateTime:
             delta = self.dt_value - other.dt_value
             return delta.total_seconds() / 86400.0
         delta = self._delta_from_operand(other)
+        if self.is_date and self._has_sub_day_precision(delta):
+            base_datetime = datetime.combine(self.dt_value, dt_time.min)
+            return QDateTime(base_datetime - delta)
         return QDateTime(self.dt_value - delta)
 
     def day_name(self, short: bool = False) -> str | None:
@@ -179,38 +204,37 @@ def today() -> QDateTime:
     return QDateTime(date.today())
 
 
-def _tz_from_offset_string(tz: str | None) -> tzinfo | None:
+def spellnow(tz: str | None = None) -> str:
+    return now(tz).spell()
+
+
+def now(tz: str | None = None) -> QDateTime:
+    """
+    Return current time as QDateTime.
+
+    tz behavior:
+    - None or blank: local naive datetime (no tzinfo).
+    - 'UTC': UTC-aware datetime.
+    - '+HHMM' / '+HH:MM' (or negative forms): offset-aware datetime.
+    - 'UTC+HHMM' / 'UTC+HH:MM': offset-aware datetime.
+    """
     if tz is None:
-        return None
+        return QDateTime(datetime.now())
     if not isinstance(tz, str):
         raise TypeError("Timezone must be a string in UTC or offset format")
 
     value = tz.strip()
     if not value:
-        return None
-    if value.upper() == "UTC":
-        return timezone.utc
+        return QDateTime(datetime.now())
 
-    if value.upper().startswith("UTC"):
-        value = value[3:].strip()
-        if not value:
-            return timezone.utc
+    candidate = value
+    if re.fullmatch(r"[+-]\d{2}:?\d{2}", value):
+        candidate = f"UTC{value}"
 
-    match = re.fullmatch(r"([+-])(\d{2}):?(\d{2})", value)
-    if not match:
+    tz_value = qc_timezone(candidate)
+    if tz_value is None:
         raise ValueError("Timezone must be 'UTC', '+HHMM', or '+HH:MM' format")
-
-    sign = 1 if match.group(1) == "+" else -1
-    hours = int(match.group(2))
-    minutes = int(match.group(3))
-    if hours > 23 or minutes > 59:
-        raise ValueError("Timezone offset hours must be 00-23 and minutes 00-59")
-
-    return timezone(sign * timedelta(hours=hours, minutes=minutes))
-
-
-def now(tz: str | None = None) -> QDateTime:
-    return QDateTime(datetime.now(tz=_tz_from_offset_string(tz)))
+    return QDateTime(datetime.now(tz=tz_value))
 
 
 def qc_str_to_datetime(sdatetime_iso_qc: str):  # risk
@@ -308,7 +332,6 @@ def ts2iso(time_stamp, tz: tzinfo):
 def j2iso(jdy: float, tz: tzinfo):
     time_stamp = j2ts(jdy)
     return ts2iso(time_stamp, tz)
-
 
 
 if __name__ == '__main__':

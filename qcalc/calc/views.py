@@ -580,7 +580,7 @@ def q1_add_func_help(request: HtmxHttpRequest, **kwargs):
 
     try:
         context = q1141_read_func_meta(func_id, __info=__info)
-        dyn_html = get_fhelp(func_id, __info)
+        dyn_html = '' # get_fhelp(func_id, __info)
         context['dyn_html'] = dyn_html
         help_path = get_help_path(func_id)
         help_exists = help_path.exists()
@@ -843,6 +843,7 @@ def q1149_func_to_form_context(request: HtmxHttpRequest, func_id, cid, kwargs):
     #     print('__info from recall', __info, kwargs)
     #     kwargs.update({'__info': __info})
     request.json_doc = q1141_read_func_meta(func_id, __info)
+    request.json_doc['info']['help'] = get_fhelp(func_id, __info) 
     request.json_doc['info']['inp1'] = ut.specified_args(func_addr, request.json_doc['info']['inp1'], empty_spec='')
     request.json_doc['info']['input_blocks'] = _normalize_layout_blocks(
         request.json_doc['info'].get('input_blocks', []),

@@ -19,7 +19,9 @@
         data-toggle="collapse" aria-label="help">Help&nbsp;</button>
 <div class="collapse section-help" id="help-space-{{ input.cid }}">
   <p>{{ input.doc.info.desc | safe }}</p>
-  <!--p> input.doc.help | safe </p-->
+  {% if input.doc.info.help %}
+  <div class="md-content mb-2">{{ input.doc.info.help | safe }}</div>
+  {% endif %}
   {% if input.doc.help == 'y' %}
   <p>Click here to
     <a class="" href="/calc/help/{{ input.doc.name }}/"

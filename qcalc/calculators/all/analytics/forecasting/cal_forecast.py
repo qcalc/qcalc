@@ -5,6 +5,7 @@ from math import sqrt
 from statistics import NormalDist
 
 from qcore import qtbl, QChart, qhtml
+from qutil import md2html
 
 
 def _qtbl(columns, data_rows):
@@ -67,6 +68,13 @@ def _mae(actual, pred):
     return sum(abs(a - p) for a, p in zip(actual, pred)) / n
 
 
+def _mse(actual, pred):
+    n = len(actual)
+    if n == 0:
+        return None
+    return sum((a - p) ** 2 for a, p in zip(actual, pred)) / n
+
+
 def _rmse(actual, pred):
     n = len(actual)
     if n == 0:
@@ -111,6 +119,7 @@ def _fit_constant(values):
         'trend': trend_series,
         'seasonal': seasonal_series,
         'state': {'level': level, 'trend': 0.0, 'seasonals': []},
+        'warmup': 1,
     }
 
 
@@ -134,6 +143,7 @@ def _fit_ses(values, alpha):
         'trend': [0.0 for _ in values],
         'seasonal': [0.0 for _ in values],
         'state': {'level': level, 'trend': 0.0, 'seasonals': []},
+        'warmup': 1,
     }
 
 
@@ -163,6 +173,7 @@ def _fit_holt(values, alpha, beta):
         'trend': trend_series,
         'seasonal': [0.0 for _ in values],
         'state': {'level': level, 'trend': trend, 'seasonals': []},
+        'warmup': 1,
     }
 
 
@@ -263,6 +274,7 @@ def _fit_hw_add(values, alpha, beta, gamma, season_len):
         'trend': trend_series,
         'seasonal': seasonal_series,
         'state': {'level': level, 'trend': trend, 'seasonals': seasonals, 'season_len': season_len},
+        'warmup': season_len,
     }
 
 
@@ -317,6 +329,7 @@ def _fit_hw_mul(values, alpha, beta, gamma, season_len):
         'trend': trend_series,
         'seasonal': seasonal_series,
         'state': {'level': level, 'trend': trend, 'seasonals': seasonals, 'season_len': season_len},
+        'warmup': season_len,
     }
 
 
@@ -361,6 +374,7 @@ def _fit_seasonal_add(values, alpha, gamma, season_len):
         'trend': [0.0 for _ in values],
         'seasonal': seasonal_series,
         'state': {'level': level, 'trend': 0.0, 'seasonals': seasonals, 'season_len': season_len},
+        'warmup': season_len,
     }
 
 
@@ -407,6 +421,68 @@ def _fit_seasonal_mul(values, alpha, gamma, season_len):
         'trend': [0.0 for _ in values],
         'seasonal': seasonal_series,
         'state': {'level': level, 'trend': 0.0, 'seasonals': seasonals, 'season_len': season_len},
+        'warmup': season_len,
+    }
+
+
+def _fit_moving_average(values, ma_window):
+    n = len(values)
+    window = int(ma_window)
+    if window < 2:
+        raise Exception('Moving average window must be at least 2')
+    if window >= n:
+        raise Exception('Moving average window must be smaller than the number of observations')
+
+    fitted = []
+    for i in range(n):
+        start = max(0, i - window)
+        history = values[start:i]
+        if not history:
+            fitted_val = values[0]
+        else:
+            fitted_val = _mean(history)
+        fitted.append(fitted_val)
+
+    residuals = [v - f for v, f in zip(values, fitted)]
+    return {
+        'params': {'ma_window': window},
+        'fitted': fitted,
+        'residuals': residuals,
+        'level': list(fitted),
+        'trend': [0.0 for _ in values],
+        'seasonal': [0.0 for _ in values],
+        'state': {'window': window, 'history': list(values[-window:])},
+        'warmup': window,
+    }
+
+
+def _fit_linear_regression(values):
+    n = len(values)
+    x = [i + 1 for i in range(n)]
+    sx = sum(x)
+    sy = sum(values)
+    sxy = sum((xi * yi) for xi, yi in zip(x, values))
+    sx2 = sum(xi * xi for xi in x)
+    den = n * sx2 - sx * sx
+
+    if den == 0:
+        slope = 0.0
+        intercept = _mean(values)
+    else:
+        slope = (n * sxy - sx * sy) / den
+        intercept = (sy - slope * sx) / n
+
+    fitted = [intercept + slope * xi for xi in x]
+    residuals = [v - f for v, f in zip(values, fitted)]
+    return {
+        'params': {'slope': slope, 'intercept': intercept},
+        'fitted': fitted,
+        'residuals': residuals,
+        'level': list(fitted),
+        'trend': [slope for _ in values],
+        'seasonal': [0.0 for _ in values],
+        'state': {'intercept': intercept, 'slope': slope, 'n': n},
+        'warmup': 1,
     }
 
 
@@ -468,10 +544,27 @@ def _forecast_from_state(model_key, fit_out, horizon):
             s_h = seasonals[base_index + ((h - 1) % season_len)]
             result.append((level + h * trend) * s_h)
 
+    elif model_key == 'moving_average':
+        window = int(state['window'])
+        history = list(state['history'])
+        for _ in range(horizon):
+            fval = _mean(history) if history else 0.0
+            result.append(fval)
+            history.append(fval)
+            if len(history) > window:
+                history.pop(0)
+
+    elif model_key == 'linear_regression':
+        intercept = state['intercept']
+        slope = state['slope']
+        n = state['n']
+        for h in range(1, horizon + 1):
+            result.append(intercept + slope * (n + h))
+
     return result
 
 
-def _fit_model(values, model_key, season_len=None, manual_params=None):
+def _fit_model(values, model_key, season_len=None, manual_params=None, ma_window=3):
     if model_key == 'constant':
         return _fit_constant(values)
 
@@ -575,6 +668,12 @@ def _fit_model(values, model_key, season_len=None, manual_params=None):
                         best = (sse, fit)
         return best[1]
 
+    if model_key == 'moving_average':
+        return _fit_moving_average(values, ma_window)
+
+    if model_key == 'linear_regression':
+        return _fit_linear_regression(values)
+
     raise Exception('Unsupported model')
 
 
@@ -587,6 +686,8 @@ def _model_name(model_key):
         'holt': 'Holt Linear Trend',
         'hw_add': 'Holt-Winters Additive',
         'hw_mul': 'Holt-Winters Multiplicative',
+        'moving_average': 'Moving Average',
+        'linear_regression': 'Linear Regression',
     }
     return names.get(model_key, model_key)
 
@@ -600,6 +701,8 @@ def _model_components(model_key):
         'holt': ('changing', 'linear', 'none'),
         'hw_add': ('changing', 'linear', 'additive'),
         'hw_mul': ('changing', 'linear', 'multiplicative'),
+        'moving_average': ('changing', 'none', 'none'),
+        'linear_regression': ('changing', 'linear', 'none'),
     }
     if model_key not in mapping:
         raise Exception(f'Unsupported model key: {model_key}')
@@ -608,14 +711,14 @@ def _model_components(model_key):
 
 def _residual_rmse_for_selection(model_key, fit_out, season_len):
     residuals = fit_out['residuals']
-    start_idx = season_len if model_key in ('seasonal_add', 'seasonal_mul', 'hw_add', 'hw_mul') else 1
+    start_idx = max(1, int(fit_out.get('warmup', 1)))
     used = residuals[start_idx:] if len(residuals) > start_idx else residuals
     if not used:
         return float('inf')
     return sqrt(sum(r * r for r in used) / len(used))
 
 
-def _holdout_rmse_for_selection(values, model_key, season_len, holdout_rows):
+def _holdout_rmse_for_selection(values, model_key, season_len, holdout_rows, ma_window):
     if holdout_rows <= 0 or holdout_rows >= len(values):
         return None
 
@@ -623,16 +726,32 @@ def _holdout_rmse_for_selection(values, model_key, season_len, holdout_rows):
     test_values = values[-holdout_rows:]
 
     # Candidate must be trainable on the reduced training window.
-    _validate_inputs(train_values, model_key, season_len)
+    _validate_inputs(train_values, model_key, season_len, ma_window)
 
-    fit_train = _fit_model(train_values, model_key, season_len=season_len, manual_params=None)
+    fit_train = _fit_model(
+        train_values,
+        model_key,
+        season_len=season_len,
+        manual_params=None,
+        ma_window=ma_window,
+    )
     pred_test = _forecast_from_state(model_key, fit_train, holdout_rows)
     rmse = _rmse(test_values, pred_test)
     return float('inf') if rmse is None else rmse
 
 
-def _select_model_automatic(values, season_len, holdout_rows=0):
-    candidates = ['constant', 'ses', 'seasonal_add', 'seasonal_mul', 'holt', 'hw_add', 'hw_mul']
+def _select_model_automatic(values, season_len, holdout_rows=0, ma_window=3):
+    candidates = [
+        'constant',
+        'ses',
+        'seasonal_add',
+        'seasonal_mul',
+        'holt',
+        'hw_add',
+        'hw_mul',
+        'moving_average',
+        'linear_regression',
+    ]
     holdout_best = None
     insample_best = None
     diagnostics = []
@@ -648,8 +767,14 @@ def _select_model_automatic(values, season_len, holdout_rows=0):
             'note': '',
         }
         try:
-            _validate_inputs(values, model_key, season_len)
-            fit_out = _fit_model(values, model_key, season_len=season_len, manual_params=None)
+            _validate_inputs(values, model_key, season_len, ma_window)
+            fit_out = _fit_model(
+                values,
+                model_key,
+                season_len=season_len,
+                manual_params=None,
+                ma_window=ma_window,
+            )
             insample_score = _residual_rmse_for_selection(model_key, fit_out, season_len)
             row['eligible_insample'] = True
             row['insample_rmse'] = insample_score
@@ -658,7 +783,13 @@ def _select_model_automatic(values, season_len, holdout_rows=0):
 
             if holdout_rows > 0:
                 try:
-                    holdout_score = _holdout_rmse_for_selection(values, model_key, season_len, holdout_rows)
+                    holdout_score = _holdout_rmse_for_selection(
+                        values,
+                        model_key,
+                        season_len,
+                        holdout_rows,
+                        ma_window,
+                    )
                     if holdout_score is not None:
                         row['eligible_holdout'] = True
                         row['holdout_rmse'] = holdout_score
@@ -705,19 +836,44 @@ def _model_key(level_mode, trend_mode, seasonality_mode):
     )
 
 
-def _required_min_obs(model_key, season_len):
+def _manual_preset_model_key(manual_method_preset):
+    mapping = {
+        'constant': 'constant',
+        'ses': 'ses',
+        'seasonal_add': 'seasonal_add',
+        'seasonal_mul': 'seasonal_mul',
+        'holt': 'holt',
+        'hw_add': 'hw_add',
+        'hw_mul': 'hw_mul',
+        'custom': None,
+    }
+    if manual_method_preset not in mapping:
+        raise Exception('Unsupported manual method preset')
+    return mapping[manual_method_preset]
+
+
+def _required_min_obs(model_key, season_len, ma_window=3):
     if model_key in ('seasonal_add', 'seasonal_mul', 'hw_add', 'hw_mul'):
         return max(8, 2 * season_len)
+    if model_key == 'moving_average':
+        return max(8, int(ma_window) + 2)
     return 8
 
 
-def _validate_inputs(values, model_key, season_len):
-    need = _required_min_obs(model_key, season_len)
+def _validate_inputs(values, model_key, season_len, ma_window=3):
+    need = _required_min_obs(model_key, season_len, ma_window)
     if len(values) < need:
-        raise Exception(f'Not enough observations for selected model. Need at least {need} rows')
+        raise Exception(f'Need at least {need} observations')
 
     if model_key in ('seasonal_mul', 'hw_mul') and any(v <= 0 for v in values):
         raise Exception('Multiplicative seasonality requires all Value entries to be greater than zero')
+
+    if model_key == 'moving_average':
+        window = int(ma_window)
+        if window < 2:
+            raise Exception('Moving average window must be at least 2')
+        if window >= len(values):
+            raise Exception('Moving average window must be smaller than the number of observations')
 
 
 def _z_for_confidence(confidence_level):
@@ -741,6 +897,10 @@ def _interval_scale(model_key, horizon, model_params):
         factor = 1.0 + 0.25 * h + (beta ** 2) * h * (h - 1.0) / 2.0
     elif model_key in ('hw_add', 'hw_mul'):
         factor = 1.0 + 0.25 * h + (beta ** 2) * h * (h - 1.0) / 2.0 + (gamma ** 2) * 0.40 * h
+    elif model_key == 'moving_average':
+        factor = 1.0 + 0.15 * h
+    elif model_key == 'linear_regression':
+        factor = 1.0 + 0.25 * h
     else:
         factor = max(1.0, h)
 
@@ -805,16 +965,19 @@ def _build_model_selection_table(diagnostics_rows, selected_model_key, selection
     )
 
 
-def _build_decomposition_table(periods, values, fit_out):
+def _build_decomposition_table(periods, values, fit_out, holdout_pred=None):
     rows = []
     fitted = fit_out['fitted']
     level = fit_out['level']
     trend = fit_out['trend']
     seasonal = fit_out['seasonal']
+    n = len(values)
+    # holdout_pred holds out-of-sample forecasts for the last rows; earlier rows stay blank
+    first_holdout = n - len(holdout_pred) if holdout_pred else n
 
-    for i in range(len(values)):
+    for i in range(n):
         resid = values[i] - fitted[i]
-        rows.append([
+        row = [
             periods[i],
             _safe_round(level[i]),
             _safe_round(trend[i]),
@@ -822,18 +985,32 @@ def _build_decomposition_table(periods, values, fit_out):
             _safe_round(resid),
             _safe_round(fitted[i]),
             _safe_round(values[i]),
-        ])
+        ]
+        if holdout_pred:
+            if i >= first_holdout:
+                pred = holdout_pred[i - first_holdout]
+                row.extend([_safe_round(pred), _safe_round(values[i] - pred)])
+            else:
+                row.extend(['', ''])
+        rows.append(row)
 
-    return _qtbl(['Period', 'Level', 'Trend', 'Seasonal', 'Residual', 'Fitted', 'Actual'], rows)
+    columns = ['Period', 'Level', 'Trend', 'Seasonal', 'Residual', 'Fitted', 'Actual']
+    if holdout_pred:
+        columns.extend(['Holdout forecast', 'Holdout error'])
+    return _qtbl(columns, rows)
 
 
 def _build_accuracy(actual, pred, mode_label, train_size, test_size):
     mape = _mape(actual, pred)
+    mae = _mae(actual, pred)
+    mse = _mse(actual, pred)
     rows = [
         ['Validation mode', mode_label],
         ['Training rows', train_size],
         ['Test rows', test_size],
-        ['MAE', _safe_round(_mae(actual, pred))],
+        ['MAD (MAE)', _safe_round(mae)],
+        ['MAE', _safe_round(mae)],
+        ['MSE', _safe_round(mse)],
         ['RMSE', _safe_round(_rmse(actual, pred))],
         ['MAPE %', _safe_round(mape) if mape is not None else ''],
     ]
@@ -892,6 +1069,9 @@ def _manual_params(method_mode, model_key, alpha, beta, gamma):
     if method_mode != 'manual-components':
         return None
 
+    if model_key == 'constant':
+        return {}
+
     params = {'alpha': _validate_smoothing('alpha', alpha)}
 
     if model_key in ('holt', 'hw_add', 'hw_mul'):
@@ -903,17 +1083,35 @@ def _manual_params(method_mode, model_key, alpha, beta, gamma):
     return params
 
 
-def _fit_and_forecast(values, model_key, horizon, season_len, manual_params=None):
-    fit_out = _fit_model(values, model_key, season_len=season_len, manual_params=manual_params)
+def _fit_and_forecast(values, model_key, horizon, season_len, ma_window, manual_params=None):
+    fit_out = _fit_model(
+        values,
+        model_key,
+        season_len=season_len,
+        manual_params=manual_params,
+        ma_window=ma_window,
+    )
     point_forecast = _forecast_from_state(model_key, fit_out, horizon)
     return fit_out, point_forecast
 
 
 def forecast__info():
+    manual_fields = [
+        'manual_method_preset',
+        'level_mode',
+        'alpha',
+        'trend_mode',
+        'beta',
+        'seasonality_mode',
+        'gamma',
+        'seasonal_period',
+        'manual_model_key',
+        'ma_window',
+    ]
     return {
-        'title': 'Forecasting Model (Decomposition-Based)',
+        'title': 'Demand Forecasting Model',
         'desc': (
-            'Create forecasts from choices for level, trend, seasonality, and random variation. '
+            'Create forecasts with automatic selection or manual model choices across exponential smoothing, moving average, and linear regression. '
         ),
         'calculate': 'Forecast',
         'schema': {
@@ -926,13 +1124,42 @@ def forecast__info():
                 'help_text': 'Number of future periods to forecast',
             },
             'method_mode': {
-                'label': 'Forecast method',
+                'label': 'Method mode',
                 'type': 'choice',
                 'choices': {
                     'automatic': 'Automatic',
                     'manual-components': 'Manual components',
+                    'manual-model': 'Manual model family',
                 },
-                'help_text': 'Automatic estimates smoothing parameters; manual uses your alpha, beta, gamma values',
+                'help_text': 'Automatic picks the best model. Manual components uses smoothing components/presets. Manual model family lets you choose Moving Average or Linear Regression directly',
+            },
+            'manual_method_preset': {
+                'label': 'Manual method preset',
+                'type': 'choice',
+                'choices': {
+                    'holt': 'Holt Linear Trend',
+                    'ses': 'Simple Exponential Smoothing',
+                    'seasonal_add': 'Seasonal Additive (No Trend)',
+                    'seasonal_mul': 'Seasonal Multiplicative (No Trend)',
+                    'hw_add': 'Holt-Winters Additive',
+                    'hw_mul': 'Holt-Winters Multiplicative',
+                    'constant': 'Constant baseline',
+                    'custom': 'Custom (use level|trend|seasonality fields)',
+                },
+                'help_text': 'Used in manual-components mode. Presets auto-configure level/trend/seasonality choices; choose Custom to edit components directly',
+            },
+            'manual_model_key': {
+                'label': 'Manual model family',
+                'type': 'choice',
+                'choices': {
+                    'moving_average': 'Moving Average',
+                    'linear_regression': 'Linear Regression',
+                },
+                'help_text': 'Used in manual-model mode',
+            },
+            'ma_window': {
+                'label': 'Moving average window',
+                'help_text': 'Used when manual model family is Moving Average. Must be >= 2 and smaller than observations',
             },
             'level_mode': {
                 'label': 'Level',
@@ -1005,14 +1232,40 @@ def forecast__info():
                 'help_text': 'Used when validation mode is Holdout',
             },
         },
+        'autofill': {
+            'manual_method_preset': {
+                'fields': ['level_mode', 'trend_mode', 'seasonality_mode'],
+                'autofill': {
+                    'constant': ['constant', 'none', 'none'],
+                    'ses': ['changing', 'none', 'none'],
+                    'holt': ['changing', 'linear', 'none'],
+                    'seasonal_add': ['changing', 'none', 'additive'],
+                    'seasonal_mul': ['changing', 'none', 'multiplicative'],
+                    'hw_add': ['changing', 'linear', 'additive'],
+                    'hw_mul': ['changing', 'linear', 'multiplicative'],
+                },
+            },
+        },
         'showhide': {
-            'seasonality_mode': {
-                'fields': ['seasonal_period', 'gamma'],
-                'callback': 'showSeasonalityDependents',
+            'method_mode': {
+                'fields': manual_fields,
+                'callback': 'showManualFields',
+            },
+            'manual_method_preset': {
+                'fields': manual_fields,
+                'callback': 'showManualFields',
             },
             'trend_mode': {
-                'fields': ['beta'],
-                'callback': 'showTrendDependents',
+                'fields': manual_fields,
+                'callback': 'showManualFields',
+            },
+            'seasonality_mode': {
+                'fields': manual_fields,
+                'callback': 'showManualFields',
+            },
+            'manual_model_key': {
+                'fields': manual_fields,
+                'callback': 'showManualFields',
             },
             'random_mode': {
                 'fields': ['confidence_level'],
@@ -1022,25 +1275,11 @@ def forecast__info():
                 'fields': ['holdout_percent'],
                 'callback': 'showHoldoutPct',
             },
-            'method_mode': {
-                'fields': ['level_mode', 'alpha', 'trend_mode', 'beta', 'seasonality_mode', 'gamma', 'seasonal_period'],
-                'callback': 'showMethodDependents',
-            },
         },
         'script': """
         function getModeValue(fieldName){
             const elem = document.querySelector(`[id$='_${fieldName}']`);
             return elem ? elem.value : '';
-        }
-        function showSeasonalityDependents(v){
-            const methodValue = getModeValue('method_mode');
-            const isSeasonal = v !== 'none';
-            const showGamma = methodValue === 'manual-components' && isSeasonal;
-            return [isSeasonal, showGamma];
-        }
-        function showTrendDependents(v){
-            const methodValue = getModeValue('method_mode');
-            return [methodValue === 'manual-components' && v === 'linear'];
         }
         function showConfidence(v){
             return [v === 'historical'];
@@ -1048,22 +1287,47 @@ def forecast__info():
         function showHoldoutPct(v){
             return [v === 'holdout'];
         }
-        function showMethodDependents(v){
+        function showManualFields(v){
+            const methodValue = getModeValue('method_mode');
+            const presetValue = getModeValue('manual_method_preset');
             const trendValue = getModeValue('trend_mode');
             const seasonalityValue = getModeValue('seasonality_mode');
-            const isManual = v === 'manual-components';
+            const directModelValue = getModeValue('manual_model_key');
+
+            const isManualComponents = methodValue === 'manual-components';
+            const isManualModel = methodValue === 'manual-model';
+            const usesPreset = isManualComponents && presetValue !== 'custom';
+
+            const effectiveModel = usesPreset ? presetValue : null;
+            const customShowsBeta = isManualComponents && !usesPreset && trendValue === 'linear';
+            const customShowsSeasonal = isManualComponents && !usesPreset && seasonalityValue !== 'none';
+
+            const showLevelMode = isManualComponents && !usesPreset;
+            const showTrendMode = isManualComponents && !usesPreset;
+            const showSeasonalityMode = isManualComponents && !usesPreset;
+            const showAlpha = isManualComponents && (effectiveModel !== 'constant');
+            const showBeta = customShowsBeta || ['holt', 'hw_add', 'hw_mul'].indexOf(effectiveModel) >= 0;
+            const showGamma = customShowsSeasonal || ['seasonal_add', 'seasonal_mul', 'hw_add', 'hw_mul'].indexOf(effectiveModel) >= 0;
+            const showSeasonalPeriod = customShowsSeasonal || ['seasonal_add', 'seasonal_mul', 'hw_add', 'hw_mul'].indexOf(effectiveModel) >= 0;
+            const showManualModelKey = isManualModel;
+            const showMaWindow = isManualModel && directModelValue === 'moving_average';
+
             return [
-                isManual,
-                isManual,
-                isManual,
-                isManual && trendValue === 'linear',
-                isManual,
-                isManual && seasonalityValue !== 'none',
-                isManual && seasonalityValue !== 'none'
+                isManualComponents,
+                showLevelMode,
+                showAlpha,
+                showTrendMode,
+                showBeta,
+                showSeasonalityMode,
+                showGamma,
+                showSeasonalPeriod,
+                showManualModelKey,
+                showMaWindow
             ];
         }
         """,
-        'tags': 'business, forecasting, decomposition, holt, holt-winters, time series',
+        'tags': 'business, forecasting, decomposition, holt, holt-winters, moving-average, linear-regression, time series',
+        'kins': 'optima_sop, optima_production_inventory, invlevel, eoq, moq',
     }
 
 
@@ -1087,6 +1351,9 @@ def forecast(
     },
     forecast_periods: int = 12,
     method_mode='automatic',
+    manual_method_preset='holt',
+    manual_model_key='moving_average',
+    ma_window: int = 3,
     level_mode='changing',
     alpha: float = 0.2,
     trend_mode='linear',
@@ -1116,6 +1383,12 @@ def forecast(
     if validation_mode == 'holdout' and not (5.0 <= holdout_percent <= 50.0):
         raise Exception('Holdout split (%) must be between 5 and 50')
 
+    if method_mode not in ('automatic', 'manual-components', 'manual-model'):
+        raise Exception('Method mode must be automatic, manual-components, or manual-model')
+
+    if ma_window < 2:
+        raise Exception('Moving average window must be at least 2')
+
     desired_holdout_rows = 0
     if validation_mode == 'holdout':
         desired_holdout_rows = max(1, int(round(n * holdout_percent / 100.0)))
@@ -1127,13 +1400,24 @@ def forecast(
             values,
             seasonal_period,
             holdout_rows=desired_holdout_rows,
+            ma_window=ma_window,
         )
         auto_selection_table = _build_model_selection_table(auto_diagnostics, model_key, auto_selection_basis)
+    elif method_mode == 'manual-model':
+        if manual_model_key not in ('moving_average', 'linear_regression'):
+            raise Exception('Manual model family must be moving_average or linear_regression')
+        model_key = manual_model_key
+        model_name = _model_name(model_key)
     else:
-        model_key, model_name = _model_key(level_mode, trend_mode, seasonality_mode)
+        preset_model_key = _manual_preset_model_key(manual_method_preset)
+        if preset_model_key is None:
+            model_key, model_name = _model_key(level_mode, trend_mode, seasonality_mode)
+        else:
+            model_key = preset_model_key
+            model_name = _model_name(model_key)
 
     selected_level_mode, selected_trend_mode, selected_seasonality_mode = _model_components(model_key)
-    _validate_inputs(values, model_key, seasonal_period)
+    _validate_inputs(values, model_key, seasonal_period, ma_window)
     manual_params = _manual_params(method_mode, model_key, alpha, beta, gamma)
 
     holdout_rows = 0
@@ -1141,7 +1425,7 @@ def forecast(
 
     if validation_mode == 'holdout':
         holdout_rows = max(1, int(round(n * holdout_percent / 100.0)))
-        min_required_train = _required_min_obs(model_key, seasonal_period)
+        min_required_train = _required_min_obs(model_key, seasonal_period, ma_window)
         if n - holdout_rows < min_required_train:
             holdout_rows = 0
             validation_note = 'In-sample (holdout skipped: not enough rows)'
@@ -1156,11 +1440,14 @@ def forecast(
             model_key,
             holdout_rows,
             seasonal_period,
+            ma_window,
             manual_params=manual_params,
         )
+        validation_actual = test_values
+        validation_pred = val_forecast
         accuracy_table = _build_accuracy(
-            test_values,
-            val_forecast,
+            validation_actual,
+            validation_pred,
             validation_note,
             len(train_values),
             len(test_values),
@@ -1171,11 +1458,14 @@ def forecast(
             model_key,
             len(values),
             seasonal_period,
+            ma_window,
             manual_params=manual_params,
         )
+        validation_actual = values
+        validation_pred = fit_val['fitted']
         accuracy_table = _build_accuracy(
-            values,
-            fit_val['fitted'],
+            validation_actual,
+            validation_pred,
             validation_note,
             len(values),
             len(values),
@@ -1186,6 +1476,7 @@ def forecast(
         model_key,
         forecast_periods,
         seasonal_period,
+        ma_window,
         manual_params=manual_params,
     )
 
@@ -1204,7 +1495,12 @@ def forecast(
         model_key,
         fit_full.get('params', {}),
     )
-    decomposition_table = _build_decomposition_table(periods, values, fit_full)
+    decomposition_table = _build_decomposition_table(
+        periods,
+        values,
+        fit_full,
+        holdout_pred=validation_pred if holdout_rows > 0 else None,
+    )
 
     params = fit_full.get('params', {})
     trend_slope = fit_full['trend'][-1] if fit_full['trend'] else 0.0
@@ -1217,7 +1513,10 @@ def forecast(
         ['Observations', len(values)],
         ['Seasonal period', seasonal_period if selected_seasonality_mode != 'none' else 'Not used'],
         ['Method mode', method_mode],
-        ['Auto selection basis', auto_selection_basis if method_mode == 'automatic' else 'manual-components'],
+        ['Manual method preset', manual_method_preset if method_mode == 'manual-components' else 'Not used'],
+        ['Manual model family', manual_model_key if method_mode == 'manual-model' else 'Not used'],
+        ['Moving average window', ma_window if model_key == 'moving_average' else 'Not used'],
+        ['Auto selection basis', auto_selection_basis if method_mode == 'automatic' else 'manual-selection'],
         ['Random mode', random_mode],
         ['Confidence level (%)', confidence_level if random_mode == 'historical' else 'Not used'],
         ['Residual std dev', _safe_round(sigma) if sigma is not None else 'Not available'],
@@ -1249,10 +1548,23 @@ def forecast(
             '</small>'
         ),
         'Decomposition': decomposition_table,
-        'Model summary': summary_table,
-        'Forecast accuracy': accuracy_table,
     }
 
+    if holdout_rows > 0:
+        note = (
+            '<b>Holdout forecast</b> and <b>Holdout error</b> (Actual - Holdout forecast) are '
+            'out-of-sample values for the held-out rows from a model trained on earlier rows only. '
+            '<b>Residual</b> comes from the model fitted on all rows.'
+        )
+    else:
+        note = (
+            'In-sample validation: errors equal the <b>Residual</b> column, '
+            'so no separate holdout columns are shown.'
+        )
+    result['Decomposition note'] = qhtml(f'<small class="text-muted">{note}</small>')
+
+    result['Model summary'] = summary_table
+    result['Forecast accuracy'] = accuracy_table
     if auto_selection_table is not None:
         result['Model selection diagnostics'] = auto_selection_table
         result['Model selection note'] = qhtml(
@@ -1263,3 +1575,49 @@ def forecast(
         )
 
     return result
+
+
+_FORECAST_HELP_MD = r"""
+### Quick guide
+
+**Which method should I choose?**
+
+| Your data looks like | Try |
+|---|---|
+| Flat, no clear direction | Simple Exponential Smoothing or Moving Average |
+| Steady rise or fall | Holt Linear Trend or Linear Regression |
+| A repeating pattern (months, quarters) | Seasonal or Holt-Winters |
+| Seasonal swings that grow with the level | Multiplicative versions (all values must be above zero) |
+| Not sure | Automatic, which compares the eligible models for you |
+
+**How much history do I need?**
+
+- At least 8 rows for any model.
+- Seasonal models need two full cycles, for example 24 rows of monthly data with a seasonal period of 12.
+- Moving Average needs at least the window size plus 2 rows.
+
+**Reading the accuracy metrics**
+
+- **MAD (MAE)**: the average size of the error, in the same units as your data.
+- **MSE and RMSE**: penalise large misses more heavily. RMSE is back in your data units.
+- **MAPE %**: the average error as a percentage of the actual value. Rows where the actual value is zero or negative are skipped.
+- Lower is better, but only compare models on the same metric and the same validation mode.
+
+$$RMSE = \sqrt{\frac{1}{n}\sum_{t=1}^{n}\left(y_t - \hat{y}_t\right)^2}$$
+
+Here $y_t$ is the actual value, $\hat{y}_t$ is the forecast and $n$ is the number of scored periods.
+
+- With Holdout validation the metrics are out-of-sample, so they are a more honest guide than in-sample fit.
+
+**Tips**
+
+- With Holdout validation, the Decomposition table shows the Holdout forecast and Holdout error for each held-out period.
+- Typical seasonal periods: 12 for monthly data, 4 for quarterly data, 7 for daily data with a weekly pattern.
+- Moving Average forecasts flatten out over longer horizons. If you expect growth to continue, use a trend model.
+- Confidence bounds are estimated from past residuals and widen with the forecast horizon. They are not guarantees.
+- Use the forecast as the demand input to the related inventory, production and workforce planning calculators.
+"""
+
+
+def forecast__help():
+    return md2html(_FORECAST_HELP_MD)

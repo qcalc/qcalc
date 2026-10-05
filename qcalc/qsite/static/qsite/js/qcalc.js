@@ -641,7 +641,7 @@ function updateExtra(cid,dict){
 
     extra_new_val = JSON.stringify(Object.assign(oriObj, newObj));
     $('#'+extra_field_id).val(extra_new_val);
-    //console.log($('#'+extra_field_id).val());
+    // console.log($('#'+extra_field_id).val());
 }
 
 function clearExtraCmd(cid){

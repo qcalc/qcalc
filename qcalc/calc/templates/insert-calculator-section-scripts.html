@@ -1,5 +1,6 @@
 <!-- begin:insert-calculator-section-scripts -->
 {{ form.media }}
+<script src="{% static 'vendor/katex/0.11.1/contrib/mathtex-script-type.min.js' %}"></script>
 
 {% if input.doc.info.qsel2 %}
 <script src="{% static_ver 'calc/js/qsel2.js' %}"></script>

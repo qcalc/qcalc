@@ -21,6 +21,7 @@
   <link href="{% static 'vendor/tabulator/6.1.0/tabulator.min.css' %}" rel="stylesheet" type="text/css">
   <link href="{% static 'vendor/select2/4.1.0-rc.0/select2.min.css' %}" rel="stylesheet" type="text/css">
   <link href="{% static_ver_theme request 'qcalc' %}" rel="stylesheet" type="text/css" class="theme-stylesheet">
+  <link href="{% static 'vendor/katex/0.11.1/katex.min.css' %}" rel="stylesheet" type="text/css">
   <!-- /global stylesheets qcalc.css be the last -->
 
 	<!-- Core JS files (jQuery MIT, Bootstrap MIT) -->
@@ -46,6 +47,7 @@
   <script src="{% static 'vendor/filesaver/FileSaver.min.js' %}"></script>
   <script src="{% static_ver 'qsite/js/qcalc.js' %}"></script>
   <!-- /qCalc JS files -->
+  <script src="{% static 'vendor/katex/0.11.1/katex.min.js' %}"></script>
   {% block extra_header_script %}{% endblock %}
 </head>
 {% endlineless %}

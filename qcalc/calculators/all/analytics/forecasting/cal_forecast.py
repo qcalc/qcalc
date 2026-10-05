@@ -1578,7 +1578,7 @@ def forecast(
 
 
 _FORECAST_HELP_MD = r"""
-### Quick guide
+### Quick Start
 
 **Which method should I choose?**
 

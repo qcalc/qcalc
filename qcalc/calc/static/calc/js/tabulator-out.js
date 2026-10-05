@@ -7,6 +7,23 @@
     }
     window.__qcalc_TabulatorOutBootstrapped = true;
 
+    // Tabulator reads cells of a server-rendered <table> via innerHTML, so pandas' HTML
+    // entities (e.g. &amp;) arrive in the data. Decode them once so cells and exports are plain text.
+    function decodeHtmlEntities(data) {
+        if (!Array.isArray(data)) {
+            return;
+        }
+        const decoder = document.createElement('textarea');
+        data.forEach(function(row) {
+            Object.keys(row).forEach(function(key) {
+                if (typeof row[key] === 'string' && row[key].indexOf('&') !== -1) {
+                    decoder.innerHTML = row[key];
+                    row[key] = decoder.value;
+                }
+            });
+        });
+    }
+
     const rowMenuDisplay = [
         {
             label: "Copy to Clipboard",
@@ -73,7 +90,7 @@
                 clipboard: "copy",
             };
             try {
-                if (!window.__qcalc_tabulator_print_all) {
+                if (!window.__qcalc_tabulator_print_all && tableElem.dataset.pageAll !== "true") {
                     tabOpts.pagination = "local";
                     tabOpts.paginationSize = 10;
                     tabOpts.paginationSizeSelector = [5, 10, 25, 50, 100, 250];
@@ -88,7 +105,8 @@
                 tabOpts.paginationSizeSelector = [5, 10, 25, 50, 100, 250];
                 tabOpts.paginationCounter = "rows";
             }
-            new Tabulator(tableElem, tabOpts);
+            const outTable = new Tabulator(tableElem, tabOpts);
+            outTable.on("dataLoading", decodeHtmlEntities);
         });
     }
 

@@ -7,6 +7,23 @@
     }
     window.__qcalc_TabulatorInBootstrapped = true;
 
+    // Tabulator reads cells of a server-rendered <table> via innerHTML, so pandas' HTML
+    // entities (e.g. &amp;) arrive in the data. Decode them once so cells, edits, exports are plain text.
+    function decodeHtmlEntities(data) {
+        if (!Array.isArray(data)) {
+            return;
+        }
+        const decoder = document.createElement('textarea');
+        data.forEach(function(row) {
+            Object.keys(row).forEach(function(key) {
+                if (typeof row[key] === 'string' && row[key].indexOf('&') !== -1) {
+                    decoder.innerHTML = row[key];
+                    row[key] = decoder.value;
+                }
+            });
+        });
+    }
+
     const tableDf = {};
     const colNames = {};
     const colTitles = {};
@@ -721,6 +738,7 @@
             dataTableOpts.paginationCounter = "rows";
         }
         const dataTable = new Tabulator(selector, dataTableOpts);
+        dataTable.on("dataLoading", decodeHtmlEntities);
 
         setUpdateButtonEnabled(tableId, false);
 

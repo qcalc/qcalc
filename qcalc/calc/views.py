@@ -713,6 +713,7 @@ def q1141_read_func_meta(func_id, __info=None, scope='qpots'):  # __info__
         'provides_data': {},
         'consumes_data': {},
         'inserts': {},
+        'table_out_all': False,  # True shows all rows of output tables (no pagination)
         # comma separated list of words with proper case that needs to be unchanged
         # during title case conversion for this calculator function
         'proper': '',
@@ -756,6 +757,7 @@ def q1141_read_func_meta(func_id, __info=None, scope='qpots'):  # __info__
         'provides_data',
         'consumes_data',
         'inserts',
+        'table_out_all',
         'proper',
     ]:
         if key in func_info:
@@ -843,7 +845,7 @@ def q1149_func_to_form_context(request: HtmxHttpRequest, func_id, cid, kwargs):
     #     print('__info from recall', __info, kwargs)
     #     kwargs.update({'__info': __info})
     request.json_doc = q1141_read_func_meta(func_id, __info)
-    request.json_doc['info']['help'] = get_fhelp(func_id, __info) 
+    request.json_doc['info']['help'] = get_fhelp(func_id, __info)
     request.json_doc['info']['inp1'] = ut.specified_args(func_addr, request.json_doc['info']['inp1'], empty_spec='')
     request.json_doc['info']['input_blocks'] = _normalize_layout_blocks(
         request.json_doc['info'].get('input_blocks', []),
@@ -1010,20 +1012,21 @@ def q1145_result_to_form_schema(request: HtmxHttpRequest, func_id, cid, result, 
             request.ojson_data_type.append('ouom-q')
             request.json_doc['info']['loop'] = True
         elif isinstance(value, pd.DataFrame):  # table
-            # request.json_doc['info']['loop'] = False
+            # allowing tabular data for comparative analysis
+            request.json_doc['info']['loop'] = True # False
             table_id = f"{cid}_{name}"
             # Normalize the DataFrame to move units into headers before formatting
             value = df2normalized(value, do_format=True)  # e.g. discount_opt()
-            request.ojson_data[name] = qhtml(
-                wrap_actions(
-                    value.to_html(
-                        table_id=table_id,
-                        classes=f'table table-responsive table-out {cid}',
-                        na_rep='None',
-                        index=False
-                    ),
-                    'table-wrap'
-                ))  # datatable-basic {cid}
+            table_html = value.to_html(
+                table_id=table_id,
+                classes=f'table table-responsive table-out {cid}',
+                na_rep='None',
+                index=False
+            )
+            if request.json_doc['info'].get('table_out_all'):
+                # picked up by tabulator-out.js to disable pagination for this table
+                table_html = table_html.replace('<table ', '<table data-page-all="true" ', 1)
+            request.ojson_data[name] = qhtml(wrap_actions(table_html, 'table-wrap'))  # datatable-basic {cid}
             request.ojson_data_type.append('html')
             request.ojson_doc['table_out'] = True
         elif isinstance(value, QChart) or isinstance(value, QMap):

@@ -50,7 +50,9 @@ def get_help_path(func_id, qty=False):
 
 
 def val_de_quote(val):
-    val = val.replace('/', '!').replace('"', '%22').replace("'", '%27').replace('+', '%2B')
+    # | '%' first, '&' and '#' would otherwise cut the value short inside a query string or url
+    val = val.replace('%', '%25').replace('/', '!').replace('"', '%22').replace("'", '%27').replace('+', '%2B')
+    val = val.replace('&', '%26').replace('#', '%23')
     return val
 
 

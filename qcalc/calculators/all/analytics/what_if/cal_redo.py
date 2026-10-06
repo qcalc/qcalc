@@ -6,7 +6,7 @@ import re
 from calc import show_choice
 from qcore import qchar
 from calculators.all.general.utility import valid_range
-from calc import QResults, scalar_results
+from calc import QResults, scalar_results, RESULT_CELLS_HELP
 from qcore import qcode
 
 
@@ -20,6 +20,7 @@ def redo__info():
                 'choices': {'p': 'Parameters', 'v': 'Variables'},
                 'help_text': 'Select what to vary: parameters of a function or variables of an expression',
             },
+            'result_cells': {'help_text': RESULT_CELLS_HELP},
             'show': show_choice,
             'chart_type': {'type': 'choice', 'choices': ['lines', 'bars', 'stack']},
         },
@@ -30,6 +31,7 @@ def redo__info():
 
 def redo(variation_target='v', xpr: qcode = "sine('x deg')", variable: qchar = 'x',
          variation_start=0.0, variation_stop=360.0, variation_step=10.0, step_round_off=2,
+         result_cells: str = '',
          table_columns: str = '', table_units: str = '', chart_columns: str = '', chart_units: str = '', show='both',
          chart_title: str = '', chart_type='lines'):
     variable = (variable or '').strip()
@@ -43,7 +45,7 @@ def redo(variation_target='v', xpr: qcode = "sine('x deg')", variable: qchar = '
     v_range = valid_range(variation_start, variation_stop, variation_step)
     var_vals = [round(x, step_round_off) for x in v_range]
     results, xvals = scalar_results(
-        xpr=xpr, variable=variable, var_vals=var_vals, variation_target=variation_target
+        xpr=xpr, variable=variable, var_vals=var_vals, variation_target=variation_target, cells=result_cells
     )
     qr = QResults(results, xvals=xvals, variable=variable,
                   table_columns=table_columns, table_units=table_units, show=show)

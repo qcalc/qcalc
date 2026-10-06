@@ -6,7 +6,7 @@ import re
 import pandas as pd
 
 from qcore import qcode, qtbl
-from calc import QResults, scalar_results, show_choice, publish_shared_dataset
+from calc import QResults, scalar_results, show_choice, publish_shared_dataset, ResultCellsError, RESULT_CELLS_HELP
 from qutil import QThread
 
 SHARED_SCENARIO_TYPE = 'scenario_table'
@@ -39,6 +39,7 @@ def compare__info():
                 'help_text': 'Select what to vary: parameters of a function or variables of an expression',
             },
             'show': show_choice,
+            'result_cells': {'help_text': RESULT_CELLS_HELP},
             'table_columns': {
                 'help_text': 'Optional result columns to include, separated by comma',
             },
@@ -76,6 +77,7 @@ def compare(
         'columns': ['Variable', 'V1', 'V2', 'V3'],
         'data': [['x', 1, 2, 3], ['y', 2, 3, 4]],
     },
+    result_cells: str = '',
     table_columns: str = '',
     table_units: str = '',
     chart_columns: str = '',
@@ -110,6 +112,7 @@ def compare(
     successful_inputs = []
     results = []
     successful_cases = []
+    last_error = None
     for trial_value, (case_name, values) in zip(trial_values, trial_inputs):
         try:
             row_results, _ = scalar_results(
@@ -117,14 +120,18 @@ def compare(
                 variable=','.join(columns),
                 var_vals=[trial_value],
                 variation_target=variation_target,
+                cells=result_cells,
             )
-        except Exception:
+        except ResultCellsError:
+            raise
+        except Exception as e:
+            last_error = e
             continue
         successful_cases.append(case_name)
         successful_inputs.append(values)
         results.append(row_results[0])
     if not results:
-        raise Exception('No numeric results were produced; check the expression')
+        raise Exception(str(last_error or 'No numeric results were produced; check the expression'))
     case_labels = successful_cases
 
     qr = QResults(

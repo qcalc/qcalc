@@ -175,6 +175,19 @@ class TestFxprFromJson(unittest.TestCase):
         self.assertNotIn("Selling Price | USD/unit", result)
 
 
+    def test_query_string_special_chars_survive_url_round_trip(self):
+        from urllib.parse import parse_qs
+
+        label = "SG&A #1 50% a+b"
+        json_data = {"inputs": {"columns": ["Line Item", "A"], "data": [[label, "1"]]}}
+
+        result = fxpr_from_json("finstate2", json_data, {"inputs": "tbl"})
+        query = parse_qs(f"path=eva/code/{result}&other=1")
+
+        self.assertEqual(list(query), ["path", "other"])
+        self.assertIn(f"'{label}'", query["path"][0])
+
+
 class TestJsonToFuncCall(unittest.TestCase):
     def test_builds_conv2_like_call_with_scalar_and_list_args(self):
         json_var = {

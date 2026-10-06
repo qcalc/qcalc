@@ -350,10 +350,11 @@ def require_values_subset(
 
     unknown = sorted({key for key in child_keys if key not in parent_keys})
     if unknown:
-        unknown_preview = ', '.join(unknown[:10])
+        typed = {_normalize_token(v): str(v).strip() for v in _table_column_values(child_df, child_col)}
+        unknown_preview = ', '.join(typed.get(key, key) for key in unknown[:10])
         raise Exception(
-            f"{child_table}.{child_col} contains value(s) not present in "
-            f"{parent_table}.{parent_col}: {unknown_preview}"
+            f"{child_table} '{child_col}' has value(s) not found in "
+            f"{parent_table} '{parent_col}': {unknown_preview}"
         )
 
 
@@ -387,7 +388,7 @@ def require_unique_values(
 
     if duplicates:
         preview = ', '.join(f"{left}/{right}" for left, right in duplicates[:10])
-        raise Exception(f"{table_name}.{column_name} contains duplicate value(s): {preview}")
+        raise Exception(f"{table_name} '{column_name}' has duplicate value(s): {preview}")
 
     return [seen[key] for key in ordered_keys]
 
@@ -521,7 +522,7 @@ def validate_value_columns_against_master(
         key = value if case_sensitive else _normalize_token(value)
         if key in master_lookup and master_lookup[key] != value:
             raise Exception(
-                f"Duplicate values in {master_table_name}.{master_value_col} (case-insensitive): "
+                f"Duplicate values in {master_table_name} '{master_value_col}' (case-insensitive): "
                 f"{master_lookup[key]}, {value}"
             )
         master_lookup[key] = value
@@ -553,7 +554,7 @@ def validate_value_columns_against_master(
         ]
         if missing:
             raise Exception(
-                f"Values from {master_table_name}.{master_value_col} must exist as columns in "
+                f"Values from {master_table_name} '{master_value_col}' must exist as columns in "
                 f"{matrix_table_name}. Missing column(s): {', '.join(missing)}"
             )
 
@@ -566,7 +567,7 @@ def validate_value_columns_against_master(
         if unknown:
             raise Exception(
                 f"Value column(s) in {matrix_table_name} must exist in "
-                f"{master_table_name}.{master_value_col}. Unknown column(s): {', '.join(unknown)}"
+                f"{master_table_name} '{master_value_col}'. Unknown column(s): {', '.join(unknown)}"
             )
 
     rename_map = {

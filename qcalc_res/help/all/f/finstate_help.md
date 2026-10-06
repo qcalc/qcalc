@@ -30,6 +30,7 @@ The default values and overall design of `finstate()` draw on material from the 
 
 ### Basis
 
+- **Figures In**: The unit and scale of the monetary figures, e.g. `1000 USD` for thousands of US dollars. For information only; it does not affect any calculation.
 - **Tax Rate**: The percentage of pre-tax profit paid as tax.
 - **Interest Rate**: The rate used to estimate interest expense on long-term debt.
 - **Period (Months)**: The length of the reporting period used to convert turnover ratios into day-based measures such as DSO, DIO, and DPO.
@@ -77,10 +78,10 @@ The representative tables below show the formula beside each calculated row, so 
 | Sales |  | Input | Input value |
 | Cost of Goods Sold |  | Input | Input value |
 | Gross Profit |  | Calculated | = *Sales - Cost of Goods Sold* |
-| Selling, General and Administrative Expenses | SG&A | Input | Input value |
+| Selling, General & Administrative Expenses | SG&A | Input | Input value |
 | Other Operating Income |  | Input | Input value |
 | Other Operating Expense |  | Input | Input value |
-| Earnings Before Interest, Taxes, Depreciation and Amortization | EBITDA | Calculated | = *Earnings Before Interest and Taxes + Depreciation & Amortization* |
+| Earnings Before Interest, Taxes, D&A | EBITDA | Calculated | = *Earnings Before Interest and Taxes + Depreciation & Amortization* |
 | Depreciation & Amortization |  | Input | Input value |
 | Earnings Before Interest and Taxes | EBIT | Calculated | = *Gross Profit - SG&A - Depreciation & Amortization + Other Operating Income - Other Operating Expense* |
 | Interest Expense |  | Calculated | = *Long Term Debt × Interest Rate* |
@@ -89,6 +90,8 @@ The representative tables below show the formula beside each calculated row, so 
 | Net Income |  | Calculated | = *Earnings Before Taxes - Income Taxes* |
 
 ### Balance Sheet
+
+The balance sheet is divided by heading rows (`=== ASSETS ===`, `=== LIABILITIES ===` and `=== EQUITY ===`).
 
 | Line Item | Period | Formula                                                  |
 |---|---:|----------------------------------------------------------|
@@ -109,112 +112,102 @@ The representative tables below show the formula beside each calculated row, so 
 
 ### Ratios
 
+The ratio table is arranged in groups, each introduced by a heading row such as === LIQUIDITY ===. A ratio that cannot be defined because its denominator is zero (for example Interest Coverage for a company with no interest expense) shows **n/a**.
+
 | Metric | Acronym | Value | Formula / Meaning |
 |---|---:|---:|---|
+| **=== PROFITABILITY ===** |  |  |  |
 | Gross Margin |  | Percentage | = *Gross Profit / Sales* |
+| EBITDA Margin |  | Percentage | = *EBITDA / Sales* |
 | Operating Margin |  | Percentage | = *Earnings Before Interest and Taxes / Sales* |
 | Net Margin |  | Percentage | = *Net Income / Sales* |
-| Asset Turnover |  | Multiple | = *Sales / Total Assets* |
-| Inventory Turnover |  | Multiple | = *Cost of Goods Sold / Inventories* |
-| Accounts Receivable Turnover |  | Multiple | = *Sales / Accounts Receivable* |
-| Accounts Payable Turnover |  | Multiple | = *Cost of Goods Sold / Accounts Payable* |
-| Days Sales Outstanding | DSO | Days | = *Accounts Receivable / Sales × Period Days* |
-| Days Inventory Outstanding | DIO | Days | = *Inventories / Cost of Goods Sold × Period Days* |
-| Days Payables Outstanding | DPO | Days | = *Accounts Payable / Cost of Goods Sold × Period Days* |
+| SG&A % of Sales |  | Percentage | = *SG&A / Sales* |
+| **=== RETURNS ===** |  |  |  |
 | Return on Assets | ROA | Percentage | = *Net Income / Total Assets* |
 | Return on Equity | ROE | Percentage | = *Net Income / Total Equity* |
 | Net Operating Profit After Tax | NOPAT | Currency | = *Earnings Before Interest and Taxes × (1 - Tax Rate)* |
 | Invested Capital = Interest Bearing Debt + Equity |  | Currency | = *Long Term Debt + Total Equity* |
 | Return on Invested Capital | ROIC | Percentage | = *Net Operating Profit After Tax / Invested Capital* |
 | Return on Net Operating Assets | RONA | Percentage | = *Net Operating Profit After Tax / Net Operating Assets* |
+| **=== EFFICIENCY & WORKING CAPITAL ===** |  |  |  |
+| Asset Turnover |  | Multiple | = *Sales / Total Assets* |
+| Fixed Asset Turnover |  | Multiple | = *Sales / Net Property/Plant/Equipment* |
+| Inventory Turnover |  | Multiple | = *Cost of Goods Sold / Inventories* |
+| Accounts Receivable Turnover |  | Multiple | = *Sales / Accounts Receivable* |
+| Accounts Payable Turnover |  | Multiple | = *Cost of Goods Sold / Accounts Payable* |
+| Days Sales Outstanding | DSO | Days | = *Accounts Receivable / Sales × Period Days* |
+| Days Inventory Outstanding | DIO | Days | = *Inventories / Cost of Goods Sold × Period Days* |
+| Days Payables Outstanding | DPO | Days | = *Accounts Payable / Cost of Goods Sold × Period Days* |
+| Cash Conversion Cycle | CCC | Days | = *DIO + DSO - DPO* |
+| **=== LIQUIDITY ===** |  |  |  |
+| Current Ratio |  | Multiple | = *Total Current Assets / Total Current Liabilities* |
+| Quick Ratio |  | Multiple | = *(Cash & Equivalents + Accounts Receivable) / Total Current Liabilities* |
+| Net Working Capital | NWC | Currency | = *Total Current Assets - Total Current Liabilities* |
+| **=== LEVERAGE & SOLVENCY ===** |  |  |  |
+| Debt-to-Equity | D/E | Multiple | = *Long Term Debt / Total Equity* |
+| Liabilities-to-Assets |  | Multiple | = *Total Liabilities / Total Assets* |
+| Equity Multiplier |  | Multiple | = *Total Assets / Total Equity* |
+| Interest Coverage |  | Multiple | = *Earnings Before Interest and Taxes / Interest Expense* |
+| Net Debt |  | Currency | = *Long Term Debt - Cash & Equivalents* |
+| Net Debt / EBITDA |  | Multiple | = *Net Debt / EBITDA* (n/a when EBITDA is not positive) |
+| **=== PER SHARE ===** |  |  |  |
 | Earnings Per Share | EPS | Currency per share | = *Net Income / Shares Outstanding* |
+| Book Value Per Share | BVPS | Currency per share | = *Total Equity / Shares Outstanding* |
 
 ## Why the Ratios Matter
 
-### Gross Margin
+### Profitability
 
-Shows how much of each sales unit remains after direct production cost. A higher gross margin usually means stronger pricing power or lower production cost.
+- **Gross Margin**: how much of each sales unit remains after direct production cost. Higher usually means stronger pricing power or lower production cost.
+- **EBITDA Margin**: operating profit before depreciation and amortization, useful for comparing businesses with different asset ages and depreciation policies.
+- **Operating Margin**: operating profit kept after core operating expenses; a strong indicator of operating efficiency.
+- **Net Margin**: how much of sales becomes bottom-line profit after interest and taxes; the clearest all-in profit measure.
+- **SG&A % of Sales**: overhead burden. A rising share can signal weakening cost control.
 
-### Operating Margin
+### Returns
 
-Shows how much operating profit the business keeps after core operating expenses. It is a strong indicator of operating efficiency.
+- **Return on Assets (ROA)**: how effectively the asset base is turned into profit, comparable between asset-heavy and capital-light businesses.
+- **Return on Equity (ROE)**: profit earned for each unit of equity invested; especially relevant to shareholders. ROE = Net Margin × Asset Turnover × Equity Multiplier.
+- **Net Operating Profit After Tax (NOPAT)**: operating profit after tax but before financing effects, for comparing companies with different capital structures.
+- **Invested Capital**: long-term capital deployed in the business.
+- **Return on Invested Capital (ROIC)**: operating profit generated from invested capital. Higher generally means more value created from the money tied up.
+- **Return on Net Operating Assets (RONA)**: operating profit relative to the net operating asset base, after working-capital and fixed-asset investment.
 
-### Net Margin
+### Efficiency & Working Capital
 
-Shows how much of sales becomes bottom-line profit after interest and taxes. It is the clearest all-in profit measure for the period.
+- **Asset Turnover** and **Fixed Asset Turnover**: sales generated per unit of total assets or of property/plant/equipment. Higher means better utilization.
+- **Inventory Turnover**: how quickly inventory is sold and replaced. Higher generally means less cash tied up.
+- **Accounts Receivable Turnover**: how quickly customers pay. Higher usually means faster collections.
+- **Accounts Payable Turnover**: how quickly suppliers are paid. Lower can mean supplier credit is used for longer.
+- **Days Sales Outstanding (DSO)**: approximate days sales remain uncollected. Lower usually means faster collections.
+- **Days Inventory Outstanding (DIO)**: approximate days inventory is held before sale. Lower generally means leaner inventory.
+- **Days Payables Outstanding (DPO)**: approximate days taken to pay suppliers. Higher often means supplier credit is used for longer.
+- **Cash Conversion Cycle (CCC)**: approximate days cash is tied up between paying suppliers and collecting from customers (DIO + DSO - DPO). Lower generally means less cash locked in working capital; negative means suppliers effectively finance operations. Compare only between similar businesses.
 
-### Asset Turnover
+### Liquidity
 
-Shows how efficiently the company uses assets to generate sales. Higher turnover usually means better asset utilization.
+- **Current Ratio**: current assets per unit of current liabilities. Above 1 means short-term obligations are covered by short-term assets.
+- **Quick Ratio**: like the current ratio but excluding inventory, a stricter test of near-term payment ability.
+- **Net Working Capital (NWC)**: the absolute short-term cushion in currency.
 
-### Inventory Turnover
+### Leverage & Solvency
 
-Shows how quickly inventory is sold and replaced. A higher number generally means inventory is moving faster and less cash is tied up.
+- **Debt-to-Equity** and **Liabilities-to-Assets**: how much of the business is financed by lenders rather than owners. Higher means more financial risk.
+- **Equity Multiplier**: assets per unit of equity, the leverage component of ROE.
+- **Interest Coverage**: how many times operating profit covers interest. Low coverage signals difficulty servicing debt.
+- **Net Debt**: debt remaining after using cash. Negative means the company holds more cash than debt.
+- **Net Debt / EBITDA**: roughly how many periods of EBITDA it would take to repay net debt.
 
-### Accounts Receivable Turnover
+### Per Share
 
-Shows how quickly the company collects from customers. A higher number usually means faster collections.
-
-### Accounts Payable Turnover
-
-Shows how quickly the company pays suppliers. Lower turnover can mean the company is using supplier credit for longer.
-
-### Days Sales Outstanding (DSO)
-
-Shows the approximate number of days sales remain uncollected.
-A lower DSO usually means faster customer collections and less cash tied up in receivables.
-
-### Days Inventory Outstanding (DIO)
-
-Shows the approximate number of days inventory remains on hand before being sold.
-A lower DIO generally means leaner inventory management.
-
-### Days Payables Outstanding (DPO)
-
-Shows the approximate number of days the company takes to pay suppliers.
-A higher DPO often means the business is using supplier credit for longer.
-
-### Return on Assets (ROA)
-
-Shows how effectively the company turns its asset base into profit.
-It is useful for comparing asset-heavy businesses and capital-light businesses on a normalized basis.
-
-### Return on Equity (ROE)
-
-Shows how much profit is earned for each unit of equity invested.
-It is especially useful for owners and shareholders because it measures the return on the capital they have provided.
-
-### Net Operating Profit After Tax (NOPAT)
-
-Shows operating profit after tax but before financing effects.
-It is useful when comparing operational performance across companies with different capital structures.
-
-### Invested Capital
-
-Shows the amount of long-term capital deployed in the business.
-This helps frame the scale of the capital base used to generate operating returns.
-
-### Return on Invested Capital (ROIC)
-
-Shows how efficiently the company generates operating profit from invested capital.
-A higher ROIC generally means the business is creating more value from the money tied up in the operation.
-
-### Return on Net Operating Assets (RONA)
-
-Measures operating profit relative to the net operating asset base.
-This is useful for understanding how well operating assets are being used after working-capital and fixed-asset investment.
-
-### Earnings Per Share (EPS)
-
-Shows profit available per share of stock.
-This is one of the most familiar per-share profitability measures and is useful for equity valuation and comparison.
-
+- **Earnings Per Share (EPS)**: profit available per share; a familiar measure for equity valuation and comparison.
+- **Book Value Per Share (BVPS)**: accounting equity per share.
 ## Notes on Interpretation
 
 - Percentage ratios in the output are displayed as percentages with two decimal places.
-- DSO, DIO, and DPO are only meaningful because the calculator includes a period length in months and converts it into an approximate number of days.
+- DSO, DIO, DPO, and CCC are only meaningful because the calculator includes a period length in months and converts it into an approximate number of days.
 - EBITDA, EBIT, and EBT are accounting profitability stages rather than percentages.
-- NOPAT, invested capital, and EPS are shown as value measures, not percentages.
+- NOPAT, invested capital, net working capital, net debt, EPS, and BVPS are shown as value measures, not percentages.
 - The calculator gives a compact financial summary; it does not replace a full audited financial model.
 
 ## Example
@@ -227,7 +220,7 @@ Using the default-style values in the calculator, the report can be read as foll
 - Interest expense takes EBIT to EBT.
 - Taxes take EBT to net income.
 - The balance sheet shows how the operating base is financed.
-- The ratio table summarizes profitability, efficiency, cash conversion, and capital productivity.
+- The ratio table summarizes profitability, returns, efficiency and cash conversion, liquidity, leverage, and per-share measures.
 
 This makes it easy to answer questions such as:
 

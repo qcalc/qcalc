@@ -6,7 +6,7 @@ import re
 import numpy as np
 
 from qcore import qchar, qcode, qtexta
-from calc import scalar_results, QResults, show_choice
+from calc import scalar_results, QResults, show_choice, RESULT_CELLS_HELP
 from qutil import css2floats, css2strs
 from qvars import qc_gpref as gs
 
@@ -23,6 +23,7 @@ def monte_carlo__info():
                 'help_text': 'Select what to vary: parameters of a function or variables of an expression',
             },
             'show': show_choice,
+            'result_cells': {'help_text': RESULT_CELLS_HELP},
             'distribution': {'type': 'choice', 'choices': ['normal', 'uniform', 'triangular', 'lognormal']},
             'param1': {'help_text': 'normal: mean; uniform/triangular: low; lognormal: mu (of underlying normal)'},
             'param2': {'help_text': 'normal: stdev; uniform/triangular: high; lognormal: sigma (of underlying normal)'},
@@ -41,6 +42,7 @@ def monte_carlo__info():
 def monte_carlo(variation_target='v', xpr: qcode = "sine('x deg')", variable: qchar = 'x',
                 distribution='normal', param1=0.0, param2=1.0, param3=None,
                 trials: int = 100, bin_count=20, round_off=4,
+                result_cells: str = '',
                 table_columns: str = '', table_units: str = '', histo_column: str = '',
                 show='both', chart_title='Monte Carlo Simulation'):
     # normal: param1=mean, param2=stdev
@@ -79,7 +81,7 @@ def monte_carlo(variation_target='v', xpr: qcode = "sine('x deg')", variable: qc
 
     var_vals = [round(float(s), round_off) for s in samples]
     results, xvals = scalar_results(
-        xpr=xpr, variable=variable, var_vals=var_vals, variation_target=variation_target
+        xpr=xpr, variable=variable, var_vals=var_vals, variation_target=variation_target, cells=result_cells
     )
 
     qr = QResults(results, xvals=xvals, variable=variable,
@@ -147,6 +149,7 @@ def monte_carlo2__info():
                 'help_text': 'Select what to vary: parameters of a function or variables of an expression',
             },
             'show': show_choice,
+            'result_cells': {'help_text': RESULT_CELLS_HELP},
             'distributions': {
                 'help_text': 'One distribution per variable, separated by comma\n options: normal, uniform, triangular, lognormal', },
             'param1s': {'help_text': 'One mean/low/mu value per variable, separated by comma', },
@@ -178,6 +181,7 @@ def monte_carlo2(
     round_off=4,
     correlated_variables: str = '',
     correlation=0.0,
+    result_cells: str = '',
     table_columns: str = '',
     table_units: str = '',
     histo_column: str = '',
@@ -244,7 +248,8 @@ def monte_carlo2(
         for trial in range(trials)
     ]
     results, xvals = scalar_results(
-        xpr=xpr, variable=variables, var_vals=trial_values, variation_target=variation_target
+        xpr=xpr, variable=variables, var_vals=trial_values, variation_target=variation_target,
+        cells=result_cells
     )
     qr = QResults(results, xvals=xvals, variable=variables, table_columns=table_columns, table_units=table_units,
                   show=show)

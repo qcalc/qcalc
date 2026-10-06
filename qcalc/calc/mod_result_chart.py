@@ -57,6 +57,8 @@ class QResults:
         self._all_columns = self._compute_all_columns()
         self._header_values, self._header_uoms = result_values(results[0])
         self._all_y_columns = list(self._header_values.keys())
+        self._proper_words = self._compute_proper_words()
+        self._alias_map = self._compute_alias_map()
 
         self.table_df = None
         self.chart = None
@@ -99,6 +101,45 @@ class QResults:
             return [f"Result {i}" for i, _ in enumerate(results, 1)]
         else:
             return ['Result']
+
+    def _compute_proper_words(self):
+        """Keep acronyms such as EBIT or ROE from result dictionary keys upper-cased in column titles."""
+        proper = {}
+        if isinstance(self.results[0], dict):
+            for key in self.results[0]:
+                for word in str(key).replace(':', ': ').split():
+                    bare = word.rstrip(':')
+                    if len(bare) > 1 and bare.isupper():
+                        proper[word.lower()] = word
+        return proper
+
+    def _compute_alias_map(self):
+        """Normalized alias (e.g. another text column of a table row) -> result column keys sharing it."""
+        aliases = getattr(self.results[0], 'aliases', None)
+        real = {title_to_variable(key) for key in self._all_columns}
+        alias_map = {}
+        for key, names in (aliases or {}).items():
+            for name in names:
+                keys = alias_map.setdefault(title_to_variable(name), [])
+                if key not in keys:
+                    keys.append(key)
+        return {name: keys for name, keys in alias_map.items() if name not in real}
+
+    def _resolve_aliases(self, spec):
+        """Replace alias names in a column filter spec by the real column keys they stand for."""
+        if not self._alias_map or not spec:
+            return spec
+        tokens = css2strs(spec) if isinstance(spec, str) else list(spec)
+        resolved = []
+        for token in tokens:
+            negate = isinstance(token, str) and token.startswith('~')
+            body = token[1:].strip() if negate else token
+            keys = self._alias_map.get(title_to_variable(body)) if isinstance(body, str) else None
+            if keys:
+                resolved.extend(('~' if negate else '') + key for key in keys)
+            else:
+                resolved.append(token)
+        return resolved
 
     def _fill_columns(self, columns):
         """Extract each result's normalized value for the given columns, one row per result."""
@@ -215,7 +256,7 @@ class QResults:
         table_columns = self.table_columns
         table_units = self.table_units
         # y_columns = idx2names(table_columns, self._all_columns) if table_columns != '' else []
-        y_columns = specified_args(self._all_columns, table_columns) if table_columns != '' else []
+        y_columns = specified_args(self._all_columns, self._resolve_aliases(table_columns)) if table_columns != '' else []
         ukeys = css2strs(table_units) if table_units != '' else []
 
         y_columns = [title_to_variable(rkey.strip()) for rkey in y_columns]
@@ -228,7 +269,7 @@ class QResults:
         ``chart_units`` is unused by histograms, which only ever chart one column.
         """
         # ckeys = idx2names(self.chart_columns, self._all_columns) if self.chart_columns != '' else []
-        ckeys = specified_args(self._all_columns, self.chart_columns) if self.chart_columns != '' else []
+        ckeys = specified_args(self._all_columns, self._resolve_aliases(self.chart_columns)) if self.chart_columns != '' else []
         cukeys = css2strs(self.chart_units) if self.chart_units != '' else []
 
         ckeys = [title_to_variable(ckey.strip()) for ckey in ckeys]
@@ -276,7 +317,7 @@ class QResults:
 
             if table_ok:
                 data_columns.append(rkey)
-                y = variable_to_title(rkey)
+                y = variable_to_title(rkey, self._proper_words)
                 if rkey in ruoms:
                     suffix = f'{qconst.TBL_UOM_SEP} {ruoms[rkey]}'
                     y = f'{y} {suffix}'  # + ')'

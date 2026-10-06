@@ -12,7 +12,7 @@ from .mod_qlist import *
 from .mod_currency import *
 from .mod_redis import *
 from .mod_redis_act import *
-from .mod_result import result_values, is_scalar, scalar_results
+from .mod_result import result_values, is_scalar, scalar_results, flatten_tables, ResultCellsError, RESULT_CELLS_HELP
 from .mod_ucals import UCals
 from .mod_whoosh import QSearch, print_search_result, search_result_nodes
 from .mod_shared_data import (

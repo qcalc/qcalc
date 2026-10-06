@@ -1,11 +1,191 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
+import re
+
+import numpy as np
 import pandas as pd
 import qconst
-from qutil import title_to_variable, replace_variables, replace_parameter_values, QDateTime
-from qcore import as_qtable, Qty, str_to_qty, df_formatter
+from qutil import title_to_variable, replace_variables, replace_parameter_values, QDateTime, css2strs, specified_args
+from qcore import as_qtable, is_qtbl, Qty, str_to_qty, df_formatter
+from qvars import qc_gpref as gs
 import datetime
+
+
+class ResultCellsError(Exception):
+    """Raised for result_cells problems that must not be swallowed as a failed trial."""
+
+
+RESULT_CELLS_HELP = (
+    'Optional table cells to use as results when the expression returns tables, separated by comma. '
+    'Each is Table[: Row[: Column]], e.g. Income Statement: Net Income, Ratios: *margin*. '
+    'Table/Row/Column accept names, row numbers, ranges (1-5), * wildcards and ~ exclusion. '
+    'Other scalar results are kept alongside the selected cells, and table_columns/table_units/'
+    'chart_columns/chart_units then filter the combined columns; the other text columns of a row '
+    '(e.g. an acronym) also work there as names'
+)
+
+
+_PERCENT = re.compile(r'^\s*([+-]?\d+(?:\.\d*)?|[+-]?\.\d+)\s*%\s*$')
+
+
+def _cell_value(value):
+    """Return a numeric/Qty cell value, converting '8.28%' to 0.0828; None for anything else."""
+    if isinstance(value, np.generic):
+        value = value.item()
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, float) and value != value:
+        return None
+    if isinstance(value, str):
+        match = _PERCENT.match(value)
+        return float(match.group(1)) / 100.0 if match else None
+    if isinstance(value, (int, float, Qty)):
+        return value
+    return None
+
+
+def _unique_names(names):
+    seen = {}
+    unique = []
+    for name in names:
+        count = seen.get(name, 0) + 1
+        seen[name] = count
+        unique.append(name if count == 1 else f'{name} ({count})')
+    return unique
+
+
+def _result_tables(result) -> dict:
+    if isinstance(result, pd.DataFrame) or is_qtbl(result):
+        return {'Table': result}
+    if isinstance(result, dict):
+        return {str(key): value for key, value in result.items()
+                if isinstance(value, pd.DataFrame) or is_qtbl(value)}
+    return {}
+
+
+_ROW_INDEX = re.compile(r'^\d+(\s*-\s*\d+)?$')
+
+
+def _select_indexes(display_names, label_lists, valid_rows, part):
+    """Row indexes picked by one row part.
+
+    Row numbers, ranges and the display name (unique, e.g. 'Total (2)') address single rows.
+    Names and wildcards also match by value in every label column, selecting all rows sharing it.
+    """
+    negate = part.startswith('~')
+    token = part[1:].strip() if negate else part
+    if not token:
+        return set(valid_rows)
+    index_of = {name: i for i, name in enumerate(display_names)}
+    hit = {index_of[name] for name in specified_args(display_names, [token], empty_spec='*')}
+    if not _ROW_INDEX.match(token):
+        for labels in label_lists:
+            values = list(dict.fromkeys(label for label in labels if label))
+            matched = set(specified_args(values, [token], empty_spec='*'))
+            hit.update(i for i, label in enumerate(labels) if label in matched)
+    return set(valid_rows) - hit if negate else hit & set(valid_rows)
+
+
+def _table_cells(table_name, df, row_part, column_part) -> tuple[dict, dict]:
+    """Extract the cells of one table as ({'Table: Row[: Column]': value}, {key: [alias keys]})."""
+    columns = [str(col) for col in df.columns]
+    col_values = [df.iloc[:, j].tolist() for j in range(len(columns))]
+    is_value = [any(_cell_value(v) is not None for v in values) for values in col_values]
+    value_idx = [j for j, flag in enumerate(is_value) if flag]
+    label_idx = [j for j, flag in enumerate(is_value) if not flag]
+    if not value_idx:
+        return {}, {}
+
+    nrows = len(df)
+
+    def label_of(j, i):
+        text = str(col_values[j][i]).strip() if col_values[j][i] is not None else ''
+        return '' if text.lower() in ('nan', 'none') else text
+
+    label_lists = [[label_of(j, i) for i in range(nrows)] for j in label_idx]
+    if label_lists:
+        display = [next((labels[i] for labels in label_lists if labels[i]), '') for i in range(nrows)]
+    else:
+        display = [str(i + 1) for i in range(nrows)]
+    valid_rows = [i for i in range(nrows) if display[i]]
+
+    # blank labels get unique placeholders so index lookups stay one-to-one
+    def name_list(labels):
+        return _unique_names([labels[i] if labels[i] else f'_blank_{i}' for i in range(nrows)])
+
+    display_names = name_list(display)
+    rows = sorted(_select_indexes(display_names, label_lists, valid_rows, row_part)) if row_part else valid_rows
+
+    value_names = _unique_names([columns[j] for j in value_idx])
+    picked_cols = specified_args(value_names, [column_part], empty_spec='*') if column_part else value_names
+    show_column = len(value_idx) > 1
+
+    cells = {}
+    aliases = {}
+    for i in rows:
+        alt_labels = [labels[i] for labels in label_lists if labels[i] and labels[i] != display[i]]
+        for col_name in picked_cols:
+            value = _cell_value(col_values[value_idx[value_names.index(col_name)]][i])
+            if value is None:
+                continue
+            suffix = f': {col_name}' if show_column else ''
+            key = f'{table_name}: {display_names[i]}{suffix}'
+            cells[key] = value
+            if alt_labels:
+                aliases[key] = [f'{table_name}: {label}{suffix}' for label in alt_labels]
+    return cells, aliases
+
+
+class ResultCells(dict):
+    """Result dict whose cell keys can also be referred to by alias (e.g. an acronym) in column filters."""
+
+    def __init__(self, *args, aliases=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.aliases = aliases or {}
+
+
+def flatten_tables(result, cells_spec: str):
+    """Turn tabular results into {'Table: Row[: Column]': value} scalars selected by cells_spec.
+
+    cells_spec is comma separated tokens of the form 'Table[: Row[: Column]]'. Each part is
+    resolved with specified_args (name, 1-based index, a-b range, * wildcard, ~ exclusion).
+    Rows are matched by any non-value (text) column, e.g. both line item and acronym.
+    Non-table entries of a dict result (e.g. scalar values) are kept, followed by the selected
+    cells; a cell whose name collides with an existing key gets a ' (2)' style suffix.
+    The returned ResultCells also records the other row labels (e.g. acronyms) as aliases of a
+    cell's column name. A blank spec, or a result without tables, is returned unchanged.
+    """
+    tokens = [token for token in css2strs(cells_spec or '') if token]
+    tables = _result_tables(result)
+    if not tokens or not tables:
+        return result
+
+    names = list(tables)
+    flat = {}
+    flat_aliases = {}
+    for token in tokens:
+        parts = [part.strip() for part in token.split(':', 2)]
+        parts += [''] * (3 - len(parts))
+        table_part, row_part, column_part = parts
+        for table_name in specified_args(names, [table_part], empty_spec='*'):
+            cells, aliases = _table_cells(table_name, as_qtable(tables[table_name]), row_part, column_part)
+            flat.update(cells)
+            flat_aliases.update(aliases)
+        if len(flat) > gs['range_limit']:
+            raise ResultCellsError(f"Range limit of {gs['range_limit']} exceeded for result cells")
+
+    merged = ResultCells(
+        {key: value for key, value in result.items() if key not in tables} if isinstance(result, dict) else {})
+    for key, value in flat.items():
+        unique_key, n = key, 1
+        while unique_key in merged:
+            n += 1
+            unique_key = f'{key} ({n})'
+        merged[unique_key] = value
+        if key in flat_aliases:
+            merged.aliases[unique_key] = flat_aliases[key]
+    return merged
 
 
 def is_scalar(value):
@@ -20,10 +200,11 @@ def is_scalar(value):
     ))
 
 
-def scalar_results(xpr: str, variable: str, var_vals: list, variation_target: str = 'p'):
+def scalar_results(xpr: str, variable: str, var_vals: list, variation_target: str = 'p', cells: str = ''):
     # imported lazily: eva -> cal_eva -> "from calc import QCals" would otherwise
     # circular-import back into this module while calc/__init__.py is still loading
     # variation target can be 'p' (parameters in a function/calculator) or 'v' (variables in an expression)
+    # cells ('Table: Row: Column, ...') picks cells of tabular results as scalar values, see flatten_tables()
     from calculators.all.general import eva
 
     def filter_scalar(result) -> dict | list | None:
@@ -39,15 +220,18 @@ def scalar_results(xpr: str, variable: str, var_vals: list, variation_target: st
             return filtered
 
         if isinstance(result, dict):
-            filtered = {}
+            filtered = ResultCells() if isinstance(result, ResultCells) else {}
             for key, value in result.items():
                 if is_scalar(value):
                     filtered[key] = value
+            if isinstance(result, ResultCells):
+                filtered.aliases = {key: names for key, names in result.aliases.items() if key in filtered}
             return filtered
 
         return None
 
     failed = 0
+    saw_table = False
     results = []
     xvals = []
     for var_val in var_vals:
@@ -69,6 +253,11 @@ def scalar_results(xpr: str, variable: str, var_vals: list, variation_target: st
             failed += 1
             continue
 
+        if cells:
+            result = flatten_tables(result, cells)
+        elif _result_tables(result):
+            saw_table = True
+
         sc = filter_scalar(result)
         if isinstance(sc, (dict, list)) and not sc:
             # every field was filtered out (e.g. the expression errored for this
@@ -82,6 +271,9 @@ def scalar_results(xpr: str, variable: str, var_vals: list, variation_target: st
         else:
             raise Exception("No numeric results were produced; check the expression")
     if not results:
+        if saw_table:
+            raise Exception("No numeric results were produced; the expression returned tables, "
+                            "specify result_cells to pick table cells")
         raise Exception("No numeric results were produced; check the expression")
     return results, xvals
 

@@ -232,6 +232,7 @@ def scalar_results(xpr: str, variable: str, var_vals: list, variation_target: st
 
     failed = 0
     saw_table = False
+    last_error = None
     results = []
     xvals = []
     for var_val in var_vals:
@@ -249,8 +250,15 @@ def scalar_results(xpr: str, variable: str, var_vals: list, variation_target: st
 
         try:
             result = eva(code=code)
-        except Exception:
+        except Exception as e:
             failed += 1
+            last_error = str(e)
+            continue
+
+        if isinstance(result, dict) and set(result) == {'result'} and isinstance(result['result'], str):
+            # eva() reports a failed expression as {'result': '<error text>'} instead of raising
+            failed += 1
+            last_error = result['result']
             continue
 
         if cells:
@@ -273,7 +281,9 @@ def scalar_results(xpr: str, variable: str, var_vals: list, variation_target: st
     if not results:
         if saw_table:
             raise Exception("No numeric results were produced; the expression returned tables, "
-                            "specify result_cells to pick table cells")
+                            "specify [Result Cells] to pick table cells")
+        if last_error:
+            raise Exception(f"No numeric results were produced; the last trial failed: {last_error}")
         raise Exception("No numeric results were produced; check the expression")
     return results, xvals
 

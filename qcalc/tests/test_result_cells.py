@@ -104,7 +104,7 @@ def test_result_titles_keep_acronyms():
 
 
 def test_redo_tables_without_cells_hints_result_cells():
-    with pytest.raises(Exception, match='result_cells'):
+    with pytest.raises(Exception, match='[Result Cells]'):
         redo(variation_target='v', xpr=FIN_XPR, variable='x',
              variation_start=10000, variation_stop=12000, variation_step=2000)
 
@@ -121,7 +121,7 @@ def test_compare_finstate_cells():
 
 
 def test_compare_tables_without_cells_hints_result_cells():
-    with pytest.raises(Exception, match='result_cells'):
+    with pytest.raises(Exception, match='[Result Cells]'):
         compare(
             variation_target='v', xpr='finstate(sales_period=s)',
             inputs={'columns': ['Variable', 'Low'], 'data': [['s', 10000]]},
@@ -270,3 +270,34 @@ def test_shared_text_value_alias_selects_all_matching_columns_in_filters():
     assert 'Stock: Tea: Qty' not in qr.objects()['table'].columns
     assert 'Stock: Condensed Milk: Qty' not in qr.objects()['table'].columns
     assert 'Stock: Sugar: Qty' in qr.objects()['table'].columns
+
+
+BM_X = "{'columns': ['C1', 'C2'], 'data': [[1, 2], [3, 4]]}"
+
+
+def test_failed_trials_report_the_real_error_syntax():
+    xpr = f"bmatrix(x={BM_X}, y={BM_X}, operation='Add', expression='x*y')"
+    with pytest.raises(Exception, match='last trial failed: Syntax error'):
+        redo(variation_target='v', xpr=xpr, variable='x', variation_start=1, variation_stop=2,
+             variation_step=1, result_cells='Result: 1')
+
+
+def test_failed_trials_report_the_real_error_missing_arguments():
+    with pytest.raises(Exception, match='last trial failed: .*missing 2 required positional'):
+        redo(variation_target='v', xpr='bmatrix()', variable='v', variation_start=1, variation_stop=2,
+             variation_step=1, result_cells='Result: 1')
+
+
+def test_compare_reports_the_real_error():
+    with pytest.raises(Exception, match='last trial failed: .*missing 2 required positional'):
+        compare(variation_target='v', xpr='bmatrix()',
+                inputs={'columns': ['Variable', 'A'], 'data': [['v', 1]]}, result_cells='Result: 1')
+
+
+def test_matrix_result_table_cells_by_row_number():
+    xpr = ("bmatrix(x={'columns': ['C1', 'C2'], 'data': [['v', 2], [3, 4]]}, "
+           "y={'columns': ['C1', 'C2'], 'data': [[5, 6], [7, 8]]})")
+    out = redo(variation_target='v', xpr=xpr, variable='v', variation_start=7, variation_stop=8,
+               variation_step=1, result_cells='result:1:C1', show='table')
+    assert list(out['table'].columns) == ['V', 'Result: 1: C1']
+    assert out['table']['Result: 1: C1'].tolist() == [12.0, 13.0]

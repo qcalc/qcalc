@@ -206,6 +206,48 @@ def replace_variables(str_to_replace, variables_dict, case_sensitive=True):
 import re
 
 
+# Matches:
+#   parameter='1.3 kW'
+#   parameter="1.3 kW"
+#   parameter=0.8
+#   parameter=-12
+#   parameter=1.25
+_PARAMETER_PATTERN = r"""
+    (?P<name>[A-Za-z_]\w*)
+    (\s*=\s*)
+    (?:
+        (?P<quote>['"])
+        (?P<quantity>
+            [+-]?(?:\d+(?:\.\d*)?|\.\d+)
+            \s+
+            [^'"]+
+        )
+        (?P=quote)
+      |
+        (?P<number>
+            [+-]?(?:\d+(?:\.\d*)?|\.\d+)
+        )
+    )
+"""
+
+
+def parameter_values(xpr: str, case_sensitive: bool = False) -> dict:
+    """Read the current numeric value of each parameter in a calculator expression.
+
+    Example:
+        "f(power='1.3 kW', factor=0.8)" -> {'power': 1.3, 'factor': 0.8}
+    """
+    flags = 0 if case_sensitive else re.IGNORECASE
+    values = {}
+    for match in re.finditer(_PARAMETER_PATTERN, xpr, re.VERBOSE | flags):
+        text = match.group('number')
+        if text is None:
+            text = match.group('quantity').split()[0]
+        key = match.group('name') if case_sensitive else match.group('name').lower()
+        values.setdefault(key, float(text))
+    return values
+
+
 def replace_parameter_values(
     xpr_to_replace: str,
     parameters_dict: dict,
@@ -242,32 +284,7 @@ def replace_parameter_values(
 
     flags = 0 if case_sensitive else re.IGNORECASE
 
-    # Matches:
-    #   parameter='1.3 kW'
-    #   parameter="1.3 kW"
-    #   parameter=0.8
-    #   parameter=-12
-    #   parameter=1.25
-    pattern = re.compile(
-        r"""
-        (?P<name>[A-Za-z_]\w*)
-        (\s*=\s*)
-        (?:
-            (?P<quote>['"])
-            (?P<quantity>
-                [+-]?(?:\d+(?:\.\d*)?|\.\d+)
-                \s+
-                [^'"]+
-            )
-            (?P=quote)
-          |
-            (?P<number>
-                [+-]?(?:\d+(?:\.\d*)?|\.\d+)
-            )
-        )
-        """,
-        re.VERBOSE | flags,
-    )
+    pattern = re.compile(_PARAMETER_PATTERN, re.VERBOSE | flags)
 
     def replace(match):
         name = match.group("name")

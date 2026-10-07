@@ -7,7 +7,7 @@ __version_info__ = tuple(
     ]
 )
 
-STATIC_VERSION = '1.4.32.2'
+STATIC_VERSION = '1.4.32.4'
 sitemap_lastmod = {
     "page": "2024-10-07",
     "doc": "2026-10-07",

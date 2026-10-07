@@ -1034,7 +1034,7 @@ function qcalcInitHelpTooltips(root) {
             container: 'body',
             boundary: 'window',
             template: '<div class="tooltip qcalc-help-tooltip" role="tooltip"><div class="arrow"></div><div class="tooltip-inner"></div></div>',
-            html: false,
+            html: true,
         });
     });
 }
@@ -1045,7 +1045,7 @@ document.addEventListener('DOMContentLoaded', function() {
     qmdEnhanceImages(document);
     if (document.body) {
         document.body.addEventListener('htmx:afterSwap', function(evt) {
-            qcalcInitHelpTooltips(evt.target);
+            qcalcInitHelpTooltips(document);
             qmdEnhanceCodeBlocks(document);
             qmdEnhanceImages(document);
         });

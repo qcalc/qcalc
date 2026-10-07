@@ -52,7 +52,7 @@ linear relationship in this model.
 ### Expression
 
 The expression or calculator call to repeat. It should contain the variable
-names listed in **Variables**.
+names listed in the **Inputs Table**.
 
 The default expression is:
 
@@ -79,77 +79,53 @@ be represented by its name in the expression. For example:
 inflation * principal + interest
 ```
 
-### Variables
+### Inputs Table
 
-A comma-separated list of one or more unique variable names:
+Enter all sampled variables in one editable table. The calculator expects these
+columns:
 
-```text
-inflation, interest, principal
-```
+| Column | Meaning |
+|---|---|
+| Variable | The variable name used in the expression. |
+| Distribution | One of `normal`, `uniform`, `triangular`, or `lognormal`. |
+| Param 1 | Mean, low, or mu depending on the distribution. |
+| Param 2 | Stdev, high, or sigma depending on the distribution. |
+| Param 3 | Triangular mode only; leave blank for the other distributions. |
+
+Each row describes one variable. The column names are validated, so keep them
+as `Variable`, `Distribution`, `Param 1`, `Param 2`, and `Param 3`.
+
+The parameter rules are:
+
+- `normal`: Param 1 = mean, Param 2 = stdev, Param 3 = blank
+- `uniform`: Param 1 = low, Param 2 = high, Param 3 = blank
+- `triangular`: Param 1 = low, Param 2 = high, Param 3 = mode
+- `lognormal`: Param 1 = mu, Param 2 = sigma, Param 3 = blank
 
 Names must begin with a letter or underscore and may contain letters, numbers,
-and underscores. The order of this list establishes the order used by
-**Distributions**, **Param1s**, **Param2s**, and **Param3s**.
-
-### Distributions
-
-A comma-separated distribution name for each variable. The supported choices
-are:
-
-- `normal` — uses a mean and standard deviation.
-- `uniform` — samples equally between a low and high value.
-- `triangular` — uses a low value, high value, and most-likely mode.
-- `lognormal` — samples a positive, right-skewed quantity using the parameters
-  of an underlying normal distribution.
-
-The number and order of distributions must match **Variables**.
-
-### Param1s and Param2s
-
-These are comma-separated numeric lists. Each position corresponds to the same
-position in **Variables** and **Distributions**.
-
-| Distribution | Param1 | Param2 |
-|--------------|--------|--------|
-| `normal` | mean | standard deviation |
-| `uniform` | low | high |
-| `triangular` | low | high |
-| `lognormal` | mu of the underlying normal distribution | sigma of the underlying normal distribution |
+and underscores. Standard deviations and lognormal sigma values cannot be
+negative. Uniform and triangular low values cannot exceed their corresponding
+high values. The triangular mode must lie between the low and high values.
 
 For example:
 
-```text
-Variables:     inflation, interest, demand
-Distributions: normal,    normal,    uniform
-Param1s:       3,          5,         80
-Param2s:       1,          1.5,       120
-```
+| Variable | Distribution | Param 1 | Param 2 | Param 3 |
+|---|---|---:|---:|---:|
+| inflation | normal | 3 | 1 |  |
+| interest | normal | 5 | 1.5 |  |
+| demand | uniform | 80 | 120 |  |
 
-The number of values in **Param1s** and **Param2s** must match the number of
-variables. Standard deviations and lognormal sigma values cannot be negative.
-Uniform and triangular low values cannot exceed their corresponding high
-values.
+This table replaces the earlier comma-separated Variables, Distributions,
+Param1s, Param2s, and Param3s fields.
 
-### Param3s
+| Variable | Distribution | Param 1 | Param 2 | Param 3 |
+|---|---|---:|---:|---:|
+| price | triangular | 8 | 15 | 10 |
+| demand | normal | 100 | 20 |  |
+| duration | triangular | 2 | 10 | 5 |
 
-An optional comma-separated list of triangular distribution modes. Its value
-is used only for variables whose distribution is `triangular`; it is ignored
-for the other distributions.
-
-Use an empty entry for a non-triangular variable when positions need to be
-preserved:
-
-```text
-Variables:     price, demand, duration
-Distributions: triangular, normal, triangular
-Param1s:       8, 100, 2
-Param2s:       15, 20, 10
-Param3s:       10, , 5
-```
-
-The mode must lie between the low and high values. A single Param3 value may
-also be supplied; it is applied to every variable position, but it only affects
-triangular distributions.
+The mode must lie between the low and high values. If a row does not use the
+triangular distribution, leave Param 3 blank.
 
 ### Trials
 
@@ -164,14 +140,6 @@ The number of bins used to group calculated outcomes in the histogram. More
 bins show more detail but can make a small simulation look irregular; fewer
 bins give a more compressed view.
 
-### Round Off
-
-The number of decimal places used to round each sampled input before it is
-inserted into the expression. Rounding keeps the evaluated trial expressions
-manageable and makes the sampled values consistent with the displayed
-precision. It can introduce a small discretization, normally negligible for
-ordinary Monte Carlo use.
-
 ### Correlated Variables
 
 An optional comma-separated pair of variable names:
@@ -180,7 +148,7 @@ An optional comma-separated pair of variable names:
 inflation, interest
 ```
 
-Both names must already appear in **Variables**. Leave this field blank when
+Both names must already appear in the **Inputs Table**. Leave this field blank when
 all variables should be sampled independently.
 
 The pair must use the `normal` distribution. This version supports only one
@@ -279,17 +247,16 @@ inflation * 1000 + interest * 500 + demand
 
 Use:
 
-```text
-Variables:             inflation, interest, demand
-Distributions:         normal, normal, uniform
-Param1s:               3, 5, 40
-Param2s:               1, 1.5, 80
-Param3s:
-Trials:                1000
-Bin Count:             20
-Correlated Variables:  inflation, interest
-Correlation:           0.65
-```
+| Variable | Distribution | Param 1 | Param 2 | Param 3 |
+|---|---|---:|---:|---:|
+| inflation | normal | 3 | 1 |  |
+| interest | normal | 5 | 1.5 |  |
+| demand | uniform | 40 | 80 |  |
+
+Trials: 1000
+Bin Count: 20
+Correlated Variables: inflation, interest
+Correlation: 0.65
 
 The calculator samples inflation and interest as a positively correlated
 normal pair. Demand is sampled independently and uniformly from 40 to 80.
@@ -316,9 +283,6 @@ the spread and tail of the result.
   assumption.
 - The selected distributions and parameters are model assumptions. They do not
   forecast the future or establish the true probability of an outcome.
-- Rounding sampled values before evaluation can create a small discretization,
-  especially with very narrow distributions or very low precision. Use an
-  appropriate **Round Off** value for the scale of the inputs.
 - Failed trials are excluded from the statistics. A high `trials_failed` count
   may indicate invalid ranges, an unsuitable expression, missing units, or
   parameters that make the calculation invalid.

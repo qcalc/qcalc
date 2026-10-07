@@ -5,9 +5,9 @@ import re
 
 import numpy as np
 
-from qcore import qchar, qcode, qtexta
-from calc import scalar_results, QResults, show_choice, RESULT_CELLS_HELP
-from qutil import css2floats, css2strs
+from qcore import qchar, qcode, qtbl
+from calc import require_columns, scalar_results, QResults, show_choice, RESULT_CELLS_HELP
+from qutil import css2strs
 from qvars import qc_gpref as gs
 
 
@@ -100,14 +100,13 @@ def monte_carlo(variation_target='v', xpr: qcode = "sine('x deg')", variable: qc
             'data': [
                 ['Trials used', len(numeric_values)],
                 ['Trials failed', failed],
-                ['Mean', round(float(np.mean(numeric_values)), round_off)],
-                ['Stdev', round(float(np.std(numeric_values, ddof=1)), round_off)
-                 if len(numeric_values) > 1 else 0.0],
-                ['Min', round(float(np.min(numeric_values)), round_off)],
-                ['Max', round(float(np.max(numeric_values)), round_off)],
-                ['P5', round(float(np.percentile(numeric_values, 5)), round_off)],
-                ['P50', round(float(np.percentile(numeric_values, 50)), round_off)],
-                ['P95', round(float(np.percentile(numeric_values, 95)), round_off)],
+                ['Mean', float(np.mean(numeric_values))],
+                ['Stdev', float(np.std(numeric_values, ddof=1)) if len(numeric_values) > 1 else 0.0],
+                ['Min', float(np.min(numeric_values))],
+                ['Max', float(np.max(numeric_values))],
+                ['P5', float(np.percentile(numeric_values, 5))],
+                ['P50', float(np.percentile(numeric_values, 50))],
+                ['P95', float(np.percentile(numeric_values, 95))],
             ],
         },
         **histo
@@ -141,7 +140,7 @@ def monte_carlo2__info():
     return {
         'title': 'Monte Carlo Simulation 2',
         'desc': 'Repeat a calculation while sampling multiple variables independently, '
-                'with an optional correlated pair',
+                'with an optional correlated pair, using an editable input table',
         'schema': {
             'variation_target': {
                 'type': 'choice',
@@ -150,18 +149,22 @@ def monte_carlo2__info():
             },
             'show': show_choice,
             'result_cells': {'help_text': RESULT_CELLS_HELP},
-            'distributions': {
-                'help_text': 'One distribution per variable, separated by comma\n options: normal, uniform, triangular, lognormal', },
-            'param1s': {'help_text': 'One mean/low/mu value per variable, separated by comma', },
-            'param2s': {'help_text': 'One stdev/high/sigma value per variable, separated by comma', },
-            'param3s': {'help_text': 'Optional triangular mode values, separated by comma', },
+            'inputs': {
+                'help_text': (
+                    'Use Distribution to choose the sampling shape.<br>'
+                    '<b>normal:</b> Param 1 = <b>mean</b>, Param 2 = <b>stdev</b>, Param 3 = blank<br>'
+                    '<b>uniform:</b> Param 1 = <b>low</b>, Param 2 = <b>high</b>, Param 3 = blank<br>'
+                    '<b>triangular:</b> Param 1 = <b>low</b>, Param 2 = <b>high</b>, Param 3 = <b>mode</b><br>'
+                    '<b>lognormal:</b> Param 1 = <b>mu</b>, Param 2 = <b>sigma</b>, Param 3 = blank<br>'
+                ),
+            },
             'correlated_variables': {
                 'help_text': 'Optional pair, for example inflation, interest, separated by comma', },
             'correlation': {'help_text': 'Correlation for the optional pair, from -1 to 1'},
             # 'histo_column': {'required': True},
         },
         'layout': 'tb',
-        'inp1': '1-7',
+        'inp1': '1-5',
         'out1': '~chart',
         'kins': 'redo, monte_carlo',
         'tags': 'monte carlo, simulation, uncertainty, correlation',
@@ -171,14 +174,12 @@ def monte_carlo2__info():
 def monte_carlo2(
     variation_target='v',
     xpr: qcode = 'x + y',
-    variables: qtexta = 'x, y',
-    distributions: str = 'normal, normal',
-    param1s: str = '0, 0',
-    param2s: str = '1, 1',
-    param3s: str = '',
+    inputs: qtbl = {
+        'columns': ['Variable', 'Distribution', 'Param 1', 'Param 2', 'Param 3'],
+        'data': [['x', 'normal', 0, 1, ''], ['y', 'normal', 0, 1, '']],
+    },
     trials: int = 100,
     bin_count=20,
-    round_off=4,
     correlated_variables: str = '',
     correlation=0.0,
     result_cells: str = '',
@@ -188,29 +189,53 @@ def monte_carlo2(
     show='both',
     chart_title='Monte Carlo Simulation v2',
 ):
-    names = css2strs(variables)
-    distributions = css2strs(distributions.lower())
-    param1_values = css2floats(param1s)
-    param2_values = css2floats(param2s)
-    param3_strings = css2strs(param3s)
+    inputs = inputs or {'columns': [], 'data': []}
+    require_columns(
+        inputs,
+        'inputs',
+        ['Variable', 'Distribution', 'Param 1', 'Param 2', 'Param 3'],
+        columns_can_grow=False,
+    )
 
-    if not names or len(set(names)) != len(names):
-        raise Exception('Variables must contain one or more unique variable names')
-    if any(not re.fullmatch(r'[A-Za-z_]\w*', name) for name in names):
-        raise Exception('Each variable must be a valid variable name')
-    count = len(names)
-    if not all(len(values) == count for values in
-               (distributions, param1_values, param2_values)):
-        raise Exception('Variables, distributions, param1s, and param2s must have the same length')
-    if param3_strings and len(param3_strings) not in (1, count):
-        raise Exception('param3s must be blank, one value, or one value per variable')
-    if param3_strings and len(param3_strings) == 1 and count > 1:
-        param3_strings *= count
-    param3_values = [None if value == '' else float(value) for value in param3_strings]
-    param3_values.extend([None] * (count - len(param3_values)))
-    if any(distribution not in ('normal', 'uniform', 'triangular', 'lognormal')
-           for distribution in distributions):
-        raise Exception('Unknown distribution; use normal, uniform, triangular, or lognormal')
+    columns = list(inputs.get('columns', []))
+    rows = list(inputs.get('data', []))
+    col_index = {name: columns.index(name) for name in ['Variable', 'Distribution', 'Param 1', 'Param 2', 'Param 3']}
+
+    names = []
+    distributions = []
+    param1_values = []
+    param2_values = []
+    param3_values = []
+    for row in rows:
+        values = list(row) if row is not None else []
+        variable = values[col_index['Variable']] if len(values) > col_index['Variable'] else ''
+        distribution = values[col_index['Distribution']] if len(values) > col_index['Distribution'] else ''
+        param1 = values[col_index['Param 1']] if len(values) > col_index['Param 1'] else ''
+        param2 = values[col_index['Param 2']] if len(values) > col_index['Param 2'] else ''
+        param3 = values[col_index['Param 3']] if len(values) > col_index['Param 3'] else ''
+
+        variable = str(variable).strip()
+        distribution = str(distribution).strip().lower()
+
+        if all(value in ('', None) for value in (variable, distribution, param1, param2, param3)):
+            continue
+        if not variable or not distribution or param1 in ('', None) or param2 in ('', None):
+            raise Exception('Each populated input row must include Variable, Distribution, Param 1, and Param 2')
+        if not re.fullmatch(r'[A-Za-z_]\w*', variable):
+            raise Exception(f"'{variable}' is not a valid variable name")
+        if variable in names:
+            raise Exception('Variable names must be unique')
+        if distribution not in ('normal', 'uniform', 'triangular', 'lognormal'):
+            raise Exception('Unknown distribution; use normal, uniform, triangular, or lognormal')
+
+        names.append(variable)
+        distributions.append(distribution)
+        param1_values.append(float(param1))
+        param2_values.append(float(param2))
+        param3_values.append(None if param3 in ('', None) else float(param3))
+
+    if not names:
+        raise Exception('Inputs table must contain at least one populated variable row')
     if trials <= 0:
         raise Exception('Trials must be a positive integer')
     if trials > gs['range_limit']:
@@ -244,14 +269,14 @@ def monte_carlo2(
         samples[names[second]] = param1_values[second] + param2_values[second] * correlated_z2
 
     trial_values = [
-        {name: str(round(float(samples[name][trial]), round_off)) for name in names}
+        {name: str(float(samples[name][trial])) for name in names}
         for trial in range(trials)
     ]
     results, xvals = scalar_results(
-        xpr=xpr, variable=variables, var_vals=trial_values, variation_target=variation_target,
+        xpr=xpr, variable=', '.join(names), var_vals=trial_values, variation_target=variation_target,
         cells=result_cells
     )
-    qr = QResults(results, xvals=xvals, variable=variables, table_columns=table_columns, table_units=table_units,
+    qr = QResults(results, xvals=xvals, variable=', '.join(names), table_columns=table_columns, table_units=table_units,
                   show=show)
     qr.setup_histo(histo_column=histo_column, bin_count=bin_count, chart_title=chart_title)
     histo = qr.objects()
@@ -264,14 +289,13 @@ def monte_carlo2(
             'data': [
                 ['Trials used', len(numeric_values)],
                 ['Trials failed', failed],
-                ['Mean', round(float(np.mean(numeric_values)), round_off)],
-                ['Stdev', round(float(np.std(numeric_values, ddof=1)), round_off)
-                 if len(numeric_values) > 1 else 0.0],
-                ['Min', round(float(np.min(numeric_values)), round_off)],
-                ['Max', round(float(np.max(numeric_values)), round_off)],
-                ['P5', round(float(np.percentile(numeric_values, 5)), round_off)],
-                ['P50', round(float(np.percentile(numeric_values, 50)), round_off)],
-                ['P95', round(float(np.percentile(numeric_values, 95)), round_off)],
+                ['Mean', float(np.mean(numeric_values))],
+                ['Stdev', float(np.std(numeric_values, ddof=1)) if len(numeric_values) > 1 else 0.0],
+                ['Min', float(np.min(numeric_values))],
+                ['Max', float(np.max(numeric_values))],
+                ['P5', float(np.percentile(numeric_values, 5))],
+                ['P50', float(np.percentile(numeric_values, 50))],
+                ['P95', float(np.percentile(numeric_values, 95))],
             ],
         },
         **histo

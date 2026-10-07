@@ -3,7 +3,7 @@
 {% block card %}{% endblock %}
 {% block page_profile %}
 {% concat '/catalog/calc/' category.name '/' as canonical %}
-{% add_head category.data.path category.data.path canonical %}
+{% add_head category.title category.desc canonical %}
 {% endblock %}
 {% block _cardtitle %}{{ title }} - {{ category.data.path }}{% endblock %}
 {% block _content %}

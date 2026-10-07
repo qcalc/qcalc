@@ -1,6 +1,6 @@
 {% load qfilter %}
 {% if not search %}{% include "catalog-qty-links.html" %}<hr>{% endif %}
-{% if help_html != '' %}{% include help_html %}{% endif %}
+{% if help_html %}{% include help_html %}{% endif %}
 <table class="table" id="qty_table">
   {% for node in qty_data %}
     {% if node|is_visible:request %}

@@ -1,0 +1,152 @@
+{
+    "all": {
+        "desc": "qCalc standard calculators"
+    },
+    "ext": {
+        "desc": "Extended collection of locally implemented calculators"
+    },
+    "all-admin": {
+        "desc": "Administrative calculators and utilities for platform operations, preferences, messaging, and support workflows."
+    },
+    "all-analytics": {
+        "desc": "Analytics calculators for forecasting, optimization, scenario analysis, and data-driven business decision support."
+    },
+    "all-analytics-forecasting": {
+        "desc": "Forecasting calculators for projections, trend modeling, and volatility-aware planning scenarios."
+    },
+    "all-analytics-optimization": {
+        "desc": "Optimization calculators for linear, nonlinear, assignment, and constrained optimization problems."
+    },
+    "all-analytics-simulation": {
+        "desc": "Simulation calculators for stochastic modeling, Monte Carlo style analysis, and risk-aware experimentation."
+    },
+    "all-analytics-what_if": {
+        "desc": "What-if calculators for scenario comparison, delta analysis, and decision-impact exploration."
+    },
+    "all-business": {
+        "desc": "Business calculators for planning, finance, inventory, production, procurement, pricing, and profitability analysis."
+    },
+    "all-business-distribution": {
+        "desc": "Distribution and logistics calculators for transportation, network planning, and supply movement optimization."
+    },
+    "all-business-finance": {
+        "desc": "Business finance calculators for break-even, financial statements, and strategic make-or-buy decisions."
+    },
+    "all-business-inventory": {
+        "desc": "Inventory calculators for stock planning, reorder support, and inventory-level decision making."
+    },
+    "all-business-planning": {
+        "desc": "Business planning calculators for sales and operations planning with structured decision support."
+    },
+    "all-business-procurement": {
+        "desc": "Procurement calculators for supplier selection, total cost, discounts, EOQ, and purchasing strategy."
+    },
+    "all-business-production": {
+        "desc": "Production calculators for workforce planning, overtime, blending, downtime, and inventory-linked output optimization."
+    },
+    "all-business-sales": {
+        "desc": "Sales calculators for pricing strategy, discount analysis, and margin optimization."
+    },
+    "all-demo": {
+        "desc": "Demo calculators that showcase qCalc features, sample flows, and reusable implementation patterns."
+    },
+    "all-demo-dependency": {
+        "desc": "Dependency-focused demo calculators illustrating related-field behavior and chained calculation logic."
+    },
+    "all-demo-input_fields": {
+        "desc": "Input-field demo calculators showing advanced field configuration, validation, and UI interaction patterns."
+    },
+    "all-demo-layout": {
+        "desc": "Layout demo calculators illustrating page structure, section organization, and calculator presentation options."
+    },
+    "all-engineering": {
+        "desc": "Engineering calculators for civil and practical engineering tasks including estimation, surveying, and design checks."
+    },
+    "all-engineering-estimation": {
+        "desc": "Engineering estimation calculators for materials, dimensions, and practical project quantity planning."
+    },
+    "all-engineering-surveying": {
+        "desc": "Surveying calculators for land measurement, field estimation, and site-layout support."
+    },
+    "all-family": {
+        "desc": "Family and personal-life calculators for household decisions, budgeting, and long-term financial planning."
+    },
+    "all-family-finance": {
+        "desc": "Family finance calculators for personal budgeting, retirement planning, and everyday money decisions."
+    },
+    "all-finance": {
+        "desc": "Finance calculators for loans, investments, banking, statements, returns, and personal or business money planning."
+    },
+    "all-general": {
+        "desc": "General-purpose calculators for everyday conversions, utilities, expression evaluation, and common quick tasks."
+    },
+    "all-general-chart": {
+        "desc": "General charting calculators to visualize data trends, comparisons, and quick numeric insights."
+    },
+    "all-general-file": {
+        "desc": "General file utilities and calculators for file-based processing and workflow support."
+    },
+    "all-general-map": {
+        "desc": "General map and location calculators for coordinate lookup and geography-based utility tasks."
+    },
+    "all-general-text": {
+        "desc": "General text calculators and utilities for text processing, formatting, and content transformation tasks."
+    },
+    "all-general-user": {
+        "desc": "General user calculators for personal variants, sharing, and user-specific calculator management workflows."
+    },
+    "all-general-utility": {
+        "desc": "General utility calculators for search, transfer, time, ranges, and practical helper operations."
+    },
+    "all-health": {
+        "desc": "Health calculators for BMI, age, fitness, heart metrics, and other wellness-related measurements."
+    },
+    "all-image_processing": {
+        "desc": "Image processing calculators for background removal, visual transformation, and image-based utility workflows."
+    },
+    "all-infotech": {
+        "desc": "Information technology calculators for digital content analysis, web diagnostics, and technical productivity tasks."
+    },
+    "all-infotech-seo": {
+        "desc": "SEO calculators and audit tools for content quality, broken links, and search visibility scoring."
+    },
+    "all-mathematics": {
+        "desc": "Mathematics calculators for algebra, geometry, matrices, permutations, and statistics computations."
+    },
+    "all-mathematics-geometry": {
+        "desc": "Geometry calculators for circles, triangles, quadrilaterals, and practical shape-measurement problems."
+    },
+    "all-mathematics-matrices": {
+        "desc": "Matrix calculators for matrix operations, transformations, and linear-algebra problem solving."
+    },
+    "all-mathematics-statistics": {
+        "desc": "Statistics calculators for descriptive analysis, summary metrics, and data interpretation."
+    },
+    "all-others": {
+        "desc": "Miscellaneous calculators that do not fit a single domain, including utility and exploratory tools."
+    },
+    "all-others-fun": {
+        "desc": "Fun calculators and interactive tools for creative experiments, number play, and engaging computational exploration."
+    },
+    "all-others-fun-curves": {
+        "desc": "Curve calculators for generating and exploring mathematical and visual curve profiles."
+    },
+    "all-photography": {
+        "desc": "Photography calculators for camera settings, exposure planning, and imaging-related decision support."
+    },
+    "all-science": {
+        "desc": "Science calculators spanning physics, chemistry, astronomy, and weather-related computations."
+    },
+    "all-science-astronomy": {
+        "desc": "Astronomy calculators for celestial coordinates, Earth rotation metrics, and practical space-science computations."
+    },
+    "all-science-chemistry": {
+        "desc": "Chemistry calculators for common laboratory and educational tasks such as molar mass and formula-based calculations."
+    },
+    "all-science-physics": {
+        "desc": "Physics calculators for motion, gravity, gas laws, relativity, and foundational science equations."
+    },
+    "all-science-weather": {
+        "desc": "Weather calculators for atmospheric conditions and weather-oriented analytical calculations."
+    }
+}

@@ -85,6 +85,12 @@ TABLE_MAX_CELLS_XPR = 1000 # Maximum number of cells that allows an expression t
 # Expression builder limit
 SCALAR_LENGTH = 512  # Maximum length of a scalar value or string for expression builder to process
 
+# Relative value syntax used by compare(), e.g. 5%, -5%, 5(%), 5(+), 2(x)
+RELATIVE_VALUE_PATTERN = re.compile(
+    r'(?P<sign>[+-]?)(?P<number>(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?)'
+    r'\s*(?:(?P<percent>%)|\(\s*(?P<op>[-+*/xX%])\s*\))'
+)
+
 # Local trusted deployments may enable legacy unrestricted user-calculator imports.
 ALLOW_UNSAFE_USER_CALCULATOR_IMPORTS = False
 

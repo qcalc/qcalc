@@ -5,6 +5,7 @@
 {% block page_profile %}
 {% add_head 'Catalog Search' 'Catalog Search' '/catalog/search/' %}
 {% endblock %}
+{% block extra_header %}<meta name="robots" content="noindex, nofollow">{% endblock %}
 {% block _cardtitle %}Catalog Search{% endblock %}
 {% block _content %}
 {% include 'include-search-catalog-onpage.html' with label='Search catalog' %}

@@ -52,6 +52,36 @@ unique valid variable names. A value column may be entirely blank, but a
 partially filled value column is invalid. Put any unit context in the
 expression; table entries are the discrete values.
 
+#### Value syntax
+
+Each input cell can be either:
+
+- a plain value (`5`, `-3`, `0.8`) for direct replacement, or
+- a relative operation applied to a base value.
+
+Supported relative forms:
+
+- `5(+)`: add 5 to the base
+- `5(-)`: subtract 5 from the base
+- `2(*)` or `2(x)`: multiply the base by 2
+- `2(/)`: divide the base by 2
+- `80%` or `80(%)`: take 80% of the base (`base * 0.80`)
+- `+10%` or `-5%`: apply percentage change (`base * 1.10`, `base * 0.95`)
+
+How base values are chosen:
+
+- **Vary By = Parameters (`p`)**  
+  The base is read from the numeric value already present in the expression
+  for that parameter. Every populated column (`V1`, `V2`, …) may use
+  relative syntax.
+
+- **Vary By = Variables (`v`)**  
+  The first populated value column is the base column and should contain
+  plain values. Relative syntax is supported in later populated columns and
+  is always applied against the base column values (not against previous
+  columns). If a later column has a plain value, that value is used directly
+  for replacement.
+
 ### Table Columns
 
 Optional result columns to include in the output table. The input parameter
@@ -93,7 +123,8 @@ The result table has one row per successfully evaluated value column. Its
 first column, **Variation**, contains the corresponding input-table label
 (`V1`, `V2`, or `V3`) so that each result row can be cross-checked directly
 against the input. It then shows the input values for each variable followed
-by the selected result columns.
+by the selected result columns. When relative syntax is used in the input
+table, the table shows the resolved numeric values used during evaluation.
 The chart uses grouped vertical bars to compare the selected results across
 the discrete cases.
 

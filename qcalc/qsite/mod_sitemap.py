@@ -17,8 +17,9 @@ class QSitemapPage(Sitemap):
     @classmethod
     def items(cls):
         return [
+            '/',
             '/calc/', '/help/',
-            '/catalog/calc/calculators/', '/catalog/calc/tree/', '/catalog/qty/units/', '/catalog/qty/tree/',
+            '/catalog/calc/calculators/', '/catalog/calc/', '/catalog/qty/units/', '/catalog/qty/',
             '/page/cal/', '/page/console/', '/page/about/', '/page/privacy-policy/',
             '/page/terms-conditions/', '/page/contact/',
         ]

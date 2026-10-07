@@ -278,7 +278,7 @@ def finstate(
     income_statement = pd.DataFrame(
         [
             ['Sales', '', sales_period],
-            ['Cost of Goods Sold', '', cogs_period],
+            ['Cost of Goods Sold', 'COGS', cogs_period],
             ['Gross Profit', '', gross_profit],
             ['Selling, General & Administrative Expenses', 'SG&A', sga_period],
             ['Other Operating Income', '', other_operating_income],
@@ -291,30 +291,30 @@ def finstate(
             ['Income Taxes', '', income_taxes],
             ['Net Income', '', net_income],
         ],
-        columns=['Line Item', 'Acronym', 'Period'],
+        columns=['Line Item', 'Acronym', 'Value'],
     )
 
     balance_sheet = pd.DataFrame(
         [
-            ['=== ASSETS ===', ''],
-            ['Cash & Equivalents', cash_and_equivalents],
-            ['Accounts Receivable', accounts_receivable],
-            ['Inventories', inventories],
-            ['Total Current Assets', total_current_assets],
-            ['Net Property/Plant/Equipment', net_pp_e],
-            ['Total Assets', total_assets],
-            ['=== LIABILITIES ===', ''],
-            ['Accounts Payable', accounts_payable],
-            ['Total Current Liabilities', total_current_liabilities],
-            ['Long Term Debt', long_term_debt],
-            ['Total Liabilities', total_liabilities],
-            ['=== EQUITY ===', ''],
-            ['Common Stock', common_stock],
-            ['Retained Earnings', retained_earnings],
-            ["Total Stockholder's Equity", total_equity],
-            ['Total Liabilities & Equity', total_liabilities_and_equity],
+            ['=== ASSETS ===', '', ''],
+            ['Cash & Equivalents', '', cash_and_equivalents],
+            ['Accounts Receivable', 'AR', accounts_receivable],
+            ['Inventories', '', inventories],
+            ['Total Current Assets', '', total_current_assets],
+            ['Net Property/Plant/Equipment', '', net_pp_e],
+            ['Total Assets', '', total_assets],
+            ['=== LIABILITIES ===', '', ''],
+            ['Accounts Payable', 'AP', accounts_payable],
+            ['Total Current Liabilities', '', total_current_liabilities],
+            ['Long Term Debt', '', long_term_debt],
+            ['Total Liabilities', '', total_liabilities],
+            ['=== EQUITY ===', '', ''],
+            ['Common Stock', '', common_stock],
+            ['Retained Earnings', '', retained_earnings],
+            ["Total Stockholder's Equity", '', total_equity],
+            ['Total Liabilities & Equity', '', total_liabilities_and_equity],
         ],
-        columns=['Line Item', 'Period'],
+        columns=['Line Item', 'Acronym', 'Value'],
     )
 
     ratios = pd.DataFrame(

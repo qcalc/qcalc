@@ -1,5 +1,6 @@
 {% load qfilter %}
 {% if not search %}<hr>{% include "catalog-calc-links.html" %}<hr>{% endif %}
+{% if help_html %}{% include help_html %}{% endif %}
 <table class="table" id="cal_table">
   {% for node in calc_data %}
     {% if node|is_visible:request %}

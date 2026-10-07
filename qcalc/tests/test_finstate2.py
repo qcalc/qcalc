@@ -33,7 +33,7 @@ def test_columns_use_their_own_inputs():
     inputs = _table(cells=[('Sales', 'Company B', 20000)])
     result = finstate2(inputs=inputs)
     expected = finstate(sales_period=20000)
-    assert result['Income Statement']['Company B'].tolist() == expected['Income Statement']['Period'].tolist()
+    assert result['Income Statement']['Company B'].tolist() == expected['Income Statement']['Value'].tolist()
     assert result['Ratios']['Company B'].tolist() == expected['Ratios']['Value'].tolist()
 
 
@@ -41,8 +41,8 @@ def test_same_basis_uses_first_column_basis():
     inputs = _table(cells=[('Tax Rate', 'Company B', 0.10), ('Tax Rate', 'Company A', 0.30)])
     same = finstate2(inputs=inputs, same_basis=True)
     own = finstate2(inputs=inputs, same_basis=False)
-    assert same['Income Statement']['Company B'].tolist() == finstate(tax_rate=0.30)['Income Statement']['Period'].tolist()
-    assert own['Income Statement']['Company B'].tolist() == finstate(tax_rate=0.10)['Income Statement']['Period'].tolist()
+    assert same['Income Statement']['Company B'].tolist() == finstate(tax_rate=0.30)['Income Statement']['Value'].tolist()
+    assert own['Income Statement']['Company B'].tolist() == finstate(tax_rate=0.10)['Income Statement']['Value'].tolist()
     assert own['Income Statement']['Company A'].tolist() == same['Income Statement']['Company A'].tolist()
 
 
@@ -165,3 +165,13 @@ def test_balance_sheet_has_section_headings():
     cells = flatten_tables(finstate(), 'Balance Sheet')
     assert not any('===' in key for key in cells)
     assert cells['Balance Sheet: Total Assets'] == 11300
+
+def test_balance_sheet_has_acronym_column():
+    from calc import flatten_tables
+    for sheet in (finstate()['Balance Sheet'], finstate2()['Balance Sheet']):
+        assert list(sheet.columns)[:2] == ['Line Item', 'Acronym']
+        assert sheet.set_index('Line Item')['Acronym'].loc[['Accounts Receivable', 'Accounts Payable']].tolist() == ['AR', 'AP']
+        assert (sheet['Acronym'] != '').sum() == 2
+    assert list(finstate()['Balance Sheet'].columns) == ['Line Item', 'Acronym', 'Value']
+    assert list(finstate2()['Balance Sheet'].columns) == ['Line Item', 'Acronym', 'Company A', 'Company B']
+    assert flatten_tables(finstate(), 'Balance Sheet: Total Assets')['Balance Sheet: Total Assets'] == 11300

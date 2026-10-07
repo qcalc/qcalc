@@ -9,9 +9,10 @@ import qconst
 qfunc_dict_layout = {  # dict of function name and template version
     'default': 'lr',
 }
-qfunc_info = {}
-qty_info = {}
-unit_info = {}
+qfunc_info = {} # calculators
+qty_categ_info = {}  # quantity catalog category
+unit_info = {} # units
+qfunc_categ_info = {}  # calculator catalog category
 
 
 # also change in gpref.json  # pref-00

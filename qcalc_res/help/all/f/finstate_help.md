@@ -73,7 +73,7 @@ The representative tables below show the formula beside each calculated row, so 
 
 ### Income Statement
 
-| Line Item | Acronym | Period | Formula |
+| Line Item | Acronym | Value | Formula |
 |---|---:|---:|---|
 | Sales |  | Input | Input value |
 | Cost of Goods Sold |  | Input | Input value |
@@ -93,22 +93,24 @@ The representative tables below show the formula beside each calculated row, so 
 
 The balance sheet is divided by heading rows (`=== ASSETS ===`, `=== LIABILITIES ===` and `=== EQUITY ===`).
 
-| Line Item | Period | Formula                                                  |
-|---|---:|----------------------------------------------------------|
-| Cash & Equivalents | Input | Input value                                              |
-| Accounts Receivable | Input | Input value                                              |
-| Inventories | Input | Input value                                              |
-| Total Current Assets | Calculated | = *Cash & Equivalents + Accounts Receivable + Inventories* |
-| Net Property/Plant/Equipment | Input | Input value                                              |
-| Total Assets | Calculated | = *Total Current Assets + Net Property/Plant/Equipment*    |
-| Accounts Payable | Input | Input value                                              |
-| Total Current Liabilities | Calculated | = *Accounts Payable*                                       |
-| Long Term Debt | Input | Input value                                              |
-| Total Liabilities | Calculated | = *Total Current Liabilities + Long Term Debt*             |
-| Common Stock | Input | Input value                                              |
-| Retained Earnings | Input | Input value                                              |
-| Total Stockholder's Equity | Calculated | = *Common Stock + Retained Earnings*                       |
-| Total Liabilities & Equity | Calculated | = *Total Liabilities + Total Stockholder's Equity*         |
+The Acronym column is present for consistency with the income statement; it is filled only for commonly used acronyms.
+
+| Line Item | Acronym | Value | Formula                                                  |
+|---|---|---:|----------------------------------------------------------|
+| Cash & Equivalents |  | Input | Input value                                              |
+| Accounts Receivable | AR | Input | Input value                                              |
+| Inventories |  | Input | Input value                                              |
+| Total Current Assets |  | Calculated | = *Cash & Equivalents + Accounts Receivable + Inventories* |
+| Net Property/Plant/Equipment |  | Input | Input value                                              |
+| Total Assets |  | Calculated | = *Total Current Assets + Net Property/Plant/Equipment*    |
+| Accounts Payable | AP | Input | Input value                                              |
+| Total Current Liabilities |  | Calculated | = *Accounts Payable*                                       |
+| Long Term Debt |  | Input | Input value                                              |
+| Total Liabilities |  | Calculated | = *Total Current Liabilities + Long Term Debt*             |
+| Common Stock |  | Input | Input value                                              |
+| Retained Earnings |  | Input | Input value                                              |
+| Total Stockholder's Equity |  | Calculated | = *Common Stock + Retained Earnings*                       |
+| Total Liabilities & Equity |  | Calculated | = *Total Liabilities + Total Stockholder's Equity*         |
 
 ### Ratios
 

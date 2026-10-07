@@ -3,7 +3,7 @@
 
 import sys
 from qcore import add_measurement_units, add_quantities
-from qvars import qfunc_info, qty_info, unit_info
+from qvars import qfunc_info, qty_categ_info, unit_info, qfunc_categ_info
 from qutil import load_json
 from .mod_currency import CurrencyLoader
 import logging
@@ -84,15 +84,17 @@ class StdList:
         add_measurement_units()
         logger.info('*** Units added')
         add_quantities()
-        logger.info('*** Qtys added')
+        logger.info('*** Quantities added')
         msg = cur_loader.update_currency()
         logger.info(f'*** {msg}')
         qfunc_info.update(load_json("qfunc_info.json"))
-        logger.info('*** Func info updated')
-        qty_info.update(load_json("qty_info.json"))
-        logger.info('*** Qty info updated')
+        logger.info('*** Calculators info updated')
+        qty_categ_info.update(load_json("qty_categ_info.json"))
+        logger.info('*** Qty/Unit categories info updated')
         unit_info.update(load_json("unit_info.json"))
-        logger.info('*** Unit info updated')
+        logger.info('*** Units info updated')
+        qfunc_categ_info.update(load_json("qfunc_categ_info.json"))
+        logger.info('*** Calculator categories info updated')
         cls.initialized = True
         logger.info("*** STAGE W.1: w1_prepare_lists_once_per_worker() completed")
 

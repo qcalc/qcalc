@@ -10,7 +10,7 @@ import threading
 from qutil import variable_to_title, TreeNode, \
     preprocess_expression, QThread, create_category_node, \
     joinx, names2fid, user_name, fid2owner, safe_execute
-from qvars import qc_gpref as gs, qfunc_info, qty_info, unit_info
+from qvars import qc_gpref as gs, qfunc_info, qty_categ_info, unit_info, qfunc_categ_info
 import bisect
 from .mod_redis import redis_publish_action
 from qcore import _unit_table, Qty, _base_categories, _unit_tree, _unit_info, \
@@ -472,7 +472,7 @@ class QCals:
 
         for dim, categ in _base_categories.items():
             slug = _base_categ_d2s[dim]
-            child = TreeNode(nid=slug, name=slug, title=categ, desc=qty_info.get(slug, {}).get('desc', ''),
+            child = TreeNode(nid=slug, name=slug, title=categ, desc=qty_categ_info.get(slug, {}).get('desc', ''),
                              is_leaf=False, node_type='u')
             if dim == 'C':
                 cls.qty_root.add_child(child)
@@ -499,7 +499,7 @@ class QCals:
                 name = dim_to_bname(dim, _base_names)
                 gchild = TreeNode(nid=name, name=name,
                                   title=f'({slug} base)'.replace('-', ' '),
-                                  desc=qty_info.get(slug, {}).get('desc', ''),
+                                  desc=qty_categ_info.get(slug, {}).get('desc', ''),
                                   is_leaf=True, node_type='u')
                 child.add_child(gchild)
 
@@ -665,6 +665,13 @@ class QCals:
         for cur_node_name in cats:
             cur_node_id = joinx((cur_node_id, cur_node_name), qconst.name_separator)
             cur_node = cur_node.add_category_node(par_id, cur_node_id, cur_node_name, cur_node_name, uname)
+            cur_node_path_dot = cur_node_id.replace(qconst.name_separator, '.')
+            cur_node.desc = (
+                qfunc_categ_info.get(cur_node_id, {}).get('desc')
+                or qfunc_categ_info.get(cur_node_path_dot, {}).get('desc')
+                or qfunc_categ_info.get(cur_node_name, {}).get('desc')
+                or cur_node.title
+            )
             par_id = cur_node_id
         return cur_node  # last sub category added
 

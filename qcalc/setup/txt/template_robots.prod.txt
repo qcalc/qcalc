@@ -39,3 +39,4 @@ Disallow: /
 User-agent: *
 Allow: /
 
+Sitemap: https://qcalc.org/sitemap.xml

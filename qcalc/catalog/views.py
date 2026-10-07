@@ -345,20 +345,6 @@ def tag_browser(request: HtmxHttpRequest):
     }
     return ut.get_page(request, 'gen-catalog-tags.html', context, 'tag_browser')
 
-# def search_func(request: HtmxHttpRequest):  # | not used
-#     sterm = request.GET.get('qf').strip()
-#     nodes = QCals.calc_root.search_nodes(sterm, request.user)
-#     context = {"calc_data": nodes}
-#     template = 'search-func.html'
-#     return render(request, template, context)
-#
-#
-# def search_pfunc(request: HtmxHttpRequest):  # | not used
-#     sterm = request.GET.get('qf').strip()
-#     nodes = QCals.pcalc_root.search_nodes(sterm, request.user)
-#     context = {"calc_data": nodes}
-#     template = 'search-func.html'
-#     return render(request, template, context)
 
 def search_tag(request: HtmxHttpRequest):
     sterm = request.GET.get('qt').strip()

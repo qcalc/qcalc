@@ -5,6 +5,7 @@ import re
 
 import pandas as pd
 
+import qconst
 from qcore import qcode, qtbl
 from calc import QResults, scalar_results, show_choice, publish_shared_dataset, ResultCellsError, RESULT_CELLS_HELP
 from qutil import QThread, parameter_values
@@ -24,15 +25,8 @@ def _df_to_qtbl(df: pd.DataFrame) -> dict:
     }
 
 
-# A relative value is a number followed by '%' or an operator in brackets: 5%, -5%, 5(%), 5(+), 2(x)
-_RELATIVE_VALUE = re.compile(
-    r'(?P<sign>[+-]?)(?P<number>(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?)'
-    r'\s*(?:(?P<percent>%)|\(\s*(?P<op>[-+*/xX%])\s*\))'
-)
-
-
 def _relative_match(value):
-    return _RELATIVE_VALUE.fullmatch(value.strip()) if isinstance(value, str) else None
+    return qconst.RELATIVE_VALUE_PATTERN.fullmatch(value.strip()) if isinstance(value, str) else None
 
 
 def _apply_relative(match, base, variable, case_name):
@@ -61,17 +55,24 @@ def compare__info():
         'title': 'What-If Scenario Comparison',
         'desc': (
             'Evaluate an expression for multiple input scenarios, then compare '
-            'the resulting values in a table and grouped bar chart. Values replace the '
-            'current value; relative values are applied to the base (parameters: the value in the '
-            'expression; variables: the first column): 5(+) 5(-) 2(*) 2(/) add/subtract/multiply/divide, '
-            '+10% or -5% change, 80% or 80(%) share of the base'
+            'the resulting values in a table and grouped bar chart.'
         ),
         'schema': {
             'variation_target': {
                 'label': 'Vary By',
                 'type': 'choice',
                 'choices': {'p': 'Parameters', 'v': 'Variables'},
-                'help_text': 'Select what to vary: parameters of a function or variables of an expression',
+                'help_text': "Select what to vary: Parameters of a function (e.g. function(param1=5, param2='10 ft') "
+                             "or Variables of an expression (e.g. 3*x + 5*y), here x and y are variables. "
+                             "You can add variables inside a function too e.g. function(param1=5, param2='x ft') "
+                             "Here x is an added variable, which you can then use as a variation target.",
+            },
+            'inputs': {
+                'help_text': (
+                    "Values replace the current value. Values can be plain replacements (e.g. 15) or relative forms: "
+                    "5(+), 5(-), 2(*), 2(x), 2(/), 80%, 80(%), +10%, -5%. Relative values are applied to the base value. "
+                    "Base for parameters are the value in the expression. Base for variables are the value in the first column."
+                ),
             },
             'show': show_choice,
             'result_cells': {'help_text': RESULT_CELLS_HELP},

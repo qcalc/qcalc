@@ -3,11 +3,17 @@
 <button type="button" class="card-collapse collapsed btn btn-info btncmd mb-2" href="#related-{{ input.cid }}"
         data-toggle="collapse" aria-label="related">Related&nbsp;</button>
 <div class="collapse section-connect" id="related-{{ input.cid }}">
+  {% if input.doc.info.kins|length > 0 %}
+  <h3 class="h6 mt-2">Related calculators:</h3>
+  {% endif %}
   {% for cal in input.doc.info.kins %}
   <span><a class="btn" href="/calc/{{ cal.0 }}/" hx-get="/calc/add/?path={{ cal.0 }}"
            hx-target="#card-space" hx-swap="beforebegin">
     <i class="icon-plus-circle2 mr-2"></i>{{ cal.1 }} ({{ cal.0 }})</a></span>
   {% endfor %}
+  {% if input.doc.info.tags|length > 0 %}
+  <h3 class="h6 mt-2">Explore by topic:</h3>
+  {% endif %}
   {% for tag in input.doc.info.tags %}
   <span><a class="btn" href="/catalog/search_tag/?qt={{ tag }}" hx-get="/catalog/search_tag/?qt={{ tag }}"
            hx-target="#tags_{{ input.cid }}" hx-swap="innerHTML">

@@ -279,31 +279,7 @@
   white-space: normal;
   word-break: break-word;
   text-align: left;
-  background-color: var(--qmd-pre-bg, #1f2328);
-  background-color: color-mix(in srgb, var(--qmd-pre-bg, #1f2328) 88%, #000 12%);
-  color: var(--qmd-pre-text, #ffffff);
-  border: 1px solid var(--qmd-pre-border, transparent);
-  border-color: color-mix(in srgb, var(--qmd-pre-border, #3b4652) 78%, #000 22%);
-}
-
-.bs-tooltip-top.qcalc-help-tooltip .arrow::before {
-  border-top-color: var(--qmd-pre-bg, #1f2328);
-  border-top-color: color-mix(in srgb, var(--qmd-pre-bg, #1f2328) 88%, #000 12%);
-}
-
-.bs-tooltip-right.qcalc-help-tooltip .arrow::before {
-  border-right-color: var(--qmd-pre-bg, #1f2328);
-  border-right-color: color-mix(in srgb, var(--qmd-pre-bg, #1f2328) 88%, #000 12%);
-}
-
-.bs-tooltip-bottom.qcalc-help-tooltip .arrow::before {
-  border-bottom-color: var(--qmd-pre-bg, #1f2328);
-  border-bottom-color: color-mix(in srgb, var(--qmd-pre-bg, #1f2328) 88%, #000 12%);
-}
-
-.bs-tooltip-left.qcalc-help-tooltip .arrow::before {
-  border-left-color: var(--qmd-pre-bg, #1f2328);
-  border-left-color: color-mix(in srgb, var(--qmd-pre-bg, #1f2328) 88%, #000 12%);
+  background-color: #222A31;
 }
 
 /* inputfile — hidden file input, label acts as button */

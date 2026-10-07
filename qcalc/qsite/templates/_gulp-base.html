@@ -1,7 +1,19 @@
 <!-- template:_gulp-base -->
 <!DOCTYPE html>
 <html lang="en">
-@@include('insert-head.html')
+{% load static %}
+{% load qfilter %}
+{% lineless %}
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  {% block page_profile %}{% endblock %}
+  {% block extra_header %}{% endblock %}
+  @@include('insert-head-assets.html')
+  {% block extra_header_script %}{% endblock %}
+</head>
+{% endlineless %}
 <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' class="sidebar-xs" onclick="bodyFunc()">
 
 <!-- include "include-navbar-main.html" -->

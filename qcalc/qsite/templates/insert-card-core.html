@@ -1,10 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
-{% include 'insert-head.html' %}
-<body>
-<!-- template:insert-card-core -->
 {% load static %}
 {% load qfilter %}
+{% lineless %}
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  {% block page_profile %}{% endblock %}
+  {% block extra_header %}{% endblock %}
+  {% include 'insert-head-assets.html' %}
+  {% block extra_header_script %}{% endblock %}
+</head>
+{% endlineless %}
+<body>
+<!-- template:insert-card-core -->
 {% lineless_ex %}
 <div class="content" hx-ext="response-targets">
     <div id="card-holder-{{ input.cid }}" class="calc show"

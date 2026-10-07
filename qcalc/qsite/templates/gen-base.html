@@ -1,7 +1,6 @@
 <!-- template:_gulp-base -->
 <!DOCTYPE html>
 <html lang="en">
-<!-- template:insert-head -->
 {% load static %}
 {% load qfilter %}
 {% lineless %}
@@ -11,6 +10,8 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   {% block page_profile %}{% endblock %}
   {% block extra_header %}{% endblock %}
+  {% load static %}
+{% load qfilter %}
 	<link href="{% static 'vendor/fonts/ibm/fonts.css' %}" rel="stylesheet" type="text/css">
 	<link rel="icon" href="/favicon.ico">
 	<link href="{% static 'vendor/icomoon/styles.min.css' %}" rel="stylesheet" type="text/css">
@@ -48,10 +49,10 @@
   <script src="{% static_ver 'qsite/js/qcalc.js' %}"></script>
   <!-- /qCalc JS files -->
   <script src="{% static 'vendor/katex/0.11.1/katex.min.js' %}"></script>
+
   {% block extra_header_script %}{% endblock %}
 </head>
 {% endlineless %}
-
 <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' class="sidebar-xs" onclick="bodyFunc()">
 
 <!-- include "include-navbar-main.html" -->

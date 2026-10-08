@@ -7,7 +7,7 @@ import pandas as pd
 import re
 
 ALIAS_PATTERN = re.compile(r'^[a-z][a-z0-9_]{0,31}$')
-RESERVED_ALIASES = {'mycal', 'myalias'}
+RESERVED_ALIASES = {'mycal', 'myalias'} # Reserved aliases that cannot be used by the user
 
 
 def _norm_alias(alias_value):

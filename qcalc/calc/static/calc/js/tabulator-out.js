@@ -88,6 +88,10 @@
                 rowContextMenu: rowMenuDisplay,
                 columnDefaults: {headerSort: false},
                 clipboard: "copy",
+                // Regression guard: inferred unitized headers can contain dots, e.g.
+                // "Solution | sft^0.5". Tabulator treats "." as nested-path by default,
+                // which makes those columns render blank. Keep literal field matching.
+                nestedFieldSeparator: false,
             };
             try {
                 if (!window.__qcalc_tabulator_print_all && tableElem.dataset.pageAll !== "true") {

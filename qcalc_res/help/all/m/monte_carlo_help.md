@@ -115,6 +115,17 @@ Along with the table/chart (depending on **Show**), Monte Carlo always returns:
 - `mean`, `stdev`, `min`, `max` — summary statistics over the used trials.
 - `p5`, `p50`, `p95` — the 5th, 50th (median), and 95th percentiles, a common way to express a confidence range (e.g. "90% of outcomes fall between p5 and p95").
 
+## Decision Guidance
+
+Use the output as a business decision screen, not as a guarantee.
+
+- Treat `p50` as the planning case. It is the middle outcome and a practical reference point for executive discussion.
+- Treat `p5` as the downside case. If the lower tail creates cash, margin, or service risk, the proposal needs more protection.
+- Treat `p95` as the upside case. It shows the stronger result the business could achieve if conditions move in its favor.
+- Look at the spread between `p5` and `p95`. A wide spread means the result is highly sensitive to the input and should be managed with caution.
+- Check `trials_failed`. Any failures mean the model is not cleanly evaluating every run, which weakens confidence in the decision.
+- Compare alternatives on downside and spread as well as average. A deal with a slightly lower average but much better downside protection is often the safer executive choice.
+
 ## Example: Angle with Measurement Uncertainty
 
 Use:

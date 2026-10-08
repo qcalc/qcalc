@@ -142,8 +142,14 @@ def test_monte_carlo_finstate_cell():
 def test_monte_carlo2_finstate_cell():
     result = monte_carlo2(
         variation_target='v', xpr='finstate(sales_period=s, cogs_period=c)',
-        variables='s, c', distributions='uniform, uniform', param1s='10000, 8000',
-        param2s='16000, 12000', trials=20, result_cells='Income Statement: Net Income',
+        inputs={
+            'columns': ['Variable', 'Distribution', 'Param 1', 'Param 2', 'Param 3'],
+            'data': [
+                ['s', 'uniform', 10000, 16000, ''],
+                ['c', 'uniform', 8000, 12000, ''],
+            ],
+        },
+        trials=20, result_cells='Income Statement: Net Income',
         show='table',
     )
     assert dict(result['Statistics']['data'])['Trials used'] == 20

@@ -209,6 +209,30 @@ The interval from `p5` to `p95` describes the middle 90 percent of the
 simulated outcomes in the sample. It is a simulation interval, not a guarantee
 that future observations must fall inside it.
 
+## Decision Guidance
+
+Use the histogram and percentiles as a management decision tool, not as a
+promise of what will happen.
+
+- Treat `p50` as the base-case outcome. This is the middle-ground number that
+  is most useful for planning.
+- Treat `p5` as the downside case. If that number is uncomfortable for cash,
+  margin, capacity, or covenant planning, the proposal is exposed to risk.
+- Treat `p95` as the upside case. It shows what a strong outcome could look
+  like if conditions are favorable.
+- Read the width of the distribution as volatility. A wide gap between `p5`
+  and `p95` means the decision is less predictable and needs more buffer.
+- Use `trials_failed` as a warning signal. If failures are present, the model
+  may need cleaner inputs or tighter expression logic before it supports a
+  business decision.
+- Compare options with the same metrics. When evaluating two alternatives,
+  prefer the one with the better downside protection, not just the highest
+  average.
+
+In executive terms, the question is not only "What is the average outcome?"
+It is "Can the business still perform acceptably when the result lands in the
+unfavorable part of the distribution?"
+
 ## Understanding the Calculation
 
 For every trial, the calculator draws one value from each variable's selected

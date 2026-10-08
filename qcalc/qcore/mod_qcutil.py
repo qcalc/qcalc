@@ -88,6 +88,19 @@ def df_formatter(var, unit_hint=None, val_only=False):
     if isinstance(var, Qty):
         return qformat_q(var, val_only=val_only)
 
+    if isinstance(var, numbers.Complex) and not isinstance(var, numbers.Real):
+        real = float(var.real)
+        imag = float(var.imag)
+        tol = 1e-12
+
+        if abs(real) <= tol:
+            return f"{qformat_v(imag)}j"
+        if abs(imag) <= tol:
+            return qformat_v(real)
+
+        sign = '+' if imag >= 0 else '-'
+        return f"{qformat_v(real)}{sign}{qformat_v(abs(imag))}j"
+
     if isinstance(var, str):
         qty = str_to_qty(var.strip())
         if qty is not None:

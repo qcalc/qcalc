@@ -534,7 +534,7 @@ class QCals:
         if ldict is None:
             ldict = {}
         # | merge dictionaries doesn't involve copying overhead.
-        return eval(xpr, {**cls.qsymbol_dict} if gdict is None else {**gdict}, ldict)
+        return eval(xpr, {**cls.qsymbol_dict} if gdict is None else {**gdict}, ldict)  # direct eval() on purpose
 
     @classmethod
     def safe_exec(cls, code, gdict=None, ldict=None):

@@ -205,7 +205,7 @@ def is_str_named_uom(uname):
 def str_to_uom(uname: str):
     unit = None
     try:
-        unit = eval(uname, _unit_table)  # safe
+        unit = eval(uname, _unit_table)  # direct eval() on purpose
         unit = unit if isMeasureUnit(unit) else None
     except:
         pass

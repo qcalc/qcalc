@@ -140,7 +140,7 @@ print("Hello, World!")
         md_text = upload_markdown.text()
     else:
         raise Exception(f"Error (MR): mode must be one of 'File', 'URL', or 'Text'")
-    return qhtml(f'<div class="md-content">{md2html(md_text)}</div>')
+    return qhtml(md2html(md_text, wrap=True))
 
 
 def csv_reader__info():

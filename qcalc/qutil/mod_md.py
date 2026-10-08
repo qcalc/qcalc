@@ -22,14 +22,14 @@ toc: to generate a dynamic, hyperlinked Table of Contents.
 sane_lists: keeps explicit ordered-list numbering instead of restarting at 1 for each split block.
 """
 
-def md2html(md_text:str):
+def md2html(md_text:str, wrap=False):
     html = markdown.markdown(
         md_text,
         extensions=MARKDOWN_EXTENSIONS,
         extension_configs=MARKDOWN_CONFIGS,
         output_format='html',
     )
-    return html
+    return html if not wrap else f'<div class="md-content">{html}</div>'
 
 
 def wrap_md_images(html: str):

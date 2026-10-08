@@ -7,7 +7,7 @@ import math
 import cmath
 from numbers import Number
 
-from sympy import Eq, symbols, solve, sympify
+from sympy import Eq, log as sympy_log, symbols, solve, sympify
 from sympy.abc import _clash1
 
 from qcore import Qty, isMeasureQuantity, is_str_uom, str_type
@@ -23,12 +23,30 @@ def _safe_sqrt(value):
     return math.sqrt(value) if value >= 0 else cmath.sqrt(value)
 
 
+def _safe_log(value, base=math.e):
+    if isMeasureQuantity(value):
+        raise ValueError('log requires a dimensionless value.')
+    if isinstance(value, complex):
+        return cmath.log(value, base)
+    return math.log(value, base)
+
+
+def _safe_log10(value):
+    return _safe_log(value, 10)
+
+
+def _sympy_log10(value):
+    return sympy_log(value, 10)
+
+
 _EVAL_GLOBALS = {
     "__builtins__": {},
     "pi": math.pi,
     "e": math.e,
     "I": 1j,
     "sqrt": _safe_sqrt,
+    "log": _safe_log,
+    "log10": _safe_log10,
     "abs": abs,
     "min": min,
     "max": max,
@@ -36,9 +54,19 @@ _EVAL_GLOBALS = {
 }
 
 
-def _to_equation(left: str, right: str):
-    left_expr = sympify(preprocess_expression(left), locals=_clash1)
-    right_expr = sympify(preprocess_expression(right), locals=_clash1)
+_SYMPY_LOCALS = dict(_clash1)
+_SYMPY_LOCALS.update({
+    'log10': _sympy_log10,
+})
+
+
+def _normalize_equation_text(left: str, right: str):
+    return preprocess_expression(left), preprocess_expression(right)
+
+
+def _to_equation(left_expr: str, right_expr: str):
+    left_expr = sympify(left_expr, locals=_SYMPY_LOCALS)
+    right_expr = sympify(right_expr, locals=_SYMPY_LOCALS)
     return Eq(left_expr, right_expr)
 
 
@@ -193,7 +221,7 @@ def _eval_sympy_expression(expr, value_namespace, units_in_expression=False):
     return QCals.safe_eval(expr_text, gdict=_EVAL_GLOBALS, ldict=eval_namespace)
 
 
-def _result_with_status(unknown_name, mode, solved_values):
+def _result_with_status(unknown_name, mode, solved_values, normalized_equation=None):
     result = {
         "status": "ok",
         "mode": mode,
@@ -202,6 +230,8 @@ def _result_with_status(unknown_name, mode, solved_values):
         "solutions": solved_values,
         "unit": None,
     }
+    if normalized_equation is not None:
+        result["normalized_equation"] = normalized_equation
     qty_values = [v for v in solved_values if isMeasureQuantity(v)]
     if len(qty_values) == len(solved_values) and qty_values:
         first_uom = qty_values[0].uom
@@ -247,7 +277,8 @@ def solve_equation(
     if method not in {"auto", "scalar", "qty"}:
         raise ValueError("method must be one of: 'auto', 'scalar', 'qty'.")
 
-    eq = _to_equation(left, right)
+    normalized_left, normalized_right = _normalize_equation_text(left, right)
+    eq = _to_equation(normalized_left, normalized_right)
     normalized_values, unit_hints, qty_present = _normalize_values(values)
     unknown_symbol = _get_unknown_symbol(
         eq=eq,
@@ -314,6 +345,7 @@ def solve_equation(
             unknown_name=unknown_name,
             mode=mode,
             solved_values=solved_values,
+            normalized_equation=f'{normalized_left} = {normalized_right}',
         )
 
     for solution in solutions:
@@ -347,4 +379,5 @@ def solve_equation(
         unknown_name=unknown_name,
         mode=mode,
         solved_values=solved_values,
+        normalized_equation=f'{normalized_left} = {normalized_right}',
     )

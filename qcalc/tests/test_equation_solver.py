@@ -9,6 +9,10 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
+import qsett
+
+qsett.init()
+
 from qcore import Qty
 
 
@@ -34,6 +38,18 @@ class TestEquationSolver(unittest.TestCase):
         self.assertEqual(result["solution_count"], 1)
         self.assertTrue(math.isclose(result["solutions"][0], 4.0))
         self.assertIsNone(result["unit"])
+
+    def test_log10_expression_is_supported(self):
+        result = solve_equation(
+            left="log10(x)",
+            right="2",
+            values={},
+        )
+
+        self.assertEqual(result["status"], "ok")
+        self.assertEqual(result["mode"], "scalar")
+        self.assertEqual(result["unknown"], "x")
+        self.assertTrue(math.isclose(result["solutions"][0], 100.0))
 
     def test_scalar_with_known_values(self):
         result = solve_equation(

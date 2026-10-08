@@ -4,7 +4,8 @@
 import pandas as pd
 
 from calc import solve_equation
-from qcore import qlist, qtext
+from qcore import qlist, qtext, qhtml
+from qutil import md2html
 
 
 def equation_solver__info():
@@ -93,9 +94,10 @@ def equation_solver(
     )
 
     return {
+        "Equation": qhtml(md2html(f"$${result['normalized_equation'].replace("**", "^")}$$", wrap=True)),
         "Unknown": result["unknown"],
         "Solutions": _solutions_table(result["solutions"]),
         "Status": result["status"],
-        "Solutions Found": result["solution_count"],
+        "Solution Count": result["solution_count"],
         "Mode": result["mode"],
     }

@@ -374,6 +374,8 @@ QRam = QSession(prefix='ram', volatile=False)  # User console variables
 QMeta = QSession(prefix='meta', volatile=False)  # User meta
 # | QMy = QSession(prefix='mycal', volatile=False)  # User calculators
 QMyCal = QDBSession(prefix='mycal', volatile=False)  # User calculators
+# | user-specific calculator aliases used by "add calculator" lookup
+QCalAlias = QDBSession(prefix='calias', volatile=False)
 # | session_specific user favorites
 # | QFavs = QSession(prefix='fav', volatile=False)  # User favorites
 QFav = QDBSession(prefix='fav', volatile=False)  # User favorites

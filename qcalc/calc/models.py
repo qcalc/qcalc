@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 class MyStuff(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='mystuffs', db_index=True)
-    object_id = models.CharField(max_length=10, db_index=True)  # Prefix or type of object, e.g. mycal, pref, fav
+    object_id = models.CharField(max_length=10, db_index=True)  # Prefix or type of object, e.g. mycal, pref, fav, calias
     item_id = models.CharField(max_length=50, db_index=True)  # Unique identifier for each item within the object type
     item = models.JSONField()  # Storing Python code snippets or serialized data
     is_public = models.BooleanField(default=False)

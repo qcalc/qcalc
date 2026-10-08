@@ -1,4 +1,4 @@
-from .mod_cache import QMem, QPref, QCache, QTemp, QKeep, QSave, QIO, QData, QRam, QMeta, QFav
+from .mod_cache import QMem, QPref, QCache, QTemp, QKeep, QSave, QIO, QData, QRam, QMeta, QFav, QCalAlias
 from .mod_cutil import valid_numq, ancestors, get_help_path, get_fhelp
 from .mod_db import QInput
 from .mod_result_chart import QResults

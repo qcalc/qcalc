@@ -5,7 +5,7 @@ from calc.templatetags.qfilter import field_root
 import qvars
 from qcore import qformat, df_formatter, QChart, QMap, QImage, qjson_dumps, step2_pack_value, step2_unpack_for_run, \
     step2_unpack_for_cost
-from calc import QTemp, QList, QIO, QFav
+from calc import QTemp, QList, QIO, QFav, QCalAlias
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.utils.safestring import mark_safe
@@ -547,6 +547,18 @@ def q1_add_func(request: HtmxHttpRequest):
     try:
         if len(sfname) != 0:
             ff = QCals.quick_find_func(sfname)
+            if ff is None:
+                # Personal aliases are intentionally supported only in "add calculator" flow.
+                alias_target = QCalAlias.getp1(sfname, '')
+                if isinstance(alias_target, str):
+                    alias_target = alias_target.strip().lower()
+                else:
+                    alias_target = ''
+                if alias_target:
+                    ff = QCals.quick_find_func(alias_target)
+                    if ff is None:
+                        raise Exception(
+                            f"Error (AF): Alias '{sfname}' points to missing calculator '{alias_target}'")
             if ff is not None:
                 request.recall = True
                 request.remember = True

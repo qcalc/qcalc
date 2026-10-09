@@ -3,7 +3,7 @@
 
 import numpy as np
 import pandas as pd
-from qutil import css2floats, css2strs, css2ints, css2values
+from qutil import css2floats, css2strs, css2ints, css2values, validated_col
 from qcore import qtexta, qlist, qchar, qtable, QChart, as_qtable
 from calc import QCals
 import matplotlib.dates as mdates  # requires for 3D as 3D cant natively handle date axes
@@ -613,4 +613,74 @@ def streamgraph(
     labels_ = css2strs(labels)
     chart = QChart(xtype=xtype)
     chart.render_streamgraph(xvals=xvals_, yvalsm=yvals_, labels=labels_, xlabel=xlabel, ylabel=ylabel, title=title)
+    return {'chart': chart}
+
+
+def tornado_chart__info():
+    return {
+        'title': 'Tornado Chart',
+        'schema': {
+            'sort_by': {'type': 'choice', 'choices': ['absolute', 'low', 'high', 'none']},
+        },
+    }
+
+
+def tornado_chart(
+    data: qtable = pd.DataFrame(
+        [['Price', 95, 105], ['Volume', 80, 130], ['FX', 98, 102]],
+        columns=['Factor', 'Low', 'High'],
+    ),
+    baseline=100.0,
+    factor_column: qchar = 'Factor',
+    low_column: qchar = 'Low',
+    high_column: qchar = 'High',
+    sort_by='absolute',
+    top_n: int = 0,
+    show_values=True,
+    x_label='Impact vs Baseline',
+    title='Tornado Chart'
+):
+    data = as_qtable(data)
+    cols = data.columns
+    factor_col = validated_col(cols, 0, factor_column)
+    low_col = validated_col(cols, 1, low_column)
+    high_col = validated_col(cols, 2, high_column)
+
+    df = pd.DataFrame({
+        'Factor': data[factor_col].astype(str),
+        'Low': pd.to_numeric(data[low_col], errors='coerce'),
+        'High': pd.to_numeric(data[high_col], errors='coerce'),
+    })
+    if df.empty:
+        raise ValueError('data must contain at least one row')
+    if df[['Low', 'High']].isna().any().any():
+        raise ValueError('Low and High columns must contain numeric values')
+
+    baseline = float(baseline)
+    df['Low Impact'] = df['Low'] - baseline
+    df['High Impact'] = df['High'] - baseline
+    df['Abs Impact'] = df[['Low Impact', 'High Impact']].abs().max(axis=1)
+
+    if sort_by == 'absolute':
+        df = df.sort_values(by='Abs Impact', ascending=False)
+    elif sort_by == 'low':
+        df = df.sort_values(by='Low Impact')
+    elif sort_by == 'high':
+        df = df.sort_values(by='High Impact', ascending=False)
+    elif sort_by != 'none':
+        raise ValueError("sort_by must be one of: absolute, low, high, none")
+
+    if top_n and top_n > 0:
+        df = df.head(int(top_n))
+
+    chart = QChart(xtype=str)
+    chart.render_tornado_chart(
+        labels=df['Factor'].tolist(),
+        low_vals=df['Low Impact'].tolist(),
+        high_vals=df['High Impact'].tolist(),
+        xlabel=x_label,
+        ylabel='Factor',
+        title=title,
+        show_values=bool(show_values),
+    )
     return {'chart': chart}

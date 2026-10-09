@@ -57,7 +57,7 @@ names listed in the **Inputs Table**.
 The default expression is:
 
 ```python
-x + y
+(price - unit_cost) * demand - fixed_cost
 ```
 
 ### Vary By

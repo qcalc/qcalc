@@ -1,4 +1,4 @@
-__version__ = "v1.4.34.668-rc"  # @2026.10.08
+__version__ = "v1.4.35.669-rc"  # @2026.10.09
 __author__ = "Debasish C Saha"
 __version_info__ = tuple(
     [
@@ -16,4 +16,3 @@ sitemap_lastmod = {
     "cat": "2024-10-07",
     "qty": "2024-10-07",
 }
-

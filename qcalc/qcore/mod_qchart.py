@@ -879,6 +879,43 @@ class QChart:
 
         self.render_done()
 
+    def render_tornado_chart(self, labels, low_vals, high_vals,
+                             xlabel='Impact', ylabel='Factor', title='Tornado Chart',
+                             show_values=True):
+        """Render a tornado chart from low/high impacts per factor."""
+        labels = list(labels)
+        low_vals = np.array(low_vals, dtype=float)
+        high_vals = np.array(high_vals, dtype=float)
+        if len(labels) != len(low_vals) or len(labels) != len(high_vals):
+            raise ValueError('labels, low_vals, and high_vals must have the same length')
+
+        fig, ax = self.create_figure()
+        y = np.arange(len(labels), dtype=float)
+        bar_height = 0.36
+        colors = self.get_colors(2)
+
+        ax.barh(y - bar_height / 2, low_vals, height=bar_height, color=colors[0], label='Low')
+        ax.barh(y + bar_height / 2, high_vals, height=bar_height, color=colors[1], label='High')
+        ax.axvline(0.0, color='black', linewidth=1)
+
+        if show_values:
+            for ypos, val in zip(y - bar_height / 2, low_vals):
+                ha = 'left' if val >= 0 else 'right'
+                x = val + (0.02 * max(abs(low_vals).max(), abs(high_vals).max()) if val >= 0
+                           else -0.02 * max(abs(low_vals).max(), abs(high_vals).max()))
+                ax.text(x, ypos, f'{val:.4g}', va='center', ha=ha)
+            for ypos, val in zip(y + bar_height / 2, high_vals):
+                ha = 'left' if val >= 0 else 'right'
+                x = val + (0.02 * max(abs(low_vals).max(), abs(high_vals).max()) if val >= 0
+                           else -0.02 * max(abs(low_vals).max(), abs(high_vals).max()))
+                ax.text(x, ypos, f'{val:.4g}', va='center', ha=ha)
+
+        ax.set_yticks(y)
+        ax.set_yticklabels(labels)
+        self.set_labels(xlabel=xlabel, ylabel=ylabel, title=title, grid=True)
+        self.set_legend(['Low', 'High'])
+        self.render_done()
+
     def render_chord_diagram(self, matrix, labels, title='Chord Diagram'):
         """Render a chord diagram based on the matrix of connections."""
         from matplotlib.patches import FancyArrowPatch

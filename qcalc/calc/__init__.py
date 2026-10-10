@@ -12,7 +12,7 @@ from .mod_qlist import *
 from .mod_currency import *
 from .mod_redis import *
 from .mod_redis_act import *
-from .mod_result import result_values, is_scalar, scalar_results, flatten_tables, ResultCellsError, RESULT_CELLS_HELP
+from .mod_result import *
 from .mod_ucals import UCals
 from .mod_whoosh import QSearch, print_search_result, search_result_nodes
 from .mod_shared_data import (
@@ -25,6 +25,7 @@ from .mod_optima_tables import *
 from .mod_equation_solver import *
 from .mod_runtime_validate import *
 from .mod_table_validate import *
+from .mod_input_fields import *
 
 import os
 import signal

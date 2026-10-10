@@ -9,7 +9,7 @@ def ccwork__info():
         'title': 'Estimate Gravel, Cement and Sand for Plain Cement Concrete work',
         'step2': [
             {'step': 'run', 'func': 'cost', 'caption': 'Calculate Cost of Materials',
-             'spec': {'include': ['*'], 'exclude': ['CC Work Volume']}
+             'spec': '~CC Work Volume'
              },
         ],
     }
@@ -18,15 +18,15 @@ def ccwork__info():
 def ccwork(work_thickness='3 inch', work_length='10.0 ft', work_width='15 inch',
            cement_sand_gravel_ratio: qfl = 1.0, sand_part=2.0, gravel_part=4.0,
            mortar_dry_volume_factor=1.4, cement_bag_volume='1.25 ft**3/bag',
-           skilled_labour='10 cft/manday',
-           unskilled_labour='10 cft/manday',
+           skilled_labour_rate='10 cft/manday',
+           unskilled_labour_rate='10 cft/manday',
            ):
     work_thickness_inch = Qty(work_thickness, 'inch').val  # inch
     work_length_inch = Qty(work_length, 'inch').val  # inch
     work_width_inch = Qty(work_width, 'inch').val  # inch
     cement_bag_volume_v = Qty(cement_bag_volume, 'inch**3/bag').val
-    skilled_labour_v = Qty(skilled_labour, 'inch**3/manday').val
-    unskilled_labour_v = Qty(unskilled_labour, 'inch**3/manday').val
+    skilled_labour_v = Qty(skilled_labour_rate, 'inch**3/manday').val
+    unskilled_labour_v = Qty(unskilled_labour_rate, 'inch**3/manday').val
 
     work_volume = work_length_inch * work_thickness_inch * work_width_inch  # in3
     mortar_dry_volume = work_volume * mortar_dry_volume_factor  # in3
@@ -53,7 +53,7 @@ def brickwork__info():
         'interactive': True,
         'step2': [
             {'step': 'run', 'func': 'cost', 'caption': 'Calculate Cost of Materials',
-             'spec': {'exclude': ['Brick Work Volume']}
+             'spec': '~Brick Work Volume'
              },
         ],
         'layout': 'tb',
@@ -66,8 +66,8 @@ def brickwork(brick_length='9.5 inch', brick_width='4.5 inch', brick_height='2.7
               cement_sand_ratio: qfl = 1.0, sand_part=4.0, mortar_dry_volume_factor=1.4,
               mortar_thickness='0.5 inch', cement_bag_volume='1.25 ft**3/bag',
               brick_wastage='7 pct',
-              skilled_labour='30 cft/manday',
-              unskilled_labour='20 cft/manday',
+              skilled_labour_rate='30 cft/manday',
+              unskilled_labour_rate='20 cft/manday',
               ):
     # suggested parameter/variable naming convention:
     # parameter: str or number (as usual)
@@ -83,8 +83,8 @@ def brickwork(brick_length='9.5 inch', brick_width='4.5 inch', brick_height='2.7
     mortar_thickness_inch = Qty(mortar_thickness, 'inch').val
     cement_bag_volume_v = Qty(cement_bag_volume, 'inch**3/bag').val
     brick_wastage_v = Qty(brick_wastage, 'unit').val
-    skilled_labour_v = Qty(skilled_labour, 'inch**3/manday').val
-    unskilled_labour_v = Qty(unskilled_labour, 'inch**3/manday').val
+    skilled_labour_v = Qty(skilled_labour_rate, 'inch**3/manday').val
+    unskilled_labour_v = Qty(unskilled_labour_rate, 'inch**3/manday').val
 
     brick_volume_wo_mortar_v = brick_length_inch * brick_width_inch * brick_height_inch
     brick_volume_with_mortar_v = (brick_length_inch + mortar_thickness_inch) * (
@@ -122,7 +122,7 @@ def plaster__info(): return {
     },
     'step2': [
         {'step': 'run', 'func': 'cost', 'caption': 'Calculate Cost of Materials',
-         'spec': {'exclude': ['Plaster Work Area']}
+         'spec': '~Plaster Work Area'
          },
     ],
     'inp1': 0.5,
@@ -132,16 +132,16 @@ def plaster__info(): return {
 def plaster(work_thickness='0.5 inch', work_length='12 ft', work_width='10 ft',
             work_side=2, cement_sand_ratio: qfl = 1.0, sand_part=4.0,
             mortar_dry_volume_factor=1.5, cement_bag_volume='1.25 ft**3/bag',
-            skilled_labour='75 sft/manday',
-            unskilled_labour='50 sft/manday'
+            skilled_labour_rate='75 sft/manday',
+            unskilled_labour_rate='50 sft/manday'
             ):
     work_thickness_inch = Qty(work_thickness, 'inch').val
     work_length_inch = Qty(work_length, 'inch').val
     work_width_inch = Qty(work_width, 'inch').val
     work_side = int(work_side)
     cement_bag_volume_v = Qty(cement_bag_volume, 'inch**3/bag').val
-    skilled_labour_v = Qty(skilled_labour, 'inch**2/manday').val
-    unskilled_labour_v = Qty(unskilled_labour, 'inch**2/manday').val
+    skilled_labour_v = Qty(skilled_labour_rate, 'inch**2/manday').val
+    unskilled_labour_v = Qty(unskilled_labour_rate, 'inch**2/manday').val
 
     work_volume = work_length_inch * work_thickness_inch * work_width_inch * work_side  # in3
     work_area = work_length_inch * work_width_inch * work_side  # in2

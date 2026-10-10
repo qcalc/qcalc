@@ -2,14 +2,14 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 from qcore import Qty
-from calc import list2options, gender_choice
+from calc import dict2options, FLD_GENDER_CHOICE
 
 
 def crcl__info():
     return {
         'title': 'Calculate Creatinine Clearance',
         'schema': {
-            'sex': list2options(gender_choice, initial='M', type='radio'),
+            'sex': dict2options(FLD_GENDER_CHOICE, initial='M', type='radio'),
         }
     }
 

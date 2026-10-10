@@ -13,6 +13,7 @@ from datetime import date, datetime
 def heatmap_chart__info():
     return {
         'title': 'Simple Heatmap Chart',
+        'desc': 'Use cases: Matrix-style intensity display (correlation matrix, habit tracking, grade heatmaps)',
         'schema': {
             'color_scheme': {'type': 'choice', 'choices': ['viridis', 'plasma', 'inferno', 'magma', 'Use Preference']}
         },
@@ -50,6 +51,7 @@ def heatmap_chart(
 def surface3d_error_chart__info():
     return {
         'title': '3D Surface Chart with Error',
+        'desc': 'Use cases: 3D surface visualization with residual/error overlays for model diagnostics',
         'schema': {
             'surface_type': {'type': 'radio', 'choices': ['Contour', 'Contourf', 'Wireframe', 'Surface']}
         },
@@ -97,6 +99,7 @@ def surface3d_error_chart(
 def surface_contour3d_chart__info():
     return {
         'title': '3D Surface Contour Chart',
+        'desc': 'Use cases: 3D surface contour visualization for multivariate data',
     }
 
 
@@ -137,6 +140,7 @@ def surface_contour3d_chart(
 def box_chart__info():
     return {
         'title': 'Simple Box Chart',
+        'desc': 'Use cases: Statistical spread, exam score dispersion, quality control',
     }
 
 
@@ -157,6 +161,7 @@ def box_chart(
 def violin_chart__info():
     return {
         'title': 'Simple Violin Chart',
+        'desc': 'Use cases: 	Distribution shape comparison across groups',
     }
 
 
@@ -180,6 +185,7 @@ def violin_chart(
 def radar_chart__info():
     return {
         'title': 'Simple Radar Chart',
+        'desc': 'Multi-factor scoring (career skill profile, product feature benchmarking)',
     }
 
 
@@ -204,6 +210,7 @@ def radar_chart(
 def scatter3d_chart__info():
     return {
         'title': '3D Scatter Chart',
+        'desc': 'Use cases: 3D point-cloud exploration for multivariate analysis',
     }
 
 
@@ -236,6 +243,7 @@ def scatter3d_chart(
 def stack_chart__info():
     return {
         'title': 'Simple Stack Chart',
+        'desc': 'Composition-over-time (budget breakdown across months)',
     }
 
 
@@ -268,6 +276,7 @@ def stack_chart(
 def contour3d_chart__info():
     return {
         'title': '3D Contour Chart',
+        'desc': 'Use cases: Optimization landscapes for engineering/science solvers',
     }
 
 
@@ -302,6 +311,7 @@ def contour3d_chart(
 def errorbar_chart__info():
     return {
         'title': 'Error Bar Chart',
+        'desc': 'Use cases: Uncertainty-aware scientific/statistical calculations',
     }
 
 
@@ -331,6 +341,7 @@ def errorbar_chart(
 def qqplot_chart__info():
     return {
         'title': 'QQ Plot',
+        'desc': 'Use cases: Normality checks in statistical inference calculators',
     }
 
 
@@ -351,6 +362,7 @@ def qqplot_chart(
 def gantt_chart__info():
     return {
         'title': 'Gantt Chart',
+        'desc': 'Use cases: Timeline planning calculations (project schedule, study plan generator)',
     }
 
 
@@ -382,6 +394,7 @@ def gantt_chart(
 def mesh3d_chart__info():
     return {
         'title': '3D Mesh Plot',
+        'desc': 'Use cases: Engineering surface modeling (stress/response surfaces)',
     }
 
 
@@ -423,6 +436,7 @@ def mesh3d_chart(
 def sankey_chart__info():
     return {
         'title': 'Sankey Diagram',
+        'desc': 'Use cases: Flow analysis (income -> expense pipelines, process-loss analysis)',
     }
 
 
@@ -455,6 +469,7 @@ def sankey_chart(
 def dendrogram_chart__info():
     return {
         'title': 'Dendrogram Chart',
+        'desc': 'Use cases: Hierarchical clustering in analytics modules',
         'schema': {
             'method':
                 {
@@ -486,6 +501,7 @@ def dendrogram_chart(
 def bubble_chart__info():
     return {
         'title': 'Bubble Chart',
+        'desc': 'Use cases: 3-variable comparisons (cost vs performance vs risk)',
     }
 
 
@@ -510,6 +526,7 @@ def bubble_chart(
 def polar_chart__info():
     return {
         'title': 'Polar Chart',
+        'desc': 'Use cases: Directional/cyclical data (wind rose, seasonal cycles, phase analysis)',
     }
 
 
@@ -531,6 +548,8 @@ def polar_chart(
 def area_chart__info():
     return {
         'title': 'Area Chart',
+        'desc': 'Use cases: Visualizing cumulative data trends over time '
+        '(e.g., monthly spending by category, energy usage trends)',
     }
 
 
@@ -552,6 +571,7 @@ def area_chart(
 def waterfall_chart__info():
     return {
         'title': 'Waterfall Chart',
+        'desc': 'Use cases: Stepwise contribution analysis (profit bridge, score decomposition)',
     }
 
 
@@ -578,6 +598,8 @@ def waterfall_chart(
 def chord_diagram__info():
     return {
         'title': 'Chord Diagram',
+        'desc': 'Use cases: Visualizing relationships between entities in a network using chord diagrams, '
+        'e.g., relationship-heavy data (expense flow between categories, dependency mapping)',
     }
 
 
@@ -596,6 +618,8 @@ def chord_diagram(
 def streamgraph__info():
     return {
         'title': 'Streamgraph',
+        'desc': 'Use cases: Visualizing data streams over time with emphasis on changes in magnitude and flow, '
+        'e.g., changing composition trends (topic popularity, spending shifts)',
     }
 
 
@@ -619,6 +643,7 @@ def streamgraph(
 def tornado_chart__info():
     return {
         'title': 'Tornado Chart',
+        'desc': 'Use cases: Sensitivity analysis for multiple factors using tornado charts',
         'schema': {
             'sort_by': {'type': 'choice', 'choices': ['absolute', 'low', 'high', 'none']},
         },

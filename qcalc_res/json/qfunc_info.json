@@ -96,7 +96,7 @@
         "tags": "autofill, form"
     },
     "bar_chart": {
-        "desc": "Create a simple bar chart showing month wise temperature. Visualize data with ease.",
+        "desc": "Use cases: Visualizing categorical data using bar charts, e.g., monthly sales, survey results",
         "tags": "chart, visualization"
     },
     "bmatrix": {
@@ -260,7 +260,7 @@
         "tags": "health, wellness, medical"
     },
     "histogram": {
-        "desc": "A simple histogram calculator to visualize the frequency distribution of values. Customize bins, labels, and title.",
+        "desc": "Use cases: Visualizing the distribution of a dataset using histograms, e.g., frequency analysis, data distribution assessment",
         "tags": "chart, visualization, statistics"
     },
     "hypo1": {
@@ -356,15 +356,15 @@
         "tags": "text, string"
     },
     "line2_chart": {
-        "desc": "A versatile calculator displaying a double line chart comparing two sets of values. Visualize data effortlessly.",
+        "desc": "Use cases: Visualizing trends and relationships between two variables over a continuous range with two data series, e.g., comparing experimental measurements or time series data",
         "tags": "chart, visualization"
     },
     "line3d_chart": {
-        "desc": "A versatile tool to create a 3D line chart with customizable labels and values. Visualize data in a clear and interactive way.",
+        "desc": "Use cases: Visualizing 3D line plots for multivariate data, e.g., trajectory analysis, 3D parametric curves",
         "tags": "chart, visualization"
     },
     "line_chart": {
-        "desc": "Create a simple line chart to visualize data with x and y values. Customize labels and title for easy interpretation.",
+        "desc": "Use cases: Visualizing trends and relationships between two variables over a continuous range, e.g., time series data, experimental measurements",
         "tags": "chart, visualization"
     },
     "linear": {
@@ -400,7 +400,7 @@
         "tags": "user, utility, memory, storage"
     },
     "mesh": {
-        "desc": "Calculate network diagram with mesh nodes and edges, displaying title and edge labels.",
+        "desc": "Use cases: Visualizing simple network diagrams or 2D meshes, e.g., network topology, connectivity analysis",
         "tags": "chart, visualization, network, graph"
     },
     "molecule": {
@@ -432,11 +432,11 @@
         "tags": "financial, investment, cashflow, finance"
     },
     "pareq": {
-        "desc": "Generate parametric equations graphically with this calculator. Customize variables, constants, and labels easily.",
+        "desc": "Use cases: Visualizing parametric equations over a continuous range, e.g., plotting curves defined by x(t) and y(t) for various applications",
         "tags": "chart, visualization, equation, graph"
     },
     "pareto_chart": {
-        "desc": "Create a Pareto chart to visualize data distribution by month. Display counts with a customizable title.",
+        "desc": "Use cases: Visualizing the distribution of values and identifying the most significant factors using Pareto charts, e.g., defect analysis, sales contribution analysis",
         "tags": "chart, visualization"
     },
     "permute": {
@@ -448,11 +448,11 @@
         "tags": "web, seo, text analytics, performance"
     },
     "pie2_chart": {
-        "desc": "Create a pie chart to visualize tabular data on month-wise temperature. Customize labels and values with percentage and shadow options.",
+        "desc": "Use cases: Visualizing parts of a whole using pie charts based on tabular data, e.g., market share distribution, budget allocation",
         "tags": "chart, visualization"
     },
     "pie_chart": {
-        "desc": "Create a pie chart to visualize data with labels and values. Customize appearance with options like percentage display and shadows.",
+        "desc": "Use cases: Visualizing parts of a whole using pie charts, e.g., market share distribution, budget allocation",
         "tags": "chart, visualization"
     },
     "plaster": {
@@ -512,7 +512,7 @@
         "tags": "math, geometry"
     },
     "quadrant_chart": {
-        "desc": "A versatile tool to visually represent data points in four categories on a chart. Find your data trends easily.",
+        "desc": "Use cases: Visualizing data points within four quadrants based on two categorical dimensions, e.g., market segmentation, risk assessment",
         "tags": "chart, visualization"
     },
     "rates": {
@@ -532,7 +532,7 @@
         "tags": "utility"
     },
     "scatter_chart": {
-        "desc": "A simple scatter chart calculator to visualize data points in a graph. Customize x and y values with labels and titles.",
+        "desc": "Use cases: Visualizing the relationship between two variables using scatter plots, e.g., correlation analysis, experimental data comparison",
         "tags": "chart, visualization"
     },
     "sd_mesh": {
@@ -592,7 +592,7 @@
         "tags": "business, distribution, supply chain"
     },
     "surface3d_chart": {
-        "desc": "A calculator function that creates a 3D surface chart based on given values and expressions. Visualize data in a 3D space efficiently.",
+        "desc": "Use cases: Visualizing 3D surfaces for multivariate data, e.g., topographical data, mathematical surfaces",
         "tags": "chart, visualization"
     },
     "synonym": {
@@ -810,5 +810,77 @@
     "shutter_speed": {
         "desc": "Calculate Shutter Speed: Determine the shutter speed based on focal length and crop factor.",
         "tags": "photography, image"
+    },
+    "feasible_chart": {
+        "desc": "Use cases: Visualizing feasible regions for linear programming problems"
+    },
+    "fx2": {
+        "desc": "Use cases: Visualizing multiple equations over a continuous range, e.g., comparing different mathematical functions or experimental data"
+    },
+    "heatmap_chart": {
+        "desc": "Use cases: Matrix-style intensity display (correlation matrix, habit tracking, grade heatmaps)"
+    },
+    "surface3d_error_chart": {
+        "desc": "Use cases: 3D surface visualization with residual/error overlays for model diagnostics"
+    },
+    "surface_contour3d_chart": {
+        "desc": "Use cases: 3D surface contour visualization for multivariate data"
+    },
+    "box_chart": {
+        "desc": "Use cases: Statistical spread, exam score dispersion, quality control"
+    },
+    "violin_chart": {
+        "desc": "Use cases: Distribution shape comparison across groups"
+    },
+    "radar_chart": {
+        "desc": "Multi-factor scoring (career skill profile, product feature benchmarking)"
+    },
+    "scatter3d_chart": {
+        "desc": "Use cases: 3D point-cloud exploration for multivariate analysis"
+    },
+    "stack_chart": {
+        "desc": "Composition-over-time (budget breakdown across months)"
+    },
+    "contour3d_chart": {
+        "desc": "Use cases: Optimization landscapes for engineering/science solvers"
+    },
+    "errorbar_chart": {
+        "desc": "Use cases: Uncertainty-aware scientific/statistical calculations"
+    },
+    "qqplot_chart": {
+        "desc": "Use cases: Normality checks in statistical inference calculators"
+    },
+    "gantt_chart": {
+        "desc": "Use cases: Timeline planning calculations (project schedule, study plan generator)"
+    },
+    "mesh3d_chart": {
+        "desc": "Use cases: Engineering surface modeling (stress/response surfaces)"
+    },
+    "sankey_chart": {
+        "desc": "Use cases: Flow analysis (income -> expense pipelines, process-loss analysis)"
+    },
+    "dendrogram_chart": {
+        "desc": "Use cases: Hierarchical clustering in analytics modules"
+    },
+    "bubble_chart": {
+        "desc": "Use cases: 3-variable comparisons (cost vs performance vs risk)"
+    },
+    "polar_chart": {
+        "desc": "Use cases: Directional/cyclical data (wind rose, seasonal cycles, phase analysis)"
+    },
+    "area_chart": {
+        "desc": "Use cases: Visualizing cumulative data trends over time (e.g., monthly spending by category, energy usage trends)"
+    },
+    "waterfall_chart": {
+        "desc": "Use cases: Stepwise contribution analysis (profit bridge, score decomposition)"
+    },
+    "chord_diagram": {
+        "desc": "Use cases: Visualizing relationships between entities in a network using chord diagrams, e.g., relationship-heavy data (expense flow between categories, dependency mapping)"
+    },
+    "streamgraph": {
+        "desc": "Use cases: Visualizing data streams over time with emphasis on changes in magnitude and flow, e.g., changing composition trends (topic popularity, spending shifts)"
+    },
+    "tornado_chart": {
+        "desc": "Use cases: Sensitivity analysis for multiple factors using tornado charts"
     }
 }

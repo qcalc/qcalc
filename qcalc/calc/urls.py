@@ -2,7 +2,7 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 from django.urls import path, re_path
-from calc import views, views_tabulator
+from calc import views, views_tabulator, views_step2
 from qsite.views import show_docs
 
 urlpatterns = [
@@ -13,13 +13,13 @@ urlpatterns = [
     path('run/<str:fname>/', views.q1_run_func, name='calc-run-func'),
     re_path(r'^run/(?P<path>([^/]+/)*)$', views.q1_run_func, name='calc-run-func-args'),
     path('add/', views.q1_add_func, name='calc-add-func'),
-    path('step2/', views.q1_step2, name='calc-step2'),
+    path('step2/', views_step2.q1_step2, name='calc-step2'),
     path('open/', views.q1_open_func, name='calc-open-func'),
     path('help/', show_docs, name='show-docs'),
     path('help/<str:fname>/', views.q1_add_func_help, name='calc-add-func-help'),
     path('dump/', views.dump, name='calc-dump'),
-    path('io/', views.calc_io, name='calc-io'),
-    path('io/clear/<str:cid>/', views.calc_io_clear, name='calc-io-clear'),
+    path('io/', views_step2.calc_io, name='calc-io'),
+    path('io/clear/<str:cid>/', views_step2.calc_io_clear, name='calc-io-clear'),
     path('mems/', views.mems, name='calc-mems'),
     path('lists/', views.lists, name='calc-lists'),
     path('cart/', views.add_to_cart, name='calc-cart'),

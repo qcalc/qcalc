@@ -7,7 +7,7 @@ import pandas as pd
 from qcore import Qty
 from fitness_tools.composition.bodyfat import DurninWomersley, \
     JacksonPollock3Site, JacksonPollock4Site, JacksonPollock7Site
-from calc import list2options, gender_choice
+from calc import dict2options, FLD_GENDER_CHOICE
 from .cal_bmi import bmi
 from math import log10
 
@@ -16,7 +16,7 @@ def bodyfat__info():
     return {
         'title': 'Body Fat from Skinfold Measurements',
         'schema': {
-            'sex': list2options(gender_choice)
+            'sex': FLD_GENDER_CHOICE
         },
         'layout': 'tb',
         'inp1': '1-6',
@@ -167,7 +167,7 @@ def bodyfat2__info():
     return {
         'title': 'Body Fat from Weight and Height',
         'schema': {
-            'sex': list2options(gender_choice)
+            'sex': FLD_GENDER_CHOICE
         },
         'showhide': {
             'sex': {'fields': ['hip'], 'callback': "'@'=='F'"}

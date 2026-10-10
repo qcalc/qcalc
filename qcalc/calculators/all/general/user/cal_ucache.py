@@ -6,7 +6,7 @@ from calc import QData, QTemp, QKeep, QSave, QIO, QRam, QMeta, QMyCal, QFav
 from qcore import QScreen, quom, color_schemes, legend_locations
 from qutil import nzs, css2strs, truncate, user_process, command_button, QThread
 from qvars import qc_gpref as gs
-from calc import list2options, StdList
+from calc import dict2options, StdList
 
 MIN_EXECUTION_TIMEOUT = 1
 MAX_EXECUTION_TIMEOUT = 900
@@ -37,7 +37,7 @@ def pref__info():
         'schema': {
             # 'request': {'attrs': {'readonly': True}},
             'theme': {
-                **list2options(StdList.theme_list, initial="default"),  # {'type': 'choice', 'choices': theme_list},
+                **dict2options(StdList.theme_list, initial="default"),  # {'type': 'choice', 'choices': theme_list},
                 'help_text': 'Select qCalc look and feel from the available theme list.',
             },
             'interactive': {

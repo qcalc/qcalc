@@ -3,7 +3,7 @@
 
 from qcore import Qty
 import numpy as np
-from calc import QResults, show_choice
+from calc import QResults, FLD_SHOW_CHOICE
 
 
 def purcost__info(): return {
@@ -65,7 +65,7 @@ def invlevel__info():
         'title': 'Calculate Inventory Level',
         'desc': 'Calculate inventory level as stock is issued, ordered and received',
         'schema': {
-            'show': show_choice
+            'show': FLD_SHOW_CHOICE
         },
         'kins': 'eoq, purcost, moq',
         'layout':  'lr',

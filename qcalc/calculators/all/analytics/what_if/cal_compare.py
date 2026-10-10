@@ -7,7 +7,8 @@ import pandas as pd
 
 import qconst
 from qcore import qcode, qtbl
-from calc import QResults, scalar_results, show_choice, publish_shared_dataset, ResultCellsError, RESULT_CELLS_HELP
+from calc import QResults, scalar_results, FLD_SHOW_CHOICE, publish_shared_dataset, ResultCellsError, FLD_RESULT_CELLS, \
+    FLD_VARIATION_TARGET
 from qutil import QThread, parameter_values
 
 SHARED_SCENARIO_TYPE = 'scenario_table'
@@ -58,15 +59,7 @@ def compare__info():
             'the resulting values in a table and grouped bar chart.'
         ),
         'schema': {
-            'variation_target': {
-                'label': 'Vary By',
-                'type': 'choice',
-                'choices': {'p': 'Parameters', 'v': 'Variables'},
-                'help_text': "Select what to vary: Parameters of a function (e.g. function(param1=5, param2='10 ft') "
-                             "or Variables of an expression (e.g. 3*x + 5*y), here x and y are variables. "
-                             "You can add variables inside a function too e.g. function(param1=5, param2='x ft') "
-                             "Here x is an added variable, which you can then use as a variation target.",
-            },
+            'variation_target': FLD_VARIATION_TARGET,
             'inputs': {
                 'help_text': (
                     "Values replace the current value. Values can be plain replacements (e.g. 15) or relative forms: "
@@ -74,8 +67,8 @@ def compare__info():
                     "Base for parameters are the value in the expression. Base for variables are the value in the first column."
                 ),
             },
-            'show': show_choice,
-            'result_cells': {'help_text': RESULT_CELLS_HELP},
+            'show': FLD_SHOW_CHOICE,
+            'result_cells': FLD_RESULT_CELLS,
             'table_columns': {
                 'help_text': 'Optional result columns to include, separated by comma',
             },

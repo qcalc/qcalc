@@ -380,8 +380,4 @@ QCalAlias = QDBSession(prefix='calias', volatile=False)
 # | QFavs = QSession(prefix='fav', volatile=False)  # User favorites
 QFav = QDBSession(prefix='fav', volatile=False)  # User favorites
 
-# if __name__ == '__main__':
-#     import os
-#
-#     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.local")
-#     print(qcache())
+

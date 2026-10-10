@@ -7,7 +7,9 @@ import numpy as np
 import pandas as pd
 
 from qcore import qchar, qcode, qtbl, QChart
-from calc import require_columns, scalar_results, QResults, show_choice, RESULT_CELLS_HELP, result_values, ResultCellsError
+from calc import require_columns, scalar_results, QResults, FLD_SHOW_CHOICE, \
+    FLD_RESULT_CELLS, result_values, ResultCellsError, \
+    FLD_VARIATION_TARGET, FLD_INPUTS
 from qutil import css2strs
 from qvars import qc_gpref as gs
 
@@ -29,22 +31,17 @@ def monte_carlo__info():
         'desc': 'Repeat a calculation many times while sampling a variable from a probability '
                 'distribution, then chart the resulting distribution of outcomes',
         'schema': {
-            'variation_target': {
-                'type': 'choice',
-                'choices': {'p': 'Parameters', 'v': 'Variables'},
-                'help_text': 'Select what to vary: parameters of a function or variables of an expression',
-            },
-            'show': show_choice,
-            'result_cells': {'help_text': RESULT_CELLS_HELP},
+            'variation_target': FLD_VARIATION_TARGET,
+            'show': FLD_SHOW_CHOICE,
+            'result_cells': FLD_RESULT_CELLS,
             'distribution': {'type': 'choice', 'choices': ['normal', 'uniform', 'triangular', 'lognormal']},
             'param1': {'help_text': 'normal: mean; uniform/triangular: low; lognormal: mu (of underlying normal)'},
             'param2': {'help_text': 'normal: stdev; uniform/triangular: high; lognormal: sigma (of underlying normal)'},
             'param3': {'help_text': 'triangular only: mode (most likely value); ignored otherwise, '
                                     'defaults to midpoint of param1/param2 if left blank'},
-            # 'histo_column': {'required': True},
         },
         'layout': 'tb',
-        'inp1': ['1-6'], #, '7-14'
+        'inp1': ['1-6'],
         'out1': ['~chart'],
         'kins': 'redo',
         'tags': 'monte carlo, simulation',
@@ -155,22 +152,10 @@ def monte_carlo2__info():
         'desc': 'Repeat a calculation while sampling multiple variables independently, '
                 'with an optional correlated pair, using an editable input table',
         'schema': {
-            'variation_target': {
-                'type': 'choice',
-                'choices': {'p': 'Parameters', 'v': 'Variables'},
-                'help_text': 'Select what to vary: parameters of a function or variables of an expression',
-            },
-            'show': show_choice,
-            'result_cells': {'help_text': RESULT_CELLS_HELP},
-            'inputs': {
-                'help_text': (
-                    'Use Distribution to choose the sampling shape.<br>'
-                    '<b>normal:</b> Param 1 = <b>mean</b>, Param 2 = <b>stdev</b>, Param 3 = blank<br>'
-                    '<b>uniform:</b> Param 1 = <b>low</b>, Param 2 = <b>high</b>, Param 3 = blank<br>'
-                    '<b>triangular:</b> Param 1 = <b>low</b>, Param 2 = <b>high</b>, Param 3 = <b>mode</b><br>'
-                    '<b>lognormal:</b> Param 1 = <b>mu</b>, Param 2 = <b>sigma</b>, Param 3 = blank<br>'
-                ),
-            },
+            'variation_target': FLD_VARIATION_TARGET,
+            'show': FLD_SHOW_CHOICE,
+            'result_cells': FLD_RESULT_CELLS,
+            'inputs': FLD_INPUTS,
             'correlated_variables': {
                 'help_text': 'Optional pair, for example inflation, interest, separated by comma', },
             'correlation': {'help_text': 'Correlation for the optional pair, from -1 to 1'},
@@ -408,23 +393,11 @@ def sensitivity__info():
         'desc': 'Estimate input importance using standardized regression coefficients (SRC) '
                 'and/or partial rank correlation coefficients (PRCC) from Monte Carlo samples',
         'schema': {
-            'variation_target': {
-                'type': 'choice',
-                'choices': {'p': 'Parameters', 'v': 'Variables'},
-                'help_text': 'Select what to vary: parameters of a function or variables of an expression',
-            },
+            'variation_target': FLD_VARIATION_TARGET,
             'method': {'type': 'choice', 'choices': {'src': 'SRC', 'prcc': 'PRCC', 'both': 'Both'}},
-            'show': show_choice,
-            'result_cells': {'help_text': RESULT_CELLS_HELP},
-            'inputs': {
-                'help_text': (
-                    'Use Distribution to choose the sampling shape.<br>'
-                    '<b>normal:</b> Param 1 = <b>mean</b>, Param 2 = <b>stdev</b>, Param 3 = blank<br>'
-                    '<b>uniform:</b> Param 1 = <b>low</b>, Param 2 = <b>high</b>, Param 3 = blank<br>'
-                    '<b>triangular:</b> Param 1 = <b>low</b>, Param 2 = <b>high</b>, Param 3 = <b>mode</b><br>'
-                    '<b>lognormal:</b> Param 1 = <b>mu</b>, Param 2 = <b>sigma</b>, Param 3 = blank<br>'
-                ),
-            },
+            'show': FLD_SHOW_CHOICE,
+            'result_cells': FLD_RESULT_CELLS,
+            'inputs': FLD_INPUTS,
             'target_column': {'help_text': 'Output column to analyze when expression returns multiple numeric columns'},
             'correlated_variables': {
                 'help_text': 'Optional pair, for example inflation, interest, separated by comma', },

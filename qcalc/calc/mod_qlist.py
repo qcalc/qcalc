@@ -38,20 +38,8 @@ calorie_formula_choice = {
         },
 }
 
-gender_choice = {
-    'type': 'choice',
-    'initial': 'F',
-    'choices': {'M': 'Male', 'F': 'Female'}
-}
 
-show_choice = {
-    'type': 'radio',
-    'initial': 'both',
-    'choices': {'table': 'Table', 'chart': 'Chart', 'both': 'Both'}
-}
-
-
-def list2options(lst, **kwargs):
+def dict2options(lst, **kwargs):
     for key, value in kwargs.items():
         lst[key] = value
     return lst

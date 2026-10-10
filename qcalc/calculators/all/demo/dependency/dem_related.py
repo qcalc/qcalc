@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
-from calc import list2options, StdList
+from calc import dict2options, StdList
 
 
 def demo_related__info():
@@ -31,13 +31,9 @@ def demo_related(country, province, city):
 
 def demo_related2__info():
     return {
-        # 'xschema':
-        #     {
-        #         'country': list2options(StdList.related1_list, initial="Canada"),
-        #     },
         'related':
             {
-                'r1': list2options(
+                'r1': dict2options(
                     StdList.related1data_list,
                     fields={
                         'country': '',

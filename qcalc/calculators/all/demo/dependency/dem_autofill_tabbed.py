@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
-from calc import list2options, StdList
+from calc import dict2options, StdList
 
 
 def demo_autofill_tabbed__info():
@@ -35,15 +35,15 @@ def demo_autofill_tabbed__info():
             },
         ],
         'schema': {
-            'brand_choice': list2options(StdList.autofill1_list, initial='C3'),
-            'mode_choice': list2options(StdList.autofill2_list, initial='z'),
+            'brand_choice': dict2options(StdList.autofill1_list, initial='C3'),
+            'mode_choice': dict2options(StdList.autofill2_list, initial='z'),
         },
         'autofill': {
-            'brand_choice': list2options(
+            'brand_choice': dict2options(
                 StdList.autofill1data_list,
                 fields=['coverage_low', 'coverage_mid', 'coverage_high'],
             ),
-            'mode_choice': list2options(
+            'mode_choice': dict2options(
                 StdList.autofill2data_list,
                 fields=['option_x', 'option_y'],
             ),

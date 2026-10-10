@@ -11,7 +11,7 @@ from django.http import HttpResponse
 from django.test import RequestFactory
 
 from calc import QIO
-from calc import views
+from calc import views, views_step2
 from qutil.timed_thread import QThread
 
 
@@ -107,15 +107,14 @@ def test_step2_run_does_not_use_personal_alias_lookup(monkeypatch):
         },
     )
 
-    monkeypatch.setattr(views, "q1999_func_to_form", _fake_open_form)
-    monkeypatch.setattr(views.QCals, "quick_find_func", lambda name: name)
+    monkeypatch.setattr(views_step2.QCals, "quick_find_func", lambda name: name)
 
     def _alias_lookup(_alias, default=''):
         raise AssertionError("Alias lookup must not be used outside add flow")
 
     monkeypatch.setattr(views.QCalAlias, "getp1", _alias_lookup)
 
-    response = views.q1_step2(request)
+    response = views_step2.q1_step2(request, _fake_open_form)
 
     assert response.status_code == 200
     assert captured["fname"] == "demo_next"

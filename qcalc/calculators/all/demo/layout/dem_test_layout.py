@@ -3,7 +3,7 @@
 
 from qcore import Qty, qtexta, qchar
 from qutil import cal_link, page_link, calurl
-from calc import gender_choice, list2options
+from calc import FLD_GENDER_CHOICE, dict2options
 # from calculators.all.general import pie
 from datetime import date
 
@@ -143,7 +143,7 @@ def demo_chkl__info():
     return {}
 
 
-def demo_chkl(sex=list2options(gender_choice, initial='M', type='choice')):
+def demo_chkl(sex=dict2options(FLD_GENDER_CHOICE, initial='M', type='choice')):
     return sex
 
 

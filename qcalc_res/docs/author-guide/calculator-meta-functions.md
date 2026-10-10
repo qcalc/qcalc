@@ -505,17 +505,6 @@ def mypie(mychart: qfunc = pie_chart):
 ],
 ```
 
-`'step': 'cost'` to estimate costs from returned quantity values. `include` and `exclude` select current output labels; `'*'` includes all outputs before exclusions:
-
-```python
-'step2': [
-    {
-        'step': 'cost',
-        'caption': 'Calculate Material Cost',
-        'spec': {'include': ['*'], 'exclude': ['Work Volume']},
-    },
-],
-```
 
 `'step': 'chart'` to open a returned qCalc chart object in its chart calculator:
 

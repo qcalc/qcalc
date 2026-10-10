@@ -28,10 +28,7 @@ Use a list of step objects in `__info()`:
         'step': 'run',
         'func': 'target_function_name',
         'caption': 'Button Label',
-        'spec': {
-            'target_arg_1': 'source_field_1',
-            'target_arg_2': 'source_field_2',
-        }
+        'spec': 'selector_or_mapping'
     }
 ]
 ```
@@ -41,7 +38,7 @@ Each item commonly uses:
 - `step`: action type (`run` or `chart`)
 - `func`: target calculator for `run`
 - `caption`: button text shown to user
-- `spec`: mapping/filter details
+- `spec`: mapping/filter details (format depends on step)
 
 ---
 
@@ -49,7 +46,7 @@ Each item commonly uses:
 
 Use `step: 'run'` to open another calculator and prefill inputs.
 
-### A. Direct field-to-argument mapping
+### A. Mapping mode (dict): destination arg → source field
 
 ```python
 'step2': [
@@ -70,7 +67,27 @@ Meaning:
 - target arg `weight` gets source value from field `weight`
 - target arg `height` gets source value from field `height`
 
-### B. Cost flow using run
+Use mapping mode whenever source field names differ from target argument names, for example:
+
+```python
+'spec': {
+    'starting_price': 'Last Value',
+    'volatility': 'Volatility',
+    'drift': 'Drift',
+}
+```
+
+### B. Selector mode (string/list): `specified_args()` syntax
+
+For `step: 'run'`, selector mode picks source fields and auto-maps each picked field to an argument name using qCalc normalization (`title_to_variable`).
+
+```python
+'spec': 'weight,height'
+```
+
+This is convenient when source field names already match target argument names after normalization.
+
+### C. Cost flow using run (`func: 'cost'`)
 
 
 ```python
@@ -79,20 +96,25 @@ Meaning:
         'step': 'run',
         'func': 'cost',
         'caption': 'Calculate Cost of Materials',
-        'spec': {
-            'exclude': ['Brick Work Volume']
-        }
+        'spec': '~Brick Work Volume'
     }
 ]
 ```
 
-For `func: 'cost'`, qCalc treats `spec.include` / `spec.exclude` as material-selection filters and prepares the `cost` calculator's `items` table automatically.
+For `func: 'cost'`, qCalc treats `spec` as a selector over output fields, then prepares the `cost` calculator's `items` table automatically from the selected Qty outputs.
 
 Supported patterns:
 
-- `{'include': ['*'], 'exclude': ['Some Field']}`
-- `{'exclude': ['Some Field']}`
-- standard mapping if you explicitly provide `items` mapping
+- `'~Some Field'` (exclude one field)
+- `'~Field A, ~Field B'` (exclude many fields)
+- `'*'` or empty spec to include all output fields
+- dict mapping still works if you explicitly provide `items` (for advanced/custom flows)
+
+Selector mode uses `specified_args()` behavior, including:
+- names (case-insensitive)
+- wildcard patterns (`*`)
+- indexes/ranges (`1`, `2-4`)
+- exclusions (`~name`)
 
 ---
 
@@ -105,12 +127,18 @@ Use `step: 'chart'` when output contains chart data and you want to open a chart
     {
         'step': 'chart',
         'caption': 'Modify Chart',
-        'spec': {'field': 'Chart'}
+        'spec': 'Chart'
     }
 ]
 ```
 
-`spec.field` must match the output field name that contains chart data.
+`spec` must select the output field that contains chart data.
+
+Also supported (legacy-compatible form):
+
+```python
+'spec': {'field': 'Chart'}
+```
 
 ---
 
@@ -129,7 +157,7 @@ You can add more than one step in order:
     {
         'step': 'chart',
         'caption': 'Modify Chart',
-        'spec': {'field': 'Chart'}
+        'spec': 'Chart'
     }
 ]
 ```
@@ -140,7 +168,8 @@ You can add more than one step in order:
 
 - Using `step: 'run'` without `func`
 - Using wrong output/source field names in `spec`
-- Expecting `spec.include`/`spec.exclude` to work for all target functions (they are meaningful for `func: 'cost'` flow)
+- Using selector mode when you actually need explicit destination mapping (use dict mode instead)
+- Expecting dict `include/exclude` keys to work (use selector syntax such as `~Field`)
 - Misspelling `step2` key
 
 ---
@@ -152,7 +181,9 @@ Before saving a step2 config:
 - `step2` is a list
 - each item has `step` and `caption`
 - `run` steps include `func`
-- `spec` field names match real input/output names
+- `spec` matches intended mode:
+  - dict for destination→source mapping
+  - selector string/list for `specified_args()` style picking/filtering
 - if target is `cost`, use run-style with `func: 'cost'`
 
 ---

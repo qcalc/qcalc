@@ -3,10 +3,10 @@
 
 import re
 
-from calc import show_choice
+from calc import FLD_SHOW_CHOICE
 from qcore import qchar
 from calculators.all.general.utility import valid_range
-from calc import QResults, scalar_results, RESULT_CELLS_HELP
+from calc import QResults, scalar_results, FLD_RESULT_CELLS, FLD_VARIATION_TARGET
 from qcore import qcode
 
 
@@ -15,13 +15,9 @@ def redo__info():
         'title': 'Redo Calculation',
         'desc': 'Repeat calculation by changing value of a variable',
         'schema': {
-            'variation_target': {
-                'type': 'choice',
-                'choices': {'p': 'Parameters', 'v': 'Variables'},
-                'help_text': 'Select what to vary: parameters of a function or variables of an expression',
-            },
-            'result_cells': {'help_text': RESULT_CELLS_HELP},
-            'show': show_choice,
+            'variation_target': FLD_VARIATION_TARGET,
+            'result_cells': FLD_RESULT_CELLS,
+            'show': FLD_SHOW_CHOICE,
             'chart_type': {'type': 'choice', 'choices': ['lines', 'bars', 'stack']},
         },
         'kins': 'monte_carlo',

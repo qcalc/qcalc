@@ -12,7 +12,7 @@ from django.http import HttpResponse
 from django.test import RequestFactory
 
 from calc import QIO
-from calc import views
+from calc import views, views_step2
 from calculators.all.general.chart import pie_chart
 from qcore import QChart, Qty
 from qutil.timed_thread import QThread
@@ -44,7 +44,7 @@ def test_step2_compact_payload_keeps_qty_and_chart_data():
     chart = QChart(width=200)
     chart.save_data({"xvals": [1, 2], "yvals2d": [[3, 4]], "labels": ["s1"]}, "lines")
 
-    payload = views._step2_compact_io_payload(
+    payload = views_step2.step2_compact_io_payload(
         "demo_func",
         {"mass": Qty("2 kg")},
         {"plot": chart, "price": Qty("12 USD")},
@@ -60,7 +60,7 @@ def test_step2_compact_payload_keeps_qty_and_chart_data():
 def test_step2_compact_payload_handles_self_referential_chart_data():
     chart = pie_chart(labels="A,B", values="2,3")["chart"]
 
-    payload = views._step2_compact_io_payload(
+    payload = views_step2.step2_compact_io_payload(
         "cost",
         {},
         {"Chart": chart},
@@ -80,7 +80,7 @@ def test_q1_step2_run_unpacks_qty_as_string(monkeypatch):
         return HttpResponse("ok")
 
     monkeypatch.setattr(views, "q1999_func_to_form", _fake_open_form)
-    monkeypatch.setattr(views.QCals, "quick_find_func", lambda name: name)
+    monkeypatch.setattr(views_step2.QCals, "quick_find_func", lambda name: name)
 
     request = _make_request(
         query={
@@ -100,7 +100,7 @@ def test_q1_step2_run_unpacks_qty_as_string(monkeypatch):
         },
     )
 
-    response = views.q1_step2(request)
+    response = views_step2.q1_step2(request, _fake_open_form)
 
     assert response.status_code == 200
     assert captured["fname"] == "demo_next"
@@ -116,14 +116,14 @@ def test_q1_step2_run_cost_alias_works_with_cost_style_spec(monkeypatch):
         return HttpResponse("ok")
 
     monkeypatch.setattr(views, "q1999_func_to_form", _fake_open_form)
-    monkeypatch.setattr(views.QCals, "quick_find_func", lambda name: name)
+    monkeypatch.setattr(views_step2.QCals, "quick_find_func", lambda name: name)
 
     request = _make_request(
         query={
             "step": "run",
             "func": "cost",
             "src_cid": "cid_run_cost",
-            "spec": json.dumps({"exclude": ["skip_this"]}),
+            "spec": "~skip_this",
         }
     )
     QThread.set_req(request)
@@ -141,7 +141,7 @@ def test_q1_step2_run_cost_alias_works_with_cost_style_spec(monkeypatch):
         },
     )
 
-    response = views.q1_step2(request)
+    response = views_step2.q1_step2(request, _fake_open_form)
 
     assert response.status_code == 200
     assert captured["fname"] == "cost"
@@ -189,7 +189,7 @@ def test_q1_step2_chart_works_with_packed_chart(monkeypatch):
         },
     )
 
-    response = views.q1_step2(request)
+    response = views_step2.q1_step2(request, _fake_open_form)
 
     assert response.status_code == 200
     assert captured["fname"] == "lines"
@@ -204,7 +204,7 @@ def test_calc_io_clear_deletes_only_requested_cid():
     QIO.setp1("cid_a", {"input": {}, "output": {}})
     QIO.setp1("cid_b", {"input": {}, "output": {}})
 
-    response = views.calc_io_clear(request, "cid_a")
+    response = views_step2.calc_io_clear(request, "cid_a")
     body = json.loads(response.content)
 
     assert response.status_code == 200

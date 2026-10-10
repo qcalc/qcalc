@@ -2,7 +2,7 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 from qcore import Qty
-from calc import list2options, gender_choice, activity_choice, calorie_formula_choice
+from calc import FLD_GENDER_CHOICE, activity_choice, calorie_formula_choice
 
 
 def calorie_needs__info():
@@ -10,9 +10,9 @@ def calorie_needs__info():
         'title': 'Calorie Calculator',
         'desc': 'Calories of energy a person needs everyday',
         'schema': {
-            'gender': list2options(gender_choice),
-            'activity': list2options(activity_choice),
-            'formula': list2options(calorie_formula_choice),
+            'gender': FLD_GENDER_CHOICE,
+            'activity': activity_choice,
+            'formula': calorie_formula_choice,
         }
     }
 
@@ -51,7 +51,7 @@ def bmr__info():
         'title': 'Basal Metabolic Rate (BMR)',
         'desc': 'Calculate Basal Metabolic Rate (BMR) using the Harris-Benedict equation',
         'schema': {
-            'gender': list2options(gender_choice),
+            'gender': FLD_GENDER_CHOICE,
         },
         'step2': [
             {

@@ -6,7 +6,7 @@ import qsett
 qsett.init()
 
 from calc.mod_layout_dynamic import build_layout_plan
-from calc.views import _normalize_layout_blocks
+from calc.views_info_meta import _normalize_layout_blocks
 
 
 class _FakeForm:
@@ -56,4 +56,3 @@ def test_dynamic_layout_keeps_empty_field_specs_empty_not_all_fields():
 
     assert len(plan['output']['blocks']) == 1
     assert plan['output']['blocks'][0]['fields'] == ['summary__r']
-

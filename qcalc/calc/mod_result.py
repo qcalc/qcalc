@@ -2,29 +2,15 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 import re
-
 import numpy as np
 import pandas as pd
+import datetime
+
 import qconst
 from qutil import title_to_variable, replace_variables, replace_parameter_values, QDateTime, css2strs, specified_args
 from qcore import as_qtable, is_qtbl, Qty, str_to_qty, df_formatter
 from qvars import qc_gpref as gs
-import datetime
-
-
-class ResultCellsError(Exception):
-    """Raised for result_cells problems that must not be swallowed as a failed trial."""
-
-
-RESULT_CELLS_HELP = (
-    'Optional table cells to use as results when the expression returns tables, separated by comma. '
-    'Each is Table[: Row[: Column]], e.g. Income Statement: Net Income, Ratios: *margin*. '
-    'Table/Row/Column accept names, row numbers, ranges (1-5), * wildcards and ~ exclusion. '
-    'Other scalar results are kept alongside the selected cells, and table_columns/table_units/'
-    'chart_columns/chart_units then filter the combined columns; the other text columns of a row '
-    '(e.g. an acronym) also work there as names'
-)
-
+from .mod_input_fields import ResultCellsError
 
 _PERCENT = re.compile(r'^\s*([+-]?\d+(?:\.\d*)?|[+-]?\.\d+)\s*%\s*$')
 
@@ -277,14 +263,14 @@ def scalar_results(xpr: str, variable: str, var_vals: list, variation_target: st
                 xvals.append(var_val)
             results.append(sc)
         else:
-            raise Exception("No numeric results were produced; check the expression")
+            raise Exception("No scalar results were produced; check the expression")
     if not results:
         if saw_table:
-            raise Exception("No numeric results were produced; the expression returned tables, "
+            raise Exception("No scalar results were produced; the expression returned tables, "
                             "specify [Result Cells] to pick table cells")
         if last_error:
-            raise Exception(f"No numeric results were produced; the last trial failed: {last_error}")
-        raise Exception("No numeric results were produced; check the expression")
+            raise Exception(f"No scalar results were produced; the last trial failed: {last_error}")
+        raise Exception("No scalar results were produced; check the expression")
     return results, xvals
 
 

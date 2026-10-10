@@ -7,7 +7,7 @@ import qsett
 
 qsett.init()
 
-from calc import views
+from calc import views_step2
 from qcore import Qty
 from qcore import mod_qencode as enc
 from qutil import QDateTime
@@ -73,9 +73,9 @@ def test_step2_unpack_for_run_unpacks_compact_markers():
 
 
 def test_views_step2_compact_payload_uses_direct_shared_helpers(monkeypatch):
-    monkeypatch.setattr(views, 'step2_pack_value', lambda value, _seen=None: {'packed': value})
-
-    out = views._step2_compact_io_payload('demo', {'a': 1}, {'b': 2})
+    out = views_step2.step2_compact_io_payload(
+        'demo', {'a': 1}, {'b': 2}, pack_value=lambda value, _seen=None: {'packed': value}
+    )
     assert out == {
         'function': 'demo',
         'input': {'packed': {'a': 1}},

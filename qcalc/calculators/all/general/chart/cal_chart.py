@@ -14,6 +14,7 @@ from calc import feasible_region
 def feasible_chart__info():
     return {
         'title': 'Feasible Region Chart',
+        'desc': 'Use cases: Visualizing feasible regions for linear programming problems',
     }
 
 
@@ -55,6 +56,8 @@ def feasible_chart(
 def surface3d_chart__info():
     return {
         'title': '3D Surface Chart',
+        'desc': 'Use cases: Visualizing 3D surfaces for multivariate data, '
+        'e.g., topographical data, mathematical surfaces',
         'schema': {
             'x_values': {'type': 'qtexta'},
             'y_values': {'type': 'qtexta'},
@@ -98,6 +101,8 @@ def surface3d_chart(
 def line3d_chart__info():
     return {
         'title': '3D Line Chart',
+        'desc': 'Use cases: Visualizing 3D line plots for multivariate data, '
+        'e.g., trajectory analysis, 3D parametric curves',
         'schema': {
             'x_values': {'type': 'qtexta'},
             'y_values': {'type': 'qtexta'},
@@ -129,6 +134,8 @@ def line3d_chart(
 def line_chart__info():
     return {
         'title': 'Simple Line Chart',
+        'desc': 'Use cases: Visualizing trends and relationships between two variables over a continuous range, '
+        'e.g., time series data, experimental measurements',
         'schema': {
             'x_values': {'type': 'qtexta'},
             'y_values': {'type': 'qtexta'}
@@ -157,6 +164,8 @@ def line_chart(
 def line2_chart__info():
     return {
         'title': 'Simple Double Line Chart',
+        'desc': 'Use cases: Visualizing trends and relationships between two variables over a continuous range with two data series, '
+        'e.g., comparing experimental measurements or time series data',
     }
 
 
@@ -190,6 +199,8 @@ def line2_chart(
 def scatter_chart__info():
     return {
         'title': 'Simple Scatter Chart',
+        'desc': 'Use cases: Visualizing the relationship between two variables using scatter plots, '
+        'e.g., correlation analysis, experimental data comparison',
     }
 
 
@@ -216,6 +227,8 @@ def scatter_chart(
 def bar_chart__info():
     return {
         'title': 'Simple Bar Chart',
+        'desc': 'Use cases: Visualizing categorical data using bar charts, '
+        'e.g., monthly sales, survey results',
         'schema': {
             'names': {'type': 'textarea'},
             'values': {'type': 'textarea'}
@@ -243,6 +256,8 @@ def bar_chart(
 def pie_chart__info():
     return {
         'title': 'Simple Pie Chart',
+        'desc': 'Use cases: Visualizing parts of a whole using pie charts, '
+        'e.g., market share distribution, budget allocation',
         'schema': {
             'radius': {'attrs': {'max': '2.0', 'min': '0.2'}},
             'legend': {'type': 'choice', 'choices': legend_locations},
@@ -274,6 +289,8 @@ def pie_chart(
 def pie2_chart__info():
     return {
         'title': 'Simple Pie Chart based on Tabular Data',
+        'desc': 'Use cases: Visualizing parts of a whole using pie charts based on tabular data, '
+        'e.g., market share distribution, budget allocation',
     }
 
 
@@ -302,6 +319,8 @@ def pie2_chart(
 def pareto_chart__info():
     return {
         'title': 'Simple Pareto Chart',
+        'desc': 'Use cases: Visualizing the distribution of values and identifying the most significant factors using Pareto charts, '
+        'e.g., defect analysis, sales contribution analysis',
     }
 
 
@@ -321,6 +340,8 @@ def pareto_chart(
 def histogram__info():
     return {
         'title': 'Simple Histogram',
+        'desc': 'Use cases: Visualizing the distribution of a dataset using histograms, '
+        'e.g., frequency analysis, data distribution assessment',
         'schema': {
             'values': {'type': 'textarea'}
         },
@@ -344,6 +365,8 @@ def histogram(
 def pareq__info():
     ret = {
         'title': 'Parametric Equation',
+        'desc': 'Use cases: Visualizing parametric equations over a continuous range, '
+        'e.g., plotting curves defined by x(t) and y(t) for various applications',
         'layout': 'tb',
         'inp1': '1-6',
     }
@@ -387,6 +410,8 @@ def pareq(
 def fx2__info():
     return {
         'title': 'Plot Multiple Equations',
+        'desc': 'Use cases: Visualizing multiple equations over a continuous range, '
+        'e.g., comparing different mathematical functions or experimental data',
     }
 
 
@@ -426,6 +451,8 @@ def fx2(
 def mesh__info():
     return {
         'title': 'Simple Network Diagram or 2D Mesh',
+        'desc': 'Use cases: Visualizing simple network diagrams or 2D meshes, '
+        'e.g., network topology, connectivity analysis',
     }
 
 
@@ -452,7 +479,9 @@ def mesh(
 
 def quadrant_chart__info():
     return {
-        'title': 'Quadrant Chart'
+        'title': 'Quadrant Chart',
+        'desc': 'Use cases: Visualizing data points within four quadrants based on two categorical dimensions, '
+        'e.g., market segmentation, risk assessment',
     }
 
 

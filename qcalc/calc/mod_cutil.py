@@ -118,13 +118,6 @@ def _plain_fxpr_value(value):
 
 
 def fxpr_from_json(func_id, json_data, json_data_type, forced=False):
-    # print('j', func_id, json_data, json_data_type)
-
-    # if func_id in ['eva']: #, 'redo', 'compare', 'monte_carlo' has variables inside code]:
-    #     # Expression is whatever inside codeedit field
-    #     name = 'code' if func_id=='eva' else 'xpr'
-    #     return val_de_quote(json_data[name])
-
     json_data_copy = q0162_dictify_fargs(json_data)
     json_data_type_copy = q0162_dictify_fargs(json_data_type)
     # print('1', json_data_copy)
@@ -239,13 +232,6 @@ def json_to_func_call(func_id, json_var):
 def xpr2loop(xpr: str):
     return xpr + "/varx_start/1/varx_stop/1/varx_step/1/step_round/2"
 
-
-# def xpr2loop(func_id, xpr:str):
-#     if func_id in ['redo','compare','monte_carlo']:
-#         return ''
-#     if func_id in ['eva']:
-#         xpr = xpr.replace(f"eva(code=", '')[:-2]
-#     return xpr + "/varx_start/1/varx_stop/1/varx_step/1/step_round/2"
 
 def get_fhelp(func_id, __info):
     func_help = ''

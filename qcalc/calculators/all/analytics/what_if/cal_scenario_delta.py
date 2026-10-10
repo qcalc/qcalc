@@ -4,7 +4,7 @@
 import pandas as pd
 
 from qcore import qtbl
-from calc import show_choice, get_shared_dataset
+from calc import FLD_SHOW_CHOICE, get_shared_dataset
 from calc.mod_result_post import postprocess_scenarios
 from qutil import addcal_button, nzv
 from calculators.all.analytics.what_if import SHARED_SCENARIO_TYPE, SHARED_SCENARIO_KEY
@@ -120,7 +120,7 @@ def scenario__info():
                 'type': 'choice',
                 'choices': ['minmax'],
             },
-            'show': show_choice,
+            'show': FLD_SHOW_CHOICE,
             'chart_type': {
                 'type': 'choice',
                 'choices': ['bars', 'hbars', 'lines', 'stack'],

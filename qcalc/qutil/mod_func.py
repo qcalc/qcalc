@@ -153,7 +153,7 @@ def css2proper_dict(css: str) -> dict:
 
 def variable_to_title(var, pdict: dict | None = None):
     word_dict = PROPER_WORDS if pdict is None else {**PROPER_WORDS, **pdict}
-    var = re.sub(qconst.TOK_RESULT_SUFFIX_PATTERN, '', var).replace('_', ' ').replace(qconst.DICT_KEY_SEP, ': ')
+    var = qconst.TOK_RESULT_SUFFIX_PATTERN.sub('', var).replace('_', ' ').replace(qconst.DICT_KEY_SEP, ': ')
     words = [str(word_dict.get(word.lower(), word)) for word in titlecase(var).split()]
     return ' '.join(words)
 

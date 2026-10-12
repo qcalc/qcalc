@@ -4,6 +4,7 @@
 import sys
 import os
 import bisect
+import qconst
 from qutil.mod_data import str2type, time2float
 from qutil.mod_datetime import QDateTime
 from datetime import date, datetime, time as dt_time
@@ -65,6 +66,14 @@ def vals2css(vals: list, separator=', '):
 
 
 def css2values(cs_string, separator=',', time2val='hr'):  # '', ('hr','min','s', 'ms', or 'mics')
+    """
+    Parse separated values and return ``(values, data_type)``.
+
+    Supported inferred types are float, int, date, datetime, time, and str.
+    Time values return ``datetime.time`` objects when ``time2val == ''``,
+    otherwise they are converted to float using ``time2float`` with
+    ``time2val`` units ('hr', 'min', 's', 'ms', or 'mics').
+    """
     if isinstance(cs_string, list): return cs_string, type(cs_string[0]) if len(cs_string) > 0 else float
     cs_string = cs_string.strip()
     if cs_string == '': return [], float
@@ -111,6 +120,7 @@ def css2values(cs_string, separator=',', time2val='hr'):  # '', ('hr','min','s',
 
 
 def css2strs(cs_string, separator=','):
+    """Split separated text into a list of stripped strings."""
     if isinstance(cs_string, (list, tuple)): return cs_string
     cs_string = cs_string.strip()
     if cs_string == '': return []
@@ -119,6 +129,7 @@ def css2strs(cs_string, separator=','):
 
 
 def css2set(cs_string, separator=','):
+    """Convert separated text to a normalized lowercase string set."""
     if cs_string is None:
         return set()
     text = str(cs_string).strip().lower()
@@ -130,6 +141,7 @@ def css2set(cs_string, separator=','):
 
 
 def css2floats(cs_string, separator=','):
+    """Parse separated numeric text into a list of floats."""
     if isinstance(cs_string, list): return cs_string
     cs_string = cs_string.strip()
     if cs_string == '': return []
@@ -138,6 +150,7 @@ def css2floats(cs_string, separator=','):
 
 
 def css2ints(cs_string, separator=','):
+    """Parse separated numeric text into a list of ints."""
     if isinstance(cs_string, list): return cs_string
     cs_string = cs_string.strip()
     if cs_string == '': return []
@@ -179,7 +192,11 @@ def replace_words(str_to_replace, words_to_replace, replace_with, case_sensitive
     # a word can start with number
     # ref: https://stackoverflow.com/questions/15658187/replace-all-words-from-word-list-with-another-string-in-python
     flags = 0 if case_sensitive else re.IGNORECASE
-    big_regex = re.compile(r'\b%s\b' % r'\b|\b'.join(map(re.escape, words_to_replace)), flags)
+    # big_regex = re.compile(r'\b%s\b' % r'\b|\b'.join(map(re.escape, words_to_replace)), flags)
+    big_regex = re.compile(
+        qconst.WORD_LIST_PATTERN % '|'.join(map(re.escape, words_to_replace)),
+        flags,
+    )
     replaced_str = big_regex.sub(replace_with, str_to_replace)
     return replaced_str
 
@@ -193,7 +210,11 @@ def replace_variables(str_to_replace, variables_dict, case_sensitive=True):
         lookup = {k.lower(): v for k, v in variables_dict.items()}
         flags = re.IGNORECASE
 
-    big_regex = re.compile(r'\b%s\b' % r'\b|\b'.join(map(re.escape, variables_dict)), flags)
+    # big_regex = re.compile(r'\b%s\b' % r'\b|\b'.join(map(re.escape, variables_dict)), flags)
+    big_regex = re.compile(
+        qconst.WORD_LIST_PATTERN % '|'.join(map(re.escape, variables_dict)),
+        flags,
+    )
 
     replaced_str = big_regex.sub(
         lambda m: lookup[m.group(0) if case_sensitive else m.group(0).lower()],
@@ -206,31 +227,6 @@ def replace_variables(str_to_replace, variables_dict, case_sensitive=True):
 import re
 
 
-# Matches:
-#   parameter='1.3 kW'
-#   parameter="1.3 kW"
-#   parameter=0.8
-#   parameter=-12
-#   parameter=1.25
-_PARAMETER_PATTERN = r"""
-    (?P<name>[A-Za-z_]\w*)
-    (\s*=\s*)
-    (?:
-        (?P<quote>['"])
-        (?P<quantity>
-            [+-]?(?:\d+(?:\.\d*)?|\.\d+)
-            \s+
-            [^'"]+
-        )
-        (?P=quote)
-      |
-        (?P<number>
-            [+-]?(?:\d+(?:\.\d*)?|\.\d+)
-        )
-    )
-"""
-
-
 def parameter_values(xpr: str, case_sensitive: bool = False) -> dict:
     """Read the current numeric value of each parameter in a calculator expression.
 
@@ -239,7 +235,7 @@ def parameter_values(xpr: str, case_sensitive: bool = False) -> dict:
     """
     flags = 0 if case_sensitive else re.IGNORECASE
     values = {}
-    for match in re.finditer(_PARAMETER_PATTERN, xpr, re.VERBOSE | flags):
+    for match in re.finditer(qconst.PARAMETER_PATTERN, xpr, re.VERBOSE | flags):
         text = match.group('number')
         if text is None:
             text = match.group('quantity').split()[0]
@@ -284,7 +280,7 @@ def replace_parameter_values(
 
     flags = 0 if case_sensitive else re.IGNORECASE
 
-    pattern = re.compile(_PARAMETER_PATTERN, re.VERBOSE | flags)
+    pattern = re.compile(qconst.PARAMETER_PATTERN, re.VERBOSE | flags)
 
     def replace(match):
         name = match.group("name")

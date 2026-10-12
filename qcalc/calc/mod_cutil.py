@@ -7,14 +7,12 @@ import inspect
 from django.conf import settings
 from qcore import Qty, complex_input_xpr, complex_input_url
 from qutil import fid2help_file, QDateTime
-import re
 from datetime import date, datetime, time as dt_time
 from pathlib import Path
 import pandas as pd
 import logging
 
 logger = logging.getLogger(__name__)
-_FUNC_CALL_RE = re.compile(r'^[a-zA-Z_]\w*\(.*\)$')
 
 
 def ancestors(page_id, page_type='c'):
@@ -179,7 +177,7 @@ def is_function_call(call_str):
         return False
 
     # Ensure the string starts with a valid function name.
-    if not _FUNC_CALL_RE.match(call_str):
+    if not qconst.FUNC_CALL_PATTERN.match(call_str):
         return False
 
     # Check if parentheses are balanced to allow for nested calls

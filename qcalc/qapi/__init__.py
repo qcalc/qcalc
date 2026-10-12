@@ -67,7 +67,7 @@ __evacon__ = [
     "lmt_desc", "str_type", "read_unit", "lmt2cat", "lmt2ulist", "lmt2qlist", "find_unit", "is_str_qty",  # qcore
     "minimum",  # this file
     "iif", "joinx", "css2floats", "css2ints", "css2values", "css2strs", "vals2css", "css2set",  # qutil.mod_basic
-    "np", "qdf", "qcol", "qrow", "qsum", "qadd", "qsub", "qmul", "qdiv",  # qapi.mod_qtbl
+    "np", "qdf", "qcol", "qrow", "qsum", "qadd", "qsub", "qmul", "qdiv", "qto_values",  # qapi.mod_qtbl
     "qtypes", "qmodules", "qsymbols", "qsymstat", "qsymhelp",  # qapi.mod_autil
     "QFile", "qf2bio", "dd_list",
     "QImage", "qf2img", "nparray_to_bio",

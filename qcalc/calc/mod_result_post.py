@@ -1,8 +1,8 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
-import re
 import pandas as pd
+import qconst
 
 from qcore import as_qtable, Qty
 from qutil import as_float, css2strs, specified_args
@@ -16,10 +16,11 @@ def _as_qfloat(value, field_name='value', required=False):
 
 
 def _split_title_unit(title: str):
-    match = re.match(r'^(.*)\s*\(([^()]+)\)\s*$', str(title).strip())
-    if match:
-        return match.group(1).strip(), match.group(2).strip()
-    return str(title).strip(), ''
+    text = str(title).strip()
+    if qconst.TBL_UOM_SEP not in text:
+        return text, ''
+    name, unit = text.split(qconst.TBL_UOM_SEP, 1)
+    return name.strip(), unit.strip()
 
 
 def _select_metric_columns(df, metric_columns: str, metric_units: str,
@@ -53,7 +54,7 @@ def _select_metric_columns(df, metric_columns: str, metric_units: str,
 def _delta_column_name(column, delta_type):
     title, unit = _split_title_unit(column)
     if delta_type == 'absolute':
-        return f'{title} Delta ({unit})' if unit else f'{title} Delta'
+        return f'{title} Delta {qconst.TBL_UOM_SEP} {unit}' if unit else f'{title} Delta'
     if delta_type == 'percent':
         return f'{title} Delta (%)'
     return f'{title} Index'

@@ -6,6 +6,7 @@ from dateutil import parser
 import re
 import pytz
 from timezonefinderL import TimezoneFinder
+import qconst
 
 # QC_DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S UTC%z'  # Europe/London 2026-08-09 05:36:09 UTC+0100
 
@@ -310,12 +311,10 @@ def qc_timezone(time_zone: str) -> None | timezone:
     if value == 'UTC':
         return timezone.utc
 
-    # match = re.match(r"^(UTC[+-]\d{2}:?\d{2})\s*(.+)$", value)
-    match = re.match(r"^(UTC[+-]\d{2}:?\d{2})(?:\s*(.+))?$", value)  # 'UTC+6:00' is valid
+    match = qconst.TIMEZONE_PATTERN.match(value)  # both 'UTC+06:00' and '+06:00' are valid
 
     if match:
-        # Slice from index 3 to skip "UTC" and get "+0530" or "+05:30"
-        offset_text = match.group(1)[3:]
+        offset_text = match.group(1)
         sign = 1 if offset_text[0] == "+" else -1
 
         # Remove any existing colon to standardize the string to 4 digits

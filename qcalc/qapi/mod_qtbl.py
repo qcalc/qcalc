@@ -1,14 +1,13 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
-import pandas as pd
 
 import qconst
 from qcore.qc_qty import Qty, str_to_qty
-from qcore.qc_mquantity import isMeasureQuantity as is_qty
 from qcore.mod_anno import is_qtbl
 import operator
 import pandas as _pd
 from .mod_autil import to_plain
+from qutil import css2values
 
 # df.<name>(data, ...) builds a DataFrame internally and always returns a
 # plain-Python result (see _to_plain) -- no DataFrame-like object is ever
@@ -198,40 +197,55 @@ def qsum(values):
     if not values:
         return 0
 
-    total = values[0]
+    total = qconvert(values[0])
 
     for value in values[1:]:
-        total += Qty(value) if is_qty(value) else value
+        # total += Qty(value) if is_qty(value) else value
+        total += qconvert(value)
 
     return total
+
+
+def qto_values(a):
+    """Convert one value or a sequence of values via qconvert()."""
+    if isinstance(a, (list, tuple)):
+        return [qconvert(x) for x in a]
+    return qconvert(a)
+
+
+def qconvert(x):
+    """Convert a CSS/quantity-like string to a numeric/Qty value when possible."""
+    if not isinstance(x, str):
+        return x
+
+    q = str_to_qty(x)
+    if q is not None:
+        return q
+
+    val, data_type = css2values(x)
+    return val[0]
 
 
 def _qbinary(a, b, op):
     """Apply a binary operation element-wise to two values or sequences."""
 
-    def convert(x):
-        if not isinstance(x, str):
-            return x
-        q = str_to_qty(x)
-        return q if q is not None else x
-
     if isinstance(a, (list, tuple)) and isinstance(b, (list, tuple)):
         if len(a) != len(b):
             raise ValueError("Operands must have the same length.")
         return [
-            op(convert(x), convert(y))
+            op(qconvert(x), qconvert(y))
             for x, y in zip(a, b)
         ]
 
     if isinstance(a, (list, tuple)):
-        b = convert(b)
-        return [op(convert(x), b) for x in a]
+        b = qconvert(b)
+        return [op(qconvert(x), b) for x in a]
 
     if isinstance(b, (list, tuple)):
-        a = convert(a)
-        return [op(a, convert(y)) for y in b]
+        a = qconvert(a)
+        return [op(a, qconvert(y)) for y in b]
 
-    return op(convert(a), convert(b))
+    return op(qconvert(a), qconvert(b))
 
 
 def qadd(a, b):

@@ -164,7 +164,7 @@ def str2type(value):
             return dt_time
         elif qdate.is_datetime:
             return datetime
-
+    # | check again
     return num_type(value)
 
 

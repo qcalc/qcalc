@@ -32,7 +32,7 @@ def scenario__modify(arg_name, arg_value, action):
 
 def scenario__info():
     return {
-        'title': 'Scenario Analysis (Result Postprocessor)',
+        'title': 'Scenario Analysis - Result Postprocessor',
         'desc': (
             'Postprocess scenario results using delta, rank, filter, or '
             'weighted score analysis modes'

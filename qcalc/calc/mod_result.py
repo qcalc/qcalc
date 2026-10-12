@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
-import re
 import numpy as np
 import pandas as pd
 import datetime
@@ -11,8 +10,6 @@ from qutil import title_to_variable, replace_variables, replace_parameter_values
 from qcore import as_qtable, is_qtbl, Qty, str_to_qty, df_formatter
 from qvars import qc_gpref as gs
 from .mod_input_fields import ResultCellsError
-
-_PERCENT = re.compile(r'^\s*([+-]?\d+(?:\.\d*)?|[+-]?\.\d+)\s*%\s*$')
 
 
 def _cell_value(value):
@@ -24,7 +21,7 @@ def _cell_value(value):
     if isinstance(value, float) and value != value:
         return None
     if isinstance(value, str):
-        match = _PERCENT.match(value)
+        match = qconst.PERCENT_PATTERN.match(value)
         return float(match.group(1)) / 100.0 if match else None
     if isinstance(value, (int, float, Qty)):
         return value
@@ -50,9 +47,6 @@ def _result_tables(result) -> dict:
     return {}
 
 
-_ROW_INDEX = re.compile(r'^\d+(\s*-\s*\d+)?$')
-
-
 def _select_indexes(display_names, label_lists, valid_rows, part):
     """Row indexes picked by one row part.
 
@@ -65,7 +59,7 @@ def _select_indexes(display_names, label_lists, valid_rows, part):
         return set(valid_rows)
     index_of = {name: i for i, name in enumerate(display_names)}
     hit = {index_of[name] for name in specified_args(display_names, [token], empty_spec='*')}
-    if not _ROW_INDEX.match(token):
+    if not qconst.ROW_INDEX_PATTERN.match(token):
         for labels in label_lists:
             values = list(dict.fromkeys(label for label in labels if label))
             matched = set(specified_args(values, [token], empty_spec='*'))

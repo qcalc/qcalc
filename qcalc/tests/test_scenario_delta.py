@@ -31,7 +31,7 @@ def test_scenario_delta_absolute_baseline():
 def test_scenario_delta_percent():
     result = scenario(
         scenarios={
-            'columns': ['Variation', 'Revenue (USD)'],
+            'columns': ['Variation', 'Revenue | USD'],
             'data': [['V1', 100], ['V2', 120], ['V3', 80]],
         },
         metric_columns='Revenue*',
@@ -48,7 +48,7 @@ def test_scenario_delta_percent():
 def test_scenario_delta_metric_units_filter():
     result = scenario(
         scenarios={
-            'columns': ['Variation', 'Cost (USD)', 'Weight (kg)'],
+            'columns': ['Variation', 'Cost | USD', 'Weight | kg'],
             'data': [['V1', 100, 10], ['V2', 120, 12], ['V3', 90, 11]],
         },
         metric_units='kg',
@@ -58,14 +58,14 @@ def test_scenario_delta_metric_units_filter():
     )
 
     table = result['table']
-    assert list(table.columns) == ['Variation', 'Weight (kg)', 'Weight Index']
+    assert list(table.columns) == ['Variation', 'Weight | kg', 'Weight Index']
     assert table['Weight Index'].tolist() == [1.0, 1.2, 1.1]
 
 
 def test_scenario_rank_mode_orders_by_selected_metric_and_top_n():
     result = scenario(
         scenarios={
-            'columns': ['Variation', 'x', 'y', 'ROI (%)', 'Cost (USD)'],
+            'columns': ['Variation', 'x', 'y', 'ROI | %', 'Cost | USD'],
             'data': [
                 ['V1', 1, 2, 10, 80],
                 ['V2', 2, 3, 20, 90],
@@ -89,7 +89,7 @@ def test_scenario_rank_mode_orders_by_selected_metric_and_top_n():
 def test_scenario_filter_mode_keeps_expected_rows():
     result = scenario(
         scenarios={
-            'columns': ['Variation', 'x', 'y', 'ROI (%)', 'Cost (USD)'],
+            'columns': ['Variation', 'x', 'y', 'ROI | %', 'Cost | USD'],
             'data': [
                 ['V1', 1, 2, 10, 80],
                 ['V2', 2, 3, 20, 90],
@@ -113,7 +113,7 @@ def test_scenario_filter_mode_keeps_expected_rows():
 def test_scenario_score_mode_computes_weighted_ranking():
     result = scenario(
         scenarios={
-            'columns': ['Variation', 'x', 'y', 'ROI (%)', 'Cost (USD)'],
+            'columns': ['Variation', 'x', 'y', 'ROI | %', 'Cost | USD'],
             'data': [
                 ['V1', 1, 2, 10, 80],
                 ['V2', 2, 3, 20, 90],
@@ -183,7 +183,7 @@ def test_scenario_filter_mode_with_non_numeric_metrics_does_not_crash_chart():
 def test_scenario_rank_mode_defaults_to_first_numeric_metric_when_not_specified():
     result = scenario(
         scenarios={
-            'columns': ['Variation', 'Label', 'x', 'ROI (%)', 'Cost (USD)'],
+            'columns': ['Variation', 'Label', 'x', 'ROI (%)', 'Cost | USD'],
             'data': [
                 ['V1', 'A', 1, 10, 80],
                 ['V2', 'B', 2, 20, 90],

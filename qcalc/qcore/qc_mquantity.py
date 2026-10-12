@@ -8,6 +8,7 @@ from __future__ import annotations
 import re
 from locale import atof
 import numpy as np
+import qconst
 
 from qcore.qc_mbase import _base_names
 from qcore.qc_munit import _format_power_expression, isMeasureUnit
@@ -16,7 +17,7 @@ from qcore.qc_units import find_unit, _unit_table
 
 class MeasureQuantity:
     """Represents a value paired with a compatible unit."""
-    _number = re.compile(r"[+-]?[0-9]+(\.[0-9]*)?([eE][+-]?[0-9]+)?")
+    _number = re.compile(qconst.NUMBER_PATTERN)
 
     def __init__(self, *args):
         if len(args) == 2:

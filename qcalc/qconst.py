@@ -49,7 +49,8 @@ TOK_TABLE_ED = f'{TOK_COMPOSITE_SEP}{_table_ed_suffix}'
 
 TOK_RESULT_SUFFIX = '__r'
 
-TOK_RESULT_SUFFIX_PATTERN = r'__r[a-z]?'
+# Compiled because this fixed pattern is reused in text normalization helpers.
+TOK_RESULT_SUFFIX_PATTERN = re.compile(r'__r[a-z]?')
 TOK_LIST_INDEX_PATTERN = rf'{re.escape(TOK_INDEX_SEP)}\d+$'
 
 _token_part_with_optional_index = rf'(?:{re.escape(TOK_INDEX_SEP)}\d+)?{re.escape(TOK_PART)}'
@@ -90,6 +91,49 @@ RELATIVE_VALUE_PATTERN = re.compile(
     r'(?P<sign>[+-]?)(?P<number>(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?)'
     r'\s*(?:(?P<percent>%)|\(\s*(?P<op>[-+*/xX%])\s*\))'
 )
+
+# Keep as string because some call sites may compile with their own flags.
+NUMBER_PATTERN = r"[+-]?[0-9]+(\.[0-9]*)?([eE][+-]?[0-9]+)?"
+
+# Row selector token: single row index or inclusive range (e.g. 2 or 2-5).
+ROW_INDEX_PATTERN = re.compile(r'^\d+(\s*-\s*\d+)?$')
+
+# Compiled because this fixed validator is reused by calculator call parsing.
+FUNC_CALL_PATTERN = re.compile(r'^[a-zA-Z_]\w*\(.*\)$')
+
+# Compiled because percent parsing runs frequently in result-table scans.
+PERCENT_PATTERN = re.compile(r'^\s*([+-]?\d+(?:\.\d*)?|[+-]?\.\d+)\s*%\s*$')
+
+# Keep as string template because callers inject dynamic word alternations.
+WORD_LIST_PATTERN = r'\b(?:%s)\b'
+
+# Keep as string because callers compile with runtime flags (e.g. IGNORECASE).
+# Matches:
+#   parameter='1.3 kW'
+#   parameter="1.3 kW"
+#   parameter=0.8
+#   parameter=-12
+#   parameter=1.25
+PARAMETER_PATTERN = r"""
+    (?P<name>[A-Za-z_]\w*)
+    (\s*=\s*)
+    (?:
+        (?P<quote>['"])
+        (?P<quantity>
+            [+-]?(?:\d+(?:\.\d*)?|\.\d+)
+            \s+
+            [^'"]+
+        )
+        (?P=quote)
+      |
+        (?P<number>
+            [+-]?(?:\d+(?:\.\d*)?|\.\d+)
+        )
+    )
+"""
+
+# Compiled because timezone parsing uses a fixed validator pattern.
+TIMEZONE_PATTERN = re.compile(r'^(?:UTC)?([+-]\d{2}:?\d{2})(?:\s*(.+))?$')
 
 # Local trusted deployments may enable legacy unrestricted user-calculator imports.
 ALLOW_UNSAFE_USER_CALCULATOR_IMPORTS = False

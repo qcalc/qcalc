@@ -206,7 +206,9 @@ var SCRIPT_RUNTIME_VAR = "@";
                 var changedId = idPrefix + key;
                 var changedElem = document.getElementById(changedId);
                 if (changedElem) {
+                    changedElem.dataset.qcalcSyntheticChange = "1";
                     changedElem.dispatchEvent(new Event("change", { bubbles: true }));
+                    delete changedElem.dataset.qcalcSyntheticChange;
                 }
             }
         });

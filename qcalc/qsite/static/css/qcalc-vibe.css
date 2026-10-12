@@ -260,9 +260,9 @@
 /* Shared fullscreen layout for table wrappers (browser fullscreen + local fullscreen). */
 .elem-wrapper.table-wrap.fullscreen,
 .elem-wrapper.table-wrap.fullscreen-local {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  /* display: flex;  remove */
+  /* flex-direction: column; remove (no effect without flex) */
+  /* gap: 8px;  remove (no effect without flex) */
   width: 100vw;
   height: 100vh;
   padding: 12px;

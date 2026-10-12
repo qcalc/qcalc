@@ -148,6 +148,10 @@
         form.addEventListener('change', function(event) {
             if (isInputTableEvent(event)) {
                 cancelPendingCalculation();
+            } else if (event.target
+                && event.target.dataset
+                && event.target.dataset.qcalcSyntheticChange === '1') {
+                cancelPendingCalculation();
             } else if (!isSelect2Control(event.target)
                 && event.target.matches('input:not([type="hidden"]), select')) {
                 scheduleCalculation();

@@ -133,3 +133,4 @@ Whoosh==2.7.4
 wordcloud==1.9.3
 wrapt==1.16.0
 yake==0.4.8
+mplfinance==0.12.10b0

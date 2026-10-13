@@ -9,7 +9,7 @@ from qutil import (
     is_blank,
     normalize_name,
     to_float,
-    to_fraction,
+    val2fraction,
 )
 
 from calc import field_show_zero, table_blend_materials, table_blend_specs
@@ -98,8 +98,8 @@ def optima_blending(
             continue
         prop_name = str(prop_raw).strip()
         prop_key = normalize_name(prop_name)
-        min_frac = to_fraction(row.get('Min %'), f'blend_specs.Min % (row {idx + 1})', required=False)
-        max_frac = to_fraction(row.get('Max %'), f'blend_specs.Max % (row {idx + 1})', required=False)
+        min_frac = val2fraction(row.get('Min %'), f'blend_specs.Min % (row {idx + 1})', required=False)
+        max_frac = val2fraction(row.get('Max %'), f'blend_specs.Max % (row {idx + 1})', required=False)
 
         if min_frac is None and max_frac is None:
             continue
@@ -131,7 +131,7 @@ def optima_blending(
         comp[material] = {}
         for spec in spec_rows:
             col = property_col_map[spec['key']]
-            frac = to_fraction(row[col], f"blend_materials.{col} ({material})")
+            frac = val2fraction(row[col], f"blend_materials.{col} ({material})")
             if frac < 0 or frac > 1:
                 raise Exception(
                     f'Composition must be between 0% and 100% for material {material}, property {spec["name"]}')

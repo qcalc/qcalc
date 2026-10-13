@@ -6,7 +6,7 @@ import pulp
 from qcore import as_qtable, qtable
 from qutil import to_cast
 from calc import validate_schema_if_needed
-from calc import require_unique_values, require_values_subset
+from qcore import require_unique_values, require_values_subset
 
 from calc import (
     field_show_zero,

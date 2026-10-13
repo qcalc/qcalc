@@ -5,7 +5,7 @@ import pandas as pd
 import pulp
 from qcore import as_qtable, qtable
 from calc import validate_schema_if_needed
-from calc import require_complete_pair_grid, require_values_subset
+from qcore import require_complete_pair_grid, require_values_subset
 from calc import field_show_zero, table_agents, table_assign_cost, table_tasks
 from calc import safe_objective_value, solver, slack_table
 

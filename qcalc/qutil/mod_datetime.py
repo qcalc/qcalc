@@ -234,10 +234,12 @@ def qc_datetime_to_str(dtime: datetime | date | dt_time | None):  # qc date/time
 
 
 def today() -> QDateTime:
+    """Return current local date as ``QDateTime``."""
     return QDateTime(date.today())
 
 
 def spellnow(tz: str | None = None) -> str:
+    """Return a human-readable string representation of current time."""
     return now(tz).spell()
 
 

@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
+import pandas as pd
 
 import qconst
 from qcore.qc_qty import Qty, str_to_qty
@@ -39,19 +40,22 @@ _DF_METHODS = (
 
     # Data conversion
     'to_numpy',
+
+    # 'apply' is unsafe
 )
 
 
 def qdf_names():
+    """Return the set of safe ``qdf.<method>`` names exposed to calculators."""
     return {f'qdf.{n}' for n in _DF_METHODS}
 
 
 class _Df:
-    """
-    Safe DataFrame facade.
+    """Safe DataFrame facade used by :func:`qdf`.
 
-    A pandas DataFrame is created once and kept entirely inside
-    this object. Sandboxed code only receives plain-Python results.
+    A pandas DataFrame is created and kept internal. Public operations always
+    return plain Python values so DataFrame objects/method surfaces are never
+    exposed directly to sandboxed calculator code.
     """
 
     def __init__(self, data, columns=None):
@@ -80,6 +84,19 @@ class _Df:
 
         return to_plain(target)
 
+    def _col_values(self, col):
+        if isinstance(col, str):
+            if col not in self.__df.columns:
+                raise KeyError(f"Unknown column: {col}")
+            return self.__df[col].tolist()
+
+        if isinstance(col, int):
+            if col < 0 or col >= len(self.__df.columns):
+                raise IndexError(f"Column index out of range: {col}")
+            return self.__df.iloc[:, col].tolist()
+
+        raise TypeError("Column selector must be a column name (str) or index (int)")
+
     def __getitem__(self, key):
         result = self.__df[key]
 
@@ -105,6 +122,21 @@ class _Df:
             )
 
         self.__df = new_df
+
+    def unary(self, col, op):
+        if not callable(op):
+            raise TypeError("unary() expects a callable operator function")
+        return qapply(self._col_values(col), op)
+
+    def binary(self, col1, col2, op):
+        if not callable(op):
+            raise TypeError("binary() expects a callable operator function")
+        return qbinary(self._col_values(col1), self._col_values(col2), op)
+
+    def binop(self, col, values, op):
+        if not callable(op):
+            raise TypeError("binop() expects a callable operator function")
+        return qbinary(self._col_values(col), values, op)
 
     def to_dict(self):
         return to_plain({
@@ -141,14 +173,29 @@ for _name in _DF_METHODS:
 del _name
 
 
+def qdf_demo_data():
+    return {'columns': ['Name', 'Salary', 'Dob', 'Height'],
+            'data': [
+                ['Dave', 50000, '1985-07-15', '5.5 ft'],
+                ['Mia', 62000, '1990-11-03', '5.4 ft'],
+                ['Liam', 71000, '1988-02-21', '6.0 ft'],
+                ['Zara', 54000, '1993-09-12', '5.7 ft'],
+            ]}
+
+
 def qdf(tbl):
-    """
-    Create a safe DataFrame-like object from a qtbl dictionary.
+    """Create a safe DataFrame-like wrapper from a qtbl dictionary.
 
-    The pandas DataFrame remains internal and is never returned
-    directly to sandboxed code.
-    """
+    Args:
+        tbl: qtbl payload with ``'columns'`` and ``'data'`` keys.
 
+    Returns:
+        A restricted/safe DataFrame-like API.
+
+    Raises:
+        TypeError: If input or qtbl shape members have invalid types.
+        ValueError: If qtbl schema is invalid or column names are not unique.
+    """
     if not isinstance(tbl, dict):
         raise TypeError("qdf() expects a qtbl dictionary")
 
@@ -172,26 +219,27 @@ def qdf(tbl):
     return _Df(data, columns)
 
 
-def qcol(tbl, col):
-    """
-    Extract one column from a qtbl dictionary as a plain list.
+def qcol(tbl, col: str | int):
+    """Extract one column from qtbl as a plain list.
 
-    `col` may be a column name or a 0-based column index.
+    Args:
+        tbl: qtbl payload.
+        col: Column name or 0-based column index.
     """
     idx = tbl['columns'].index(col) if isinstance(col, str) else col
     return [row[idx] for row in tbl['data']]
 
 
-def qrow(tbl, row):
-    """
-    Extract one row from a qtbl dictionary as a plain list,
-    given its 0-based row index.
-    """
+def qrow(tbl, row: str | int):
+    """Extract one row from qtbl as a plain list by 0-based row index."""
     return list(tbl['data'][row])
 
 
 def qsum(values):
-    """Return the sum of quantity values."""
+    """Sum values after per-item conversion to calculator-native runtime values.
+    Convert numeric/Qty/date/time-like strings to appropriate types before summing.
+    Returns ``0`` for empty input.
+    """
     values = list(values)
 
     if not values:
@@ -200,21 +248,40 @@ def qsum(values):
     total = qconvert(values[0])
 
     for value in values[1:]:
-        # total += Qty(value) if is_qty(value) else value
         total += qconvert(value)
 
     return total
 
 
+def qapply(values, op):
+    """Apply a unary operation to converted calculator-native runtime values.
+
+    Convert numeric/Qty/date/time-like strings to appropriate types before
+    applying ``op``.
+    """
+    if not callable(op):
+        raise TypeError("qapply() expects a callable operator function")
+
+    if isinstance(values, (list, tuple)):
+        return [op(qconvert(x)) for x in values]
+    return op(qconvert(values))
+
+
 def qto_values(a):
-    """Convert one value or a sequence of values via qconvert()."""
+    """Convert one value or a sequence to calculator-native runtime values.
+    Convert numeric/Qty/date/time-like strings to appropriate types"""
     if isinstance(a, (list, tuple)):
         return [qconvert(x) for x in a]
     return qconvert(a)
 
 
 def qconvert(x):
-    """Convert a CSS/quantity-like string to a numeric/Qty value when possible."""
+    """Convert one input value into calculator-native runtime value.
+
+    Behavior:
+    - Non-string values are returned unchanged.
+    - Convert numeric/Qty/date/time-like strings to appropriate types
+    """
     if not isinstance(x, str):
         return x
 
@@ -226,7 +293,7 @@ def qconvert(x):
     return val[0]
 
 
-def _qbinary(a, b, op):
+def qbinary(a, b, op):
     """Apply a binary operation element-wise to two values or sequences."""
 
     if isinstance(a, (list, tuple)) and isinstance(b, (list, tuple)):
@@ -249,20 +316,24 @@ def _qbinary(a, b, op):
 
 
 def qadd(a, b):
-    """Subtract two values or quantities or sequences of values or quantities."""
-    return _qbinary(a, b, operator.add)
+    """Add two values/quantities or two sequences element-wise.
+    Internally convert numeric/Qty/date/time-like strings to appropriate types before performing addition."""
+    return qbinary(a, b, operator.add)
 
 
 def qsub(a, b):
-    """Subtract two values or quantities or sequences of values or quantities."""
-    return _qbinary(a, b, operator.sub)
+    """Subtract values/quantities or subtract sequences element-wise.
+    Internally convert numeric/Qty/date/time-like strings to appropriate types before performing subtraction."""
+    return qbinary(a, b, operator.sub)
 
 
 def qmul(a, b):
-    """Multiply two values or quantities or sequences of values or quantities."""
-    return _qbinary(a, b, operator.mul)
+    """Multiply values/quantities or multiply sequences element-wise.
+    Internally convert numeric/Qty/date/time-like strings to appropriate types before performing multiplication."""
+    return qbinary(a, b, operator.mul)
 
 
 def qdiv(a, b):
-    """Divide two values or quantities or sequences of values or quantities."""
-    return _qbinary(a, b, operator.truediv)
+    """Divide values/quantities or divide sequences element-wise.
+    Internally convert numeric/Qty/date/time-like strings to appropriate types before performing division."""
+    return qbinary(a, b, operator.truediv)

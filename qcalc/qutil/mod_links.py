@@ -7,6 +7,7 @@ import json
 
 
 def page_link(pageurl, caption='', link_class="", icon_class="", cid='', card=False):
+    """Build an HTMX page-navigation link (or card link) HTML snippet."""
     link_class = f'class="{link_class}"' if link_class else ''
     hx_trigger = ''
     if cid:  # | page will be replaced anyway if cid is available or not
@@ -36,6 +37,7 @@ def href_url(addurl):
 
 
 def calurl(calname, params=''):
+    """Build calculator add/load URL from calculator name and optional params."""
     return f'/calc/add/?path={calname}/{params}' if params else f'/calc/add/?fname={calname}'
 
 
@@ -66,6 +68,7 @@ def link_card_body(icon_class, caption):
 
 
 def cal_link(calurl, caption='', link_class='', icon_class='', target='a', cid='', button=False, card=False):
+    """Build an HTMX calculator-launch link/button (or card variant)."""
     link_class = f'class="{link_class}"' if link_class else ''
     href = href_url(calurl)
     target_swap = hx_target(target)
@@ -85,6 +88,12 @@ def cal_link(calurl, caption='', link_class='', icon_class='', target='a', cid='
 
 
 def command_button(sfunc, caption, cmd, args=None, kwargs=None):
+    """Build a submit button that posts a calculator callback command.
+
+    The generated button posts to ``/calc/<sfunc>/?part=2`` with command payload
+    in ``hx-vals`` so server-side callback handlers can execute structured UI
+    actions (for example format/load/check commands).
+    """
     # | to execute calculator callback command
     # | 'if', '' = inside form, default
     # | 'rc' = anywhere inside card, replace card
@@ -109,6 +118,7 @@ def command_button(sfunc, caption, cmd, args=None, kwargs=None):
 
 
 def addcal_button(calname, caption, icon_class=''):
+    """Build a styled button that inserts a calculator card into the page."""
     return cal_link(calurl(calname), caption, 'btn btn-info btncmd', icon_class, 'a', '', True)
 
 

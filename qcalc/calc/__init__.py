@@ -24,7 +24,6 @@ from .mod_optima_core import *
 from .mod_optima_tables import *
 from .mod_equation_solver import *
 from .mod_runtime_validate import *
-from .mod_table_validate import *
 from .mod_input_fields import *
 
 import os

@@ -5,7 +5,7 @@ import pandas as pd
 import pulp
 from qcore import as_qtable, qtable
 from calc import validate_schema_if_needed
-from calc import require_unique_pairs, require_unique_values, require_values_subset
+from qcore import require_unique_pairs, require_unique_values, require_values_subset
 
 from calc import (
     field_show_zero,
@@ -14,6 +14,7 @@ from calc import (
     table_prodinv_production,
 )
 from calc import safe_objective_value, solver, slack_table
+
 
 def _period_sort_key(value):
     text = str(value).strip()
@@ -277,8 +278,3 @@ def optima_production_inventory__info():
         # 'out1': ['Summary', 'Decision Table'],
         'tags': 'optimization, production planning, inventory, lot sizing, linear programming',
     }
-
-
-
-
-

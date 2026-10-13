@@ -6,7 +6,7 @@ import pulp
 
 from calc import QResults
 from qcore import as_qtable, qhtml, qtable
-from calc import require_unique_pairs, require_unique_values, require_values_subset
+from qcore import require_unique_pairs, require_unique_values, require_values_subset
 from calc import validate_schema_if_needed
 from qutil import to_bool
 

@@ -16,6 +16,13 @@ def requires_login(func):
 
 
 def user_name(request=None):
+    """Return current user identity for calculator runtime context.
+
+    Falls back to thread-bound request and returns:
+    - authenticated username,
+    - session hash for anonymous users,
+    - ``'none'`` when no request is available.
+    """
     request = request or QThread.get_req()
     if not request:
         return 'none'
@@ -26,6 +33,10 @@ def user_name(request=None):
 
 
 def user_ip(request=None):
+    """Return client IP address from request metadata.
+
+    Prefers ``HTTP_X_FORWARDED_FOR`` first (first hop), then ``REMOTE_ADDR``.
+    """
     request = request or QThread.get_req()
     forwarded = request.META.get('HTTP_X_FORWARDED_FOR')
     if forwarded:
@@ -34,6 +45,7 @@ def user_ip(request=None):
 
 
 def local_ip():
+    """Return host machine IP resolved from hostname."""
     return socket.gethostbyname(socket.gethostname())
 
 
@@ -49,6 +61,7 @@ def is_staff(request):
 
 
 def user_process():
+    """Return a compact process label for logs/debug output."""
     info = qenv.get_worker_info()
     instance_id = info.get('instance_id')
     worker_pid = info.get('worker_pid')

@@ -3,10 +3,9 @@
 
 import pandas as pd
 import numpy as np
-from qcore import qchar, qtable, QChart, as_qtable, qhtml, qurl
+from qcore import qchar, qtable, QChart, as_qtable, qhtml, qurl, require_columns
 from qutil import css2ints, css2floats, QThread, demo_url
 import mplfinance as mpf
-from calc import require_columns
 
 
 def stock_chart__info():

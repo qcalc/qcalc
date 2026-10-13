@@ -11,48 +11,8 @@ Architecture notes:
     from `__info` schema only.
 """
 
-import json
 import pandas as pd
-from django.core.exceptions import ValidationError
-
-from qcore import as_qtable
-from .mod_table_validate import require_columns
-
-
-def _coerce_table_for_validation(value, field_name):
-    """Convert posted table payload into a DataFrame for schema validators."""
-    if isinstance(value, str):
-        text = value.strip()
-        if text in {'', 'null', 'None'}:
-            return pd.DataFrame()
-        try:
-            parsed = json.loads(text)
-        except Exception as e:
-            raise ValidationError(f"Invalid table payload for {field_name}") from e
-        value = parsed
-
-    try:
-        return as_qtable(value)
-    except Exception as e:
-        raise ValidationError(f"Invalid table payload for {field_name}") from e
-
-
-def table_columns_validator(field_name, required_cols, optional_cols=None):
-    optional_cols = optional_cols or []
-
-    def _validator(value):
-        table = _coerce_table_for_validation(value, field_name)
-        try:
-            require_columns(
-                table,
-                field_name,
-                list(required_cols),
-                optional_cols=list(optional_cols),
-            )
-        except Exception as e:
-            raise ValidationError(str(e)) from e
-
-    return _validator
+from qcore import table_columns_validator
 
 
 def field_show_zero():
@@ -671,7 +631,3 @@ def table_sop_scenarios(field_name):
         ],
         'help_text': 'Scenario table used to rerun the same S&OP model under demand/capacity/cost multipliers.',
     }
-
-
-
-

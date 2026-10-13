@@ -21,7 +21,9 @@ from qcore import (
     # | Other classes and related functions
     QFile, qf2bio,
     QImage, qf2img, nparray_to_bio,
-    QChart, QGeo, QMap, SmartCalc
+    QChart, QGeo, QMap, SmartCalc,
+    table_columns_validator, require_columns, require_values_subset, require_unique_values,
+    require_unique_pairs, require_complete_pair_grid, validate_value_columns_against_master,
 )
 
 from qutil import (
@@ -30,6 +32,9 @@ from qutil import (
     user_name, user_process, user_ip, local_ip,  # mod_user
     page_link, calurl, cal_link, command_button, addcal_button,  # mod_links
     iif, joinx, css2floats, css2ints, css2values, css2strs, vals2css, css2set,  # mod_basic
+    md2html, demo_url, is_debug, is_blank, normalize_name, to_float, pct2fraction, val2fraction, to_cast,
+    to_bool, parameter_values, as_float, specified_args, preprocess_expression, time2float, variable_to_title,
+    title_to_variable, replace_variables, replace_parameter_values, csv2qtbl, np2qtbl,
 )
 
 from .mod_np import np_names, np
@@ -38,6 +43,11 @@ from .mod_autil import qsymbols, qsymstat, qsymhelp
 
 
 def minimum(*args, key=None):
+    """Return the smallest item from an iterable or argument list.
+
+    This is a safe qapi-exported alias of Python's built-in ``min`` for use in
+    calculator expressions.
+    """
     # defined locally (not imported from calc.conflicts) to avoid a
     # qapi <-> calc circular import at package-load time
     return min(*args, key=key)
@@ -63,18 +73,26 @@ __qtypes__ = [
 
 # for eva(), mycal() and console
 __evacon__ = [
-    "is_qty", "is_unit", "base_units", "base_dims", "unit_desc", "prefixes", "unit2lmt",  # qcore
-    "lmt_desc", "str_type", "read_unit", "lmt2cat", "lmt2ulist", "lmt2qlist", "find_unit", "is_str_qty",  # qcore
-    "minimum",  # this file
-    "iif", "joinx", "css2floats", "css2ints", "css2values", "css2strs", "vals2css", "css2set",  # qutil.mod_basic
-    "np", "qdf", "qcol", "qrow", "qsum", "qadd", "qsub", "qmul", "qdiv", "qto_values",  # qapi.mod_qtbl
-    "qtypes", "qmodules", "qsymbols", "qsymstat", "qsymhelp",  # qapi.mod_autil
-    "QFile", "qf2bio", "dd_list",
-    "QImage", "qf2img", "nparray_to_bio",
-    "QChart", "QGeo", "QMap", "SmartCalc",
-    "user_name", "user_process", "user_ip", "local_ip",  # qutil.mod_user
-    "page_link", "calurl", "cal_link", "command_button", "addcal_button",  # qutil.mod_links
-    "today", "now", "spellnow",  # qutil.mod_datetime
+    'is_qty', 'is_unit', 'base_units', 'base_dims', 'unit_desc', 'prefixes', 'unit2lmt',  # qcore
+    'lmt_desc', 'str_type', 'read_unit', 'lmt2cat', 'lmt2ulist', 'lmt2qlist', 'find_unit', 'is_str_qty',  # qcore
+    'minimum',  # this file
+    'table_columns_validator', 'require_columns', 'require_values_subset', 'require_unique_values',
+    'require_unique_pairs', 'require_complete_pair_grid', 'validate_value_columns_against_master',
+    'iif', 'joinx', 'css2floats', 'css2ints', 'css2values', 'css2strs', 'vals2css', 'css2set',  # qutil.mod_basic
+    'np', 'qdf', 'qcol', 'qrow', 'qsum', 'qapply', 'qadd', 'qsub', 'qmul', 'qdiv', 'qto_values', # qapi.mod_qtbl
+    'qconvert', 'qbinary', 'qdf_demo_data',
+    'qtypes', 'qmodules', 'qsymbols', 'qsymstat', 'qsymhelp',  # qapi.mod_autil
+    'QFile', 'qf2bio', 'dd_list',
+    'QImage', 'qf2img', 'nparray_to_bio',
+    'QChart', 'QGeo', 'QMap', 'SmartCalc',
+    'user_name', 'user_process', 'user_ip', 'local_ip',  # qutil.mod_user
+    'page_link', 'calurl', 'cal_link', 'command_button', 'addcal_button',  # qutil.mod_links
+    'today', 'now', 'spellnow',  # qutil.mod_datetime
+    'md2html', 'demo_url', 'is_debug', 'is_blank', 'normalize_name', 'to_float', 'pct2fraction', 'val2fraction',
+    'to_cast',
+    'to_bool', 'parameter_values', 'as_float', 'specified_args', 'preprocess_expression', 'time2float',
+    'variable_to_title', 'title_to_variable', 'replace_variables', 'replace_parameter_values',
+    'csv2qtbl', 'np2qtbl',
 ]
 
 
@@ -86,10 +104,12 @@ def _qapis():
 
 
 def qtypes():
+    """Return sorted qcalc annotation/helper type names available to calculators."""
     return sorted(__qtypes__)
 
 
 def qmodules():
+    """Return sorted module names allowed for calculator creation."""
     from qutil.mod_code_security import allowed_modules
     return sorted(allowed_modules)
 

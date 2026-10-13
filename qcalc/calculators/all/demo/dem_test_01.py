@@ -8,7 +8,7 @@ from calculators.all.engineering.surveying import rectland
 from calculators.all.mathematics.geometry import circle
 from calculators.all.health import bmi
 from calc import QList
-from qutil import cal_link, resize_df, to_df, command_button, calurl
+from qutil import cal_link, resize_df, csv2df, command_button, calurl
 import time
 from calculators.all.general import conv2
 from qcore.mod_anno import *
@@ -435,8 +435,8 @@ def demo_xtable__info():
 
 def demo_xtable(csv1: qfile, csv2: qfile):
     x = 5
-    q1 = to_df(csv1.txt_buf())
-    q2 = to_df(csv2.txt_buf())
+    q1 = csv2df(csv1.txt_buf())
+    q2 = csv2df(csv2.txt_buf())
     return {
         'tbl1': q1,
         'tbl2': q2,

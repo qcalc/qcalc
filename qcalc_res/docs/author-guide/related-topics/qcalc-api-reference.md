@@ -53,6 +53,7 @@ tbl = {"columns": ["name", "qty"], "data": [["A", 3], ["B", 5]]}
 | `qcol(tbl, col)` | function | Returns one column by name or index | `qcol(tbl, "qty")` |
 | `qrow(tbl, row)` | function | Returns one row by index | `qrow(tbl, 0)` |
 | `qsum(values)` | function | Sum numbers and/or quantities safely | `qsum([Qty("2 m"), Qty("30 cm")])` |
+| `qapply(values, op)` | function | Apply a binary operation cumulatively across values after qcalc conversion | `qapply(["2 m", "30 cm"], lambda a, b: a + b)` |
 | `qadd`, `qsub`, `qmul`, `qdiv` | function | Scalar/list element-wise arithmetic; quantity-aware where possible | `qadd([1,2], 10)` |
 
 ---
@@ -179,4 +180,3 @@ def hello(name: qchar) -> qpage:
 | Symbol | Kind | What it does | Example |
 |---|---|---|---|
 | `minimum(*args, key=None)` | function | Local alias to Python `min` (to avoid conflicts with minute unit `min`) | `minimum([5, 2, 9])` |
-

@@ -111,6 +111,11 @@ def fid2help_file(func_id, qty=False):
 
 
 def preprocess_expression(qexpr, disp=False):  # deb@13.08.23, @25.11.23
+    """Normalize calculator expressions for compute/display pipelines.
+
+    - compute mode: ``^`` -> ``**`` and inserts implicit multiplication.
+    - display mode: restores exponent notation for user-facing output.
+    """
     expr_unit = qexpr
     if not disp:  # Before Calculation
         expr_unit = expr_unit.replace('^', '**')  # exponent
@@ -125,6 +130,7 @@ def preprocess_expression(qexpr, disp=False):  # deb@13.08.23, @25.11.23
 
 
 def title_to_variable(title, data_type=''):
+    """Convert a display title into normalized variable name form."""
     title = title.replace(': ', qconst.DICT_KEY_SEP).replace(' ', '_').lower()
     title = title + data_type
     return title
@@ -152,6 +158,7 @@ def css2proper_dict(css: str) -> dict:
 
 
 def variable_to_title(var, pdict: dict | None = None):
+    """Convert normalized variable name into a readable title."""
     word_dict = PROPER_WORDS if pdict is None else {**PROPER_WORDS, **pdict}
     var = qconst.TOK_RESULT_SUFFIX_PATTERN.sub('', var).replace('_', ' ').replace(qconst.DICT_KEY_SEP, ': ')
     words = [str(word_dict.get(word.lower(), word)) for word in titlecase(var).split()]

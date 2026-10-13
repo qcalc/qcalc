@@ -7,7 +7,7 @@ from django.templatetags.static import static
 from django.utils.safestring import mark_safe
 import requests
 from qconst import delimiter_help_text
-from qutil import nzs, to_df, demo_url, md2html
+from qutil import nzs, csv2df, demo_url, md2html
 from qcore.mod_anno import *
 from calc.mod_result import df2normalized
 
@@ -182,11 +182,11 @@ def csv_reader(upload_csv: qfile = None, csv_url: qurl = demo_url('closing.csv')
     if mode == 'URL':
         if not csv_url:
             raise Exception(f'Error (CR): A valid CSV URL is not found')
-        df = to_df(csv_url, delimiter, quoting)
+        df = csv2df(csv_url, delimiter, quoting)
     elif mode == 'FILE':
         if upload_csv is None:
             raise Exception(f'Error (CR): A valid CSV File is not found')
-        df = to_df(upload_csv.txt_buf(), delimiter, quoting)
+        df = csv2df(upload_csv.txt_buf(), delimiter, quoting)
     else:
         raise Exception(f"Error (CR): mode must be either 'File' or 'URL'")
 
@@ -237,9 +237,9 @@ def csv_editor(upload_csv: qfile = None, csv_url: qurl = demo_url('emp.csv'),
     if len(csv_table) != 0:
         df = csv_table
     elif csv_url:
-        df = to_df(csv_url, delimiter, quoting)
+        df = csv2df(csv_url, delimiter, quoting)
     elif upload_csv:
-        df = to_df(upload_csv.txt_buf(), delimiter, quoting)
+        df = csv2df(upload_csv.txt_buf(), delimiter, quoting)
     else:
         raise Exception(f'Error (CR): A valid CSV File or URL is not found')
 

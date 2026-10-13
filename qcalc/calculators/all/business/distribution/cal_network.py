@@ -3,8 +3,8 @@
 
 from qcore import qtable, qtexta, QScreen, QChart, as_qtable
 from qutil import css2strs
-from calc import (
-    is_debug,
+from calc import is_debug
+from qcore import (
     require_complete_pair_grid,
     require_columns,
     require_unique_pairs,

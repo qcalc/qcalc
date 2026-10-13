@@ -23,6 +23,7 @@ sane_lists: keeps explicit ordered-list numbering instead of restarting at 1 for
 """
 
 def md2html(md_text:str, wrap=False):
+    """Render Markdown to HTML using qcalc's standard extension set."""
     html = markdown.markdown(
         md_text,
         extensions=MARKDOWN_EXTENSIONS,

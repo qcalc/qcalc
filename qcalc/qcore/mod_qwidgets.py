@@ -132,7 +132,7 @@ class CodeWidget_codemirror(Widget):
                 top: 0;
             }
             .elem-wrapper.fullscreen .CodeMirror {
-                height: 95vh;
+                height: calc(100vh - 80px);
             }
         </style>
         '''

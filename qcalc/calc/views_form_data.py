@@ -3,7 +3,7 @@
 
 from calc import QMem, QPref, QCache, QKeep, QSave, QInput
 from .mod_cutil import *
-from qutil import HtmxHttpRequest, to_df, user_name, is_loggedin, user_ip, cell_count
+from qutil import HtmxHttpRequest, csv2df, user_name, is_loggedin, user_ip, cell_count
 from qcore import qhidex, qtable, qtbl, QFile, qlist_types, QFieldHandler, QEncoderBase, QJField, convert_to_type
 import json
 from .mod_mfunc import *
@@ -237,9 +237,9 @@ def q11422_form_data_modify_after_post(request, func_id, sig_type, arg_name, arg
             if request.FILES and from_fld in request.FILES:
                 fdata = request.FILES[from_fld]
                 qf = QFile(from_fld, fdata)
-                df = to_df(qf.txt_buf(), delimiter, quoting)
+                df = csv2df(qf.txt_buf(), delimiter, quoting)
             elif url:
-                df = to_df(url, delimiter, quoting)
+                df = csv2df(url, delimiter, quoting)
             else:
                 df = None
             if df is not None:

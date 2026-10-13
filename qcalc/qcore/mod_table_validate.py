@@ -1,12 +1,14 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
-
 import re
 import qconst
-
-from qcore import Qty
+import json
+from django.core.exceptions import ValidationError
+import pandas as pd
+from qcore import Qty, as_qtable
 from qutil import QThread
+
 
 def _normalize_token(value):
     """Normalize identifiers for case-insensitive, whitespace-tolerant matching."""
@@ -148,10 +150,39 @@ def require_columns(
     columns_can_grow=True,
     required_col_uoms=None,
 ):
-    """Ensure required columns exist; optionally canonicalize known column names in-place.
+    """Validate table headers against a required/optional schema.
 
-    Under Strict Table Input mode, set columns_can_grow=False for
-    fixed-schema/master tables so unknown columns raise an error.
+    Args:
+        df: Input table payload (DataFrame or qtable-compatible object).
+        table_name: Name used in validation error messages.
+        required_cols: Column names that must exist.
+        optional_cols: Additional allowed columns (not mandatory).
+        case_sensitive: Whether header matching is case-sensitive.
+        columns_can_grow: When False (with Strict Table Input mode enabled),
+            unknown columns are rejected.
+        required_col_uoms: Optional ``{column: expected_uom}`` map to allow
+            unitized headers like ``"Flow :: m3/hr"`` and verify unit
+            compatibility.
+
+    Returns:
+        Mapping of canonical expected names to actual/resolved column names.
+
+    Example:
+        a) require_columns(demand, 'demand', ['Customer', 'Demand'])
+
+        b) require_columns(
+            df=orders,
+            table_name='projects',
+            required_cols=['Project', 'Budget'],
+            optional_cols=['Manager'],
+            case_sensitive=False,
+            columns_can_grow=True,
+            required_col_uoms={'Budget': 'USD'},
+        )
+        
+    Notes:
+        The function may rename columns in-place to canonical names (for
+        example fixing case/spacing or preserving a validated header unit).
     """
     optional_cols = optional_cols or []
     expected_cols = list(required_cols) + [col for col in optional_cols if col not in required_cols]
@@ -328,7 +359,21 @@ def require_values_subset(
     parent_col,
     case_sensitive=False,
 ):
-    """Ensure child column values are a subset of parent column values."""
+    """Ensure each non-blank child value exists in the parent value set.
+
+    Use this for foreign-key style checks between two input tables.
+
+    Example:
+        require_values_subset(
+            child_df=orders,
+            child_table='orders',
+            child_col='Project',
+            parent_df=projects,
+            parent_table='projects',
+            parent_col='Project',
+            case_sensitive=False,
+        )
+    """
     require_columns(child_df, child_table, [child_col], case_sensitive=case_sensitive)
     require_columns(parent_df, parent_table, [parent_col], case_sensitive=case_sensitive)
 
@@ -365,9 +410,18 @@ def require_unique_values(
     case_sensitive=False,
     ignore_blank=False,
 ):
-    """Ensure a column has unique values and return normalized keys.
+    """Ensure a column has unique values and return canonical values.
 
     Useful for key columns such as Project, Item, Worker, Shift, etc.
+
+    Example:
+        canonical_values = require_unique_values(
+            table=projects,
+            table_name='projects',
+            column_name='Project',
+            case_sensitive=False,
+            ignore_blank=True,
+        )
     """
     require_columns(table, table_name, [column_name], case_sensitive=case_sensitive)
     values = _table_column_values(table, column_name)
@@ -393,19 +447,6 @@ def require_unique_values(
     return [seen[key] for key in ordered_keys]
 
 
-# def parse_optional_number(value, field_name, cast=float):
-#     """Parse optional scalar number, returning None for blank input.
-#
-#     `cast` can be `float`, `int`, or any callable that accepts one value.
-#     """
-#     if value in ('', None):
-#         return None
-#     try:
-#         return cast(value)
-#     except Exception as e:
-#         raise Exception(f"Invalid numeric value for {field_name}: {value}") from e
-
-
 def require_unique_pairs(
     table,
     table_name,
@@ -413,7 +454,20 @@ def require_unique_pairs(
     right_col,
     case_sensitive=False,
 ):
-    """Ensure (left_col, right_col) pairs are unique and return normalized keys."""
+    """Ensure each ``(left_col, right_col)`` combination appears at most once.
+
+    Returns:
+        Set of normalized pair keys suitable for downstream membership checks.
+
+    Example:
+        require_unique_pairs(
+            table=cost,
+            table_name='cost',
+            left_col='From',
+            right_col='To',
+            case_sensitive=False,
+        )
+    """
     require_columns(table, table_name, [left_col, right_col], case_sensitive=case_sensitive)
 
     left_values = _table_column_values(table, left_col)
@@ -455,7 +509,21 @@ def require_complete_pair_grid(
     right_label=None,
     case_sensitive=False,
 ):
-    """Ensure pair table contains every combination of left_values x right_values."""
+    """Ensure the pair table contains the full Cartesian grid.
+
+    Specifically, every combination from ``left_values × right_values`` must
+    exist exactly once in ``(left_col, right_col)``.
+
+    Example:
+        require_complete_pair_grid(
+            pair_table=ship_cost,
+            pair_table_name='ship_cost',
+            left_col='Source',
+            right_col='Destination',
+            left_values=sources,
+            right_values=destinations,
+        )
+    """
     observed_pairs = require_unique_pairs(
         pair_table,
         pair_table_name,
@@ -502,11 +570,26 @@ def validate_value_columns_against_master(
     require_matrix_in_master=True,
     case_sensitive=False,
 ):
-    """Validate matrix value-columns against a master key column and canonicalize names.
+    """Validate matrix value-columns against a master key list.
 
     Typical use: matrix table where dynamic columns represent entities listed as
     row values in a master table key column (for example cost matrix columns vs
     facility master Location values).
+
+    Returns:
+        Dict containing canonical ``master_values`` and ``renamed_columns``
+        applied to the matrix table.
+
+    Example:
+        matched = validate_value_columns_against_master(
+            matrix_table=cost,
+            matrix_table_name='cost',
+            master_table=facility,
+            master_table_name='facility',
+            master_value_col='Location',
+            matrix_reserved_cols=['Location', 'Demand'],
+        )
+
     """
     matrix_reserved_cols = matrix_reserved_cols or []
     require_columns(master_table, master_table_name, [master_value_col], case_sensitive=case_sensitive)
@@ -583,35 +666,50 @@ def validate_value_columns_against_master(
     }
 
 
-def _usage_examples():
-    """Usage examples for reusable table validators.
+def _coerce_table_for_validation(value, field_name):
+    """Convert posted table payload into a DataFrame for schema validators."""
+    if isinstance(value, str):
+        text = value.strip()
+        if text in {'', 'null', 'None'}:
+            return pd.DataFrame()
+        try:
+            parsed = json.loads(text)
+        except Exception as e:
+            raise ValidationError(f"Invalid table payload for {field_name}") from e
+        value = parsed
 
-    Matrix columns against master key column:
-        matched = validate_value_columns_against_master(
-            matrix_table=cost,
-            matrix_table_name='cost',
-            master_table=facility,
-            master_table_name='facility',
-            master_value_col='Location',
-            matrix_reserved_cols=['Location', 'Demand'],
+    try:
+        return as_qtable(value)
+    except Exception as e:
+        raise ValidationError(f"Invalid table payload for {field_name}") from e
+
+
+def table_columns_validator(field_name, required_cols, optional_cols=None):
+    """Return a reusable validator that enforces expected table columns.
+
+    The returned callable is designed for form/model field validation. It
+    accepts posted table payloads (including JSON text), converts them to a
+    qtable/DataFrame shape, then applies :func:`require_columns`.
+
+    Example:
+        validator = table_columns_validator(
+            field_name='projects',
+            required_cols=['Project', 'Budget'],
+            optional_cols=['Max Selected']
         )
-
-    Pair table full Cartesian coverage:
-        require_complete_pair_grid(
-            pair_table=ship_cost,
-            pair_table_name='ship_cost',
-            left_col='Source',
-            right_col='Destination',
-            left_values=sources,
-            right_values=destinations,
-        )
-
-    Unique key constraints:
-        projects = require_unique_values(projects, 'projects', 'Project')
-        require_unique_pairs(cost, 'cost', 'From', 'To')
-
-    Optional scalar numeric parsing:
-        budget = to_cast(budget_limit, 'budget_limit', float)
-        max_selected = to_cast(project_max_selected, 'project_max_selected', int)
     """
-    return None
+    optional_cols = optional_cols or []
+
+    def _validator(value):
+        table = _coerce_table_for_validation(value, field_name)
+        try:
+            require_columns(
+                table,
+                field_name,
+                list(required_cols),
+                optional_cols=list(optional_cols),
+            )
+        except Exception as e:
+            raise ValidationError(str(e)) from e
+
+    return _validator

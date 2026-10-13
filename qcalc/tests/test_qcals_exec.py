@@ -32,6 +32,18 @@ def test_safe_execute_exposes_qapi_symbols():
     assert local_dict["result"] == (200, "qtexta")
 
 
+def test_safe_execute_exposes_qapply_and_reduces_converted_values():
+    local_dict = safe_execute(
+        "from qapi import qapply\n"
+        "result = (\n"
+        "    qapply(['2', '30'], lambda a: a + 50),\n"
+        "    qapply([], lambda a: a + 50),\n"
+        ")"
+    )
+
+    assert local_dict["result"] == ([52, 80], [])
+
+
 def test_safe_execute_exposes_qapi_annotations_as_globals():
     local_dict = safe_execute(
         "def addlen(x: qtc2 = '7 ft'):\n    return Qty(x)\nresult = addlen.__annotations__['x']"

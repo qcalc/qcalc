@@ -40,7 +40,7 @@
 /* Full Screen */
 .fullscreen {
     background: v.$background-fullscreen;
-    padding: 20px;
+    padding: v.$fullscreen-padding;
     z-index: 9999;
     overflow: auto; /* Enables scrolling when content overflows */
     }
@@ -52,8 +52,8 @@
 
 .fullscreen-square {
     position: absolute;
-    top: 10px;
-    right: 10px;
+    top: calc(v.$fullscreen-padding + 3px);
+    right: calc(v.$fullscreen-padding + 3px);
     width: 20px;
     height: 20px;
     border: 2px solid v.$border-fullscreen-square;
@@ -212,12 +212,12 @@
 /* Shared fullscreen layout for table wrappers (browser fullscreen + local fullscreen). */
 .elem-wrapper.table-wrap.fullscreen,
 .elem-wrapper.table-wrap.fullscreen-local {
-  /* display: flex;  remove */ 
-  /* flex-direction: column; remove (no effect without flex) */ 
-  /* gap: 8px;  remove (no effect without flex) */ 
+  /* display: flex;  remove */
+  /* flex-direction: column; remove (no effect without flex) */
+  /* gap: 8px;  remove (no effect without flex) */
   width: 100vw;
   height: 100vh;
-  padding: 12px;
+  padding: v.$fullscreen-padding;
   box-sizing: border-box;
   overflow: auto;
   }
@@ -228,6 +228,7 @@
   inset: 0;
   z-index: 9999;
   background: v.$background-fullscreen;
+  padding: v.$fullscreen-padding;
   }
 
 /* Let table region fill remaining vertical space in fullscreen modes. */

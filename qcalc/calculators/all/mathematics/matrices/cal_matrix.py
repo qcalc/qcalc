@@ -6,6 +6,7 @@ import pandas as pd
 import random
 from qcore import qtable
 from calc import QCals
+from qutil import np2df
 
 mat_dict = {
     'det': numpy.linalg.det,
@@ -15,14 +16,6 @@ mat_dict = {
     'prod': numpy.prod,
     'tr': numpy.transpose,
 }
-
-
-def np2df(np_arr):
-    if isinstance(np_arr, numpy.ndarray):
-        cols = [f'C{j + 1}' for j in range(np_arr.shape[1])]
-        return pd.DataFrame(np_arr, columns=cols)
-    else:
-        return np_arr
 
 
 def mat_eva(expr, x, y=None):
@@ -99,7 +92,9 @@ def umatrix__info():
         }
     }
 
+
 from qcore import as_qtable
+
 
 def umatrix(x: qtable, operation='Sum', expression: str = 'x^2-5*x+17'):
     """

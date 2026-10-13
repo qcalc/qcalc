@@ -6,6 +6,13 @@ import pandas as pd
 import qconst
 
 
+def df2qtbl(df):
+    """Convert a DataFrame to a qtbl dictionary. Used by backend code to expose DataFrames as qtbls."""
+    if not isinstance(df, pd.DataFrame):
+        raise TypeError("df2qdf() expects a DataFrame")
+    return ({"columns": list(df.columns), "data": df.to_numpy().tolist()})
+
+
 def resize_df(df: pd.DataFrame, nrow: int, ncol: int, keep_last_ncol: int = 0) -> pd.DataFrame:
     max_cols = qconst.TABLE_MAX_COLS
     max_cells = qconst.TABLE_MAX_CELLS
@@ -58,7 +65,8 @@ DELIMITER_ALIASES = {
 }
 
 
-def to_df(buff_or_url, delimiter=',', quoting='1'):
+def csv2df(buff_or_url, delimiter=',', quoting='1'):
+    "Unsecured version of csv2qtbl"
     if quoting == '9':  # remove anyway
         quoting = '1'
         anyway = True
@@ -88,6 +96,12 @@ def to_df(buff_or_url, delimiter=',', quoting='1'):
             except:
                 pass
     return df
+
+
+def csv2qtbl(buff_or_url, delimiter=',', quoting='1'):
+    """Read CSV input/url and return qtbl ``{'columns': ..., 'data': ...}``."""
+    df = csv2df(buff_or_url, delimiter=delimiter, quoting=int(quoting))
+    return df2qtbl(df)
 
 
 def validated_col(cols: list, idx: int, cname: str = '') -> str:

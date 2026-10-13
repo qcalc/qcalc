@@ -5,9 +5,8 @@ import pandas as pd
 import pytest
 import qconst
 from qutil import to_cast
-
-from calc import (
-    QThread,
+from calc import QThread
+from qcore import (
     require_columns,
     require_complete_pair_grid,
     require_unique_pairs,

@@ -3,11 +3,11 @@
 
 import numpy as np
 import pandas as pd
-from qcore import Qty, qtable, qhtml, qformat_q, as_qtable
+from qcore import Qty, qtable, qhtml, require_columns, as_qtable
 import numpy_financial as npf
 from math import log10
 from qutil import addcal_button
-from calc import QCals, require_columns
+from calc import QCals
 
 when_choices = {'type': 'radio', 'choices': {'1': 'Period Start', '0': 'Period End'}}
 cashflow_choices = {'type': 'choice', 'choices': {'1': 'Incoming', '-1': 'Outgoing'}}

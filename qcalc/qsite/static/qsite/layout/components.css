@@ -137,11 +137,12 @@
 
 .form-control-feedback {
   position: absolute;
-  top: 0;
+  /*top: 0;*/
+  top: -2px;
   color: #333;
   padding-left: .875rem;
-  padding-right: .875rem;
-  line-height: calc(1.5385em + .875rem + 2px);
+  /*padding-right: .875rem;
+  line-height: calc(1.5385em + .875rem + 2px);*/
   min-width: 1rem;
 }
 

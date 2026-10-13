@@ -6,8 +6,8 @@ import re
 import numpy as np
 import pandas as pd
 
-from qcore import qchar, qcode, qtbl, QChart
-from calc import require_columns, scalar_results, QResults, FLD_SHOW_CHOICE, \
+from qcore import qchar, qcode, qtbl, QChart, require_columns
+from calc import scalar_results, QResults, FLD_SHOW_CHOICE, \
     FLD_RESULT_CELLS, result_values, ResultCellsError, \
     FLD_VARIATION_TARGET, FLD_INPUTS
 from qutil import css2strs

@@ -8,6 +8,11 @@ from .mod_datetime import QDateTime
 
 
 def to_bool(value) -> bool:
+    """Convert common truthy/falsey forms into ``bool``.
+
+    Supports bool, numbers, and strings like ``yes/no``, ``true/false``,
+    ``on/off``, ``1/0``.
+    """
     if isinstance(value, bool):
         return value
     if value is None:
@@ -23,6 +28,7 @@ def to_bool(value) -> bool:
 
 
 def is_blank(value) -> bool:
+    """Return ``True`` for blank-like values e.g. (None, '', 'none', 'null', 'nan', 'na')."""
     if value is None:
         return True
     text = str(value).strip().lower()
@@ -30,6 +36,12 @@ def is_blank(value) -> bool:
 
 
 def to_float(value, field_name="value", required=True) -> None | float:
+    """Parse a numeric string input to float.
+
+    Accepts commas/percent symbols and extracts the first numeric token from
+    text. Raises a descriptive error when parsing fails or when required input
+    is blank.
+    """
     if is_blank(value):
         if required:
             raise Exception(f"{field_name} cannot be blank")
@@ -48,10 +60,14 @@ def to_float(value, field_name="value", required=True) -> None | float:
     return float(match.group(0))
 
 
-def to_cast(value, field_name, cast=float, required=False) -> None | float:
+def to_cast(value, field_name="value", cast=float, required=False) -> None | float:
     """Parse optional scalar number, returning None for blank input.
 
     `cast` can be `float`, `int`, or any callable that accepts one value.
+
+    Example:
+        to_cast("123.45", "amount", cast=float, required=True)  # returns 123.45
+        to_cast("", "amount", cast=float, required=False)       # returns None
     """
     if is_blank(value):
         if required:
@@ -65,6 +81,7 @@ def to_cast(value, field_name, cast=float, required=False) -> None | float:
 
 
 def as_float(value, field_name='value', required=False) -> None | float:
+    """Best-effort float conversion returning ``None`` for non-numeric inputs."""
     def _as_float_or_none(value, field_name="value"):
         if isinstance(value, bool):
             return None
@@ -91,7 +108,25 @@ def as_float(value, field_name='value', required=False) -> None | float:
     return number
 
 
-def to_fraction(value, field_name, required=True):
+def pct2fraction(value, field_name="value", required=True):
+    """Parse numeric input and return fractional form (value / 100)."""
+    has_percent_suffix = False
+    parse_value = value
+    if isinstance(value, str):
+        trimmed = value.strip()
+        if trimmed.endswith('%'):
+            has_percent_suffix = True
+            parse_value = trimmed[:-1].strip()
+    raw = to_float(parse_value, field_name, required=required)
+    if raw is None:
+        return None
+    if has_percent_suffix:
+        return raw / 100.0
+    return raw
+
+
+def val2fraction(value, field_name="value", required=True):
+    """Parse numeric input and return fractional form (value / 100)."""
     raw = to_float(value, field_name, required=required)
     if raw is None:
         return None
@@ -99,6 +134,7 @@ def to_fraction(value, field_name, required=True):
 
 
 def normalize_name(name):
+    """Normalize labels for matching: lowercase, no ``%``, compact spaces."""
     text = str(name).strip().lower()
     text = text.replace('%', '')
     text = text.replace('_', ' ')

@@ -4,9 +4,8 @@
 import pulp
 import qconst
 
-from qcore import Qty, qtbl
+from qcore import Qty, qtbl, require_columns
 from qutil import is_debug
-from calc import require_columns
 
 
 def production_mix_profit__info():

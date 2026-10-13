@@ -23,3 +23,4 @@ from .mod_qchart import QChart, color_schemes, legend_locations
 from .mod_qgeo import QGeo
 from .mod_qmap import QMap
 from .mod_qjfield import QJField
+from .mod_table_validate import *

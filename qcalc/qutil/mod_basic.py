@@ -15,6 +15,11 @@ def category_slug(category):
 
 
 def iif(condition: bool, truev, falsev):
+    """Return ``truev`` when ``condition`` is truthy, otherwise ``falsev``.
+
+    Useful inside calculator expressions where a compact inline conditional is
+    clearer than a full ``if`` statement.
+    """
     return truev if condition else falsev
 
 
@@ -23,11 +28,17 @@ def truncate(txt: str, n: int):
 
 
 def joinx(slist, separator=' '):
-    """
-    # >>> joinx(('hello','', 'how','you','?'))
-    # >>> 'hello how you ?'
-    # >>> ' '.join(('hello','', 'how','you','?'))
-    # >>> 'hello how you ?'
+    """Join string-like items while skipping separators around blank items.
+
+    Unlike ``separator.join(...)``, this avoids extra separators when adjacent
+    values are blank, making it handy for building labels/messages from optional
+    parts.
+    
+    Example: 
+    >> joinx(('hello','', 'how','you','?'))
+    >> 'hello how you ?'
+    >> ' '.join(('hello','', 'how','you','?'))
+    >> 'hello how you ?'
     """
     s1 = slist[0]
     for s2 in slist[1:]:
@@ -62,6 +73,7 @@ def nzs(sval):
 
 
 def vals2css(vals: list, separator=', '):
+    """Serialize iterable values into a separated string."""
     return separator.join(map(str, vals))
 
 
@@ -120,7 +132,10 @@ def css2values(cs_string, separator=',', time2val='hr'):  # '', ('hr','min','s',
 
 
 def css2strs(cs_string, separator=','):
-    """Split separated text into a list of stripped strings."""
+    """Split separated text into a list of stripped strings.
+
+    Returns input as-is when a list/tuple is already provided.
+    """
     if isinstance(cs_string, (list, tuple)): return cs_string
     cs_string = cs_string.strip()
     if cs_string == '': return []
@@ -129,7 +144,10 @@ def css2strs(cs_string, separator=','):
 
 
 def css2set(cs_string, separator=','):
-    """Convert separated text to a normalized lowercase string set."""
+    """Convert separated text to a normalized lowercase string set.
+
+    Empty-like tokens (``'', none, null, nan, na``) produce an empty set.
+    """
     if cs_string is None:
         return set()
     text = str(cs_string).strip().lower()
@@ -141,7 +159,10 @@ def css2set(cs_string, separator=','):
 
 
 def css2floats(cs_string, separator=','):
-    """Parse separated numeric text into a list of floats."""
+    """Parse separated numeric text into a list of floats.
+
+    Returns ``[]`` for blank input and passes through a provided list.
+    """
     if isinstance(cs_string, list): return cs_string
     cs_string = cs_string.strip()
     if cs_string == '': return []
@@ -150,7 +171,11 @@ def css2floats(cs_string, separator=','):
 
 
 def css2ints(cs_string, separator=','):
-    """Parse separated numeric text into a list of ints."""
+    """Parse separated numeric text into a list of ints.
+
+    Each token is converted via ``int(float(token))`` to accept values such as
+    ``"2.0"``.
+    """
     if isinstance(cs_string, list): return cs_string
     cs_string = cs_string.strip()
     if cs_string == '': return []

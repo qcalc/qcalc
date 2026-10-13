@@ -5,7 +5,7 @@ import inspect
 
 import pandas as pd
 
-from calc import require_columns, require_unique_values, require_values_subset
+from qcore import require_columns, require_unique_values, require_values_subset
 from qcore import qtbl
 from qutil import md2html
 

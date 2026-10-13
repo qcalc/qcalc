@@ -6,6 +6,7 @@ from urllib.parse import urljoin
 
 
 def is_debug():
+    """Return whether DEBUG mode is enabled."""
     return settings.DEBUG
 
 
@@ -35,12 +36,13 @@ def abs_url(relative_url):
     Converts a relative URL to an absolute URL based on the given base URL.
 
     :param relative_url: The relative URL e.g., '/path/to/resource/'
-    :return: Absolute URL e.g., 'https://example.com/path/to/resource/'
+    :return: Absolute URL e.g., 'https://qcalc.org/path/to/resource/'
     """
     return urljoin(qaddr(), relative_url)
 
 
 def demo_url(file):
+    """Return absolute URL for a file under the ``static/demo`` path."""
     from django.templatetags.static import static
 
     return abs_url(static(f'demo/{file}'))

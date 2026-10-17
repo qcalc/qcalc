@@ -243,9 +243,11 @@ def _trim_table_columns_inplace(table):
         table.rename(columns=rename_map, inplace=True)
     return table
 
+
 def is_qtbl(value):
     # Check if the given value is a safe table (qtbl) dictionary with 'columns' and 'data' keys.
     return isinstance(value, dict) and {"columns", "data"} <= value.keys()
+
 
 def as_qtable(value):
     # Convert various table-like inputs to a dataframe based qtable instance with trimmed column names.
@@ -258,13 +260,6 @@ def as_qtable(value):
         return qtable(value["data"], columns=cols)
 
     raise TypeError("Expected qtable or {'columns', 'data'}")
-
-
-# display output fields
-# Display output field containing a QCalc function result
-class oqfunc(str):
-    def __init__(self, _sfunc):
-        pass
 
 
 # Display output field containing HTML markup.
@@ -285,11 +280,22 @@ class qpage(str):  # page of text
         pass
 
 
-# # HTTP request field for HTMX requests; reserved and generally unused.
-# class qreq(HtmxHttpRequest):  # | should not be used
-#     def __init__(self):
-#         super().__init__()
-#         pass
+# Display output as an informational message banner.
+class qinfo(str):
+    def __init__(self, _txt):
+        pass
+
+
+# Display output as a warning message banner.
+class qwarn(str):
+    def __init__(self, _txt):
+        pass
+
+
+# Display output as an error message banner.
+class qerror(str):
+    def __init__(self, _txt):
+        pass
 
 
 class QScreen:
@@ -298,14 +304,6 @@ class QScreen:
 
     def write(self, *args):
         print(*args, file=self.out)
-
-    # def write(self, *args):
-    #     formatted_args = [
-    #         # pretty_json(arg) if isinstance(arg, dict) else arg
-    #         qpretty_json(arg) if isinstance(arg, dict) else arg
-    #         for arg in args
-    #     ]
-    #     print(*formatted_args, file=self.out)
 
     def flush(self):
         contents = qpage(self.out.getvalue())
@@ -361,10 +359,12 @@ def wrap_actions(html_element, wrapper_class=''):
 complex_input_xpr = ['codeedit', 'file', 'image', 'regex', 'duration', 'decimal', 'uuid']  #
 complex_input_url = complex_input_xpr + ['table']  # +list
 
-anno_ostrings = ['oqfunc', 'html', 'qhtml', 'qvstr', 'qpage']  # not used yet
-anno_otypes = [oqfunc, qhtml, qvstr, qpage]  # not used yet
+"""
+anno_ostrings = ['html', 'qhtml', 'qvstr', 'qpage', 'qinfo', 'qwarn',
+                 'qerror']  # anno_ostrings var not used yet
+anno_otypes = [qhtml, qvstr, qpage, qinfo, qwarn, qerror]  # anno_otypes var not used yet
 
-anno_strings = [  # not used yet
+anno_strings = [  # anno_strings var not used yet
     'bool', 'float', 'int', 'qchar', 'qcode', 'qdate', 'qdatetime', 'qdict', 'qemail', 'qfile',
     'qfl', 'qfunc', 'qimage', 'qin', 'qlist', 'qread', 'qregex', 'qsel2', 'qt', 'qt2', 'qtable',
     'qtbl', 'qtc', 'qtc2', 'qtext', 'qtexta', 'qtime', 'qtx', 'quom', 'quom2', 'quomx', 'qurl',
@@ -376,7 +376,7 @@ anno_strings = [  # not used yet
     'regex', 'text', 'select2', 'textarea', 'codeedit', 'uom', 'uomx', 'uom2', 'url'
 ]
 
-anno_types = [  # not used yet
+anno_types = [  # anno_types not used yet
     bool, float, int, qchar, qcode, qdate, qdatetime, qdict, qemail, qfile,
     qfl, qfunc, qimage, qin, qlist, qread, qregex, qsel2, qt, qt2, qtable,
     qtbl, qtc, qtc2, qtext, qtexta, qtime, qtx, quom, quom2, quomx, qurl,
@@ -398,3 +398,4 @@ def _test():
 
 if __name__ == '__main__':
     _test()
+"""

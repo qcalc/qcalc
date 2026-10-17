@@ -3,11 +3,9 @@
 
 import re
 from bs4 import BeautifulSoup
-from django.templatetags.static import static
-from django.utils.safestring import mark_safe
 import requests
 from qconst import delimiter_help_text
-from qutil import nzs, csv2df, demo_url, md2html
+from qutil import nzs, csv2df, demo_url, md2html, md_math_script
 from qcore.mod_anno import *
 from calc.mod_result import df2normalized
 
@@ -36,47 +34,8 @@ def md_reader__info():
                 'callback': 'mode_reader_fields',
             },
         },
-        # without these inserts, the math rendering for $..$ and $$...$$ will not work correctly
-        # however other markdown features will still work correctly without this insert
         'inserts': {
-            'out_bottom':
-                f"""
-                <link href="{static('vendor/katex/0.11.1/katex.min.css')}" rel="stylesheet" type="text/css">
-                <script src="{static('vendor/katex/0.11.1/katex.min.js')}"></script>
-                <script src="{static('vendor/katex/0.11.1/contrib/mathtex-script-type.min.js')}"></script>
-                <script>
-                (function() {{
-                    if (window.__qcalcMdReaderMathInit) {{
-                        return;
-                    }}
-                    window.__qcalcMdReaderMathInit = true;
-
-                    function renderMathScripts(root) {{
-                        if (!window.katex || !root) {{
-                            return;
-                        }}
-
-                        root.querySelectorAll('script[type^="math/tex"]').forEach(function(script) {{
-                            var tex = script.textContent || '';
-                            var display = script.type.indexOf('mode=display') !== -1;
-                            var node = document.createElement(display ? 'div' : 'span');
-                            if (display) {{
-                                node.className = 'equation';
-                            }}
-                            katex.render(tex, node, {{displayMode: display, throwOnError: false}});
-                            script.replaceWith(node);
-                        }});
-                    }}
-
-                    function renderAllMarkdownMath() {{
-                        document.querySelectorAll('.md-content').forEach(renderMathScripts);
-                    }}
-
-                    document.addEventListener('DOMContentLoaded', renderAllMarkdownMath);
-                    document.body.addEventListener('htmx:afterSwap', renderAllMarkdownMath);
-                }})();
-                </script>
-                """
+            'out_bottom': md_math_script(),
         },
         'script': """
         function mode_reader_fields(v){
@@ -101,28 +60,28 @@ def md_reader__info():
 
 def md_reader(upload_markdown: qfile = None, md_url: qurl = demo_url('demo.md'),
               markdown_text: qcode =
-"""
-# Example Markdown content with LaTeX math equations.
+              """
+              # Example Markdown content with LaTeX math equations.
 
-## This is a sample Markdown content.
+              ## This is a sample Markdown content.
 
-$$(a + b)^2 = a^2 + 2ab + b^2$$
+              $$(a + b)^2 = a^2 + 2ab + b^2$$
 
-$a$ and $b$ are variables in the equation.
+              $a$ and $b$ are variables in the equation.
 
-- Example list item
-- Another list item
+              - Example list item
+              - Another list item
 
-*Italic text*
+              *Italic text*
 
-**Bold text**
+              **Bold text**
 
-```python
-# This is a sample Python code block.
-print("Hello, World!")
-```
+              ```python
+              # This is a sample Python code block.
+              print("Hello, World!")
+              ```
 
-""",
+              """,
               mode='URL'):
     mode = str(mode).strip().upper()
     if mode == 'URL':
@@ -299,17 +258,17 @@ def html_reader__info():
 
 def html_reader(upload_html: qfile = None, html_url: qurl = demo_url('demo.html'),
                 html_text: qcode =
-"""
-<h1>Hello World</h1>
-<h2>Subheading</h2>
-<p>This is a paragraph of text under the subheading.</p>
-<ul>
-    <li>First item</li>
-    <li>Second item</li>
-    <li>Third item</li>
-</ul>
-"""
-    , convert_to_text: bool = False, mode='URL'):
+                """
+                <h1>Hello World</h1>
+                <h2>Subheading</h2>
+                <p>This is a paragraph of text under the subheading.</p>
+                <ul>
+                    <li>First item</li>
+                    <li>Second item</li>
+                    <li>Third item</li>
+                </ul>
+                """
+                , convert_to_text: bool = False, mode='URL'):
     # https://www.geeksforgeeks.org/remove-all-style-scripts-and-html-tags-using-beautifulsoup/
     mode = str(mode).strip().upper()
     if mode == 'URL':

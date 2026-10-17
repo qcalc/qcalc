@@ -772,7 +772,7 @@ def _add_unit(name, unit_or_str, long_name='', comment='', category=''):
             error = True
 
         if error:
-            raise KeyError(f'Error (PQ): Unit {name} already defined')
+            raise KeyError(f'Error (AU): Unit {name} already defined')
 
     if isinstance(unit_or_str, str):  # it is a string e.g. '3*ft'
         unit_or_str = unit_or_str.lower()  # dup check
@@ -863,7 +863,7 @@ def find_unit(unit) -> MeasureUnit:
                 pass
 
     if not isMeasureUnit(unit):
-        raise TypeError(f'Error (PQ): {str(unit)} is not an unit')
+        raise TypeError(f'Error (MQ): {str(unit)} is not an unit')
     return unit
 
 

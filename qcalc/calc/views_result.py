@@ -17,11 +17,13 @@ from qcore import (
     Qty,
     df_formatter,
     is_qtbl,
-    oqfunc,
     qformat,
     qhtml,
     qjson_dumps,
+    qerror,
+    qinfo,
     qpage,
+    qwarn,
     qvstr,
     wrap_actions,
 )
@@ -68,6 +70,13 @@ def q1145_result_to_form_schema(request, func_id, cid, result, proper_dict):
     request.ojson_keep_dumps = qjson_dumps(keep_format(result)) if func_id != 'collect' else {}
 
     def classify_outcome_message(cmd, success, value):
+        if isinstance(value, qerror):
+            return True, 'error', str(value).strip()
+        if isinstance(value, qwarn):
+            return True, 'warning', str(value).strip()
+        if isinstance(value, qinfo):
+            return True, 'info', str(value).strip()
+
         if not isinstance(value, str):
             return False, '', ''
 
@@ -77,11 +86,8 @@ def q1145_result_to_form_schema(request, func_id, cid, result, proper_dict):
 
         if txt.startswith('Error ('):
             return True, 'error', txt
-        if txt.startswith('Warning (') or txt.startswith('Warn ('):
+        if txt.startswith('Warning ('):
             return True, 'warning', txt
-
-        if cmd not in ['', 'run']:
-            return True, 'info' if success else 'error', txt
 
         return False, '', ''
 
@@ -160,8 +166,6 @@ def q1145_result_to_form_schema(request, func_id, cid, result, proper_dict):
         elif isinstance(value, QDateTime):
             request.ojson_data[name] = str(value)
             request.ojson_data_type.append('char')
-        elif isinstance(value, oqfunc):
-            pass
         elif len(str(value)) > 25:
             request.ojson_data[name] = value
             request.ojson_data_type.append('textarea')

@@ -4,7 +4,8 @@
 from calc import QMem, QPref, QCache, QKeep, QSave, QInput
 from .mod_cutil import *
 from qutil import HtmxHttpRequest, csv2df, user_name, is_loggedin, user_ip, cell_count
-from qcore import qhidex, qtable, qtbl, QFile, qlist_types, QFieldHandler, QEncoderBase, QJField, convert_to_type
+from qcore import qhidex, qtable, qtbl, QFile, qlist_types, QFieldHandler, QEncoderBase, QJField, convert_to_type, \
+    qinfo, qerror, qwarn
 import json
 from .mod_mfunc import *
 import pandas as pd
@@ -256,7 +257,11 @@ def q11422_form_data_modify_after_post(request, func_id, sig_type, arg_name, arg
                 new_arg_value = convert_to_type(request.POST.get(arg_name), sig_type)
                 action = request.extra.get('kwargs', {}).get(arg_name, '')
                 try:
-                    arg_value = modify_callback(arg_name, new_arg_value, action)
+                    result = modify_callback(arg_name, new_arg_value, action)
+                    if isinstance(result, (qerror, qwarn, qinfo)):
+                        request._modify_message = result
+                        return new_arg_value
+                    arg_value = result
                 except Exception as e:
                     logger.error(f">>> FDM: {e}")
                     arg_value = new_arg_value
@@ -305,7 +310,7 @@ def q11449_form_data_postprocess_and_run(request, func_id):  # cid
         return 'Error (VLD): Input validation failed. Please review the highlighted input fields.'
 
     if ((request.method == 'POST' and request.json_doc['clean']) or
-        request.cmd in ['run', 'save_io',
+        request.cmd in ['run', 'save_io', '__modify',
                         'save_input', 'save_var', 'create_var', 'display_var', 'display_xmp']):
         try:
             # replace json_data with cleaned data
@@ -357,7 +362,7 @@ def q11449_form_data_postprocess_and_run(request, func_id):  # cid
                 QSave.clear()
                 QSave.setp({'function': func_id, 'input': request.json_d4f})
                 # | Saving: STEP 1 of 2 (save json_d4f to server)
-                result = 'Input data can be saved to file now'
+                result = qinfo('Input data can be saved to file now')
             elif request.cmd in ['save_var', 'create_var']:
                 # | POST/GET: Save input in DB
                 q11441_data_for_function(request)
@@ -371,17 +376,19 @@ def q11449_form_data_postprocess_and_run(request, func_id):  # cid
                     if not request.token_state:
                         QInput.save_shared_cal(func_id, request.token, check_only=False)
                 request.variant = QInput.set_variant(func_id, var_id, json)
-                result = (f"Input variant #{request.variant} is "
-                          f"{'saved' if var_id > 0 else 'created, refresh and click on [Display variants] to see'}")
+                result = qinfo(
+                    f"Input variant #{request.variant} is "
+                    f"{'saved' if var_id > 0 else 'created, refresh and click on [Display variants] to see'}"
+                )
             elif request.cmd == 'open':
                 # | POST: data from file
-                result = 'Input data is entered from file'
+                result = qinfo('Input data is entered from file')
             elif request.cmd == 'display_var':
                 # | GET: data from variant
-                result = 'Input data is entered from variant'
+                result = qinfo('Input data is entered from variant')
             elif request.cmd == 'display_xmp':
                 # | GET: data from example
-                result = 'Input data is entered from example'
+                result = qinfo('Input data is entered from example')
             elif request.cmd == '__command':
                 # | start callback point __command (q11449, views_form_data.py, line 279)
                 # | func__command(request, fkwargs, extra:dict), request.POST[] available
@@ -394,17 +401,23 @@ def q11449_form_data_postprocess_and_run(request, func_id):  # cid
                     unflat_args = q0162_dictify_fargs(arg_dict2run)
                     result = command_callback(unflat_args, request.extra)
                 else:
-                    result = f'{cfunc}: not found'
+                    result = qerror(f'{cfunc}: not found')
                     request.success &= False
+            elif request.cmd == '__modify':
+                modify_message = getattr(request, '_modify_message', None)
+                if isinstance(modify_message, (qerror, qwarn, qinfo)):
+                    result = modify_message
+                else:
+                    result = qinfo(f'{request.cmd.upper().replace('__', '')}: Input section updated')
             else:
                 # | POST: Update input section
-                result = f'{request.cmd.upper().replace('__', '')}: Input section updated'
+                result = qinfo(f'{request.cmd.upper().replace('__', '')}: Input section updated')
 
             if request.method == 'POST':
                 request.success &= request.json_doc['clean']
         except Exception as e:
             request.success &= False
-            result = f'Error (POSTP): {e}'
+            result = qerror(f'Error (POSTP): {e}')
     else:  # | GET and no cmd
         pass
     return result
@@ -605,12 +618,14 @@ def q11442_func_call_by_name(request: HtmxHttpRequest, func_id, arg_dict=None): 
             timeout = 60
         timeout = min(900, max(1, int(timeout)))
         result = q0164_execute_qfunc(func_id, unflat_args, timeout=timeout, pref=pref, request=request)
+
+        request.remember = request.remember and request.json_doc['info']['remember']
         if request.remember and pref.get('memory', 7) > 0:
             QMem.setf(func_id, arg_dict)  # save to memory
     except Exception as e:
         request.success &= False
         if settings.DEBUG:
             traceback.print_exc()
-        result = f'Error (FCBN): {e}'
+        result = qerror(f'Error (FCBN): {e}')
     request.times['func (ms)'] = int((time.time() - request.times['func starts']) * 1000)
     return arg_dict, result  # better deb@17.10.2023

@@ -8,6 +8,10 @@ $control-height: 2rem; /* select and select2 1.879rem */
 $control-line-height: 1.6rem;
 $control-border-color: #ced4da;
 $control-border-radius: 4px;
+/* Mobile input focus-zoom guard:
+   iOS/Android browsers may zoom focused text inputs below 16px. */
+$mobile-breakpoint-max: 767.98px;
+$mobile-input-font-size-min: 16px;
 
 $val: 10rem; /* 12rem; */
 $uom-q: 10rem;

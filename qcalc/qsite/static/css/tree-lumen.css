@@ -3,6 +3,8 @@
 /* 0.82rem, 0.906 */
 /* 700 */
 /* select and select2 1.879rem */
+/* Mobile input focus-zoom guard:
+   iOS/Android browsers may zoom focused text inputs below 16px. */
 /* 12rem; */
 /* -1rem */
 /* important */

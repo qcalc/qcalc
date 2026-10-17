@@ -299,7 +299,7 @@ from qcore import Qty
 from qcore.mod_anno import qtexta
 
 
-def mycalc__info(__info=None):
+def mycalfunc__info(__info=None):
     return {
         "title": "My Calculator",
         "desc": "Describe what it computes",
@@ -330,24 +330,24 @@ def mycalc__info(__info=None):
     }
 
 
-def mycalc__input(_kwargs):
+def mycalfunc__input(_kwargs):
     return {"x": "10 ft", "y": "2 ft"}
 
 
-def mycalc__modify(arg_name, arg_value, action):
+def mycalfunc__modify(arg_name, arg_value, action):
     if arg_name == "x" and action == "normalize":
         return str(Qty(arg_value).to("m"))
     return arg_value
 
 
-def mycalc__command(fkwargs, extra):
+def mycalfunc__command(fkwargs, extra):
     cmd = extra.get("args", [""])[0]
     if cmd == "check":
         return "Input looks valid"
     return "No action"
 
 
-def mycalc(x="10 ft", y="2 ft", mode="A", notes: qtexta = ""):
+def mycalfunc(x="10 ft", y="2 ft", mode="A", notes: qtexta = ""):
     qx = Qty(x)
     qy = Qty(y)
 
@@ -364,10 +364,10 @@ def mycalc(x="10 ft", y="2 ft", mode="A", notes: qtexta = ""):
 
 ## 11. Common mistakes and fixes
 
-- Mistake: Prefix mismatch between `mycalc` and `mycalc__info`.
+- Mistake: Prefix mismatch between `mycalfunc` and `mycalfunc__info`.
   - Fix: Keep exactly the same base name before `__...`.
 
-- Mistake: Unknown meta suffix such as `mycalc__metadata`.
+- Mistake: Unknown meta suffix such as `mycalfunc__metadata`.
   - Fix: Only use known suffixes (`__info`, `__input`, `__modify`, `__command`, `__help`).
 
 - Mistake: Returning unitless strings where a quantity is expected.
@@ -382,8 +382,8 @@ def mycalc(x="10 ft", y="2 ft", mode="A", notes: qtexta = ""):
 ## 12. Quick author checklist
 
 - Create calculator file under the correct category package.
-- Implement `mycalc(...)` with clear defaults.
-- Add `mycalc__info()` with at least title and schema/layout as needed.
+- Implement `mycalfunc(...)` with clear defaults.
+- Add `mycalfunc__info()` with at least title and schema/layout as needed.
 - Use `Qty()` at input normalization points and output conversion points.
 - Add optional callbacks only when needed (`__input`, `__modify`, `__command`, `__help`).
 - Verify calculator appears in catalog and renders expected form behavior.

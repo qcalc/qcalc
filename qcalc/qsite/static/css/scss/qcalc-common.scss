@@ -844,6 +844,19 @@ div.io {
   container-name: io;
   }
 
+/* Mobile input zoom fix (safe to revert as one block):
+   Keep form control text at >=16px on small screens to avoid browser auto-zoom on focus.
+   Note: no container min-width/width override here, so existing small-screen column stacking stays unchanged. */
+@media (max-width: v.$mobile-breakpoint-max) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="image"]):not([type="submit"]):not([type="reset"]):not([type="button"]):not([type="hidden"]),
+  select:not([multiple]):not([size]),
+  textarea,
+  .form-control,
+  .select2-container--default .select2-selection--single .select2-selection__rendered {
+    font-size: v.$mobile-input-font-size-min !important;
+  }
+}
+
 /* On wide screen, enough width for calculator use. */
 @media screen and (min-width: 1568px) {
   div.calc {

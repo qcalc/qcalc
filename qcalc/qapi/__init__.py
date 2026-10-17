@@ -14,16 +14,17 @@ from qcore import (
     lmt2categ as lmt2cat, lmt2ulist, lmt2qlist, find_unit, is_str_qty, qx, qxi,
     isMeasureUnit as is_unit, isMeasureQuantity as is_qty, read_unit,
     # | Keep the following annotations
-    oqfunc, qchar, qcode, qdate, qdict, qdatetime, qemail, qfl, qfile, qfunc, qhide,
+    qchar, qcode, qdate, qdict, qdatetime, qemail, qfl, qfile, qfunc, qhide,
     qhidex, qhtml, qin, qimage, qlist, qpage, qread, qregex, qsel2, qtbl, qtc,
     qtc2, qtext, qtexta, qtexte, qtime, qt, qt2, qtx, quom, quom2, quomx,
-    qurl, qvstr,
+    qurl, qvstr, qerror, qwarn, qinfo,
     # | Other classes and related functions
     QFile, qf2bio,
     QImage, qf2img, nparray_to_bio,
     QChart, QGeo, QMap, SmartCalc,
     table_columns_validator, require_columns, require_values_subset, require_unique_values,
     require_unique_pairs, require_complete_pair_grid, validate_value_columns_against_master,
+    qformat_q, qformat_v, to_ucur,
 )
 
 from qutil import (
@@ -63,12 +64,13 @@ qlib_dict = {
 }
 
 __qtypes__ = [
-    "oqfunc", "qchar", "qcode", "qdate", "qdict", "qdatetime", "qemail",
-    "qfl", "qfile", "qfunc", "qhide", "qhidex", "qhtml", "qin", "qimage", "qlist", "qpage",
-    "qread", "qregex", "qsel2", "qtbl", "qtc", "qtc2", "qtext", "qtexta",
+    'qchar', 'qcode', 'qdate', 'qdict', 'qdatetime', 'qemail',
+    'qfl', 'qfile', 'qfunc', 'qhide', 'qhidex', 'qhtml', 'qin', 'qimage', 'qlist', 'qpage',
+    'qread', 'qregex', 'qsel2', 'qtbl', 'qtc', 'qtc2', 'qtext', 'qtexta',
     # | qtable (real pd.DataFrame) deliberately excluded: safe_execute()'s AST check
     # | doesn't block attribute calls like .eval()/.query()/.to_pickle() on it - use qtbl instead
-    "qtexte", "qtime", "qt", "qt2", "qtx", "quom", "quom2", "quomx", "qurl", "qvstr",
+    'qtexte', 'qtime', 'qt', 'qt2', 'qtx', 'quom', 'quom2', 'quomx', 'qurl', 'qvstr',
+    'qerror', 'qwarn', 'qinfo',
 ]
 
 # for eva(), mycal() and console
@@ -78,6 +80,7 @@ __evacon__ = [
     'minimum',  # this file
     'table_columns_validator', 'require_columns', 'require_values_subset', 'require_unique_values',
     'require_unique_pairs', 'require_complete_pair_grid', 'validate_value_columns_against_master',
+    'qformat_q', 'qformat_v', 'to_ucur', # qcore.mod_qcutil
     'iif', 'joinx', 'css2floats', 'css2ints', 'css2values', 'css2strs', 'vals2css', 'css2set',  # qutil.mod_basic
     'np', 'qdf', 'qcol', 'qrow', 'qsum', 'qapply', 'qadd', 'qsub', 'qmul', 'qdiv', 'qto_values', # qapi.mod_qtbl
     'qconvert', 'qbinary', 'qdf_demo_data',

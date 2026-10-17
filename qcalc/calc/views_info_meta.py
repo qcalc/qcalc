@@ -107,6 +107,7 @@ def q1141_read_func_meta(func_id, __info=None, scope='qpots'):  # __info__
         # comma separated list of words with proper case that needs to be unchanged
         # during title case conversion for this calculator function
         'proper': '',
+        'remember': True,
     }
 
     # run func_info() and then supersede by qfunc_info.json
@@ -149,6 +150,7 @@ def q1141_read_func_meta(func_id, __info=None, scope='qpots'):  # __info__
         'inserts',
         'table_out_all',
         'proper',
+        'remember',
     ]:
         if key in func_info:
             json_doc['info'][key] = func_info[key]

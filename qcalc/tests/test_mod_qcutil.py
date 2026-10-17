@@ -8,9 +8,10 @@ import unittest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import qsett
+
 qsett.init()
 
-from qcore import df_formatter
+from qcore import Qty, df_formatter, replace_cur, to_ucur
 from qutil import QThread
 
 
@@ -52,6 +53,19 @@ class TestDfFormatter(unittest.TestCase):
 
         self.assertEqual(df_formatter('1.23456'), '1.23456')
         self.assertEqual(df_formatter('1.23456', unit_hint='m'), '1.235 m')
+
+
+class TestCurrencyPreferenceHelpers(unittest.TestCase):
+    def test_currency_replacement_uses_preference(self):
+        pref_cur = 'EUR'
+        qtystr = '120km/inr'
+
+        self.assertTrue(to_ucur(qtystr, 'INR', pref_cur=pref_cur).endswith('km/EUR'))
+        self.assertEqual(to_ucur(Qty(qtystr), 'INR', pref_cur=pref_cur).uom, 'km/EUR')
+        self.assertTrue(to_ucur('@ft/BDT', 'bdt', pref_cur=pref_cur).endswith('@ft/EUR'))
+
+        qty = Qty('@bdt/s')
+        self.assertEqual(replace_cur(qty.val, qty.uom, 'BDT', pref_cur=pref_cur)[1], 'EUR/s')
 
 
 if __name__ == '__main__':

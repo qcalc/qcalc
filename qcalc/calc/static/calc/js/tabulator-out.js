@@ -86,7 +86,11 @@
                 // Render menus in body so they are not clipped by small table wrappers.
                 popupContainer: document.body,
                 rowContextMenu: rowMenuDisplay,
-                columnDefaults: {headerSort: false},
+                columnDefaults: {
+                    headerSort: false,
+                    minWidth: 60,   // global minimum
+                    maxWidth: 320,   // global maximum
+                },
                 clipboard: "copy",
                 // Regression guard: inferred unitized headers can contain dots, e.g.
                 // "Solution | sft^0.5". Tabulator treats "." as nested-path by default,

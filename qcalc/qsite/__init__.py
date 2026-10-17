@@ -1,4 +1,4 @@
-__version__ = "v1.4.38.673-rc"  # @2026.10.09
+__version__ = "v1.5.04.677-rc"  # @2026.10.17
 __author__ = "Debasish C Saha"
 __version_info__ = tuple(
     [
@@ -7,7 +7,7 @@ __version_info__ = tuple(
     ]
 )
 
-STATIC_VERSION = '1.4.37.11'
+STATIC_VERSION = '1.5.04.03'
 sitemap_lastmod = {
     "page": "2024-10-07",
     "doc": "2026-10-07",

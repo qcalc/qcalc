@@ -12,12 +12,9 @@ def uprefs():
     return QThread.get_prefs()
 
 
-def qformat_qstr(qstr: str, val_only=False) -> str:
-    qty = Qty(qstr)
-    return qformat_q(qty, val_only)
-
-
-def qformat_q(qty: Qty, val_only=False) -> str:
+def qformat_q(qty: Qty | str, val_only=False) -> str:
+    if isinstance(qty, str):
+        qty = Qty(qty)
     vstr, ustr = qformat(qty.val, qty.unit)
     return f'{vstr} {ustr}' if not val_only else vstr
 
@@ -50,7 +47,7 @@ def qformat(val, unit=None, pref=None) -> None | str | list[str]:
         is_cur = 'C' in dim and 'C-' not in dim  # | e.g. km/USD is not a currency
 
         if has_cur:
-            val, funame = replace_UNC(val, unit.name(), pref)
+            val, funame = replace_UNC(val, unit.name(), pref_cur=pref.get('defa_currency', 'UNC'))
         else:
             funame = unit.name()
 
@@ -119,10 +116,26 @@ def df_formatter(var, unit_hint=None, val_only=False):
     return var  # preserve None
 
 
-def replace_cur(val, uname, cur='UNC', pref=None):
-    if pref is None:
+def replace_cur(val, uname, cur='UNC', pref_cur: str | None = None):
+    """Replace a placeholder/source currency in a unit string with user preference.
+
+    Args:
+        val: Quantity numeric value.
+        uname: Source unit string that may contain currency unit ``cur``.
+        cur: Currency unit to replace (default ``'UNC'``).
+        pref_cur: Optional preferred currency code (e.g. ``"EUR"``).
+            When omitted, ``uprefs()`` is used.
+
+    Returns:
+        A ``(value, unit_name)`` tuple converted to the preferred currency unit.
+        If preferred currency equals ``cur``, returns the input ``(val, uname)``.
+    """
+    if pref_cur is None:
         pref = uprefs()
-    mycur = pref.get('defa_currency', 'UNC')
+        mycur = pref.get('defa_currency', 'UNC')
+    else:
+        mycur = pref_cur
+
     if mycur == cur:
         return val, uname
     # | case-insensitive replacement of curency uom with preferred currency
@@ -131,45 +144,26 @@ def replace_cur(val, uname, cur='UNC', pref=None):
     return cqty.val, cqty.uom
 
 
-def replace_UNC(val, uname, pref=None):
-    return replace_cur(val, uname, 'UNC', pref)
+def replace_UNC(val, uname, pref_cur: str | None = None):
+    """Replace ``UNC`` currency token with the user's preferred currency."""
+    return replace_cur(val, uname, 'UNC', pref_cur)
 
 
-def ucur(qtystr: str, cur='UNC', pref=None, dec=None):
-    # | convert a quanity string having currency (e.g. '120 km/usd') using user currency (e.g. '1.2 km/bdt')
-    qty = Qty(qtystr)
-    dim = qty.unit.dimension
-    if 'C' not in dim:
-        return qtystr
-    val, uname = replace_cur(qty.val, qty.uom, cur, pref)
-    if val:
-        dec_places = ".2f" if dec is None else f".{dec}f"
-        return f'{val:{dec_places}} {uname}'
-    else:
-        return f'@{uname}'
+def to_ucur(qty: Qty | str, cur='UNC', pref_cur: str | None = None):
+    """Convert currency token to preferred currency for Qty or quantity strings.
 
-
-def to_ucur(qty: Qty, cur='UNC', pref=None):
-    dim = qty.unit.dimension
+    If ``qty`` is a ``Qty`` object, returns a ``Qty``.
+    If ``qty`` is a quantity string, returns a quantity string.
+    Non-currency dimensions are returned unchanged.
+    """
+    is_qty_obj = isinstance(qty, Qty)
+    qty_obj = qty if is_qty_obj else Qty(qty)
+    dim = qty_obj.unit.dimension
     if 'C' not in dim:
         return qty
-    val, uname = replace_cur(qty.val, qty.uom, cur, pref)
-    return Qty(val, uname)
-
-
-if __name__ == '__main__':
-    import qsett
-
-    qsett.init()
-
-
-    def _test():
-        qtystr = '120km/inr'
-        print(ucur(qtystr, 'INR'))
-        print(to_ucur(Qty(qtystr), 'INR'))
-        print(ucur('@ft/BDT', 'bdt'))
-        qty = Qty('@bdt/s')
-        print(replace_cur(qty.val, qty.uom, 'BDT'))
-
-
-    _test()
+    val, uname = replace_cur(qty_obj.val, qty_obj.uom, cur, pref_cur)
+    if is_qty_obj:
+        return Qty(val, uname)
+    if val:
+        return f'{val} {uname}'
+    return f'@{uname}'

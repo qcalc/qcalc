@@ -9,7 +9,7 @@ from qcore.mod_anno import *
 from calc.mod_mfunc import *
 from calc import UCals, QCals
 from qutil import command_button, page_link, format_py_code, ensure_info_function, extract_common_prefix, \
-    get_functions, pretty_json, addcal_button 
+    get_functions, pretty_json, addcal_button
 
 # Shared numeric schema for ratio-style selector values in the open interval (0, 1).
 FRACTION_SCHEMA = {
@@ -208,7 +208,7 @@ def validate_calculator_defaults(user_code):
             raise ValueError(f"Default values for '{name}' failed: {e}") from e
         validated.append(name)
 
-    return f"Validation successful: {', '.join(validated)}"
+    return qinfo(f"Validation successful: {', '.join(validated)}")
 
 
 def validate_calculator_info(user_code):
@@ -252,7 +252,7 @@ def validate_calculator_info(user_code):
 
         checked.append(name)
 
-    return f"Syntax validation successful: {', '.join(checked)}"
+    return qinfo(f"Syntax validation successful: {', '.join(checked)}")
 
 
 def mycal__command(fkwargs, extra):
@@ -280,13 +280,13 @@ def mycal__modify(arg_name, arg_value, action):
         cal_name = request.POST.get('cal_name', '').strip()
         if cal_name:
             user_code = uc.get_code(cal_name)
-            return user_code or f'{cal_name} not found'
-        return 'Enter a calculator name'
+            return user_code or qerror(f'{cal_name} not found')
+        return qinfo('Enter a calculator name')
     elif arg_name == 'cal_name' and action == 'delete':
         cal_name = arg_value.strip()
         if cal_name:
             return uc.del_cal(cal_name)
-        return 'Enter a calculator name'
+        return qinfo('Enter a calculator name')
         # | raise Exception(result)
     elif arg_name == 'code' and action == 'format':
         cal_name = request.POST.get('cal_name', '').strip()
@@ -321,6 +321,17 @@ def mycal__info():
                 command_button('mycal', 'Format Code', '__modify', kwargs={'code': 'format'}) +
                 command_button('mycal', 'Validate Input', '__command', args=['validate']),
         },
+        'step2': [
+            {
+                'step': 'run',
+                'func': 'mycal2',
+                'caption': 'Step2 (AI Assisted)',
+                'spec': {
+                    'cal_name': 'cal_name',
+                    'code': 'code',
+                },
+            }
+        ],
         'calculate': 'Save',
         'kins': 'eva',
         'layout': 'tb',

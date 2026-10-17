@@ -40,7 +40,7 @@ class MeasureQuantity:
             else:
                 match = self._number.match(s)
                 if match is None:
-                    raise TypeError('Error (PQ): No number found')
+                    raise TypeError('Error (MQ): No number found')
                 self.value = atof(match.group(0))
                 self.unit = find_unit(s[len(match.group(0)):])
 
@@ -52,7 +52,7 @@ class MeasureQuantity:
 
     def _sum(self, other, sign1, sign2):
         if not isMeasureQuantity(other):
-            raise TypeError('Error (PQ): Incompatible types')
+            raise TypeError('Error (MQ): Incompatible types')
         new_value = sign1 * self.value + sign2 * other.value * other.unit.conversion_factor_to(self.unit)
         return self.__class__(new_value, self.unit)
 
@@ -122,11 +122,11 @@ class MeasureQuantity:
 
     def __pow__(self, other):
         if isMeasureQuantity(other):
-            raise TypeError('Error (PQ): Exponents must be dimensionless')
+            raise TypeError('Error (MQ): Exponents must be dimensionless')
         return self.__class__(pow(self.value, other), pow(self.unit, other))
 
     def __rpow__(self, other):
-        raise TypeError('Error (PQ): Exponents must be dimensionless')
+        raise TypeError('Error (MQ): Exponents must be dimensionless')
 
     def __abs__(self):
         return self.__class__(abs(self.value), self.unit)

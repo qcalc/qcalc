@@ -3,8 +3,16 @@
 
 from calc import QPref, QMem
 from calc import QData, QTemp, QKeep, QSave, QIO, QRam, QMeta, QMyCal, QFav
-from qcore import QScreen, quom, color_schemes, legend_locations
-from qutil import nzs, css2strs, truncate, user_process, command_button, QThread
+from calc.mod_credentials import (
+    provider_choices,
+    has_user_api_key,
+    get_user_api_key_suffix,
+    has_system_api_key,
+    set_user_api_key,
+    delete_user_api_key,
+)
+from qcore import QScreen, quom, color_schemes, legend_locations, qtext
+from qutil import nzs, css2strs, truncate, user_process, command_button, QThread, is_loggedin, addcal_button
 from qvars import qc_gpref as gs
 from calc import dict2options, StdList
 
@@ -20,20 +28,23 @@ def _normalize_theme(theme_name, fallback='default'):
 
 
 def pref__info():
-    general_options = 'theme, interactive, defa_currency, memory, strict_*, execution_timeout, xpr_max_table_cells'
+    general_options = 'theme, interactive, defa_currency, memory, strict_*'
     number_options = 'ignore_decimal_format, decimal, *_decimal, thousands_separator, exponent_*'
     chart_options = 'chart_*'
+    other_options = 'execution_timeout, xpr_max_table_cells'
     pane1 = {'title': 'General', 'fields': general_options}
     pane2 = {'title': 'Number', 'fields': number_options}
     pane3 = {'title': 'Chart', 'fields': chart_options}
+    pane4 = {'title': 'Others', 'fields': other_options}
     input_blocks = [
         {
             'column': 1,
-            'tabs': [pane1, pane2, pane3],
+            'tabs': [pane1, pane2, pane3, pane4],
         }
     ]
     return {
         'title': 'User Preferences',
+        'kins': 'api_keys',
         'schema': {
             # 'request': {'attrs': {'readonly': True}},
             'theme': {
@@ -112,12 +123,15 @@ def pref__info():
         'input_columns': 1,
         'input_blocks': input_blocks,
         'script':
-            """
+"""
 $(document).ready(function() {
     theme_choice_id = QCALC_TOK_ID_PREFIX + getCid() + '_@theme';
     themeChanger(theme_choice_id);
 });
-"""
+""",
+        'inserts': {
+            'form_bottom': addcal_button('api_keys', 'Personal API Keys'),
+        },
     }
 
 
@@ -209,6 +223,92 @@ def pref(  # pref-03
     QPref.setp(us)
     QThread.set_pref(us)
     return 'Preferences Saved'
+
+
+def api_keys__info():
+    return {
+        'title': 'Personal API Keys',
+        'desc': 'Save your personal provider API keys securely.',
+        'kins': 'pref',
+        'tags': 'preferences',
+        'remember': False,
+        'schema': {
+            'action': {
+                'type': 'choice',
+                'choices': {
+                    'status': 'Show status',
+                    'activate': 'Activate personal keys',
+                    'inactivate': 'Inactivate personal keys',
+                    'set': 'Set / Replace key',
+                    'delete': 'Delete key',
+                },
+            },
+            'provider': {
+                'type': 'choice',
+                'choices': provider_choices(),
+                'help_text': 'Select the provider for this key.',
+            },
+            'api_key': {
+                'help_text': 'Paste a new API key only when using "Set / Replace key"; it will be encrypted before storage.',
+                'attrs': {'autocomplete': 'off'},
+            },
+        },
+        'showhide': {
+            'action': {'fields': ['provider', 'api_key'], 'callback': 'show_action_fields'}
+        },
+        'script':
+"""
+function show_action_fields(v){
+    return [v !== 'activate' && v !== 'inactivate', v === 'set'];
+}
+""",
+        'calculate': 'Apply',
+    }
+
+
+def api_keys__input(_kwargs):
+    return {
+        'api_key': '',
+    }
+
+
+def api_keys(action='status', provider='openai', api_key:qtext=''):
+    req = QThread.get_req()
+    if not is_loggedin(req):
+        raise Exception('Please login to manage personal API keys')
+
+    personal_api_keys_active = QPref.getp1('personal_api_keys_active', True)
+    if action == 'activate':
+        personal_api_keys_active = True
+        QPref.setp1('personal_api_keys_active', True)
+    elif action == 'inactivate':
+        personal_api_keys_active = False
+        QPref.setp1('personal_api_keys_active', False)
+
+    if action == 'set':
+        set_user_api_key(req.user, provider, api_key)
+    elif action == 'delete':
+        delete_user_api_key(req.user, provider)
+    elif action not in ['status', 'activate', 'inactivate']:
+        raise Exception(f'Unsupported action: {action}')
+
+    resp = {
+        'Personal API Keys Active': 'Yes' if personal_api_keys_active else 'No',
+    }
+    if action in ['status', 'set', 'delete']:
+        personal_key_status = 'Not configured'
+        if has_user_api_key(req.user, provider):
+            key_suffix4 = get_user_api_key_suffix(req.user, provider)
+            if key_suffix4 != '':
+                personal_key_status = f'Configured (…{key_suffix4})'
+            else:
+                personal_key_status = 'Configured'
+        resp.update({
+            'Provider': provider,
+            'Personal Key': personal_key_status,
+            'System Fallback': 'Configured' if has_system_api_key(provider) else 'Not configured',
+        })
+    return resp
 
 
 def mem__info():

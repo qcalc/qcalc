@@ -26,7 +26,8 @@ def demo_modify_number__info():
         'title': 'Testing __modify Number',
         'desc': 'Modify int argument y before calculation',
         'inserts': {
-            'form_bottom': command_button('demo_modify_number', 'Y**2', '__modify', args=['y'])  # not good for scripting
+            'form_bottom': command_button('demo_modify_number', 'Y**2', '__modify', args=['y'])
+            # not good for scripting
         }
     }
 
@@ -47,7 +48,8 @@ def demo_modify_text__info():
         'title': 'Testing __modify Text',
         'desc': 'Modify multiple arguments x and y before calculation',
         'inserts': {
-            'form_bottom': command_button('demo_modify_text', 'Load', '__modify', args=['x', 'y'])  # not good for scripting
+            'form_bottom': command_button('demo_modify_text', 'Load', '__modify', args=['x', 'y'])
+            # not good for scripting
         }
     }
 
@@ -93,11 +95,11 @@ def demo_table2__info():
 
 
 def demo_table2(x: qtable,
-            y: qtable = pd.DataFrame(columns=['Last Name', 'Team Name', 'Play Score'], index=range(5)),
-            tfloat=5.5, tint=2, tbool=True, tdate: qdate = '2024-02-17', tstr: str = 'hello',
-            tsel='D',
-            z: qtable = resize_df(pd.DataFrame(data=[], columns=[]), 3, 2)
-            ):
+                y: qtable = pd.DataFrame(columns=['Last Name', 'Team Name', 'Play Score'], index=range(5)),
+                tfloat=5.5, tint=2, tbool=True, tdate: qdate = '2024-02-17', tstr: str = 'hello',
+                tsel='D',
+                z: qtable = resize_df(pd.DataFrame(data=[], columns=[]), 3, 2)
+                ):
     # print('x:', x)
     # print('y:', y)
     return y, x, y, z, (tfloat, tint, tbool, tdate, tstr)
@@ -120,11 +122,11 @@ def demo_table__info():
 
 
 def demo_table(x: qtable,
-           y: qtable = pd.DataFrame(columns=['Name', 'Team', 'Score'], index=range(5)),
-           tfloat=5.5, tint=2, tbool=True, tdate: qdate = '2024-02-17', tstr: str = 'hello',
-           tsel='D',
-           z: qtable = resize_df(pd.DataFrame(data=[], columns=[]), 3, 2)
-           ):
+               y: qtable = pd.DataFrame(columns=['Name', 'Team', 'Score'], index=range(5)),
+               tfloat=5.5, tint=2, tbool=True, tdate: qdate = '2024-02-17', tstr: str = 'hello',
+               tsel='D',
+               z: qtable = resize_df(pd.DataFrame(data=[], columns=[]), 3, 2)
+               ):
     # print('x:', x)
     # print('y:', y)
     return x, y, z, (tfloat, tint, tbool, tdate, tstr)
@@ -183,8 +185,8 @@ def demo_arr2__info():
 
 
 def demo_arr2(x: qlist = [100, 200, 300],
-          y: qlist = [10, 20, 30],
-          z: qlist = [50, 60, 70]):
+              y: qlist = [10, 20, 30],
+              z: qlist = [50, 60, 70]):
     return sum(x), sum(y), sum(z)
 
 
@@ -224,9 +226,8 @@ def demo_rfunc__info():
     return {}
 
 
-def demo_rfunc(sfunc: str):
-    qf = oqfunc(sfunc)
-    return qf
+def demo_rfunc(sfunc: qfunc = 'gold'):
+    return sfunc
 
 
 def demo_hide__info():
@@ -248,7 +249,7 @@ def demo_cal2__info():
 
 
 def demo_cal2(c: qfunc = circle, r: qfunc = rectland, b: qfunc = bmi, r2: qfunc = 'sunrise',
-          anyfile: qfile = None, anytext: qtexta = "Hi'ya there"):
+              anyfile: qfile = None, anytext: qtexta = "Hi'ya there"):
     # print(c, r)
     area = c['Area'] + r['Area']
     return {'Combined Area': area, 'BMI': b['BMI'], 'sunsrise': r2, 'anytext': anytext}
@@ -366,8 +367,8 @@ def demo_estf__info():
 
 
 def demo_estf(x=5.0, x_uom='m', y=12.0, y_uom='m', z=5.0, t=3.0, zz=9.0, zz_uom='ft/s', pp=3.0, qq=8.0, qq_uom='g/s',
-          tt=3.0,
-          tt_uom='kg/ft'):
+              tt=3.0,
+              tt_uom='kg/ft'):
     qx = Qty(x, x_uom, 'ft')
     qy = Qty(y, y_uom, 'ft')
     return qx + qy

@@ -3,7 +3,7 @@
 
 import pandas as pd
 
-from qcore import qtbl
+from qcore import qtbl, qerror
 from calc import FLD_SHOW_CHOICE, get_shared_dataset
 from calc.mod_result_post import postprocess_scenarios
 from qutil import addcal_button, nzv
@@ -20,7 +20,7 @@ def scenario__modify(arg_name, arg_value, action):
 
     payload = shared_record.get('payload') if isinstance(shared_record, dict) else None
     if payload is None:
-        raise Exception('No shared compare scenarios loaded. Open [compare], run it, then apply again.')
+        return qerror('No shared compare scenarios loaded. Open [compare], run it, then apply again.')
 
     if isinstance(payload, pd.DataFrame):
         payload = {

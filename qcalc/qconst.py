@@ -93,7 +93,8 @@ RELATIVE_VALUE_PATTERN = re.compile(
 )
 
 # Keep as string because some call sites may compile with their own flags.
-NUMBER_PATTERN = r"[+-]?[0-9]+(\.[0-9]*)?([eE][+-]?[0-9]+)?"
+# NUMBER_PATTERN = r"[+-]?[0-9]+(\.[0-9]*)?([eE][+-]?[0-9]+)?"
+NUMBER_PATTERN = r"[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?" # .5, -.5 accepted
 
 # Row selector token: single row index or inclusive range (e.g. 2 or 2-5).
 ROW_INDEX_PATTERN = re.compile(r'^\d+(\s*-\s*\d+)?$')

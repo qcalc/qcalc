@@ -3,6 +3,7 @@
 
 from .mod_cache import QMeta, QMyCal, QFav, QMem
 from .mod_qcals import QCals
+from qcore import qinfo, qerror
 from qutil.mod_tree import dict_to_tree
 from qutil import TreeNode, create_category_node, user_name, get_functions, \
     extract_common_prefix, names2fid, fid2owner
@@ -198,7 +199,7 @@ class UCals:
         cal_id = names2fid(self.cal_owner, cal_name)
         uc_list = QMeta.getp1('uc_list', [])
         if cal_id not in uc_list:
-            return f'{cal_name} not found'
+            return qerror(f'{cal_name} not found')
         uc_dict = QMeta.getp1('uc_dict', {})
         uc_tree = QMeta.getp1('uc_tree', {})
         utree = dict_to_tree(uc_tree)
@@ -213,9 +214,9 @@ class UCals:
             QMeta.setp1('uc_dict', uc_dict)
             uc_tree = utree.tree_to_dict()
             QMeta.setp1('uc_tree', uc_tree)
-            result = f'{cal_name} deleted'
+            result = qinfo(f'{cal_name} deleted')
         except Exception as e:
-            result = f'{cal_name} could not be deleted because {str(e)}'
+            result = qerror(f'{cal_name} could not be deleted because {str(e)}')
             pass
 
         utree.delete_tree()
@@ -390,7 +391,7 @@ def unregister_shared_cal(func_id):  # review tree delete
     cal_id, cal_name, owner = fid2owner(func_id)
     sc_list = QMeta.getp1('sc_list', [])
     if cal_id not in sc_list:
-        return f'{cal_name} not found'
+        return qerror(f'{cal_name} not found')
     sc_dict = QMeta.getp1('sc_dict', {})
     sc_tree = QMeta.getp1('sc_tree', {})
     stree = dict_to_tree(sc_tree)
@@ -405,9 +406,9 @@ def unregister_shared_cal(func_id):  # review tree delete
         QMeta.setp1('sc_dict', sc_dict)
         uc_tree = stree.tree_to_dict()
         QMeta.setp1('sc_tree', uc_tree)
-        result = f'{cal_name} deleted'
+        result = qinfo(f'{cal_name} deleted')
     except Exception as e:
-        result = f'{cal_name} could not be deleted because {str(e)}'
+        result = qerror(f'{cal_name} could not be deleted because {str(e)}')
 
     stree.delete_tree()
     del stree

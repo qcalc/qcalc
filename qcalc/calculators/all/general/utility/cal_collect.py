@@ -13,7 +13,7 @@ from calc import (
 import json
 from qutil import find_matched_variables, addcal_button
 from calculators.all.general.chart import pie_chart
-from qcore import qhtml, qtable, Qty, _unit_tree, qformat_q, qformat_qstr
+from qcore import qhtml, qtable, Qty, _unit_tree, qformat_q
 
 SHARED_RATES_TYPE = 'item_rates'
 SHARED_RATES_KEY = 'rates_master'
@@ -89,7 +89,7 @@ def cost__input(kwargs):
     # probably it is better to restrict invoking __input() during GET only
     items = kwargs.get('items')  # kwargs data available only during GET
     if isinstance(items, pd.DataFrame):  # can't have if items, truth value of df is ambiguous
-        items['Quantity'] = items['Quantity'].apply(qformat_qstr)  # format data
+        items['Quantity'] = items['Quantity'].apply(qformat_q)  # format data
         return {
             'items': items,
         }

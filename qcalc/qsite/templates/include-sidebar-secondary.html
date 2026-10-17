@@ -32,7 +32,7 @@
               <label for="open-io">Saved Input&hellip; : <span style="font-weight: normal">Click to select</span></label>
             </div>
             <div class="nav-link">
-              <button type="submit" id="load-io" class="btn" aria-label="load_io" disabled>
+              <button type="submit" id="load-io" class="btn mr-2" aria-label="load_io" disabled>
                 <i class="icon-file-text mr-2"></i>Open</button>
               {% callink 'temp' 'Temp' 'btn' 'icon-footprint' %}
             </div>
@@ -40,7 +40,7 @@
           </li>
           <li class="nav-item" id="nav-search-unit">
             <div class="nav-link">
-              <label>Search Unit:
+              <label style="margin-right:0px;">Search Unit:
                 <div class="input-group">
                   <input
                     type="text" class="form-control"
@@ -68,9 +68,9 @@
                     hx-vals='js:{dummy: sm2toggle()}'> <!--hx-on::after-request='jumpLast();'-->
                 <label>Add Calculator:
                   <div class="input-group">
-                    <input type="text" class="form-control" placeholder="Calculator name" name="fname" id="fname_sb">
+                    <input type="text" class="form-control mr-1" placeholder="Calculator name" name="fname" id="fname_sb">
                     <div class="input-group-addon">
-                      <button type="submit" class="btn" aria-label="add_cal" id="btn_fname_sb"><i class="icon-plus-circle2 text-muted"></i></button>
+                      <button type="submit" class="btn" aria-label="add_cal" id="btn_fname_sb"><i class="icon-plus-circle2 text-muted mr-0"></i></button>
                     </div>
                   </div>
                 </label>

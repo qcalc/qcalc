@@ -131,6 +131,28 @@ class MyInput(models.Model):
         return value  # This can be modified based on your needs
 
 
+class MyCredential(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='mycredentials', db_index=True
+    )
+    provider = models.CharField(max_length=40, db_index=True)
+    secret = models.JSONField()
+    suffix4 = models.CharField(max_length=4, blank=True, default='')
+    added_on = models.DateTimeField(auto_now_add=True)
+    changed_on = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'provider'], name='unique_user_provider_credential')
+        ]
+        indexes = [
+            models.Index(fields=['user', 'provider']),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username}: {self.provider}"
+
+
 # Admin Customization
 @admin.register(MyStuff)
 class MyStuffAdmin(admin.ModelAdmin):
@@ -145,3 +167,10 @@ class MyInputAdmin(admin.ModelAdmin):
                     'is_shared', 'is_example', 'access_token', 'added_on', 'changed_on')
     search_fields = ('user__username', 'object_id', 'item_id', 'description')  # Enable search on specific fields
     list_filter = ('user', 'object_id', 'item_id', 'added_on')  # Filters for the admin interface
+
+
+@admin.register(MyCredential)
+class MyCredentialAdmin(admin.ModelAdmin):
+    list_display = ('user', 'provider', 'added_on', 'changed_on')
+    search_fields = ('user__username', 'provider')
+    list_filter = ('provider', 'added_on')

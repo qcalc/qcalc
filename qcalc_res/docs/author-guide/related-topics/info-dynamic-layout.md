@@ -73,7 +73,7 @@ Note: user-facing selector utilities may use a different default where empty mea
 ### 4.1 One-column tabbed input layout
 
 ```python
-def mycalc__info():
+def mycalfunc__info():
     return {
         'title': 'My Calculator',
         'layout': 'tb',
@@ -93,7 +93,7 @@ def mycalc__info():
 ### 4.2 Two-column mixed blocks
 
 ```python
-def mycalc__info():
+def mycalfunc__info():
     return {
         'title': 'My Calculator',
         'layout': 'lr',

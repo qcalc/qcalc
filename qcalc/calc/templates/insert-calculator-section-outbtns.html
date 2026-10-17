@@ -1,16 +1,16 @@
 <!-- begin:insert-calculator-section-outbtns -->
 {% load qfilter %}
+{% if request.success and request.method == 'POST' and input.doc.info.step2 %}
 <div class="btn-group mt-2 section-nextstep w-100">
-{% if request.success and request.method == 'POST' %}
 {% for fspec in input.doc.info.step2 %}
 <p><button type="button" class="btn btn-info btncmd" href="/calc/step2/"
            hx-get="/calc/step2/?step={{ fspec.step }}&func={{ fspec.func }}&src_cid={{ input.cid }}&spec={{fspec.spec | jdumps}}"
            hx-target="closest .calc" hx-swap="afterend" aria-label="step2">{{ fspec.caption }}
 </button></p>
 {% endfor %}
-{% endif %}
 </div>
 <br>
+{% endif %}
 <div class="btn-group mt-2 section-outbtns w-100">
 {% if request.ojson_keep_dumps != '{}' %}
 <p><a class="btn outbtn"

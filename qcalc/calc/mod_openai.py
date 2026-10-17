@@ -2,13 +2,20 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 import openai
-from django.conf import settings
 from .mod_qcals import QCals
 from qcore import _base_categ_s2d, _base_categories, _unit_info
 import inspect
 import qconst
 from .mod_cache import QMyCal
-from qutil import fid2owner, user_name, check_setting, md2html
+from qutil import fid2owner, user_name, md2html, QThread, is_loggedin
+from .mod_credentials import get_effective_api_key
+
+
+def _current_user():
+    req = QThread.get_req()
+    if req is not None and is_loggedin(req):
+        return req.user
+    return None
 
 
 def get_code(func_id: str = 'gold', show_meta=False):
@@ -46,7 +53,7 @@ def get_code(func_id: str = 'gold', show_meta=False):
 def instruct_ask_gpt(instruction: str = 'please be short and precise',
                      question: str = "What is life", temperature=0.7):  # not used
     # The 'role' can take one of three values: 'system', 'user' or the 'assistant'
-    api_key = check_setting(settings.OPENAI_API_KEY, "OPENAI_API_KEY", optional=False)
+    api_key = get_effective_api_key(_current_user(), 'openai')
     client = openai.OpenAI(api_key=api_key)
     response = client.chat.completions.create(
         model="gpt-3.5-turbo",
@@ -68,7 +75,7 @@ def instruct_ask_gpt(instruction: str = 'please be short and precise',
 
 def ask_gpt(question: str = "What is qCalc", temperature=0.7):
     # The 'role' can take one of three values: 'system', 'user' or the 'assistant'
-    api_key = check_setting(settings.OPENAI_API_KEY, "OPENAI_API_KEY", optional=False)
+    api_key = get_effective_api_key(_current_user(), 'openai')
     client = openai.OpenAI(api_key=api_key)
     response = client.chat.completions.create(
         model="gpt-3.5-turbo",

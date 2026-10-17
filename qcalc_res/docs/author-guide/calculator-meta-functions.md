@@ -20,7 +20,6 @@
   * [5. Layout Keys](#5-layout-keys)
         * [5.1 Preferred dynamic layout keys](#51-preferred-dynamic-layout-keys)
         * [5.2 Simple split layout keys](#52-simple-split-layout-keys)
-        * [5.3 Legacy compatibility keys: `row`, `col`, `outcol`](#53-legacy-compatibility-keys-row-col-outcol)
   * [6. Follow-up Actions and Discovery](#6-follow-up-actions-and-discovery)
     * [6.1 `step2`](#61-step2)
     * [6.2 `kins` and `tags`](#62-kins-and-tags)
@@ -432,59 +431,6 @@ Dynamic layout lets you mix plain field blocks and tab blocks and place them by 
 
 This model creates up to two sections by filtering fields into section 1 and placing remaining fields in section 2.
 
-### 5.3 Legacy compatibility keys: `row`, `col`, `outcol`
-
-The following keys are retained for compatibility and older templates. Avoid them for new calculators.
-
-#### `row`
-
-`row` groups fields on the same row. Join field names (from one field to another in parameter list) with hyphens:
-
-```python
-# field width to height in one row
-# field coverage to tin_size in another row
-'row': ['width-height', 'coverage-tin_size']
-```
-
-#### `col`
-
-`col` starts new input columns. It accepts an integer count or field group specifications:
-
-```python
-'col': 2
-```
-
-```python
-'col': ['length-width', 'height-depth']
-```
-
-* Use `row` and `col` only when necessary and when they fit on the screen.
-* Use `col` when the result remains readable on narrow screens.
-* A single-column layout (default) is recommended, as it allows multiple calculators to fit on the screen.
-
-
-#### `outcol`
-
-```python
-# Complete example, you can copy/paste to create in front end
-def mypie__info():
-    return {
-        'title': 'My Pie Chart',
-        'outcol': ['chart__r'],
-    }
-
-
-def mypie(mychart: qfunc = pie_chart):
-    # pie_chart is a qcalc function, It's interface is being reused here.
-    # Nesting function is a powerful qCalc feature
-    return {
-        'chart': mychart['chart']
-    }
-```
-* `outcol` moves output fields into a second output column.
-* Use `outcol` for charts, tables, long explanations, or results that deserve separate visual emphasis.
-* For output parameter names, qCalc converts the return label to lowercase, replaces spaces with underscores, and adds `__r`. For example, `chart` becomes `chart__r`, while `Monthly payment` becomes `monthly_payment__r`. Therefore, use `'outcol': ['chart__r']` for a return label of `chart`.
-* If you do not see the chart in the second column, close other cards/calculators and keep only your calculator open to view the result.
 
 ## 6. Follow-up Actions and Discovery
 

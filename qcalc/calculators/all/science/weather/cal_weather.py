@@ -4,11 +4,12 @@
 from qcore import Qty, qfunc, QGeo, QScreen, qhtml
 from django.conf import settings
 import math
-from qutil import pretty_json
+from qutil import pretty_json, QThread, is_loggedin
 from datetime import datetime, timezone, timedelta
 import requests
 
 from calc import check_setting
+from calc.mod_credentials import get_effective_api_key
 from calculators.all.general.map import geo_location
 
 
@@ -179,8 +180,11 @@ def weather__info():
 
 
 def weather(location: qfunc = geo_location, show_data=False):
+    req = QThread.get_req()
+    user = req.user if req is not None and is_loggedin(req) else None
+
     def get_weather_data(lat, lng):
-        api_key = check_setting(settings.OPENW_API_KEY, "OPENW_API_KEY", optional=False)
+        api_key = get_effective_api_key(user, 'openweather')
         api_url = check_setting(settings.OPENW_API_URL, "OPENW_API_URL", optional=False)
         params = {
             "lat": lat,

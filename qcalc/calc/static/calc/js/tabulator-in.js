@@ -717,6 +717,8 @@
                 headerSort: false,
                 editor: (mode === "edit"),
                 editableTitle: (mode === "edit"), // allow header rename in Edit mode
+                minWidth: 60,   // global minimum
+                maxWidth: 320,   // global maximum
             },
             clipboard: (mode === "edit" ? true : "copy"),
             clipboardPasteAction: "replace",

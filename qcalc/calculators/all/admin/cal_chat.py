@@ -3,8 +3,9 @@
 
 import openai
 from qcore import qtexta
-from django.conf import settings
-from calc import check_setting, ask_gpt
+from calc import ask_gpt
+from calc.mod_credentials import get_effective_api_key
+from qutil import QThread, is_loggedin
 
 def qchat__info():
     return {
@@ -43,7 +44,9 @@ def q2f(query: qtexta = "Convert 5 kilometers to miles"):
     """
         }
     ]
-    api_key = check_setting(settings.OPENAI_API_KEY, "OPENAI_API_KEY", optional=False)
+    req = QThread.get_req()
+    user = req.user if req is not None and is_loggedin(req) else None
+    api_key = get_effective_api_key(user, 'openai')
     client = openai.OpenAI(api_key=api_key)
     response = client.chat.completions.create(
         model="gpt-3.5-turbo",

@@ -285,4 +285,4 @@
 
 /* inputfile — hidden file input, label acts as button */
 .inputfile { width: .1px; height: .1px; opacity: 0; overflow: hidden; position: absolute; z-index: -1; }
-.inputfile + label { cursor: pointer; }
+.inputfile + label { cursor: pointer; margin-right: 0px;}

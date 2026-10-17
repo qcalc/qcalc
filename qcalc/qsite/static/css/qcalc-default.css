@@ -921,9 +921,10 @@ div.io {
 }
 
 /* Mobile input zoom fix (safe to revert as one block):
-   Keep form control text at >=16px on small screens to avoid browser auto-zoom on focus.
+   Keep form control text at >=16px to avoid browser auto-zoom on focus.
+   Includes small-screen breakpoint plus touch/coarse-pointer devices so phone landscape is covered.
    Note: no container min-width/width override here, so existing small-screen column stacking stays unchanged. */
-@media (max-width: 767.98px) {
+@media (max-width: 767.98px), (hover: none) and (pointer: coarse) {
   input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=image]):not([type=submit]):not([type=reset]):not([type=button]):not([type=hidden]),
   select:not([multiple]):not([size]),
   textarea,

@@ -1,8 +1,42 @@
 from django import forms
 
 from qconst import TOK_INDEX_SEP
+from qcore.mod_anno import qhtml
+from qcore.mod_qjfield import QJField
 from qcore.mod_qforms import QFieldHandler
 from qcore.mod_qwidgets import QtyWidget
+
+
+def test_qhtml_value_creates_display_only_html_field():
+    field = QJField('note', arg_value=qhtml('<p>Between fields</p>'))
+
+    assert field.jf['type'] == 'html'
+    assert field.jf['initial'] == '<p>Between fields</p>'
+    assert field.s2f == {'type': 'x'}
+
+
+def test_qhtml_annotation_creates_display_only_html_field():
+    field = QJField('note', arg_type=qhtml, arg_value='<p>Between fields</p>')
+
+    assert field.jf['type'] == 'html'
+    assert field.s2f == {'type': 'x'}
+
+
+def test_html_field_ignores_posted_data_and_keeps_initial_html():
+    schema = [{
+        'name': 'note',
+        'type': 'html',
+        'initial': '<p>Between fields</p>',
+        'required': False,
+    }]
+    handler = QFieldHandler('x', schema, 'cid', [{'type': 'x'}], {}, {})
+    form_class = type('DynaForm', (forms.Form,), handler.formfields)
+    form = form_class({'note': 'posted value'})
+
+    assert form.is_valid()
+    assert form.cleaned_data['note'] == '<p>Between fields</p>'
+    assert '<p>Between fields</p>' in str(form['note'])
+    assert 'posted value' not in str(form['note'])
 
 
 def test_qty_field_keeps_help_text():

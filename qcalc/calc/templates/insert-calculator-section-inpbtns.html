@@ -39,6 +39,7 @@
       class="btn btn-success btnimg mr-2" aria-label="default_data"
       title="Refresh form input with default data"
       hx-get="/calc/add/?path={{ input.doc.name }}&part=1&cid={{input.cid}}"
+      hx-include="#extra_{{ input.cid }}"
       hx-target="closest .calc" hx-swap="outerHTML"
     >
     <i class="icon-sync"></i></button>
@@ -47,7 +48,7 @@
     <button type="button" id="dec-{{ input.cid }}"
       class="btn btn-info btnimg mr-2" aria-label="precision"
       title="Toggle ignore decimal format"
-      onclick='v = toggleIcon(this, "icon-eye2", "icon-eye-blocked2"); updateExtra("{{ input.cid }}", {"ignoredec":v==1?"1":"0"});'
+      onclick='v = toggleIcon(this, "icon-eye2", "icon-eye-blocked2"); window.QCalcActions.updateExtra("{{ input.cid }}", {"ignoredec":v==1?"1":"0"});'
     >
     <i class="{% ctf request.pref.ignore_decimal_format 'icon-eye2' 'icon-eye-blocked2' %}"></i></button>
   </p>
@@ -56,10 +57,10 @@
     <button type="button" id="interactive-{{ input.cid }}"
       class="btn btn-info btnimg mr-2" aria-label="toggle interactive calculation"
       title="Toggle interactive calculation"
-      aria-pressed="{% ctf request.pref.interactive 'true' 'false' %}"
+      aria-pressed="{% ctf request.pref.interactive_enabled 'true' 'false' %}"
       onclick='toggleIcon(this, "icon-primitive-dot", "icon-primitive-square"); qcalc_ToggleInteractive(this);'
     >
-    <i class="{% ctf request.pref.interactive 'icon-primitive-dot' 'icon-primitive-square' %}"></i>
+    <i class="{% ctf request.pref.interactive_enabled 'icon-primitive-dot' 'icon-primitive-square' %}"></i>
     </button>
   </p>
   {% endif %}
@@ -71,11 +72,12 @@
     >
     <i class="icon-menu"></i>
     </button>
-    <div class="dropdown-menu">
+    <div class="dropdown-menu cal-menu">
       <a class="dropdown-item" href="javascript:;"
          onclick="clearForm(document.getElementById('form-{{ input.cid }}'))">Clear Input</a>
       <a class="dropdown-item" href=""
          hx-get="/calc/add/?path={{ input.doc.name }}&part=1&cid={{input.cid}}"
+         hx-include="#extra_{{ input.cid }}"
          hx-target="closest .calc" hx-swap="outerHTML">Refresh Input</a>
       <a class="dropdown-item" href="/calc/{{input.doc.name}}/" target="_blank">Open in New Tab</a>
     </div><!-- important, path ensures not to recall -->

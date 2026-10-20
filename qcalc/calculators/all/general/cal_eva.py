@@ -5,7 +5,7 @@ from qcore import QScreen, qcode
 from calc import QCals
 from asteval import Interpreter
 from qvars import qc_gpref as gs
-from qutil import preprocess_expression, command_button, format_py_code, validate_expression_security
+from qutil import preprocess_expression, callback_button, format_py_code, validate_expression_security
 
 
 def eva__modify(arg_name, arg_value, action):
@@ -19,10 +19,10 @@ def eva__info():
     return {
         'title': 'Simple Expression Evaluator',
         'desc': 'Evaluate arbitrary expressions and functions',
+        'kins': 'mycal, mycal2, ai_chat',
         'inserts': {
-            'form_top': command_button('eva', 'Format Code', '__modify', kwargs={'code': 'format'})
+            'form_top': callback_button('eva', 'Format Code', '__modify', kwargs={'code': 'format'})
         },
-        'kins': 'mycal',
         'layout': 'tb',
     }
 

@@ -268,6 +268,13 @@ class qhtml(str):
         pass
 
 
+# Display output field containing scrollable conversation HTML.
+# Content must be escaped or otherwise made safe before constructing qchat.
+class qchat(str):
+    def __init__(self, _html):
+        pass
+
+
 # Display output field containing a loop-safe value string.
 class qvstr(str):  # value string, loop ok
     def __init__(self, _vstr):

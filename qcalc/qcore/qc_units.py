@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
-from qcore.qc_mbase import _base_names, _conv_names, lmt_title, dim_to_bname, _prefix_list,_prefixes
+from qcore.qc_mbase import _base_names, _conv_names, lmt_desc, dim_to_bname, _prefix_list,_prefixes
 from qcore.qc_munit import MeasureUnit, isMeasureUnit
 from qutil import iif, preprocess_expression
 import numpy as np
@@ -874,7 +874,7 @@ add_measurement_units()
 
 
 def lmt2catalog(dim):
-    dim_title = lmt_title(dim)
+    dim_title = lmt_desc(dim)
     categ_items = []
     bname = dim_to_bname(dim, _base_names)
     bname_url = bname.replace('/', '!')

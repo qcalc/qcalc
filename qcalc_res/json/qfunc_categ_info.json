@@ -110,6 +110,9 @@
     "all-infotech-seo": {
         "desc": "SEO calculators and audit tools for content quality, broken links, and search visibility scoring."
     },
+    "all-infotech-ai": {
+        "desc": "AI calculators and tools for estimating token costs, API usage, and efficiency of AI agents."
+    },
     "all-mathematics": {
         "desc": "Mathematics calculators for algebra, geometry, matrices, permutations, and statistics computations."
     },

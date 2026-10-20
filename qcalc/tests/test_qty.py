@@ -18,7 +18,7 @@ class TestQtyBasics(unittest.TestCase):
         self.assertTrue(isMeasureQuantity(x2))
         x3 = Qty('@ft')
         self.assertTrue(isMeasureQuantity(x3))
-        self.assertEqual(uname2lmt('ft/s'), 'LT-1')
+        self.assertEqual(unit2lmt('ft/s'), 'LT-1')
         self.assertFalse(is_str_qty('ft'))
         self.assertTrue(is_str_uom('ft'))
         self.assertTrue(is_str_named_uom('ft'))
@@ -49,8 +49,18 @@ class TestQtyBasics(unittest.TestCase):
 
     def test_3(self):
         self.assertTrue(len(lmt2ulist('L')) > 0)
+        ulist_subset = lmt2ulist('L', subset=True)
+        self.assertTrue(len(ulist_subset) > 0)
+        self.assertTrue(set([u[0] for u in ulist_subset]).issubset(
+            {'mm', 'cm', 'm', 'km', 'inch', 'ft', 'yd', 'mi', 'nmi'}))
+        ulist_area_with_default = lmt2ulist('L2', subset=True, default_uname='decimal')
+        self.assertTrue(len(ulist_area_with_default) > 0)
+        self.assertEqual(ulist_area_with_default[0][0], 'decimal')
+        ulist_currency_with_default = lmt2ulist('C', subset=True, default_uname='USD')
+        self.assertTrue(len(ulist_currency_with_default) > 0)
+        self.assertEqual(ulist_currency_with_default[0][0], 'usd')
         self.assertTrue(len(lmt2catalog('L')) > 0)
-        self.assertEqual(lmt_title('L'), 'Length, Wavelength')
+        self.assertEqual(lmt_desc('L'), 'Length, Wavelength')
         # self.assertTrue(len(search_qty_result('area')) >= 2)
         # self.assertTrue(uname2ulist('kg') >= 2)
         self.assertEqual(Qty('1 yd','ft').val,3)

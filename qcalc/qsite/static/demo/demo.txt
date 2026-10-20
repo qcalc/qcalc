@@ -1,0 +1,12 @@
+Calculate. Explore. Create. Share
+
+Calculations are everywhere. Some are simple enough for a pocket calculator, while others involve formulas, units, data, charts, simulations, or specialized technical knowledge. Many useful calculations are too specific to justify building a complete application, so they end up being done repeatedly in spreadsheets, scripts, or by hand.
+
+qCalc aims to provide a simpler way.
+Use a calculator—or create your own
+
+qCalc provides a growing collection of calculators covering business, family, engineering, finance, photography, everyday calculations, and many other areas.
+
+But qCalc is not intended to be just a collection of predefined calculators.
+
+With qCalc, you can create your own calculator using Python directly in your browser. Using its function to form capability, qCalc can automatically turn a Python function into a user-friendly calculator form, using the function's parameters to build the interface. You can check and validate your code, test it, and save the calculator for future use. qCalc automatically lets those calculations become building blocks for scenarios, comparisons, and simulations helping you move from calculation to decision.

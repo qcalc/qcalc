@@ -102,6 +102,9 @@ ROW_INDEX_PATTERN = re.compile(r'^\d+(\s*-\s*\d+)?$')
 # Compiled because this fixed validator is reused by calculator call parsing.
 FUNC_CALL_PATTERN = re.compile(r'^[a-zA-Z_]\w*\(.*\)$')
 
+# Compiled because AI code responses may contain fenced Python code blocks.
+CODE_BLOCK_PATTERN = re.compile(r"```(?:python)?\s*(.*?)```", re.IGNORECASE | re.DOTALL)
+
 # Compiled because percent parsing runs frequently in result-table scans.
 PERCENT_PATTERN = re.compile(r'^\s*([+-]?\d+(?:\.\d*)?|[+-]?\.\d+)\s*%\s*$')
 

@@ -495,14 +495,6 @@ def q1_run_func(request: HtmxHttpRequest, **dictf):
 def q1149_func_to_form_context(request: HtmxHttpRequest, func_id, cid, kwargs):
     func_addr = QCals.addr(func_id)
     __info = kwargs.get('__info', None)
-
-    # if request.recall:
-    #     # recalling dynamic info is problematic if there are more than one calculator
-    #     # on screen, __info can be different, so we shouldn't recall info
-    #     # effectively it also mean we should not remember calculation
-    #     __info = QMem.getf2(request, sfunc, 'input', '__info')
-    #     print('__info from recall', __info, kwargs)
-    #     kwargs.update({'__info': __info})
     request.json_doc = q1141_read_func_meta(func_id, __info)
     request.json_doc['info']['help'] = get_fhelp(func_id, __info)
     request.json_doc['info']['inp1'] = ut.specified_args(func_addr, request.json_doc['info']['inp1'], empty_spec='')
@@ -512,6 +504,8 @@ def q1149_func_to_form_context(request: HtmxHttpRequest, func_id, cid, kwargs):
     )
     # print('|', request.json_doc['info']['input_blocks'])
     q11429_func_to_form_schema(request, func_addr, func_id, cid, kwargs)
+    apply_persistent_request_prefs(request)
+    apply_request_layout(request)
     request.context['input'] = q11469_form_data_create_dynaform_and_fill(
         request, request.json_schema, request.json_data, request.json_s2f,
         request.json_doc, cid, 0)  # data, form, doc[info]
@@ -520,6 +514,7 @@ def q1149_func_to_form_context(request: HtmxHttpRequest, func_id, cid, kwargs):
     # print('|',request.json_s2f, request.json_c4f)
 
     result = q11449_form_data_postprocess_and_run(request, func_id)  # , cid
+    request.context['input']['extra'] = serialize_persistent_request_prefs(request)
     # update ojson_data, ojson_schema
     proper_dict = request.json_doc['info']['proper']
     q1145_result_to_form_schema(request, func_id, cid, result, proper_dict)
@@ -588,6 +583,23 @@ def q1149_func_to_form_context(request: HtmxHttpRequest, func_id, cid, kwargs):
     request.context['has_owner_examples'] = has_owner_examples
     # end change@29.07.26
     return
+
+
+def apply_request_layout(request: HtmxHttpRequest):
+    layout = request.pref.get('layout')
+    if layout is None:
+        return
+
+    info = request.json_doc['info']
+    info['layout'] = layout
+    if has_dynamic_layout(info):
+        info['template'] = 'dynamic'
+    else:
+        info['template'] = template_name(
+            layout,
+            info.get('inp1', '*'),
+            info.get('out1', '*'),
+        )
 
 
 def get_file(request, sfunc, sfld, value):

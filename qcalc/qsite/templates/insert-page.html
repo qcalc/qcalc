@@ -17,15 +17,15 @@
           <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
             {% if request.user.is_authenticated %}
             <a class="dropdown-item" href="javascript:;"
-            onclick="calWithCmd('{{ input.cid }}', '{{ input.doc.name }}', 'save_var');">Save Current Variant</a>
+            onclick="window.QCalcActions.calWithCmd('{{ input.cid }}', '{{ input.doc.name }}', 'save_var');">Save Current Variant</a>
             <a class="dropdown-item" href="javascript:;"
-            onclick="calWithCmd('{{ input.cid }}', '{{ input.doc.name }}', 'create_var');">Create New Variant</a>
+            onclick="window.QCalcActions.calWithCmd('{{ input.cid }}', '{{ input.doc.name }}', 'create_var');">Create New Variant</a>
             {% concat 'func_id/' input.doc.name '/&run' as parameters %}
             {% callink 'code' 'Show Code' 'dropdown-item' '' 'a'  parameters as show_code %}
             {{ show_code }}
             {% endif %}
             <a class="dropdown-item" href="javascript:;"
-            onclick="saveInputToFile('{{ input.cid }}', '{{ input.doc.name }}');">Save Input to File...</a>
+            onclick="window.QCalcActions.saveInputToFile('{{ input.cid }}', '{{ input.doc.name }}');">Save Input to File...</a>
             <a class="dropdown-item" href="/calc/core/{{ input.doc.name }}/?run" target="_blank">Printable View...</a>
           </div>
           {% endif %}

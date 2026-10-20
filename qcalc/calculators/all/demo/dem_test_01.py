@@ -8,7 +8,7 @@ from calculators.all.engineering.surveying import rectland
 from calculators.all.mathematics.geometry import circle
 from calculators.all.health import bmi
 from calc import QList
-from qutil import cal_link, resize_df, csv2df, command_button, calurl
+from qutil import cal_link, resize_df, csv2df, callback_button, calurl
 import time
 from calculators.all.general import conv2
 from qcore.mod_anno import *
@@ -26,7 +26,7 @@ def demo_modify_number__info():
         'title': 'Testing __modify Number',
         'desc': 'Modify int argument y before calculation',
         'inserts': {
-            'form_bottom': command_button('demo_modify_number', 'Y**2', '__modify', args=['y'])
+            'form_bottom': callback_button('demo_modify_number', 'Y**2', '__modify', args=['y'])
             # not good for scripting
         }
     }
@@ -48,7 +48,7 @@ def demo_modify_text__info():
         'title': 'Testing __modify Text',
         'desc': 'Modify multiple arguments x and y before calculation',
         'inserts': {
-            'form_bottom': command_button('demo_modify_text', 'Load', '__modify', args=['x', 'y'])
+            'form_bottom': callback_button('demo_modify_text', 'Load', '__modify', args=['x', 'y'])
             # not good for scripting
         }
     }

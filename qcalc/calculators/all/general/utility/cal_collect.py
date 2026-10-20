@@ -11,7 +11,7 @@ from calc import (
     get_shared_dataset,
 )
 import json
-from qutil import find_matched_variables, addcal_button
+from qutil import action_button, find_matched_variables, addcal_button, action_script
 from calculators.all.general.chart import pie_chart
 from qcore import qhtml, qtable, Qty, _unit_tree, qformat_q
 
@@ -152,32 +152,26 @@ def cost__info():
         },
         'inserts': {
             'form_bottom': addcal_button('rates', 'Schedule of Rates') +
-                           '<button type="button" class="btn btn-info btncmd ml-2 cmd-rates" '
-                           'name="apply_rate">Apply Rates</button>'
+                           action_button('apply_rate', 'Apply Rates', 'cmd-rates') +
                            '<p><small class="text-muted ml-2">After [Apply Rates], click [Update] before [Calculate].</small></p>'
-            # command_button() # not good for scripting
+            # callback_button() # not good for scripting
         },
         'step2': [
             {'step': 'chart', 'caption': 'Modify Chart', 'spec': {'field': 'Chart'}}
         ],
-        'script': '''
-$(document).ready(function() {
-    $(".cmd-rates").on("click", function() {
-        updateAllData($(this));
-        cid = getCidOf($(this));
-        qcalc_EnableTableUpdateAfterSwap(cid);
-        updateExtra(cid, {
-            "cmd":"__modify",
-            "args":["@items"],
-            "kwargs":{"@items":{
-                "dataset_type":"item_rates",
-                "dataset_key":"rates_master"
-            }}
-        });
-        qcalc_FullFormSubmit(cid);
-    });
-});
-        '''
+        'script': action_script(
+            button_name='apply_rate',
+            cmd='__modify',
+            args=['items'],
+            kwargs={
+                'items': {
+                    'dataset_type': SHARED_RATES_TYPE,
+                    'dataset_key': SHARED_RATES_KEY,
+                },
+            },
+            sync_table_data=True,
+            enable_table_update_after_swap=True,
+        ),
     }
 
 

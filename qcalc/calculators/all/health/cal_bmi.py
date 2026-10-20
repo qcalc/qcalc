@@ -20,7 +20,7 @@ def bmi__info():
                 'spec': {'weight': 'weight', 'height': 'height'}
             }
         ],
-        'interactive': False,
+        'interactive': True,
         'proper': 'BMI',
     }
 

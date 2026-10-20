@@ -4,6 +4,8 @@
 import pandas as pd
 import re
 import json
+from html import escape
+from textwrap import dedent
 
 
 def page_link(pageurl, caption='', link_class="", icon_class="", cid='', card=False):
@@ -87,7 +89,7 @@ def cal_link(calurl, caption='', link_class='', icon_class='', target='a', cid='
         return f'<div class="col mb-4">{link_card}</div>'
 
 
-def command_button(sfunc, caption, cmd, args=None, kwargs=None):
+def callback_button(sfunc, caption, cmd, args=None, kwargs=None):
     """Build a submit button that posts a calculator callback command.
 
     The generated button posts to ``/calc/<sfunc>/?part=2`` with command payload
@@ -117,6 +119,71 @@ def command_button(sfunc, caption, cmd, args=None, kwargs=None):
     return htm
 
 
+def action_button(name, caption, button_class=''):
+    """Build a named button for a calculator form action script."""
+    if not isinstance(name, str) or not name:
+        raise ValueError('name must be a non-empty string')
+
+    classes = 'btn btn-info btncmd ml-2'
+    if button_class:
+        classes += f' {button_class}'
+
+    return (
+        f'<button type="button" class="{escape(classes, quote=True)}" '
+        f'name="{escape(name, quote=True)}">{escape(str(caption))}</button>'
+    )
+
+
+def action_script(
+    button_name, cmd, field_refs=None, args=None, kwargs=None, extra=None,
+    sync_table_data=False, enable_table_update_after_swap=False):
+    """Build a named-button handler that submits a structured calculator command."""
+    if not isinstance(button_name, str) or not button_name:
+        raise ValueError('button_name must be a non-empty string')
+
+    def field_ref(field_name):
+        if not isinstance(field_name, str) or not field_name:
+            raise ValueError('Calculator field names must be non-empty strings')
+        return f'@{field_name}'
+
+    payload = {'cmd': cmd}
+    payload.update(extra or {})
+
+    if field_refs:
+        payload.update({
+            property_name: field_ref(field_name)
+            for property_name, field_name in field_refs.items()
+        })
+    if args:
+        payload['args'] = [field_ref(field_name) for field_name in args]
+    if kwargs:
+        payload['kwargs'] = {
+            field_ref(field_name): action
+            for field_name, action in kwargs.items()
+        }
+
+    selector = json.dumps(f'button[name="{button_name}"]')
+    payload_json = json.dumps(payload, separators=(',', ':'))
+    sync_script = 'updateAllData($(this));' if sync_table_data else ''
+    update_script = (
+        'qcalc_EnableTableUpdateAfterSwap(cid);'
+        if enable_table_update_after_swap else ''
+    )
+
+    return dedent(f'''
+        $(document).ready(function() {{
+            const buttonSelector = {selector};
+            $(buttonSelector).on("click", function() {{
+                {sync_script}
+                const cid = getCidOf($(this));
+                {update_script}
+                window.QCalcActions.updateExtra(cid, {payload_json});
+                window.QCalcActions.qcalc_FullFormSubmit(cid);
+            }});
+        }});
+    ''')
+
+
 def addcal_button(calname, caption, icon_class=''):
     """Build a styled button that inserts a calculator card into the page."""
     return cal_link(calurl(calname), caption, 'btn btn-info btncmd', icon_class, 'a', '', True)
@@ -141,7 +208,7 @@ def list2table(lst, cols, cid, elem, url_format='', url_col=-1):
 
 
 if __name__ == '__main__':
-    print(command_button('cost', 'Refresh', '__modify', args=['a', 'b']))
+    print(callback_button('cost', 'Refresh', '__modify', args=['a', 'b']))
     print(cal_link(calurl('gold'), 'Gold', cid='xyz'))
     print(cal_link(calurl('bmi', 'weight/50 kg/height/5.5 ft/'), 'Gold', cid='xyz'))
     print(page_link('/page/home/'))

@@ -8,8 +8,19 @@ import numbers
 from qvars import qc_gpref as gs
 
 
-def uprefs():
+def thread_prefs():
+    # Thread-local effective preferences for the current execution context.
+    # Safe fallback behavior: returns global defaults when thread-local prefs
+    # were not set yet (e.g. some utility/test call paths).
     return QThread.get_prefs()
+
+
+def request_prefs():
+    # Request-scoped preferences for the active HTTP request.
+    # More specific than thread_prefs() during form/view rendering because
+    # request.pref includes per-request overrides.
+    request = QThread.get_req()
+    return request.pref if request is not None else thread_prefs()
 
 
 def qformat_q(qty: Qty | str, val_only=False) -> str:
@@ -29,8 +40,10 @@ def qformat(val, unit=None, pref=None) -> None | str | list[str]:
     if val is None or (isinstance(val, float) and math.isnan(val)):
         return val if unit is None else [val, unit.name()]
 
+    # qformat() is used from request and non-request execution paths;
+    # thread_prefs() keeps the fallback safe when no HTTP request is active.
     if pref is None:
-        pref = uprefs()
+        pref = thread_prefs()
 
     # Some call paths set only a subset of preferences in thread-local storage.
     # Merge with global defaults so formatter keys are always available.
@@ -124,14 +137,16 @@ def replace_cur(val, uname, cur='UNC', pref_cur: str | None = None):
         uname: Source unit string that may contain currency unit ``cur``.
         cur: Currency unit to replace (default ``'UNC'``).
         pref_cur: Optional preferred currency code (e.g. ``"EUR"``).
-            When omitted, ``uprefs()`` is used.
+            When omitted, ``thread_prefs()`` is used.
 
     Returns:
         A ``(value, unit_name)`` tuple converted to the preferred currency unit.
         If preferred currency equals ``cur``, returns the input ``(val, uname)``.
     """
     if pref_cur is None:
-        pref = uprefs()
+        # This helper is used from request and non-request paths; thread_prefs()
+        # provides a safe default currency preference in both contexts.
+        pref = thread_prefs()
         mycur = pref.get('defa_currency', 'UNC')
     else:
         mycur = pref_cur

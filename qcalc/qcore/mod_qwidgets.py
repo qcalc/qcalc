@@ -132,24 +132,65 @@ class CodeWidget_codemirror(Widget):
                 top: 0;
             }
             .elem-wrapper.fullscreen .CodeMirror {
-                height: calc(100vh - 80px);
+                height: calc(100vh - 16px);
+            }
+            .code-widget-controls {
+                align-items: center;
+                display: flex;
+                gap: 0.35rem;
+                position: absolute;
+                right: 10px;
+                top: 10px;
+                z-index: 25;
+            }
+            .code-widget-controls .fullscreen-square {
+                position: static;
+            }
+            .code-widget-menu {
+                position: relative;
+            }
+            .code-widget-menu-toggle {
+                align-items: center;
+                display: inline-flex;
+                height: 20px;
+                justify-content: center;
+                min-width: 20px;
+                padding: 0;
+            }
+            .code-widget-menu-panel {
+                min-width: 180px;
+                position: absolute;
+                right: 0;
+                top: calc(100% + 6px);
+                z-index: 30;
+            }
+            .code-widget-menu-panel .dropdown-item {
+                cursor: pointer;
             }
         </style>
         '''
         ret += f'''
         <div class="elem-wrapper" style="width:100%;">
         <textarea id="{self.id}" name="{name}"{extra_attrs_str}{' disabled' if disabled else ''}{' readonly' if readonly else ''}>{escape(value) if value else ""}</textarea>
-        <span class="fullscreen-square" onclick="toggleFullscreen(this.closest('.elem-wrapper'))"></span>
+        <div class="code-widget-controls">
+            <span class="fullscreen-square" onclick="toggleFullscreen(this.closest('.elem-wrapper'))"></span>
+            <div class="code-widget-menu">
+                <button type="button" class="btn btn-info btncmd code-widget-menu-toggle" title="Code actions"
+                        aria-label="Code actions" onclick="toggleCodeMirrorWidgetMenu(this, '{self.id}_menu')">
+                    <i class="icon-menu7"></i>
+                </button>
+                <div id="{self.id}_menu" class="dropdown-menu cal-menu dropdown-menu-right code-widget-menu-panel">
+                    <button type="button" class="dropdown-item" onclick="codeMirrorWidgetMenuAction('{self.id}', 'copy')">Copy all</button>
+                    <button type="button" class="dropdown-item" onclick="codeMirrorWidgetMenuAction('{self.id}', 'paste')">Paste (replace)</button>
+                    <button type="button" class="dropdown-item" onclick="codeMirrorWidgetMenuAction('{self.id}', 'clear')">Clear</button>
+                    <div class="dropdown-divider"></div>
+                    <button type="button" class="dropdown-item" onclick="codeMirrorWidgetMenuAction('{self.id}', 'upload')">Upload from file</button>
+                    <button type="button" class="dropdown-item" onclick="codeMirrorWidgetMenuAction('{self.id}', 'save')">Save to file</button>
+                </div>
+            </div>
+        </div>
          <input type="file" id="{self.id}_upload" accept=".py,text/x-python" class="inputfile"
              onchange="uploadCodeMirrorWidget(this, '{self.id}')">
-         <button type="button" class="btn btn-info btncmd mt-2" title="Upload from file"
-              aria-label="Upload from file" onclick="document.getElementById('{self.id}_upload').click()">
-             <i class="icon-file-upload"></i>
-         </button>
-        <button type="button" class="btn btn-info btncmd mt-2" title="Save to file"
-                aria-label="Save to file" onclick="downloadCodeMirrorWidget('{self.id}')">
-            <i class="icon-file-download"></i>
-        </button>
         </div>
         <script>initializeCodeMirrorWidget("{self.id}");</script>
         '''

@@ -5,6 +5,7 @@ import logging
 from datetime import date, datetime, time as dt_time
 
 import pandas as pd
+from django.utils.html import escape
 from django.utils.safestring import mark_safe
 
 import qconst
@@ -18,6 +19,7 @@ from qcore import (
     df_formatter,
     is_qtbl,
     qformat,
+    qchat,
     qhtml,
     qjson_dumps,
     qerror,
@@ -140,8 +142,25 @@ def q1145_result_to_form_schema(request, func_id, cid, result, proper_dict):
                 wrap_actions(f"<img class='img-plot qhtml' src='data:image/png;base64,{value.image()}'>")
             )
             request.ojson_data_type.append('html')
+        elif isinstance(value, qchat):
+            chat_html = f"""
+            <div class="qchat" role="log" aria-live="polite" tabindex="0">{value}</div>
+            <script>
+            (() => {{
+                const script = document.currentScript;
+                const chat = script ? script.previousElementSibling : null;
+                if (chat) chat.scrollTop = chat.scrollHeight;
+            }})();
+            </script>
+            """
+            request.ojson_data[name] = mark_safe(wrap_actions(chat_html, 'chat-wrap'))
+            request.ojson_data_type.append('html')
         elif isinstance(value, qpage):
-            request.ojson_data[name] = qhtml(f"<pre>{mark_safe(value)}</pre>")
+            safe_text = escape(str(value))
+            request.ojson_data[name] = qhtml(
+                "<pre style='white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word;'>"
+                f"{safe_text}</pre>"
+            )
             request.ojson_data_type.append('html')
         elif isinstance(value, float):
             request.ojson_data[name] = qformat(value, pref=us)

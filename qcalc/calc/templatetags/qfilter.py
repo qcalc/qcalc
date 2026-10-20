@@ -351,6 +351,21 @@ def render_help_text(field):
     from django.templatetags.static import static
 
     if hasattr(field, 'help_text'):
+        widget_attrs = getattr(getattr(getattr(field, 'field', None), 'widget', None), 'attrs', {}) or {}
+        inline_help = str(widget_attrs.get('data-help-inline', '')).lower() in {'1', 'true', 'yes'}
+
+        if inline_help:
+            return format_html(
+                (
+                    "<a class='qcalc-help-tip' tabindex='0' data-toggle='tooltip' "
+                    "data-trigger='hover focus' data-placement='top' title='{}'>"
+                    "<img src='{}' class='info' alt='Help'></a>"
+                    "<small class='text-muted d-block qcalc-help-inline'>{}</small>"
+                ),
+                field.help_text,
+                static('calc/images/info.png'),
+                field.help_text,
+            )
         return format_html(
             (
                 "<a class='qcalc-help-tip' tabindex='0' data-toggle='tooltip' "

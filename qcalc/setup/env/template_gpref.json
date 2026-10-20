@@ -5,6 +5,7 @@
   "decimal": 5,
   "qty_decimal": 3,
   "currency_decimal": 2,
+  "uom_subset_enabled": false,
   "thousands_separator": true,
   "exponent_threshold_min": 1.0e-6,
   "exponent_threshold_max": 1.0e9,

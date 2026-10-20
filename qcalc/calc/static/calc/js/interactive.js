@@ -34,8 +34,8 @@
         form.dataset.interactiveEnabled = enabled ? 'true' : 'false';
         updateInteractiveTarget(form, enabled);
         updateInteractiveButton(button, enabled);
-        if (window.updateExtra) {
-            updateExtra(form.id.replace(TOK_FORM_PREFIX, ''), {
+        if (window.QCalcActions && window.QCalcActions.updateExtra) {
+            window.QCalcActions.updateExtra(form.id.replace(TOK_FORM_PREFIX, ''), {
                 interactive_enabled: enabled ? '1' : '0'
             });
         }

@@ -538,7 +538,9 @@
     // need the whole form re-rendered, so ask the shared helper for a
     // full-form submit (qcalc.js handles the swap retarget, server routes it).
     function submitWithFullFormSwap(cid) {
-        window.qcalc_FullFormSubmit(cid);
+        if (window.QCalcActions && window.QCalcActions.qcalc_FullFormSubmit) {
+            window.QCalcActions.qcalc_FullFormSubmit(cid);
+        }
     }
 
     // Trial: remember local fullscreen table before structural re-render.

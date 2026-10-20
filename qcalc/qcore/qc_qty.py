@@ -8,6 +8,7 @@ from qcore.qc_mbase import _fps_names, _cgs_names, _base_categories, powers_to_b
 from qcore.qc_munit import isMeasureUnit
 from qcore.qc_units import _unit_table, _unit_info, _base_names, _unit_tree, unit_desc
 from qcore.qc_mquantity import MeasureQuantity as MQty, find_unit, isMeasureQuantity
+from qcore.qc_units_subset import UNITS_SUBSET_KEYS
 
 
 def _decode_qty(jso):
@@ -277,7 +278,7 @@ def str_type(sunit):
             return 'text', sunit, 0
 
 
-def uname2lmt(uname):
+def unit2lmt(uname):
     lmt = None
     if uname is not None:
         unit1 = find_unit(uname)
@@ -285,7 +286,7 @@ def uname2lmt(uname):
     return lmt
 
 
-def lmt2categ(lmt):
+def lmt2cat(lmt):
     if lmt in _base_categories:
         categ = _base_categories[lmt] + f' ({lmt})'
     else:
@@ -293,14 +294,35 @@ def lmt2categ(lmt):
     return categ
 
 
-def lmt2ulist(lmt):
+def lmt2ulist(lmt, subset=False, default_uname=None):
     tmp = []
     if lmt is not None:  # @ft output  @11.09.23
         # there are some lmt e.g. LT for which there are no member units
         # so _unit_tree[lmt] will raise exception, better to use _unit_tree.get(lmt,[])
-        ulist = _unit_tree.get(lmt.upper(), [])
+        lmt_key = lmt.upper()
+        ulist = _unit_tree.get(lmt_key, [])
+
+        if subset:
+            allowed = UNITS_SUBSET_KEYS.get(lmt_key)
+            if allowed is not None:
+                # Use precomputed normalized subset keys directly so delayed unit-registry
+                # loading (for example currencies) still shows configured subset entries.
+                ulist = list(allowed)
+            if default_uname:
+                try:
+                    normalized_default = default_uname.lower()
+                    default_lmt = unit2lmt(default_uname)
+                    if default_lmt and default_lmt.upper() == lmt_key and normalized_default not in ulist:
+                        ulist = [normalized_default] + ulist
+                except Exception:
+                    pass
+
         for uname in ulist:
-            tmp.append((uname, f"{_unit_info[uname]['proper_name']} ({_unit_info[uname]['long_name']})"))
+            info = _unit_info.get(uname)
+            if info is None:
+                tmp.append((uname, uname))
+            else:
+                tmp.append((uname, f"{info['proper_name']} ({info['long_name']})"))
     return tmp
 
 

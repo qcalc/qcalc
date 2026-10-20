@@ -10,11 +10,11 @@ import datetime
 from qcore import (
     # | Qty class and related functions
     Qty, base_units, base_dims, unit_desc, prefixes,
-    uname2lmt as unit2lmt, lmt_title as lmt_desc, str_type,
-    lmt2categ as lmt2cat, lmt2ulist, lmt2qlist, find_unit, is_str_qty, qx, qxi,
+    unit2lmt, lmt_desc, str_type,
+    lmt2cat, lmt2ulist, lmt2qlist, find_unit, is_str_qty, qx, qxi,
     isMeasureUnit as is_unit, isMeasureQuantity as is_qty, read_unit,
     # | Keep the following annotations
-    qchar, qcode, qdate, qdict, qdatetime, qemail, qfl, qfile, qfunc, qhide,
+    qchar, qcode, qdate, qdict, qdatetime, qemail, qchat, qfl, qfile, qfunc, qhide,
     qhidex, qhtml, qin, qimage, qlist, qpage, qread, qregex, qsel2, qtbl, qtc,
     qtc2, qtext, qtexta, qtexte, qtime, qt, qt2, qtx, quom, quom2, quomx,
     qurl, qvstr, qerror, qwarn, qinfo,
@@ -25,13 +25,14 @@ from qcore import (
     table_columns_validator, require_columns, require_values_subset, require_unique_values,
     require_unique_pairs, require_complete_pair_grid, validate_value_columns_against_master,
     qformat_q, qformat_v, to_ucur,
+    ai_prompt_field, br,
 )
 
 from qutil import (
     QDateTime, today, now, spellnow,  # mod_datetime
     DotDict, dd_list,  # mod_dict
     user_name, user_process, user_ip, local_ip,  # mod_user
-    page_link, calurl, cal_link, command_button, addcal_button,  # mod_links
+    page_link, calurl, cal_link, callback_button, action_button, action_script, addcal_button,  # mod_links
     iif, joinx, css2floats, css2ints, css2values, css2strs, vals2css, css2set,  # mod_basic
     md2html, demo_url, is_debug, is_blank, normalize_name, to_float, pct2fraction, val2fraction, to_cast,
     to_bool, parameter_values, as_float, specified_args, preprocess_expression, time2float, variable_to_title,
@@ -65,7 +66,7 @@ qlib_dict = {
 
 __qtypes__ = [
     'qchar', 'qcode', 'qdate', 'qdict', 'qdatetime', 'qemail',
-    'qfl', 'qfile', 'qfunc', 'qhide', 'qhidex', 'qhtml', 'qin', 'qimage', 'qlist', 'qpage',
+    'qchat', 'qfl', 'qfile', 'qfunc', 'qhide', 'qhidex', 'qhtml', 'qin', 'qimage', 'qlist', 'qpage',
     'qread', 'qregex', 'qsel2', 'qtbl', 'qtc', 'qtc2', 'qtext', 'qtexta',
     # | qtable (real pd.DataFrame) deliberately excluded: safe_execute()'s AST check
     # | doesn't block attribute calls like .eval()/.query()/.to_pickle() on it - use qtbl instead
@@ -80,16 +81,18 @@ __evacon__ = [
     'minimum',  # this file
     'table_columns_validator', 'require_columns', 'require_values_subset', 'require_unique_values',
     'require_unique_pairs', 'require_complete_pair_grid', 'validate_value_columns_against_master',
-    'qformat_q', 'qformat_v', 'to_ucur', # qcore.mod_qcutil
+    'qformat_q', 'qformat_v', 'to_ucur',  # qcore.mod_qcutil
+    'ai_prompt_field', 'br',  # qcor.mod_fields
     'iif', 'joinx', 'css2floats', 'css2ints', 'css2values', 'css2strs', 'vals2css', 'css2set',  # qutil.mod_basic
-    'np', 'qdf', 'qcol', 'qrow', 'qsum', 'qapply', 'qadd', 'qsub', 'qmul', 'qdiv', 'qto_values', # qapi.mod_qtbl
+    'np', 'qdf', 'qcol', 'qrow', 'qsum', 'qapply', 'qadd', 'qsub', 'qmul', 'qdiv', 'qto_values',  # qapi.mod_qtbl
     'qconvert', 'qbinary', 'qdf_demo_data',
     'qtypes', 'qmodules', 'qsymbols', 'qsymstat', 'qsymhelp',  # qapi.mod_autil
     'QFile', 'qf2bio', 'dd_list',
     'QImage', 'qf2img', 'nparray_to_bio',
     'QChart', 'QGeo', 'QMap', 'SmartCalc',
     'user_name', 'user_process', 'user_ip', 'local_ip',  # qutil.mod_user
-    'page_link', 'calurl', 'cal_link', 'command_button', 'addcal_button',  # qutil.mod_links
+    'page_link', 'calurl', 'cal_link', 'callback_button', 'action_button', 'action_script', 'addcal_button',
+    # qutil.mod_links
     'today', 'now', 'spellnow',  # qutil.mod_datetime
     'md2html', 'demo_url', 'is_debug', 'is_blank', 'normalize_name', 'to_float', 'pct2fraction', 'val2fraction',
     'to_cast',

@@ -3,11 +3,16 @@
 
 import pandas as pd
 from titlecase import titlecase
-from qcore import qtexta, QScreen, qchar, qtable, as_qtable
+from qcore import qtexta, QScreen, qchar, qtable, as_qtable, qfile, qurl, qhtml
 from wordcloud import STOPWORDS
 from functools import partial
+import math
 import re
-from qutil import get_synonyms, validated_col
+from qutil import get_synonyms, validated_col, demo_url, word_count, url2text, nzs
+
+example_text = "Data science and data analysis help us understand big data through data visualization and data cleaning. "\
+               "Modern data science relies on powerful Python code, libraries, and specialized Python tools to extract deep insights. "\
+               "Furthermore, modern analysis requires clean code to build accurate machine learning models and predictive models."
 
 
 def textcase__info():
@@ -134,7 +139,7 @@ def string2list(string: qtexta = 'Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, O
     out.write(slist)
     array = out.flush()
     return {
-        "List": array,
+        "List": qhtml(array),
         "Table": df
     }
 
@@ -160,4 +165,60 @@ def list2string(table: qtable = pd.DataFrame(
     string = sep.join(table[col])
     return {
         "String": string,
+    }
+
+
+def text_stats__info():
+    return {
+        'title': 'Text Statistics',
+        'showhide': {
+            'mode': {
+                'fields': ['upload_text', 'text_url', 'text'],
+                'callback': 'text_stats_mode_showhide',
+            },
+        },
+        'schema': {
+            'mode': {
+                'type': 'choice',
+                'choices': {'File': 'File', 'URL': 'URL', 'Text': 'Text'},
+                'initial': 'Text',
+                'help_text': 'Choose whether to analyze text from a file, URL, or direct text input.',
+            },
+        },
+        'script': """
+        function text_stats_mode_showhide(v){
+            return [v === 'File', v === 'URL', v === 'Text'];
+        }
+        """,
+    }
+
+
+def text_stats(upload_text: qfile = None, text_url: qurl = demo_url('demo.txt'),
+               text: qtexta = example_text, mode='Text'):
+    mode = str(mode).strip().upper()
+    if mode == 'TEXT':
+        if nzs(text) == '':
+            raise Exception('Error (TS): A valid Text is not found')
+        text_content = text
+    elif mode == 'URL':
+        if not text_url:
+            raise Exception('Error (TS): A valid URL is not found')
+        text_content = url2text(text_url)
+    elif mode == 'FILE':
+        if upload_text is None:
+            raise Exception('Error (TS): A valid Text File is not found')
+        text_content = upload_text.text()
+    else:
+        raise Exception("Error (TS): mode must be one of 'File', 'URL', or 'Text'")
+
+    char_count = len(text_content)
+    char_count_no_space = len(re.sub(r'\s+', '', text_content))
+    wc, _ = word_count(text_content)
+    token_estimate = int(math.ceil(char_count_no_space / 4.0)) if char_count_no_space > 0 else 0
+
+    return {
+        'Character Count': char_count,
+        'Character Count (No Space)': char_count_no_space,
+        'Word Count': wc,
+        'Token Estimate': token_estimate,
     }

@@ -9,7 +9,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 from .mod_qimage import QImage
 from .mod_qchart import QChart
 import json
-from qcore import qhtml
+from qcore import qchat, qhtml
 import datetime
 import decimal
 
@@ -302,7 +302,7 @@ def truncate_strings(d, max_length=256):
         return {k: truncate_strings(v, max_length) for k, v in d.items()}
     elif isinstance(d, list):
         return [truncate_strings(i, max_length) for i in d]
-    elif isinstance(d, qhtml):
+    elif isinstance(d, (qchat, qhtml)):
         return 'html... (TRUNCATED)'
     elif isinstance(d, pd.DataFrame):
         return d.columns.to_list()

@@ -14,7 +14,7 @@ from qvars import qc_gpref as gs, qfunc_info, qty_categ_info, unit_info, qfunc_c
 import bisect
 from .mod_redis import redis_publish_action
 from qcore import _unit_table, Qty, _base_categories, _unit_tree, _unit_info, \
-    unit_short_desc, _base_categ_d2s, _qty_tree, _qty_info, lmt_title, dim_to_bname, _base_names
+    unit_short_desc, _base_categ_d2s, _qty_tree, _qty_info, lmt_desc, dim_to_bname, _base_names
 from asteval import make_symbol_table
 from .mod_cache import QMeta, QMyCal
 import qapi
@@ -505,7 +505,7 @@ class QCals:
 
         for dim in _qty_tree:
             slug = _base_categ_d2s[dim]
-            title = lmt_title(dim)
+            title = lmt_desc(dim)
             name = f"{slug}_objects"
             child = TreeNode(nid=name, name=name, title=title,
                              desc=f"Magnitude of the \"{title}\" of representative physical objects",

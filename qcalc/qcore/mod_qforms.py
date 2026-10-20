@@ -5,6 +5,7 @@ from .qc_qty import *
 from .mod_qfields import *
 from qutil import fchoices, variable_to_title
 from .mod_qfvalidators import validate_file_size
+from .mod_qcutil import request_prefs
 
 
 class QFieldHandler:
@@ -18,6 +19,8 @@ class QFieldHandler:
         self.cid = cid
         self.list_added = {}  # dict of list
         self.proper_dict = proper_dict
+        pref = request_prefs()
+        self.uom_subset = pref.get('uom_subset_enabled', False)
 
         i = -1
         for field_meta in json_schema:
@@ -69,7 +72,11 @@ class QFieldHandler:
         if field_meta['type'] in ['uom2', 'select2', 'quom2', 'qsel2']:  # @08-13.01.24
             if field_meta['name'] in post_data:
                 field_meta['initial'] = post_data[field_meta['name']]
-        if field_meta['type'].startswith('btn') or options['label'] == '-':  # or implicitly ""
+        # | Hide label if following conditions are met
+        if (field_meta['type'].startswith('btn') or
+            field_meta['name'].startswith('_') or
+            options['label'].startswith('_') or
+            options['label'].startswith('-')):  # or implicitly ""
             options['label'] = ""
         return options
 
@@ -118,33 +125,39 @@ class QFieldHandler:
         # | in case of uom2 and select2 field_meta['initial'] is replaced with current posted value
         # | however options['initial'] remains the original arguement value
         uname = options['initial'] or 'm'
-        lmt = uname2lmt(uname)
+        lmt = unit2lmt(uname)
+        use_subset = self.uom_subset
+        cache_key = (lmt, use_subset, uname) if use_subset else lmt
         list_exists = True
-        if lmt not in self.list_added:
+        if cache_key not in self.list_added:
             list_exists = False
-            self.list_added[lmt] = lmt2ulist(lmt)
-        ulist = self.list_added[lmt]
+            self.list_added[cache_key] = lmt2ulist(lmt, subset=use_subset, default_uname=uname)
+        ulist = self.list_added[cache_key]
         return Uom2Field(field_meta, lmt, list_exists, choices=ulist, **options)
 
     def create_uom_field(self, field_meta, options):  # tested, deb@08.23
         uname = field_meta['initial']
-        lmt = uname2lmt(uname)
+        lmt = unit2lmt(uname)
+        use_subset = self.uom_subset
+        cache_key = (lmt, use_subset, uname) if use_subset else lmt
         list_exists = True
-        if lmt not in self.list_added:
+        if cache_key not in self.list_added:
             list_exists = False
-            self.list_added[lmt] = lmt2ulist(lmt)
-        ulist = self.list_added[lmt]
+            self.list_added[cache_key] = lmt2ulist(lmt, subset=use_subset, default_uname=uname)
+        ulist = self.list_added[cache_key]
         return UomField(field_meta, lmt, list_exists, choices=ulist, **options)
 
     # noinspection PyMethodMayBeStatic
     def create_uomx_field(self, field_meta, options):  # tested, deb@11.23
         uname = field_meta['initial']
-        lmt = uname2lmt(uname)
+        lmt = unit2lmt(uname)
+        use_subset = self.uom_subset
+        cache_key = (lmt, use_subset, uname) if use_subset else lmt
         list_exists = True
-        if lmt not in self.list_added:
+        if cache_key not in self.list_added:
             list_exists = False
-            self.list_added[lmt] = lmt2ulist(lmt)
-        ulist = self.list_added[lmt]
+            self.list_added[cache_key] = lmt2ulist(lmt, subset=use_subset, default_uname=uname)
+        ulist = self.list_added[cache_key]
         return UomxField(field_meta, lmt, list_exists, choices=ulist, **options)
 
     def create_table_field(self, field_meta, options):

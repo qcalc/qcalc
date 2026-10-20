@@ -10,7 +10,7 @@ import json
 from .mod_mfunc import *
 import pandas as pd
 from qvars import qc_gpref as gs
-from qconst import TOK_UOM, TOK_PART_UOM, TOK_ID_PREFIX, TOK_FIELD_SEP, TOK_INDEX_SEP
+from qconst import QCALC_LAYOUTS, TOK_UOM, TOK_PART_UOM, TOK_ID_PREFIX, TOK_FIELD_SEP, TOK_INDEX_SEP
 from django.conf import settings
 from django.forms import forms
 from django.http import JsonResponse
@@ -271,9 +271,10 @@ def q11422_form_data_modify_after_post(request, func_id, sig_type, arg_name, arg
 
 
 def q11421_get_extra_form_data_posted(request):
-    if not request.POST:
+    request_data = request.POST if request.method == 'POST' else request.GET
+    if 'extra' not in request_data:
         return
-    extra = json.loads(request.POST.get('extra'))
+    extra = json.loads(request_data.get('extra'))
 
     if not extra:
         request.cmd = ''
@@ -281,6 +282,7 @@ def q11421_get_extra_form_data_posted(request):
     else:
         request.cmd = extra.get('cmd', '').lower()
         request.extra = extra
+    if request.method == 'POST':
         request.POST._mutable = True
         request.POST['extra'] = ""  # reset the extras
     return
@@ -575,23 +577,65 @@ def q11441a_get_user_pref(request: HtmxHttpRequest):
     # | import user preferences into the current request
     us = QPref.getp().copy()  # User Session Preference, Defaults for the user
     request.pref.update(us)  # User Request Preference, Defaults for this request of the user
+    request.pref.setdefault('interactive_enabled', True)
     # print('user pref', request.pref)
+
+
+def _parse_request_pref_bool(value):
+    if value == '1':
+        return True
+    if value == '0':
+        return False
+    raise ValueError(f'Invalid boolean request preference: {value!r}')
+
+
+def _serialize_request_pref_bool(value):
+    return '1' if value else '0'
+
+
+def _parse_request_layout(value):
+    if value not in QCALC_LAYOUTS:
+        raise ValueError(f'Invalid calculator layout: {value!r}')
+    return value
+
+
+PERSISTENT_REQUEST_PREFS = {
+    'ignoredec': {
+        'pref': 'ignore_decimal_format',
+        'parse': _parse_request_pref_bool,
+        'serialize': _serialize_request_pref_bool,
+    },
+    'layout': {
+        'pref': 'layout',
+        'parse': _parse_request_layout,
+        'serialize': str,
+    },
+    'interactive_enabled': {
+        'pref': 'interactive_enabled',
+        'parse': _parse_request_pref_bool,
+        'serialize': _serialize_request_pref_bool,
+    },
+}
+
+
+def apply_persistent_request_prefs(request: HtmxHttpRequest):
+    for extra_key, definition in PERSISTENT_REQUEST_PREFS.items():
+        if extra_key in request.extra:
+            request.pref[definition['pref']] = definition['parse'](request.extra[extra_key])
+
+
+def serialize_persistent_request_prefs(request: HtmxHttpRequest):
+    result = {}
+    for extra_key, definition in PERSISTENT_REQUEST_PREFS.items():
+        pref_key = definition['pref']
+        if pref_key in request.pref:
+            result[extra_key] = definition['serialize'](request.pref[pref_key])
+    return json.dumps(result, separators=(',', ':'))
 
 
 def q11441b_update_req_pref(request: HtmxHttpRequest):
     # | update current request preferences with user's request specific values posted
-    us = request.pref  # QPref.getp(request).copy()
-
-    xt_idec = request.extra.get('ignoredec', '')  # '0', '1' or ''
-    if xt_idec != '':
-        us['ignore_decimal_format'] = xt_idec == '1'
-        # QPref.setp1('ignore_decimal_format', us['ignore_decimal_format'])
-
-    xt_interactive = request.extra.get('interactive_enabled', '')  # '0', '1' or ''
-    if xt_interactive != '':
-        request.interactive_enabled = xt_interactive == '1'
-
-    request.pref.update(us)  # User Request Preference, Defaults for this request of the user
+    apply_persistent_request_prefs(request)
 
 
 def q11442_func_call_by_name(request: HtmxHttpRequest, func_id, arg_dict=None):  # req

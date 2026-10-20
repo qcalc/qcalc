@@ -340,6 +340,12 @@ label.required::after {
   padding-left: 1.4rem;
 }
 
+.cal-menu .dropdown-item {
+  line-height: 1.5;
+  padding-bottom: 0.125rem;
+  padding-top: 0.125rem;
+}
+
 .dropdown-item-checked::before {
   position: absolute;
   left: 0.4rem;
@@ -708,6 +714,54 @@ label {
   border: 1px solid #ccc;
   padding: 2px;
   display: inline-block;
+}
+
+.qchat {
+  border: 1px solid #ccc;
+  display: block;
+  width: 100%;
+  min-height: 18rem;
+  max-height: 65vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 1rem;
+  scroll-behavior: smooth;
+}
+
+.qchat pre {
+  max-height: 28rem;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.qchat > :last-child {
+  margin-bottom: 0;
+}
+
+.elem-wrapper.chat-wrap {
+  display: block;
+  width: 100%;
+}
+
+.elem-wrapper.chat-wrap .fullscreen-square {
+  z-index: 20;
+}
+
+.elem-wrapper.chat-wrap.fullscreen {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.elem-wrapper.chat-wrap.fullscreen .qchat {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+  max-height: none;
+  box-sizing: border-box;
 }
 
 .list-icons {

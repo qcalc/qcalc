@@ -5,7 +5,7 @@ import re
 from bs4 import BeautifulSoup
 import requests
 from qconst import delimiter_help_text
-from qutil import nzs, csv2df, demo_url, md2html, md_math_script
+from qutil import nzs, csv2df, demo_url, md2html, md_math_script, action_script
 from qcore.mod_anno import *
 from calc.mod_result import df2normalized
 
@@ -169,23 +169,17 @@ def csv_editor__info():
                 'help_text': 'Convert compatible quantity columns to numeric values and append units to column titles.',
             },
         },
-        # Prefix calculator arguments with @ so this script can call the
-        # calculator function correctly when reused from another calculator.
-        # The prefix is resolved by flatten_finfo() before the script is rendered.
-        'script':
-            """
-$(document).ready(function() {
-    load_button_id = QCALC_TOK_ID_PREFIX + getCid() + '_@load';
-    $("#"+load_button_id).on("click", function() {
-        cid = getCidOf($(this));
-        updateExtra(cid, {
-            "cmd":"load", "from": "@upload_csv", "to": "@csv_table",
-            "delimiter":"@delimiter", "quoting": "@quoting", "url": "@csv_url"
-            });
-        qcalc_FullFormSubmit(cid);
-    });
-});
-            """
+        'script': action_script(
+            button_name='@load',
+            cmd='load',
+            field_refs={
+                'from': 'upload_csv',
+                'to': 'csv_table',
+                'delimiter': 'delimiter',
+                'quoting': 'quoting',
+                'url': 'csv_url',
+            },
+        ),
     }
 
 

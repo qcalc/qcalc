@@ -217,7 +217,7 @@
     },
     "eva": {
         "desc": "Evaluate simple expressions and calculations with this flexible calculator. Get results and console output easily.",
-        "tags": "expression, calculator"
+        "tags": "expression"
     },
     "explain": {
         "desc": "Learn how to use the calculator for efficient calculations. Find step-by-step instructions and technical details. Start calculating now!",
@@ -495,7 +495,7 @@
         "desc": "Convert natural language queries into function calls like `conv(5, 'kilometers', 'miles')` for a unit converter application.",
         "tags": "admin, utility, ai, natural language"
     },
-    "qchat": {
+    "openai_chat": {
         "desc": "A chat function that uses AI to respond to your questions. Get instant answers.",
         "tags": "admin, utility, ai, chatbot"
     },

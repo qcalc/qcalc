@@ -185,6 +185,7 @@ class QJField:  # 11422
         # | display output types
         elif arg_type in [qhtml, 'html', 'qhtml']:
             self.jf['type'] = 'html'
+            self.s2f = {'type': 'x'}
         elif arg_type in ['checkbox', 'boolean']:
             self.jf['type'] = arg_type
             self.jf['required'] = False
@@ -233,6 +234,9 @@ class QJField:  # 11422
             elif arg_value.is_time:
                 self.jf['type'] = 'time'
             self.jf['initial'] = arg_value.val
+        elif isinstance(arg_value, qhtml):
+            self.jf['type'] = 'html'
+            self.s2f = {'type': 'x'}
         elif isinstance(arg_value, str):
             self._str2type(arg_value)
         elif isinstance(arg_value, list):

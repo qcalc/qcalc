@@ -132,7 +132,7 @@ _base_categ_s2d = dict(zip(_base_slugs, _base_categories.keys()))  # dict {slug:
 _base_categ_list2 = list(zip(_base_slugs, _base_categories.values()))  # list (slug, desc)
 
 
-def lmt_title(dim):
+def lmt_desc(dim):
     return _base_categories[dim]
 
 

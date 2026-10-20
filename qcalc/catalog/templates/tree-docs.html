@@ -8,7 +8,7 @@
 {% block _cardtitle %}{{ title }}{% endblock %}
 {% block _content %}
 <link href="{% static_ver_theme request 'tree' %}" rel="stylesheet" type="text/css" class="theme-stylesheet">
-<script src="{% static_ver 'qsite/js/tree.js' %}" onload="initTreed()" defer></script>
+<script src="{% static_ver 'qsite/js/qtree.js' %}" onload="initTreed()" defer></script>
 <div id="toc_tree" class="hidden">
   <ul>
       {% include 'include-tree-node-docs.html'%}

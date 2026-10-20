@@ -2,13 +2,12 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 import inspect
-
 from jsonschema import Draft202012Validator
 
-from qcore.mod_anno import *
+from qcore import qcode, qhtml, qinfo, qerror, br
 from calc.mod_mfunc import *
 from calc import UCals, QCals
-from qutil import command_button, page_link, format_py_code, ensure_info_function, extract_common_prefix, \
+from qutil import callback_button, page_link, format_py_code, ensure_info_function, extract_common_prefix, \
     get_functions, pretty_json, addcal_button
 
 # Shared numeric schema for ratio-style selector values in the open interval (0, 1).
@@ -311,37 +310,28 @@ def mycal__input(kwargs):
 def mycal__info():
     return {
         'title': 'Create My Calculator',
+        'kins': 'eva, mycal2, ai_chat',
+        'tags': 'create calculator, prompt',
         'inserts': {
-            'form_top':
-                command_button('mycal', 'Load Code', '__modify', kwargs={'code': 'load'}) +
-                command_button('mycal', 'Delete Code', '__modify', kwargs={'cal_name': 'delete'}) +
-                page_link('/catalog/user/', 'My Catalog', 'btn btnurl', 'icon-tree5'),
             'form_bottom':
-                command_button('mycal', 'Check Syntax', '__command', args=['syntax']) +
-                command_button('mycal', 'Format Code', '__modify', kwargs={'code': 'format'}) +
-                command_button('mycal', 'Validate Input', '__command', args=['validate']),
-        },
-        'step2': [
-            {
-                'step': 'run',
-                'func': 'mycal2',
-                'caption': 'Step2 (AI Assisted)',
-                'spec': {
-                    'cal_name': 'cal_name',
-                    'code': 'code',
-                },
-            }
-        ],
+                callback_button('mycal', 'Check Syntax', '__command', args=['syntax']) +
+                callback_button('mycal', 'Format Code', '__modify', kwargs={'code': 'format'}) +
+                callback_button('mycal', 'Validate Input', '__command', args=['validate']) +
+                page_link('/catalog/user/', 'My Catalog', 'btn btnurl', 'icon-tree5'),
+    },
         'calculate': 'Save',
-        'kins': 'eva',
         'layout': 'tb',
     }
 
 
-def mycal(cal_name='', code: qcode = """
+def mycal(cal_name='',
+          _cal_buttons=qhtml(br(
+              callback_button('mycal2', 'Load Code', '__modify', kwargs={'code': 'load'}) +
+              callback_button('mycal2', 'Delete Code', '__modify', kwargs={'cal_name': 'delete'}))),
+          code: qcode = """
 def addlen(x='7 ft',y='8 m'):
     z=Qty(x)+Qty(y)
-    return z
+    return z.to('m')
 
 def addlen__info():
     return {

@@ -1,8 +1,11 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
+import re
+
 import markdown
 from bs4 import BeautifulSoup
+from django.utils.html import escape
 from django.templatetags.static import static
 
 
@@ -76,6 +79,21 @@ def md2html(md_text: str, wrap=False):
         output_format='html',
     )
     return html if not wrap else f'<div class="md-content">{html}</div>'
+
+
+_MARKDOWN_CODE_PATTERN = re.compile(
+    r'(```[^\n]*\n.*?^```[ \t]*$|`[^`\n]+`)',
+    re.MULTILINE | re.DOTALL,
+)
+
+
+def escape_markdown(md_text):
+    """Escape raw HTML in prose without double-escaping Markdown code."""
+    parts = _MARKDOWN_CODE_PATTERN.split(str(md_text))
+    return ''.join(
+        part if index % 2 else str(escape(part))
+        for index, part in enumerate(parts)
+    )
 
 
 def wrap_md_images(html: str):

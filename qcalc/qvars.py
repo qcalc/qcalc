@@ -44,6 +44,7 @@ qc_gpref = {  # pref-01
     'exponent_threshold_max': 1.0e9,
     # 'number_format': '{:,.8f}',  # precision 2-16
     'defa_currency': 'USD',
+    'uom_subset_enabled': False,
     'memory': 10,  # 10
     'chart_color_scheme': 'tab20',
     'chart_width': qconst.CHART_WIDTH,

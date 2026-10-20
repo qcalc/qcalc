@@ -2,7 +2,7 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 from qcore import _unit_tree, qx, qxi, to_ucur
-from qcore import read_unit, lmt2ulist, lmt2categ, _unit_info, _base_categ_mlist, lmt2qlist
+from qcore import read_unit, lmt2ulist, lmt2cat, _unit_info, _base_categ_mlist, lmt2qlist
 from qutil import css2strs, list2table, find_matched_variables, cal_link, calurl
 from calc import QCals
 import itertools

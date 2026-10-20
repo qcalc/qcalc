@@ -6,7 +6,7 @@ import pandas as pd
 from qcore import qtbl, qerror
 from calc import FLD_SHOW_CHOICE, get_shared_dataset
 from calc.mod_result_post import postprocess_scenarios
-from qutil import addcal_button, nzv
+from qutil import action_button, addcal_button, nzv, action_script
 from calculators.all.analytics.what_if import SHARED_SCENARIO_TYPE, SHARED_SCENARIO_KEY
 
 
@@ -43,8 +43,7 @@ def scenario__info():
         },
         'inserts': {
             'form_bottom': addcal_button('compare', 'What-If Scenario Comparison') +
-                           '<button type="button" class="btn btn-info btncmd ml-2 cmd-compare" '
-                           'name="apply_compare">Apply Compare</button>'
+                           action_button('apply_compare', 'Apply Compare', 'cmd-compare')
         },
         'showhide': {
             'mode': {
@@ -66,23 +65,18 @@ def scenario__info():
                 'callback': 'scenario_mode_showhide',
             }
         },
-        'script': '''
-        $(document).ready(function() {
-            $(".cmd-compare").on("click", function() {
-                updateAllData($(this));
-                cid = getCidOf($(this));
-                updateExtra(cid, {
-                    "cmd":"__modify",
-                    "args":["@scenarios"],
-                    "kwargs":{"@scenarios":{
-                        "dataset_type":"scenario_table",
-                        "dataset_key":"compare_master"
-                    }}
-                });
-                qcalc_FullFormSubmit(cid);
-            });
-        });
-
+        'script': action_script(
+            button_name='apply_compare',
+            cmd='__modify',
+            args=['scenarios'],
+            kwargs={
+                'scenarios': {
+                    'dataset_type': SHARED_SCENARIO_TYPE,
+                    'dataset_key': SHARED_SCENARIO_KEY,
+                },
+            },
+            sync_table_data=True,
+        ) + '''
         function scenario_mode_showhide(mode){
             var vis = {
                 delta: [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -178,7 +172,7 @@ def scenario(
     mode='delta',
     metric_columns: str = '',
     metric_units: str = '',
-    variable_columns: str = 'x, y',
+    variable_columns: str = '',
     baseline_variation='V1',
     delta_type='absolute',
     rank_by: str = '',

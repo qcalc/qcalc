@@ -209,27 +209,96 @@ def test_structural_cmd_post_field_forces_full_form_response(monkeypatch):
     assert template != "layout-output-1-section.html"
 
 
-# --- command_button(): input-updating command buttons (Format Code, Load Code,
+# --- callback_button(): input-updating command buttons (Format Code, Load Code,
 # Check Syntax, ...) must also request a full-form response, since they target
 # "closest form" directly and the server's default response is now the
 # output-only fragment ---
 
-def test_command_button_marks_request_as_structural():
-    from qutil.mod_links import command_button
+def test_callback_button_marks_request_as_structural():
+    from qutil.mod_links import callback_button
 
-    html = command_button("mycal", "Check Syntax", "__command", args=["syntax"])
+    html = callback_button("mycal", "Check Syntax", "__command", args=["syntax"])
 
     assert 'hx-target="closest form"' in html
     assert '"qcalc_structural_cmd": "1"' in html
 
 
-def test_command_button_sets_explicit_inner_swap():
+def test_callback_button_sets_explicit_inner_swap():
     # hx-swap is inheritable in htmx; the calculator form itself carries
     # hx-swap="outerHTML" for its own #output-part target, so without an
-    # explicit hx-swap="innerHTML" here a command_button's swap would
+    # explicit hx-swap="innerHTML" here a callback_button's swap would
     # delete the <form> element itself instead of just its contents.
-    from qutil.mod_links import command_button
+    from qutil.mod_links import callback_button
 
-    html = command_button("mycal", "Format Code", "__modify", kwargs={"code": "format"})
+    html = callback_button("mycal", "Format Code", "__modify", kwargs={"code": "format"})
 
     assert 'hx-swap="innerHTML"' in html
+
+
+def test_action_button_builds_named_script_button():
+    from qutil.mod_links import action_button
+
+    html = action_button('apply_rate', 'Apply Rates', 'cmd-rates')
+
+    assert html == (
+        '<button type="button" class="btn btn-info btncmd ml-2 cmd-rates" '
+        'name="apply_rate">Apply Rates</button>'
+    )
+
+
+def test_action_button_escapes_html_values():
+    from qutil.mod_links import action_button
+
+    html = action_button('apply"rate', '<Apply>', 'custom" class')
+
+    assert 'name="apply&quot;rate"' in html
+    assert 'class="btn btn-info btncmd ml-2 custom&quot; class"' in html
+    assert '&lt;Apply&gt;' in html
+
+
+def test_action_script_builds_load_payload_with_field_references():
+    from qutil.mod_links import action_script
+
+    script = action_script(
+        button_name='@load',
+        cmd='load',
+        field_refs={
+            'from': 'upload_csv',
+            'to': 'csv_table',
+            'url': 'csv_url',
+        },
+        extra={'delimiter': ',', 'quoting': '1'},
+    )
+
+    assert 'button[name=\\"@load\\"]' in script
+    assert (
+        '{"cmd":"load","delimiter":",","quoting":"1",'
+        '"from":"@upload_csv","to":"@csv_table","url":"@csv_url"}'
+    ) in script
+
+
+def test_action_script_builds_modify_payload_and_optional_hooks():
+    from qutil.mod_links import action_script
+
+    script = action_script(
+        button_name='apply_rate',
+        cmd='__modify',
+        args=['items'],
+        kwargs={
+            'items': {
+                'dataset_type': 'item_rates',
+                'dataset_key': 'rates_master',
+            },
+        },
+        sync_table_data=True,
+        enable_table_update_after_swap=True,
+    )
+
+    assert 'button[name=\\"apply_rate\\"]' in script
+    assert 'updateAllData($(this));' in script
+    assert 'qcalc_EnableTableUpdateAfterSwap(cid);' in script
+    assert (
+        '{"cmd":"__modify","args":["@items"],'
+        '"kwargs":{"@items":{"dataset_type":"item_rates",'
+        '"dataset_key":"rates_master"}}}'
+    ) in script

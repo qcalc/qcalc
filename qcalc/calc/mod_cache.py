@@ -380,4 +380,8 @@ QCalAlias = QDBSession(prefix='calias', volatile=False)
 # | QFavs = QSession(prefix='fav', volatile=False)  # User favorites
 QFav = QDBSession(prefix='fav', volatile=False)  # User favorites
 
+# | session_specific prompt/response cache for ai_chat()
+QMyCalAI = QSession(prefix='mycal_ai', volatile=False)
+# | session_specific prompt/response cache for mycal2()
+QOpenAIChat = QSession(prefix='ai_chat', volatile=False)
 

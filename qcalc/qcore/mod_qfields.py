@@ -91,6 +91,7 @@ class UomxField(ChoiceEditField):
 
 class HtmlField(Field):
     def __init__(self, _field_meta, **kwargs):
+        kwargs['disabled'] = True
         super().__init__(**kwargs)
         self.widget = HtmlWidget()
 

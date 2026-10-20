@@ -2,7 +2,7 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 from calc import QPref, QMem
-from calc import QData, QTemp, QKeep, QSave, QIO, QRam, QMeta, QMyCal, QFav
+from calc import QData, QTemp, QKeep, QSave, QIO, QRam, QMeta, QMyCal, QFav, QOpenAIChat, QMyCalAI
 from calc.mod_credentials import (
     provider_choices,
     has_user_api_key,
@@ -11,8 +11,8 @@ from calc.mod_credentials import (
     set_user_api_key,
     delete_user_api_key,
 )
-from qcore import QScreen, quom, color_schemes, legend_locations, qtext
-from qutil import nzs, css2strs, truncate, user_process, command_button, QThread, is_loggedin, addcal_button
+from qcore import QScreen, quom, color_schemes, legend_locations, qtext, qinfo
+from qutil import nzs, css2strs, truncate, user_process, callback_button, QThread, is_loggedin, addcal_button
 from qvars import qc_gpref as gs
 from calc import dict2options, StdList
 
@@ -28,7 +28,7 @@ def _normalize_theme(theme_name, fallback='default'):
 
 
 def pref__info():
-    general_options = 'theme, interactive, defa_currency, memory, strict_*'
+    general_options = 'theme, interactive, defa_currency, uom_subset_enabled, memory, strict_*'
     number_options = 'ignore_decimal_format, decimal, *_decimal, thousands_separator, exponent_*'
     chart_options = 'chart_*'
     other_options = 'execution_timeout, xpr_max_table_cells'
@@ -45,6 +45,7 @@ def pref__info():
     return {
         'title': 'User Preferences',
         'kins': 'api_keys',
+        'tags': 'cache',
         'schema': {
             # 'request': {'attrs': {'readonly': True}},
             'theme': {
@@ -52,7 +53,7 @@ def pref__info():
                 'help_text': 'Select qCalc look and feel from the available theme list.',
             },
             'interactive': {
-                'help_text': 'Enable or disable interactive mode.',
+                'help_text': 'Enable or disable interactive mode when a calculator supports. When enabled, calculations are triggered automatically whenever an input changes.',
             },
             'ignore_decimal_format': {
                 'help_text': 'Ignore decimal format specified below when displaying numbers.',
@@ -80,6 +81,9 @@ def pref__info():
             },
             'defa_currency': {
                 'help_text': 'Currency code used as the default currency.',
+            },
+            'uom_subset_enabled': {
+                'help_text': 'Use compact unit subsets for unit dropdowns.',
             },
             'memory': {
                 'attrs': {'max': '100', 'min': '0'},
@@ -154,6 +158,7 @@ def pref__input(_kwargs):  # alternative to func__info() 'schema':{}'
         'exponent_threshold_min': us['exponent_threshold_min'],
         'exponent_threshold_max': us['exponent_threshold_max'],
         'defa_currency': us['defa_currency'],  # 'USD',
+        'uom_subset_enabled': us['uom_subset_enabled'],
         'memory': us['memory'],
         'chart_color_scheme': us['chart_color_scheme'],
         'chart_width': us['chart_width'],
@@ -178,6 +183,7 @@ def pref(  # pref-03
     exponent_threshold_min: float,
     exponent_threshold_max: float,
     defa_currency: quom,
+    uom_subset_enabled: bool,
     memory: int,
     chart_color_scheme,
     chart_width: int,
@@ -203,6 +209,7 @@ def pref(  # pref-03
         'exponent_threshold_min': exponent_threshold_min,
         'exponent_threshold_max': exponent_threshold_max,
         'defa_currency': defa_currency,
+        'uom_subset_enabled': uom_subset_enabled,
         'memory': memory,
         'chart_color_scheme': chart_color_scheme,
         'chart_width': chart_width,
@@ -222,14 +229,14 @@ def pref(  # pref-03
     # save settings to session/db and thread local storage
     QPref.setp(us)
     QThread.set_pref(us)
-    return 'Preferences Saved'
+    return qinfo('Preferences Saved')
 
 
 def api_keys__info():
     return {
         'title': 'Personal API Keys',
         'desc': 'Save your personal provider API keys securely.',
-        'kins': 'pref',
+        'kins': 'pref, ai_chat, mycal2',
         'tags': 'preferences',
         'remember': False,
         'schema': {
@@ -346,7 +353,8 @@ def mem(functions='', json_format=True, clear_memory=False):
 
 sesn_objs = {'qd': QData, 'qmr': QMem, 'qt': QTemp, 'qk': QKeep, 'qs': QSave, 'qi': QIO, 'qr': QRam,
              'qmy': QMyCal, 'qm': QMeta,
-             'qf': QFav
+             'qf': QFav,
+             'qaichat': QOpenAIChat, 'qaical': QMyCalAI,
              }
 
 
@@ -373,6 +381,7 @@ def temp__command(fkwargs, extra):
 def temp__info():
     return {
         'title': 'Your Temporary Data',
+        'kins':'mycal, mycal2, ai_chat, rates',
         'schema': {
             'data': {
                 'type': 'choice',
@@ -385,8 +394,9 @@ def temp__info():
                     'qi': 'Your input/output saved for step2',  # QIO
                     'qr': 'Your console variables',  # QRam
                     'qmy+qm': 'Your temporary calculators',  # QMyCal (db)
-                    # 'qm': 'Your temporary calculator directory',  # QMeta uc_list, uc_dict, uc_tree
                     'qf': 'Your temporary favorites',  # QFavs (db)
+                    'qaichat': 'Your AI chat cache', # QOpenAIChat
+                    'qaical': 'Your AI assisted calculator creation cache', # QMyCalAI
                     'all': 'All your temporary data',  # All
                 },
             },
@@ -394,7 +404,7 @@ def temp__info():
         'calculate': 'Show',
         'inserts': {
             'form_top':
-                command_button('temp', 'Delete Data', '__command', args=['delete']),
+                callback_button('temp', 'Delete Data', '__command', args=['delete']),
         }
     }
 

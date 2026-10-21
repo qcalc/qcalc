@@ -7,11 +7,25 @@ from whoosh.filedb.filestore import RamStorage
 from whoosh.analysis import StemmingAnalyzer
 import os
 import re
+import uuid
 from django.conf import settings
 from .mod_qcals import QCals
 from whoosh.qparser import QueryParser, FuzzyTermPlugin, DisMaxParser, QueryParserError
 from qcore import QScreen
 from whoosh import scoring
+
+
+class IsolatedRamStorage(RamStorage):
+    """Keep Whoosh's commit-time scratch files private to this index."""
+
+    def __init__(self):
+        super().__init__()
+        self._temp_namespace = f"qcalc-whoosh-{os.getpid()}-{uuid.uuid4().hex}"
+
+    def temp_storage(self, name=None):
+        if name is None:
+            return super().temp_storage()
+        return super().temp_storage(f"{self._temp_namespace}-{name}")
 
 
 class QSearch:
@@ -152,7 +166,7 @@ def print_search_result(results):
 
 # Create an in-memory index using RamStorage
 def create_in_memory_index(schema):
-    ram_storage = RamStorage()
+    ram_storage = IsolatedRamStorage()
     ix = ram_storage.create_index(schema)
     return ix
 

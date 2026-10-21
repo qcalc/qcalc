@@ -3,25 +3,13 @@
 
 import json
 
-from calc import get_code
 from calc.mod_cache import QMyCalAI
 from calc.mod_openai import ask_gpt
 from qconst import CODE_BLOCK_PATTERN
-from qenv import PROJ_DIR
-from qutil import css2strs, ensure_info_function, format_py_code
 
-from .cal_mycal import validate_calculator_defaults, validate_calculator_info
+from .mod_mycal_tools import MyCalTools
 
-_MAX_REFERENCE_CALS = 3
-_MAX_REFERENCE_CODE_CHARS = 6000
 _MAX_CONTEXT_TURNS = 6
-_CREATION_SPEC_PATH = PROJ_DIR.path(
-    'qcalc_res', 'train', 'qcalc-calculator-creation-spec.md'
-)
-
-with open(str(_CREATION_SPEC_PATH), encoding='utf-8') as _creation_spec_file:
-    _CALCULATOR_CREATION_SPEC = _creation_spec_file.read().strip()
-
 
 _AGENT_ACTIONS = {'answer', 'ask_user', 'propose_code'}
 
@@ -119,33 +107,13 @@ class MyCalAgent:
 
     @staticmethod
     def _validate_code(code):
-        validate_calculator_info(code)
-        validate_calculator_defaults(code)
+        result = MyCalTools.validate_calculator(code)
+        if not result['valid']:
+            raise ValueError(result['error'])
 
     @staticmethod
     def _load_reference_context(reference_cals):
-        names = list(dict.fromkeys(css2strs(reference_cals)))[:_MAX_REFERENCE_CALS]
-        if not names:
-            return ''
-
-        blocks = []
-        missing = []
-        for cal_name in names:
-            code = get_code(cal_name, show_meta=True)
-            if not code:
-                missing.append(cal_name)
-                continue
-            clipped = code[:_MAX_REFERENCE_CODE_CHARS].strip()
-            blocks.append(f'# Reference calculator: {cal_name}\n{clipped}')
-
-        if not blocks:
-            missing_text = ', '.join(missing) if missing else ', '.join(names)
-            return f'Reference calculators requested but not found: {missing_text}'
-
-        context = '\n\n'.join(blocks)
-        if missing:
-            context += f"\n\n# Missing reference calculators: {', '.join(missing)}"
-        return context
+        return MyCalTools.get_reference_context(reference_cals)
 
     @staticmethod
     def _conversation_context(state):
@@ -211,7 +179,7 @@ You are generating Python calculator code for a qCalc FRONTEND calculator edited
 Follow frontend requirements in the specification and ignore backend-only implementation details.
 
 qCalc calculator creation specification:
-{_CALCULATOR_CREATION_SPEC}
+{MyCalTools.get_creation_spec()}
 
 Choose exactly one action:
 - answer: answer the user's question without changing code.
@@ -284,9 +252,8 @@ Validation error:
 
                 draft = cls._extract_python_code(response.code)
                 response.code = draft
-                draft, _functions = ensure_info_function(draft, cal_name_hint)
-                response.code = draft
-                draft = format_py_code(draft)
+                prepared = MyCalTools.prepare_calculator(draft, cal_name_hint)
+                draft = prepared['code']
                 response.code = draft
                 cls._validate_code(draft)
                 return response

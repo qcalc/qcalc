@@ -54,6 +54,11 @@ def val_de_quote(val):
     return val
 
 
+def val_expression_path(val):
+    # return val_de_quote(val)  # Old GET transport required percent-encoding reserved URL characters.
+    return val.replace('/', '!')  # Slash remains reserved by the internal calculator path grammar.
+
+
 def furl_from_json(func_id, json_data, json_data_type):
     # print(json_data)
     json_data_copy = json_data
@@ -85,16 +90,16 @@ def furl_from_json(func_id, json_data, json_data_type):
     return furl
 
 
-def scalar_or_none(val, jdata_type: str):
+def scalar_or_none(val, jdata_type: str, serializer=val_de_quote):
     if isinstance(val, int) or isinstance(val, float):
         return val
     elif isinstance(val, str):
         if len(val) < qconst.SCALAR_LENGTH:
-            return val_de_quote(val)
+            return serializer(val)
         else:
             return None
     elif isinstance(val, (date, datetime, dt_time)):
-        return val_de_quote(str(QDateTime(val)))  # can have +
+        return serializer(str(QDateTime(val)))  # can have +
     elif jdata_type in complex_input_xpr:
         return None
     else:
@@ -103,9 +108,10 @@ def scalar_or_none(val, jdata_type: str):
 
 
 def _plain_fxpr_value(value):
-    """Serialize plain nested values for fxpr while escaping path-breaking chars."""
+    """Serialize nested expression values without URL percent-encoding."""
     if isinstance(value, str):
-        return val_de_quote(value)
+        # return val_de_quote(value)  # Old GET transport encoded %, +, quotes, #, and &.
+        return val_expression_path(value)
     if isinstance(value, list):
         return [_plain_fxpr_value(v) for v in value]
     if isinstance(value, tuple):
@@ -121,7 +127,8 @@ def fxpr_from_json(func_id, json_data, json_data_type, forced=False):
     # print('1', json_data_copy)
     # print('2', json_data_type_copy)
 
-    scalar = scalar_or_none
+    # scalar = scalar_or_none  # Old GET transport used the URL serializer by default.
+    scalar = lambda value, value_type: scalar_or_none(value, value_type, val_expression_path)
     plain_value = _plain_fxpr_value
     complex_types = complex_input_xpr
 

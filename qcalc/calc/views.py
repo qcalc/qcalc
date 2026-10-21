@@ -15,6 +15,7 @@ from .views_step2 import cache_step2_io
 from qutil import HtmxHttpRequest, preprocess_expression, fid2owner
 import qutil as ut
 import json
+# from urllib.parse import unquote  # Required only while fxpr values were URL-encoded for GET transport.
 from django.conf import settings
 import logging
 
@@ -410,7 +411,10 @@ def q1_add_func(request: HtmxHttpRequest):
         request.GET = QueryDict(mutable=True)
         for key in ('fname', 'path', 'fargs'):
             if key in request.POST:
-                request.GET[key] = request.POST[key]
+                value = request.POST[key]
+                # if key == 'path':
+                #     value = unquote(value)  # Old encoded fxpr format needed a compensating decode.
+                request.GET[key] = value
         request.method = 'GET'
 
     sfname = request.GET.get('fname', "").strip().lower()

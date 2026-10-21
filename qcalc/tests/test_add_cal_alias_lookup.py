@@ -107,7 +107,11 @@ def test_add_prefers_real_function_over_alias(monkeypatch):
 
 def test_add_accepts_long_expression_path_in_post_body(monkeypatch):
     captured = {}
-    expression = "optima_sop(table=" + ("x" * 10000) + ")"
+    expression = (
+        "optima_sop(label='Demand +10%', literal_percent_code='%2B', table="
+        + ("x" * 10000)
+        + ")"
+    )
     path = f"eva/code/{expression}"
 
     def _fake_open_form(_request, path, part):
@@ -144,6 +148,25 @@ def test_add_accepts_long_expression_path_in_post_body(monkeypatch):
     assert captured["query_keys"] == {"path"}
 
 
+def test_add_get_keeps_literal_percent_sequence(monkeypatch):
+    captured = {}
+    path = "eva/code/show('%2B')"
+
+    def _fake_open_form(_request, path, part):
+        captured.update({"path": path, "part": part})
+        return HttpResponse("ok")
+
+    request = _make_get_request("/calc/add/", {"path": path})
+    QThread.set_req(request)
+    monkeypatch.setattr(views, "q1999_func_to_form", _fake_open_form)
+
+    response = views.q1_add_func(request)
+
+    assert response.status_code == 200
+    assert captured["path"] == path
+    assert captured["part"] == "1"
+
+
 def test_expression_action_posts_escaped_path_in_request_body():
     expression = "optima_sop(table=[\"A's\", \"line\\nbreak\"])" + ("x" * 10000)
     info = SimpleNamespace(step2=False, url=False, xpr=True, loop=False)
@@ -169,7 +192,7 @@ def test_expression_post_renders_eva_with_isolated_output_target(monkeypatch):
     request = _make_post_request(
         "/calc/add/",
         {
-            "path": "eva/code/1+1",
+            "path": "eva/code/show('Demand +10%')",
             "cid": source_cid,
             "input_id": "42",
         },
@@ -189,6 +212,7 @@ def test_expression_post_renders_eva_with_isolated_output_target(monkeypatch):
     assert eva_cid != source_cid
     assert f'hx-target="#output-part-{eva_cid}"' in html
     assert source_cid not in html
+    assert "Demand +10%" in html
 
 
 def test_step2_run_does_not_use_personal_alias_lookup(monkeypatch):

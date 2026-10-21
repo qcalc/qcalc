@@ -14,18 +14,9 @@ def geo_location__info():
         'showhide': {
             'method': {
                 'fields': ['latitude', 'longitude', 'location'],
-                'callback': "gloc_method"
-            }
-        },
-        'script': '''
-        function gloc_method(v){
-            if(v=='1'){
-                return [true, true, false]
-            }else if(v=='2'){
-                return [false, false, true]
+                'callback': "'@'==='1' ? [true, true, false] : [false, false, true]"
             }
         }
-        '''
     }
 
 

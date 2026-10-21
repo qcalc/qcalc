@@ -368,8 +368,8 @@ function showCustomRate(value) { # callback JavaScript function
 ''',
 ```
 * Use `showhide` to keep some fields visible or hidden when necessary.
-* For typical forms, use a tiny JavaScript callback using `script` key. The callback receives the controlling value and returns one Boolean for every field: `true` shows it; `false` hides it.
-* For one simple rule, qCalc also supports a compact callback such as `'callback': "@=='custom'"`. 
+* For typical forms, use a tiny JavaScript callback using `script` key. The callback receives the controlling value and returns one Boolean for every field: `true` or `1` shows it; `false` or `0` hides it.
+* For one simple rule, qCalc also supports a compact callback such as `'callback': "'@'=='custom'"`. `@` will be replaced by selected value in runtime.
 Prefer a named callback function for anything more complex. 
 * Use the special `__` key to hide a list of fields unconditionally:
 

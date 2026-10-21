@@ -38,10 +38,10 @@ Key requirements:
 You will receive:
 
 1. The calculator's Python source file, normally under
-   `../../../qcalc/calculators/all`.
+   `../../qcalc/calculators/all`.
 2. Any imported helper functions, schemas, constants, tests, or supporting
    files needed to understand its behavior.
-3. One or more existing qCalc guides in `../../help/all` as style
+3. One or more existing qCalc guides in `../help/all` as style
    references.
 
 If essential behavior cannot be determined from the supplied material, say so

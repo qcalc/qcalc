@@ -33,18 +33,10 @@ def map_distance__info():
             'method': {
                 'fields': ['from_latitude', 'from_longitude', 'to_latitude', 'to_longitude',
                            'from_location', 'to_location'],
-                'callback': "fcall_method"
-            }
-        },
-        'script': '''
-        function fcall_method(v){
-            if(v=='1'){
-                return [true, true, true, true, false, false]
-            }else if(v=='2'){
-                return [false, false, false, false, true ,true]
+                'callback': "'@'==='1' ? [true, true, true, true, false, false] : "
+                            '[false, false, false, false, true, true]'
             }
         }
-        '''
     }
 
 

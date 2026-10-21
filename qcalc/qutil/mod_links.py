@@ -120,7 +120,11 @@ def callback_button(sfunc, caption, cmd, args=None, kwargs=None):
 
 
 def action_button(name, caption, button_class=''):
-    """Build a named button for a calculator form action script."""
+    """Build a named button for a calculator form action script.
+    action_button() is suitable for manually constructed form_top or form_bottom inserts, 
+    such as Apply Rates and Apply Compare. It is not currently a replacement for 
+    declarative form-field buttons btn:0.
+    """
     if not isinstance(name, str) or not name:
         raise ValueError('name must be a non-empty string')
 
@@ -137,7 +141,7 @@ def action_button(name, caption, button_class=''):
 def action_script(
     button_name, cmd, field_refs=None, args=None, kwargs=None, extra=None,
     sync_table_data=False, enable_table_update_after_swap=False):
-    """Build a named-button handler that submits a structured calculator command."""
+    """Build a named action_button handler that submits a structured calculator command."""
     if not isinstance(button_name, str) or not button_name:
         raise ValueError('button_name must be a non-empty string')
 

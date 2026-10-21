@@ -55,7 +55,7 @@ class QFieldHandler:
         # | such as name and type. Other parameters are same as django field options
         options = {
             'required': bool(field_meta.get('required', False)),
-            'label': field_meta.get('label', variable_to_title(field_meta.get('name'),self.proper_dict)),
+            'label': field_meta.get('label', variable_to_title(field_meta.get('name'), self.proper_dict)),
             'label_suffix': field_meta.get('label_suffix', None),
             'initial': field_meta.get('initial', None),
             'widget': field_meta.get('widget', None),
@@ -73,10 +73,10 @@ class QFieldHandler:
             if field_meta['name'] in post_data:
                 field_meta['initial'] = post_data[field_meta['name']]
         # | Hide label if following conditions are met
-        if (field_meta['type'].startswith('btn') or
-            field_meta['name'].startswith('_') or
-            options['label'].startswith('_') or
-            options['label'].startswith('-')):  # or implicitly ""
+        if (field_meta['type'].startswith('btn') or  # annotation 'btn:0' etc.
+            field_meta['name'].startswith('_') or  # variable name
+            options['label'].startswith('_') or  # label name
+            options['label'].startswith('-')):  # label name or implicitly ""
             options['label'] = ""
         return options
 

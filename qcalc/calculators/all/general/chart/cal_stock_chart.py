@@ -184,51 +184,51 @@ def stock_chart__info():
                     'close_column_name',
                     'volume_column_name',
                 ],
-                'callback': 'toggle_mapping_fields',
+                'callback': '@',
             },
             'show_moving_average': {
                 'fields': ['moving_average_periods', 'show_ma_cross_markers'],
-                'callback': 'toggle_moving_average_fields',
+                'callback': '@',
             },
             'show_ema': {
                 'fields': ['ema_periods', 'show_ema_cross_markers'],
-                'callback': 'toggle_ema_fields',
+                'callback': '@',
             },
             'show_bollinger': {
                 'fields': ['bollinger_period', 'bollinger_std', 'show_bollinger_band_markers'],
-                'callback': 'toggle_bollinger_fields',
+                'callback': '@',
             },
             'show_donchian': {
                 'fields': ['donchian_period', 'show_donchian_breakout_markers'],
-                'callback': 'toggle_donchian_fields',
+                'callback': '@',
             },
             'show_psar': {
                 'fields': ['psar_af_step', 'psar_af_max', 'show_psar_flip_markers'],
-                'callback': 'toggle_psar_fields',
+                'callback': '@',
             },
             'show_rsi': {
                 'fields': ['rsi_period', 'rsi_overbought', 'rsi_oversold', 'show_rsi_cross_markers'],
-                'callback': 'toggle_rsi_fields',
+                'callback': '@',
             },
             'show_macd': {
                 'fields': ['macd_fast_period', 'macd_slow_period', 'macd_signal_period', 'show_macd_cross_markers'],
-                'callback': 'toggle_macd_fields',
+                'callback': '@',
             },
             'show_atr': {
                 'fields': ['atr_period', 'atr_mav_period', 'show_atr_cross_markers'],
-                'callback': 'toggle_atr_fields',
+                'callback': '@',
             },
             'show_cci': {
                 'fields': ['cci_period', 'show_cci_threshold_markers'],
-                'callback': 'toggle_cci_fields',
+                'callback': '@',
             },
             'show_williams_r': {
                 'fields': ['williams_r_period', 'show_williams_r_threshold_markers'],
-                'callback': 'toggle_williams_r_fields',
+                'callback': '@',
             },
             'show_obv': {
                 'fields': ['obv_smoothing_period', 'show_obv_cross_markers'],
-                'callback': 'toggle_obv_fields',
+                'callback': '@',
             },
             'chart_type': {
                 'fields': ['renko_brick_size', 'pnf_box_size', 'pnf_reversal'],
@@ -236,42 +236,6 @@ def stock_chart__info():
             },
         },
         'script': '''
-        function toggle_moving_average_fields(v){
-            return [!!v, !!v];
-        }
-        function toggle_mapping_fields(v){
-            return [!!v, !!v, !!v, !!v, !!v, !!v];
-        }
-        function toggle_ema_fields(v){
-            return [!!v, !!v];
-        }
-        function toggle_bollinger_fields(v){
-            return [!!v, !!v, !!v];
-        }
-        function toggle_donchian_fields(v){
-            return [!!v, !!v];
-        }
-        function toggle_psar_fields(v){
-            return [!!v, !!v, !!v];
-        }
-        function toggle_rsi_fields(v){
-            return [!!v, !!v, !!v, !!v];
-        }
-        function toggle_macd_fields(v){
-            return [!!v, !!v, !!v, !!v];
-        }
-        function toggle_atr_fields(v){
-            return [!!v, !!v, !!v];
-        }
-        function toggle_cci_fields(v){
-            return [!!v, !!v];
-        }
-        function toggle_williams_r_fields(v){
-            return [!!v, !!v];
-        }
-        function toggle_obv_fields(v){
-            return [!!v, !!v];
-        }
         function toggle_renko_pnf_fields(v){
             return [v === 'renko', v === 'pnf', v === 'pnf'];
         }

@@ -776,12 +776,7 @@ def _add_unit(name, unit_or_str, long_name='', comment='', category=''):
 
     if isinstance(unit_or_str, str):  # it is a string e.g. '3*ft'
         unit_or_str = unit_or_str.lower()  # dup check
-        unit = eval(unit_or_str, _unit_table, {'pi': np.pi})  # direct eval() on purpose
-        for cruft in ['__builtins__', '__args__']:
-            try:
-                del _unit_table[cruft]
-            except:
-                pass
+        unit = eval(unit_or_str, _unit_table.copy(), {'pi': np.pi})  # direct eval() on purpose
     else:  # it is a MeasureUnit(...)
         unit = unit_or_str
 
@@ -854,13 +849,7 @@ def find_unit(unit) -> MeasureUnit:
         # .# name = string.strip(unit)
         name = preprocess_expression(unit.strip())
 
-        unit = eval(name, _unit_table)  # direct eval() on purpose
-        for cruft in ['__builtins__', '__args__']:  # deb@13.08.23 required
-            # print(cruft)
-            try:
-                del _unit_table[cruft]
-            except:
-                pass
+        unit = eval(name, _unit_table.copy())  # direct eval() on purpose
 
     if not isMeasureUnit(unit):
         raise TypeError(f'Error (MQ): {str(unit)} is not an unit')

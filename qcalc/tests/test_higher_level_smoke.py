@@ -9,6 +9,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from qcore import (
     Qty,
+    _unit_table,
     find_unit,
     calc_unit,
     compose_qty,
@@ -67,6 +68,14 @@ class TestHigherLevelCalculatorSmoke(unittest.TestCase):
         self.assertTrue(unit is not None)
         self.assertEqual(calc_unit("m/s"), "m/s")
         self.assertEqual(calc_unit("1*km"), "1*km")
+
+    def test_failed_unit_lookup_does_not_mutate_registry(self):
+        before = _unit_table.copy()
+
+        with self.assertRaises(NameError):
+            find_unit("definitely_not_a_unit")
+
+        self.assertEqual(_unit_table, before)
 
 
 if __name__ == "__main__":

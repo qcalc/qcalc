@@ -4,7 +4,7 @@
 import qvars
 from calc import QTemp, QList, QFav, QCalAlias
 from django.shortcuts import render
-from django.http import HttpResponse
+from django.http import HttpResponse, QueryDict
 import catalog.views
 from .mod_ucals import get_uc_list
 from .views_form_data import *
@@ -406,6 +406,13 @@ def q1_render_status(request: HtmxHttpRequest, msg: str, part='1'):
 
 
 def q1_add_func(request: HtmxHttpRequest):
+    if request.method == 'POST':
+        request.GET = QueryDict(mutable=True)
+        for key in ('fname', 'path', 'fargs'):
+            if key in request.POST:
+                request.GET[key] = request.POST[key]
+        request.method = 'GET'
+
     sfname = request.GET.get('fname', "").strip().lower()
     # | making add func name case-insensitive
     spath = request.GET.get('path', "").strip()

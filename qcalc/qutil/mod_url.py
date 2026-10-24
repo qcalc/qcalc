@@ -1,11 +1,83 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
+import io
+import ipaddress
+import socket
+import time
 import requests
 from bs4 import BeautifulSoup
 from bs4.element import Comment
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlsplit, urljoin
 from urllib.parse import quote
+from qutil.mod_settings import is_debug, max_file_mb
+
+_MAX_REDIRECTS = 3
+_FETCH_TOTAL_TIMEOUT_S = 20  # per-chunk read timeouts alone don't stop a slow-drip response
+
+
+def assert_public_http_url(url: str):
+    # SSRF guard: the server fetches user-supplied URLs (and URLs found inside fetched pages),
+    # so reject anything that could reach internal services (localhost, private ranges,
+    # cloud metadata 169.254.169.254) or use a non-http scheme (file://, ftp://).
+    # The address check is skipped in debug so the dev server can fetch from localhost.
+    parts = urlsplit(url)
+    if parts.scheme not in ('http', 'https') or not parts.hostname:
+        raise ValueError('Error (FURL): only http(s) URLs are allowed')
+    if is_debug():
+        return
+    port = parts.port or (443 if parts.scheme == 'https' else 80)
+    try:
+        infos = socket.getaddrinfo(parts.hostname, port, type=socket.SOCK_STREAM)
+    except socket.gaierror:
+        raise ValueError('Error (FURL): host could not be resolved')
+    for info in infos:
+        ip = ipaddress.ip_address(info[4][0].split('%')[0])
+        ip = getattr(ip, 'ipv4_mapped', None) or ip  # ::ffff:127.0.0.1
+        if not ip.is_global:  # private, loopback, link-local, reserved, ...
+            raise ValueError('Error (FURL): URL points to a non-public address')
+
+
+def fetch_url(url: str, *, max_bytes: int | None = None, check_status: bool = True) -> requests.Response:
+    """Safely GET a remote URL and return a ``requests.Response`` (``.content``, ``.text``, ``.status_code``).
+
+    Use this instead of ``requests.get`` for any URL that is user-supplied or comes from fetched content.
+    Redirects are followed manually so every hop is re-validated (a public URL must not bounce to an
+    internal one), and the body is streamed with a size and total-time cap to avoid memory/worker
+    exhaustion. ``max_bytes`` defaults to the same per-file limit as uploads (QCALC_MAX_FILE_MB).
+    With ``check_status=False`` HTTP 4xx/5xx responses are returned instead of raised
+    (e.g. for link checkers).
+    """
+    if max_bytes is None:
+        max_bytes = int(max_file_mb() * 1024 * 1024)
+    deadline = time.monotonic() + _FETCH_TOTAL_TIMEOUT_S
+    for _ in range(_MAX_REDIRECTS + 1):
+        assert_public_http_url(url)  # re-validated on every redirect hop
+        with requests.get(url, timeout=(3, 15), stream=True, allow_redirects=False) as resp:
+            if resp.is_redirect:
+                url = urljoin(url, resp.headers['Location'])
+                continue
+            declared = resp.headers.get('Content-Length', '')
+            if declared.isdigit() and int(declared) > max_bytes:
+                raise ValueError('Error (FURL): remote file too large')
+            buf = io.BytesIO()
+            for chunk in resp.iter_content(64 * 1024):
+                buf.write(chunk)
+                if buf.tell() > max_bytes:
+                    raise ValueError('Error (FURL): remote file too large')
+                if time.monotonic() > deadline:
+                    raise TimeoutError('Error (FURL): download took too long')
+            result = requests.Response()
+            result.status_code = resp.status_code
+            result.headers = resp.headers
+            result.url = url
+            result.reason = resp.reason
+            result.encoding = resp.encoding
+            result._content = buf.getvalue()
+            if check_status:
+                result.raise_for_status()
+            return result
+    raise ValueError('Error (FURL): too many redirects')
 
 
 def encode_url_param(url_part, encode=True):
@@ -19,9 +91,7 @@ def encode_url_param(url_part, encode=True):
 
 def url2html(url):
     try:
-        response = requests.get(url, timeout=(3, 15))
-        response.raise_for_status()
-        return response.content  # text, content
+        return fetch_url(url).content  # text, content
     except requests.exceptions.RequestException as e:
         e.args = (f"Error (U2H): Error fetching the page",)
         raise e

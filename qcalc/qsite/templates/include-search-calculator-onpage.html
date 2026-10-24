@@ -1,0 +1,21 @@
+<div class="col-sm-12">
+  <form method="post" hx-post="/calc/search-calculators/"
+        hx-target="#calculator-search-results" hx-swap="innerHTML"
+        hx-disabled-elt="find input, find button">
+    {% csrf_token %}
+    <input type="hidden" name="n" value="3">
+    <div class="form-group-feedback form-group-feedback-right">
+      <input type="search"
+             class="form-control"
+             name="query"
+             maxlength="4000"
+             placeholder="{{ label }}"
+             aria-label="Calculator query"
+             required>
+      <div class="form-control-feedback">
+        <button type="submit" class="btn" aria-label="Find calculators"><i class="icon-search4 text-muted"></i></button>
+      </div>
+    </div>
+  </form>
+  <div id="calculator-search-results" class="mt-3" aria-live="polite"></div>
+</div>

@@ -1,5 +1,5 @@
 # https://gist.github.com/sebleier/554280
-stop_words = [
+_GENERAL_STOP_WORDS_SOURCE = [
     "0o", "0s", "3a", "3b", "3d", "6b", "6o", "a", "a1", "a2", "a3", "a4", "ab", "able", "about", "above", "abst", "ac",
     "accordance", "according", "accordingly", "across", "act", "actually", "ad", "added", "adj", "ae", "af", "affected",
     "affecting", "affects", "after", "afterwards", "ag", "again", "against", "ah", "ain", "ain't", "aj", "al", "all",
@@ -88,3 +88,34 @@ stop_words = [
     "y2", "yes", "yet", "yj", "yl", "you", "youd", "you'd", "you'll", "your", "youre", "you're", "yours", "yourself",
     "yourselves", "you've", "yr", "ys", "yt", "z", "zero", "zi", "zz"
 ]
+
+GENERAL_STOP_WORDS = frozenset(_GENERAL_STOP_WORDS_SOURCE)
+
+CALCULATOR_SEARCH_STOP_WORDS = frozenset({
+    'a',
+    'an',
+    'and',
+    'build',
+    'calculate',
+    'calculation',
+    'calculator',
+    'create',
+    'for',
+    'i',
+    'make',
+    'me',
+    'need',
+    'please',
+    'that',
+    'the',
+    'to',
+    'using',
+    'want',
+    'with',
+})
+
+
+def get_wordcloud_stop_words():
+    from wordcloud import STOPWORDS
+
+    return frozenset(STOPWORDS)

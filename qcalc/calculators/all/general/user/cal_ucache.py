@@ -14,7 +14,12 @@ from calc.mod_credentials import (
 from qcore import QScreen, quom, color_schemes, legend_locations, qtext, qinfo
 from qutil import nzs, css2strs, truncate, user_process, callback_button, QThread, is_loggedin, addcal_button
 from qvars import qc_gpref as gs
-from calc import dict2options, StdList
+from calc import (
+    OPENAI_MODEL_CHOICES,
+    dict2options,
+    StdList,
+    normalize_openai_model,
+)
 
 MIN_EXECUTION_TIMEOUT = 1
 MAX_EXECUTION_TIMEOUT = 900
@@ -31,7 +36,7 @@ def pref__info():
     general_options = 'theme, interactive, defa_currency, uom_subset_enabled, memory, strict_*'
     number_options = 'ignore_decimal_format, decimal, *_decimal, thousands_separator, exponent_*'
     chart_options = 'chart_*'
-    other_options = 'execution_timeout, xpr_max_table_cells'
+    other_options = 'execution_timeout, xpr_max_table_cells, openai_model'
     pane1 = {'title': 'General', 'fields': general_options}
     pane2 = {'title': 'Number', 'fields': number_options}
     pane3 = {'title': 'Chart', 'fields': chart_options}
@@ -121,6 +126,11 @@ def pref__info():
                 'attrs': {'max': '10000', 'min': '0'},
                 'help_text': 'Maximum number of table cells expression building can continue with, from 0 to 10000.',
             },
+            'openai_model': {
+                'type': 'select2',
+                'choices': OPENAI_MODEL_CHOICES,
+                'help_text': 'Select the OpenAI model ID used by AI features, e.g. in mycal, mycal2, ai_chat, etc.',
+            },
         },
         'calculate': 'Save',
         'layout': 'tb',
@@ -169,6 +179,7 @@ def pref__input(_kwargs):  # alternative to func__info() 'schema':{}'
         'strict_table_input': us['strict_table_input'],
         'execution_timeout': us['execution_timeout'],
         'xpr_max_table_cells': us['xpr_max_table_cells'],
+        'openai_model': us['openai_model'],
     }
 
 
@@ -194,9 +205,11 @@ def pref(  # pref-03
     strict_table_input: bool,
     execution_timeout: int,
     xpr_max_table_cells: int,
+    openai_model,
 ):
 
     theme = _normalize_theme(theme)
+    openai_model = normalize_openai_model(openai_model)
     # user settings
     us = {  # pref-04
         'theme': theme,
@@ -220,6 +233,7 @@ def pref(  # pref-03
         'strict_table_input': strict_table_input,
         'execution_timeout': int(execution_timeout),
         'xpr_max_table_cells': xpr_max_table_cells,
+        'openai_model': openai_model,
     }
     try:
         if memory == 0: QMem.clear()
@@ -237,7 +251,7 @@ def api_keys__info():
         'title': 'Personal API Keys',
         'desc': 'Save your personal provider API keys securely.',
         'kins': 'pref, ai_chat, mycal2',
-        'tags': 'preferences',
+        'tags': 'ai, preferences',
         'remember': False,
         'schema': {
             'action': {

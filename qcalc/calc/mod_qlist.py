@@ -6,6 +6,7 @@ from qcore import add_measurement_units, add_quantities
 from qvars import qfunc_info, qty_categ_info, unit_info, qfunc_categ_info
 from qutil import load_json
 from .mod_currency import CurrencyLoader
+from .mod_cred_quota import load_provider_quotas
 import logging
 
 logger = logging.getLogger(__name__)
@@ -68,6 +69,7 @@ class StdList:
         cls.text_list = load_json("texts.json")
         cls.theme_list = load_json("themes.json")
         cls.timezone_list = load_json("timezones.json")
+        load_provider_quotas()
 
         add_measurement_units()
         logger.info('*** Units added')

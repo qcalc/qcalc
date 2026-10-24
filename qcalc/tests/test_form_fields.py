@@ -4,7 +4,7 @@ from qconst import TOK_INDEX_SEP
 from qcore.mod_anno import qhtml
 from qcore.mod_qjfield import QJField
 from qcore.mod_qforms import QFieldHandler
-from qcore.mod_qwidgets import QtyWidget
+from qcore.mod_qwidgets import CodeWidget_codemirror, QtyWidget
 
 
 def test_qhtml_value_creates_display_only_html_field():
@@ -119,3 +119,21 @@ def test_qty_widget_reads_exact_child_names_with_double_underscore():
     values = widget.value_from_datadict(posted, {}, 'qtc_input')
 
     assert values == ['2', 'ft', '3', 'inch']
+
+
+def test_code_widget_loads_find_and_replace_assets():
+    media = CodeWidget_codemirror(id_='id_code').media
+
+    assert any(path.endswith('/dialog.min.css') for path in media._css['all'])
+    assert any(path.endswith('/dialog.min.js') for path in media._js)
+    assert any(path.endswith('/searchcursor.min.js') for path in media._js)
+    assert any(path.endswith('/search.min.js') for path in media._js)
+
+
+def test_code_widget_renders_find_and_replace_actions():
+    html = str(CodeWidget_codemirror(id_='id_code').render('code', 'print("hello")'))
+
+    assert "codeMirrorWidgetMenuAction('id_code', 'find')" in html
+    assert "codeMirrorWidgetMenuAction('id_code', 'replace')" in html
+    assert '>Find (Ctrl+F)<' in html
+    assert '>Replace (Ctrl+Shift+F)<' in html

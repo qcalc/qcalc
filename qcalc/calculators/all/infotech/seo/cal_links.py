@@ -1,10 +1,9 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
-import requests
 from bs4 import BeautifulSoup
 from qcore.mod_anno import qtexta
-from qutil import qaddr
+from qutil import qaddr, fetch_url
 from urllib.parse import urljoin, urlparse
 import re
 
@@ -39,7 +38,7 @@ def xurls(page_url: qtexta = qaddr(), page_content: qtexta = ''):
     content = ''
     if webpage_url and page_content == '':
         domain_name = urlparse(webpage_url).netloc
-        resp = requests.get(webpage_url, timeout=(3, 15))
+        resp = fetch_url(webpage_url, check_status=False)
         content = resp.content
         mode = 'url'
     elif page_content:
@@ -118,8 +117,7 @@ def broken_links(url: qtexta = qaddr(),
     error = 'None'
     link_url = ''
     try:
-        response = requests.get(url, timeout=(3, 15))
-        response.raise_for_status()
+        response = fetch_url(url)  # raises on HTTP errors
 
         urls = xurls(url)
         allurls = list(urls["Internal Url List"]) + list(urls["External Url List"])
@@ -130,7 +128,7 @@ def broken_links(url: qtexta = qaddr(),
                 break
             if link_url.startswith('javascript'):
                 continue
-            link_response = requests.get(link_url, timeout=(3, 15))
+            link_response = fetch_url(link_url, check_status=False)
             if link_response.status_code >= 400:
                 broken_links.append(link_url)
             else:

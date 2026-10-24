@@ -35,13 +35,17 @@ def user_name(request=None):
 def user_ip(request=None):
     """Return client IP address from request metadata.
 
-    Prefers ``HTTP_X_FORWARDED_FOR`` first (first hop), then ``REMOTE_ADDR``.
+    Uses the META key named by ``settings.CLIENT_IP_HEADER`` (e.g. ``HTTP_X_REAL_IP``, set by a trusted proxy)
+    if configured, otherwise ``REMOTE_ADDR``. ``X-Forwarded-For`` is not used because a client can forge it.
+    Returns ``''`` when no request is available.
     """
+    from django.conf import settings
     request = request or QThread.get_req()
-    forwarded = request.META.get('HTTP_X_FORWARDED_FOR')
-    if forwarded:
-        return forwarded.split(',')[0].strip()
-    return request.META.get('REMOTE_ADDR')
+    if request is None:
+        return ''
+    header = getattr(settings, 'CLIENT_IP_HEADER', '') or ''
+    ip = (request.META.get(header) if header else '') or request.META.get('REMOTE_ADDR') or ''
+    return ip.strip()
 
 
 def local_ip():

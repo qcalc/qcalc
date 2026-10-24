@@ -6,30 +6,48 @@ import ast
 import qconst
 
 
-def extract_common_prefix(functions: list):
+def extract_calculator_name(functions: list):
     if not functions:
         return ''
 
-    prefix = ''
+    metadata_functions = []
     for fname in functions:
-        if '__' in fname:
-            parts = fname.split('__')
-            if not prefix:
-                prefix = parts[0]
-            elif prefix != parts[0]:
-                raise Exception(f"Error (ECP): '{fname}' prefix '{parts[0]}' mismatches with '{prefix}'")
+        if '__' not in fname:
+            continue  # Main calculator or ordinary helper function.
 
-            meta = f'__{parts[-1]}'
-            if meta not in qconst.KNOWN_METAS:
-                raise Exception(f"Error (ECP): '{fname}' meta '{meta}' is not a known meta {qconst.KNOWN_METAS}")
-    if prefix != '' and prefix not in functions:
+        function_prefix, _, meta_name = fname.rpartition('__')
+        meta = f'__{meta_name}'
+        if meta not in qconst.KNOWN_METAS:
+            raise Exception(f"Error (ECP): '{fname}' meta '{meta}' is not a known meta {qconst.KNOWN_METAS}")
+        metadata_functions.append((fname, function_prefix, meta))
+
+    info_functions = [
+        item for item in metadata_functions if item[2] == '__info'
+    ]
+    if not info_functions:
+        return ''
+    if len(info_functions) > 1:
+        raise Exception(
+            f"Error (ECP): Multiple calculator info functions found: "
+            f"{[item[0] for item in info_functions]}"
+        )
+
+    prefix = info_functions[0][1]
+    if prefix not in functions:
         raise Exception(f"Error (ECP): Function '{prefix}' is not defined but meta '{prefix}__info' is defined")
+
+    for fname, function_prefix, _ in metadata_functions:
+        if function_prefix != prefix:
+            raise Exception(
+                f"Error (ECP): '{fname}' prefix '{function_prefix}' mismatches with '{prefix}'"
+            )
+
     return prefix
 
 
-def ensure_info_function(code: str, cal_name=''):
+def ensure_calculator_info(code: str, cal_name=''):
     """
-    Ensure that the code contains a function named <last_function_name>__info().
+    Ensure that the code contains a function named <calculator_name>__info().
     If not found, add the function to the code with a dummy implementation.
 
     Args:
@@ -54,15 +72,30 @@ def {cal_name}__info():
     }}
 """
     functions = get_functions(code)
-    determined_name = extract_common_prefix(functions)
+    determined_name = extract_calculator_name(functions)
     if determined_name == '':
-        if cal_name != '' and cal_name in functions:
-            pass
-        elif cal_name == '' and len(functions) == 1 and '__' not in functions[0]:
-            cal_name = functions[0]
-        elif cal_name == '':
-            cal_name = 'newcal'
-        determined_name = cal_name
+        if cal_name:
+            if cal_name not in functions:
+                raise Exception(
+                    f"Error (EIF): Specified calculator function '{cal_name}' is not defined"
+                )
+            determined_name = cal_name
+        else:
+            ordinary_functions = [
+                fname for fname in functions if '__' not in fname
+            ]
+            if len(ordinary_functions) == 1:
+                determined_name = ordinary_functions[0]
+            elif not ordinary_functions:
+                raise Exception(
+                    "Error (EIF): No calculator function is defined"
+                )
+            else:
+                raise Exception(
+                    "Error (EIF): Cannot determine the main calculator "
+                    f"function from {ordinary_functions}. Define an "
+                    "'<calculator>__info' function or specify cal_name."
+                )
     info_name = f"{determined_name}__info"
 
     if info_name in functions:

@@ -4,7 +4,76 @@
 from qcore.qc_mbase import _base_names, _conv_names, lmt_desc, dim_to_bname, _prefix_list,_prefixes
 from qcore.qc_munit import MeasureUnit, isMeasureUnit
 from qutil import iif, preprocess_expression
+import ast
+import operator
 import numpy as np
+from functools import lru_cache
+
+_BIN_OPS = {
+    ast.Add: operator.add,
+    ast.Sub: operator.sub,
+    ast.Mult: operator.mul,
+    ast.Div: operator.truediv,
+    ast.Pow: operator.pow,
+}
+_UNARY_OPS = {ast.UAdd: operator.pos, ast.USub: operator.neg}
+_MAX_EXPR_LEN = 256
+_MAX_ABS_EXPONENT = 100  # blocks things like 9**9**9
+
+
+def safe_eval_unit(expr: str, table: dict, extra: dict | None = None):
+    """Evaluate a unit expression such as 'kg*m/s**2' without Python's eval().
+
+    Only names found in `table`/`extra`, int/float literals, unary +/-, and
+    + - * / ** are allowed. Anything else (calls, attributes, subscripts,
+    lambdas, strings, ...) raises ValueError.
+    """
+    if len(expr) > _MAX_EXPR_LEN:
+        raise ValueError('Error (UE): unit expression too long')
+    tree = ast.parse(expr.strip(), mode='eval')
+
+    def ev(node):
+        if isinstance(node, ast.Expression):
+            return ev(node.body)
+
+        if isinstance(node, ast.Constant):
+            if type(node.value) in (int, float):  # excludes bool, complex, str, None
+                return node.value
+            raise ValueError('Error (UE): unsupported literal')
+
+        if isinstance(node, ast.Name):
+            name = node.id
+            if name.startswith('__'):
+                raise ValueError('Error (UE): invalid name')
+            if extra and name in extra:
+                return extra[name]
+            if name in table:
+                return table[name]
+            raise NameError(f"name '{name}' is not defined")
+
+        if isinstance(node, ast.UnaryOp) and type(node.op) in _UNARY_OPS:
+            return _UNARY_OPS[type(node.op)](ev(node.operand))
+
+        if isinstance(node, ast.BinOp) and type(node.op) in _BIN_OPS:
+            left, right = ev(node.left), ev(node.right)
+            if isinstance(node.op, ast.Pow):
+                if type(right) not in (int, float) or abs(right) > _MAX_ABS_EXPONENT:
+                    raise ValueError('Error (UE): invalid exponent')
+            return _BIN_OPS[type(node.op)](left, right)
+
+        raise ValueError(f'Error (UE): unsupported syntax {type(node).__name__}')
+
+    return ev(tree)
+
+
+@lru_cache(maxsize=4096)
+def _find_unit_cached(name: str):
+    return safe_eval_unit(name, _unit_table)
+
+
+def _clone_unit(unit: MeasureUnit) -> MeasureUnit:
+    return MeasureUnit(dict(unit.names), unit.factor, list(unit.powers), unit.offset)
+
 
 _base_units = [
     ('m', MeasureUnit('m', 1., [1, 0, 0, 0, 0, 0, 0, 0, 0, 0]), 'meter'),
@@ -776,7 +845,7 @@ def _add_unit(name, unit_or_str, long_name='', comment='', category=''):
 
     if isinstance(unit_or_str, str):  # it is a string e.g. '3*ft'
         unit_or_str = unit_or_str.lower()  # dup check
-        unit = eval(unit_or_str, _unit_table.copy(), {'pi': np.pi})  # direct eval() on purpose
+        unit = safe_eval_unit(unit_or_str, _unit_table, {'pi': np.pi})
     else:  # it is a MeasureUnit(...)
         unit = unit_or_str
 
@@ -797,9 +866,10 @@ def _add_unit(name, unit_or_str, long_name='', comment='', category=''):
         "dimension": unit.dimension
     }
     id_ = unit.dimension  # unit.dimension will be assigned to '0' for unitless entity
-    if id_ not in _unit_tree:
-        _unit_tree[id_] = []
-    _unit_tree[id_].append(name)
+    members = _unit_tree.setdefault(id_, [])
+    if name not in members:  # currency refresh re-adds existing names; only the rate should change
+        members.append(name)
+    _find_unit_cached.cache_clear()
 
 
 def _add_base_units():
@@ -846,10 +916,10 @@ def unit_short_desc(sname):  # deb@29.06.24
 def find_unit(unit) -> MeasureUnit:
     if isinstance(unit, str):
         unit = unit.lower()  # lowercase
-        # .# name = string.strip(unit)
         name = preprocess_expression(unit.strip())
-
-        unit = eval(name, _unit_table.copy())  # direct eval() on purpose
+        unit = _find_unit_cached(name)
+        if isMeasureUnit(unit):
+            unit = _clone_unit(unit)
 
     if not isMeasureUnit(unit):
         raise TypeError(f'Error (MQ): {str(unit)} is not an unit')

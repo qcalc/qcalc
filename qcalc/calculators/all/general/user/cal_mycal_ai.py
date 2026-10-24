@@ -8,14 +8,17 @@ from qutil import (
     addcal_button,
     callback_button,
     escape_markdown,
-    extract_common_prefix,
+    extract_calculator_name,
     get_functions,
     md2html,
     md_math_script,
     page_link,
 )
 
-from .cal_mycal import validate_calculator_defaults, validate_calculator_info, mycal__modify
+from .cal_mycal import (
+    validate_calculator_code,
+    mycal__modify,
+)
 from .mod_mycal_agent import AIGenerationError, MyCalAgent
 
 
@@ -49,16 +52,8 @@ def mycal2__command(fkwargs, extra):
     action = extra['args'][0]
     user_code = fkwargs.get('code', '')
 
-    if action == 'syntax':
-        try:
-            result = validate_calculator_info(user_code)
-        except Exception as e:
-            result = str(e)
-    elif action == 'validate':
-        try:
-            result = validate_calculator_defaults(user_code)
-        except Exception as e:
-            result = str(e)
+    if action == 'validate':
+        result = validate_calculator_code(user_code)
     elif action == 'ai_send':
         try:
             prompt = fkwargs.get('ai_prompt', '')
@@ -67,7 +62,7 @@ def mycal2__command(fkwargs, extra):
                 prompt,
                 user_code,
                 cal_name_hint=cal_name,
-                max_attempts=1,
+                max_validation_repairs=1,
                 reference_cals=fkwargs.get('reference_cals', ''),
             )
             final_prompt = response.prompt
@@ -105,8 +100,8 @@ def mycal2__info():
     return {
         'title': 'Create My Calculator - AI Assisted',
         'desc': 'Generate and validate calculator code with AI assistance before saving.',
-        'kins': 'eva, mycal, ai_chat',
-        'tags': 'create calculator, prompt',
+        'kins': 'eva, mycal, ai_chat, q2cal',
+        'tags': 'ai, create calculator, natural language',
         'schema': {
             'ai_prompt': ai_prompt_field(
                 label='Agent Message',
@@ -128,9 +123,8 @@ def mycal2__info():
         },
         'inserts': {
             'form_bottom':
-                callback_button('mycal2', 'Check Syntax', '__command', args=['syntax']) +
                 callback_button('mycal2', 'Format Code', '__modify', kwargs={'code': 'format'}) +
-                callback_button('mycal2', 'Validate Input', '__command', args=['validate']) +
+                callback_button('mycal2', 'Validate Code', '__command', args=['validate']) +
                 page_link('/catalog/user/', 'My Catalog', 'btn btnurl', 'icon-tree5'),
             'out_bottom': md_math_script(),
         },
@@ -164,7 +158,7 @@ def addlen__info():
     try:
         uc = UCals()
         res = uc.edit_cal(cal_name, code)
-        cal_name = extract_common_prefix(get_functions(code))
+        cal_name = extract_calculator_name(get_functions(code))
         cal_id = f"{cal_name}-{uc.cal_owner}"
         open_button = qhtml(addcal_button(cal_id, f'Open {cal_name}'))
         return {

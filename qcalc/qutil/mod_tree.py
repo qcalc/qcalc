@@ -3,7 +3,7 @@
 
 import json
 
-from qutil import stop_words, match_any, css2strs, user_name, path_title
+from qutil import GENERAL_STOP_WORDS, match_any, css2strs, user_name, path_title
 from qvars import qc_gpref as gs
 from typing import Optional, List, Tuple
 from qutil.mod_settings import is_debug
@@ -328,7 +328,7 @@ class TreeNode:
             terms = sterms.lower().split()
             terms = [term for term in terms if len(term) > 1]
             if exclude_stop_words:
-                terms = [term for term in terms if term not in stop_words]
+                terms = [term for term in terms if term not in GENERAL_STOP_WORDS]
             terms = [term for term in terms if term not in
                      ['calculate', 'calculation', 'calculator']]
             # print('actually searching:', terms)

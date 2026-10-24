@@ -18,6 +18,8 @@ class QImage:
         self.bio2b64()
 
     def __str__(self):
+        if self.b64 is None:
+            return 'Image not encoded'
         return f'Image base64 size {len(self.b64)} bytes'
 
     def bio2b64(self):  # bio = bytesIO

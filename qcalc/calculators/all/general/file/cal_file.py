@@ -3,9 +3,8 @@
 
 import re
 from bs4 import BeautifulSoup
-import requests
 from qconst import delimiter_help_text
-from qutil import nzs, csv2df, demo_url, md2html, md_math_script, action_script
+from qutil import nzs, csv2df, demo_url, md2html, md_math_script, action_script, fetch_url
 from qcore.mod_anno import *
 from calc.mod_result import df2normalized
 
@@ -87,7 +86,7 @@ def md_reader(upload_markdown: qfile = None, md_url: qurl = demo_url('demo.md'),
     if mode == 'URL':
         if not md_url:
             raise Exception(f'Error (MR): A valid Markdown URL is not found')
-        response = requests.get(md_url, timeout=(3, 15))
+        response = fetch_url(md_url, check_status=False)
         md_text = response.text
     elif mode == 'TEXT':
         if nzs(markdown_text) == '':
@@ -268,7 +267,7 @@ def html_reader(upload_html: qfile = None, html_url: qurl = demo_url('demo.html'
     if mode == 'URL':
         if not html_url:
             raise Exception(f'Error (HR): A valid HTML URL is not found')
-        response = requests.get(html_url, timeout=(3, 15))
+        response = fetch_url(html_url, check_status=False)
         html = response.text
     elif mode == 'TEXT':
         if nzs(html_text) == '':

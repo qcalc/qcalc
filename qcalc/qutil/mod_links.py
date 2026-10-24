@@ -110,7 +110,7 @@ def callback_button(sfunc, caption, cmd, args=None, kwargs=None):
     htm += f'hx-post="/calc/{sfunc}/?part=2" hx-target="closest form" hx-swap="innerHTML" '
 
     # | this button expects the FULL form back (its whole purpose is to
-    # | update input, e.g. Format Code/Load Code/Check Syntax) - the server's
+    # | update input, e.g. Format Code/Load Code/Validate Code) - the server's
     # | default response for an ordinary POST is now the output-only
     # | fragment, so mark this submit as structural
     extra = {"extra": {"cmd": cmd, "args": args, "kwargs": kwargs}, "qcalc_structural_cmd": "1"}

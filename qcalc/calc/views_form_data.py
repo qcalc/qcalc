@@ -410,10 +410,10 @@ def q11449_form_data_postprocess_and_run(request, func_id):  # cid
                 if isinstance(modify_message, (qerror, qwarn, qinfo)):
                     result = modify_message
                 else:
-                    result = qinfo(f'{request.cmd.upper().replace('__', '')}: Input section updated')
+                    result = qinfo('Input section updated')
             else:
                 # | POST: Update input section
-                result = qinfo(f'{request.cmd.upper().replace('__', '')}: Input section updated')
+                result = qinfo('Input section updated')
 
             if request.method == 'POST':
                 request.success &= request.json_doc['clean']

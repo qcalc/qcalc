@@ -11,7 +11,7 @@ import requests
 
 class QGeo:
     def __init__(self, address='', latitude=None, longitude=None):
-        self.geolocator = Nominatim(user_agent='qcalc')
+        self.geolocator = Nominatim(user_agent='qcalc', timeout=10)
         self.id = f'map-{makeid()}'
         if address and latitude is not None and longitude is not None:
             self.latitude, self.longitude, self.address = latitude, longitude, address
@@ -31,7 +31,7 @@ class QGeo:
 
     @classmethod
     def from_str(cls, s):
-        address, coords = s.split(': ')
+        address, coords = s.rsplit(': ', 1)
         latitude, longitude = map(float, coords.split(', '))
         geo = cls(address, latitude, longitude)
         return geo
@@ -54,15 +54,15 @@ class QGeo:
 
     def _geocode(self, address):
         location = self.geolocator.geocode(address)
-        if location:
-            return location.latitude, location.longitude, location.address
-        return None, None, 'Location not found'
+        if not location:
+            raise ValueError(f'Location not found: {address}')
+        return location.latitude, location.longitude, location.address
 
     def elevation(self):
         # elevation in meters
         elevation_url = f"https://api.open-elevation.com/api/v1/lookup?locations={self.latitude},{self.longitude}"
         try:
-            response = requests.get(elevation_url)
+            response = requests.get(elevation_url, timeout=(3, 15))
             response.raise_for_status()
             altitude = response.json().get('results', [{}])[0].get('elevation')
         except (requests.RequestException, IndexError, KeyError):
@@ -79,7 +79,7 @@ class QGeo:
         return {"location": [self.latitude, self.longitude], "popup": self.__str__()}
 
     @classmethod
-    def calculate_zoom(cls, lat_diff, lng_diff, min_zoom=0.0, max_zoom=15.0):
+    def calculate_zoom(cls, lat_diff, lng_diff, min_zoom=0.0, max_zoom=15.0, center_latitude=0.0):
         """
         Calculate an appropriate zoom level based on the latitude and longitude differences.
         The smaller the difference, the higher the zoom level.
@@ -92,7 +92,7 @@ class QGeo:
 
         # Convert lat/lng difference into a rough distance in meters (approximation)
         lat_distance = lat_diff * 111_000  # meters (1 degree latitude ~ 111 km)
-        lng_distance = lng_diff * 111_000 * math.cos(math.radians(lat_diff / 2))  # meters, adjust by latitude
+        lng_distance = lng_diff * 111_000 * math.cos(math.radians(center_latitude))  # meters, adjust by latitude
 
         # Use the larger distance as the reference for zooming
         max_distance = max(lat_distance, lng_distance)
@@ -124,7 +124,7 @@ class QGeo:
             # Step 2: Calculate the zoom level based on lat/lng range
             lat_diff = max_lat - min_lat
             lng_diff = max_lng - min_lng
-            zoom = self.calculate_zoom(lat_diff, lng_diff)
+            zoom = self.calculate_zoom(lat_diff, lng_diff, center_latitude=center_lat)
             return {'center': [center_lat, center_lng], 'zoom': zoom}
         else:
             return {'center': [self.latitude, self.longitude], 'zoom': 8}

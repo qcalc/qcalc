@@ -126,7 +126,7 @@ def normal(
 ):
     chart = pareq(
         x='x',
-        y='(1 / (sqrt(2 * pi) * sigma)) * exp(-0.5 * (1 / sigma * (x - mu)) ** 2)',
+        y=f'(1 / (sqrt(2 * pi) * {standard_devn})) * exp(-0.5 * (1 / {standard_devn} * (x - {mean})) ** 2)',
         variable='x',
         variable_start=start,
         variable_stop=stop,
@@ -134,10 +134,6 @@ def normal(
         x_label='x',
         y_label='y',
         title='Normal Distribution Curve',
-        const_1='mu',
-        const_1_part=mean,
-        const_2='sigma',
-        const_2_part=standard_devn,
         aspect=0
     )
     return {'chart': chart}

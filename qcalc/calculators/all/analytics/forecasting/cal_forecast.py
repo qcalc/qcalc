@@ -1113,6 +1113,8 @@ def forecast__info():
         'desc': (
             'Create forecasts with automatic selection or manual model choices across exponential smoothing, moving average, and linear regression. '
         ),
+        'tags': 'business, forecasting, decomposition, holt-winters, moving-average, linear-regression, time series',
+        'kins': 'optima_sop, optima_production_inventory, invlevel, eoq, moq',
         'calculate': 'Forecast',
         'schema': {
             'historical_data': {
@@ -1326,8 +1328,6 @@ def forecast__info():
             ];
         }
         """,
-        'tags': 'business, forecasting, decomposition, holt, holt-winters, moving-average, linear-regression, time series',
-        'kins': 'optima_sop, optima_production_inventory, invlevel, eoq, moq',
     }
 
 

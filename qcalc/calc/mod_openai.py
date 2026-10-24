@@ -2,13 +2,31 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 import openai
+from typing import Any
 from .mod_qcals import QCals
 from qcore import _base_categ_s2d, _base_categories, _unit_info
 import inspect
 import qconst
-from .mod_cache import QMyCal
+from .mod_cache import QMyCal, QPref
 from qutil import fid2owner, user_name, md2html, QThread, is_loggedin
 from .mod_credentials import get_effective_api_key
+
+DEFAULT_OPENAI_MODEL = 'gpt-5.4-mini'
+OPENAI_MODEL_CHOICES = [
+    'gpt-4o-mini',  # Coding: Basic–Good | Cost: Very low
+    'gpt-4.1-mini',  # Coding: Good | Cost: Low
+    'gpt-4.1',  # Coding: Very good | Cost: Medium
+    'gpt-4o',  # Coding: Good–Very good | Cost: Medium
+    'gpt-5-nano',  # Coding: Basic–Good | Cost: Very low
+    'gpt-5-mini',  # Coding: Good–Very good | Cost: Low
+    'gpt-5.3-codex',  # Coding: Excellent | Cost: Medium
+    'gpt-5.4-nano',  # Coding: Basic–Good | Cost: Very low
+    'gpt-5.4-mini',  # Coding: Very good | Cost: Low–Medium
+    'gpt-6-luna',  # Coding: Good | Cost: Very low
+    'gpt-6-sol',  # Coding: Excellent | Cost: Medium
+    'gpt-6.1-sol',  # Coding: Excellent | Cost: Medium–High
+    'gpt-6-astra',  # Coding: Excellent | Cost: High
+]
 
 
 def _current_user():
@@ -18,8 +36,48 @@ def _current_user():
     return None
 
 
-def get_code(func_id: str = 'gold', show_meta=False):
-    html = ''
+def normalize_openai_model(model):
+    return str(model).strip() or DEFAULT_OPENAI_MODEL
+
+
+def get_openai_model():
+    model = QPref.getp1('openai_model', DEFAULT_OPENAI_MODEL)
+    return normalize_openai_model(model)
+
+
+def get_openai_chat_options(temperature=None, max_tokens=None):
+    model = get_openai_model()
+    options: dict[str, Any] = {'model': model}
+    if model.startswith('gpt-5'):
+        if max_tokens is not None:
+            options['max_completion_tokens'] = max_tokens
+    else:
+        if temperature is not None:
+            options['temperature'] = temperature
+        if max_tokens is not None:
+            options['max_tokens'] = max_tokens
+    return options
+
+
+def create_openai_chat_completion(messages, temperature=None, max_tokens=None):
+    options = get_openai_chat_options(temperature=temperature, max_tokens=max_tokens)
+    model = str(options['model'])
+    api_key = get_effective_api_key(_current_user(), 'openai')
+    client = openai.OpenAI(api_key=api_key)
+    try:
+        return client.chat.completions.create(**options, messages=messages)
+    except openai.NotFoundError as error:
+        if getattr(error, 'code', None) == 'model_not_found':
+            raise ValueError(
+                f'OpenAI model "{model}" was not found or is not available '
+                'to your API key. Check the model name in User Preferences.'
+            ) from error
+        raise
+
+
+def get_code(func_id: str = 'gold', show_meta=False, as_html=True):
+    source_blocks = []
+    error = ''
     cal_id, cal_name, owner = fid2owner(func_id=func_id)
     personal = (owner == user_name())
     # print(cal_id, cal_name, owner, user_name(), personal)
@@ -30,34 +88,34 @@ def get_code(func_id: str = 'gold', show_meta=False):
                 func_meta_id = f'{func_id}{meta}'
                 if QCals.func_exists(func_meta_id, scope='q'):
                     fn_info = QCals.addr(func_meta_id, scope='q')
-                    html += f'<pre>{inspect.getsource(fn_info)}</pre>'
+                    source_blocks.append(inspect.getsource(fn_info))
         try:
             fn = QCals.addr(func_id, scope='q')
             if fn:
-                html += f'<pre>{inspect.getsource(fn)}</pre>'
+                source_blocks.append(inspect.getsource(fn))
             else:
                 code = QMyCal.getp1_from_owner_public(func_id)
-                if code: html += f'<pre>{code}</pre>'
+                if code:
+                    source_blocks.append(code)
         except Exception as e:
-            html += f'{str(e)}'
+            error = str(e)
     else:
         code = QMyCal.getp1(cal_id)
         if code:
-            html += f'<pre>{code}</pre>'
+            source_blocks.append(code)
         else:
-            html += f'User function {func_id} not found'
+            error = f'User function {func_id} not found'
 
-    return html
+    if not as_html:
+        return '\n\n'.join(block.strip() for block in source_blocks)
+    return ''.join(f'<pre>{block}</pre>' for block in source_blocks) + error
 
 
 def instruct_ask_gpt(instruction: str = 'please be short and precise',
                      question: str = "What is life", temperature=0.7):  # not used
     # The 'role' can take one of three values: 'system', 'user' or the 'assistant'
-    api_key = get_effective_api_key(_current_user(), 'openai')
-    client = openai.OpenAI(api_key=api_key)
-    response = client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[
+    response = create_openai_chat_completion(
+        [
             {
                 "role": "system",
                 "content": instruction,
@@ -75,11 +133,8 @@ def instruct_ask_gpt(instruction: str = 'please be short and precise',
 
 def ask_gpt(question: str = "What is qCalc", temperature=0.7):
     # The 'role' can take one of three values: 'system', 'user' or the 'assistant'
-    api_key = get_effective_api_key(_current_user(), 'openai')
-    client = openai.OpenAI(api_key=api_key)
-    response = client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[
+    response = create_openai_chat_completion(
+        [
             {
                 "role": "user",
                 "content": question,

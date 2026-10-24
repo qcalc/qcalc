@@ -64,6 +64,7 @@ class CodeWidget_codemirror(Widget):
             css={'all': [
                 static("vendor/codemirror/5.65.5/codemirror.min.css"),
                 static("vendor/codemirror/5.65.5/dracula.min.css"),
+                static("vendor/codemirror/5.65.5/dialog.min.css"),
             ]},
             js=[static("vendor/codemirror/5.65.5/codemirror.min.js"),
                 static("vendor/codemirror/5.65.5/mode/python.min.js"),
@@ -74,6 +75,9 @@ class CodeWidget_codemirror(Widget):
                 static("vendor/codemirror/5.65.5/mode/markdown.js"),
                 static("vendor/codemirror/5.65.5/matchbrackets.min.js"),
                 static("vendor/codemirror/5.65.5/closebrackets.min.js"),
+                static("vendor/codemirror/5.65.5/dialog.min.js"),
+                static("vendor/codemirror/5.65.5/searchcursor.min.js"),
+                static("vendor/codemirror/5.65.5/search.min.js"),
                 ]
         )
 
@@ -131,6 +135,11 @@ class CodeWidget_codemirror(Widget):
                 position: absolute;
                 top: 0;
             }
+            .CodeMirror-dialog input {
+                background-color: transparent !important;
+                caret-color: currentColor;
+                color: inherit !important;
+            }
             .elem-wrapper.fullscreen .CodeMirror {
                 height: calc(100vh - 16px);
             }
@@ -180,6 +189,9 @@ class CodeWidget_codemirror(Widget):
                     <i class="icon-menu7"></i>
                 </button>
                 <div id="{self.id}_menu" class="dropdown-menu cal-menu dropdown-menu-right code-widget-menu-panel">
+                    <button type="button" class="dropdown-item" onclick="codeMirrorWidgetMenuAction('{self.id}', 'find')">Find (Ctrl+F)</button>
+                    <button type="button" class="dropdown-item" onclick="codeMirrorWidgetMenuAction('{self.id}', 'replace')">Replace (Ctrl+Shift+F)</button>
+                    <div class="dropdown-divider"></div>
                     <button type="button" class="dropdown-item" onclick="codeMirrorWidgetMenuAction('{self.id}', 'copy')">Copy all</button>
                     <button type="button" class="dropdown-item" onclick="codeMirrorWidgetMenuAction('{self.id}', 'paste')">Paste (replace)</button>
                     <button type="button" class="dropdown-item" onclick="codeMirrorWidgetMenuAction('{self.id}', 'clear')">Clear</button>

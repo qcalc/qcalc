@@ -10,6 +10,18 @@ def is_debug():
     return settings.DEBUG
 
 
+def max_file_mb(requested=None) -> float:
+    """Effective per-file size limit in MB, shared by upload validation, the browser check and URL fetches.
+
+    ``requested`` (e.g. a field's ``max_mb``) overrides QCALC_MAX_FILE_MB but never exceeds
+    QCALC_MAX_FILE_MB_CEILING, which must stay below nginx client_max_body_size.
+    """
+    default = getattr(settings, 'QCALC_MAX_FILE_MB', 10.0)
+    ceiling = getattr(settings, 'QCALC_MAX_FILE_MB_CEILING', 45.0)
+    value = default if requested in (None, '') else float(requested)
+    return min(value, ceiling)
+
+
 def qdomain():
     return settings.QCALC_DOMAIN
 

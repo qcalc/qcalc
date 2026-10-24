@@ -24,6 +24,14 @@ def test_safe_execute_rejects_non_allowlisted_import(module_name):
         safe_execute(f"import {module_name}")
 
 
+def test_safe_execute_explains_how_to_find_allowed_modules():
+    with pytest.raises(
+        ImportError,
+        match=r"Remove it or use qmodules\(\) to see the allowed modules\.",
+    ):
+        safe_execute("import pathlib")
+
+
 def test_safe_execute_exposes_qapi_symbols():
     local_dict = safe_execute(
         "from qapi import Qty, qtexta\nresult = (Qty('2 m').to('cm').value, qtexta.__name__)"
@@ -50,6 +58,17 @@ def test_safe_execute_exposes_qapi_annotations_as_globals():
     )
 
     assert local_dict["result"].__name__ == "qtc2"
+
+
+def test_safe_execute_functions_can_call_helpers():
+    local_dict = safe_execute(
+        "def normalize(value):\n"
+        "    return value + 1\n\n"
+        "def calculate(value=1):\n"
+        "    return normalize(value)\n"
+    )
+
+    assert local_dict["calculate"]() == 2
 
 
 def test_retirement_sustainability_reports_zero_return_zero_inflation_depletion():

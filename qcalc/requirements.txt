@@ -1,5 +1,5 @@
 annotated-types==0.6.0
-anyio==4.2.0
+anyio==4.15.1
 argon2-cffi==23.1.0
 argon2-cffi-bindings==21.2.0
 asgiref==3.8.1
@@ -42,11 +42,11 @@ fuzzywuzzy==0.18.0
 geographiclib==2.1
 geopy==2.4.1
 gprof2dot==2022.7.29
-h11==0.14.0
-httpcore==1.0.2
+h11==0.16.0
+httpcore==1.0.9
 httpx==0.26.0
 humanfriendly==10.0
-idna==3.6
+idna==3.20
 imageio==2.34.1
 importlib_resources==7.1.0
 iniconfig==2.3.0
@@ -71,7 +71,7 @@ numpy==1.26.4
 numpy-financial==1.0.0
 oauthlib==3.2.2
 onnxruntime==1.18.0
-openai==1.7.0
+openai==3.36.1
 opencv-contrib-python-headless==4.10.0.84
 opencv-python-headless==4.11.0.86
 packaging==23.2
@@ -95,7 +95,7 @@ pyparsing==3.1.1
 pyproj==3.6.1
 pyreadline3==3.4.1
 pyshp==2.3.1
-python-dateutil==2.8.2
+python-dateutil==3.0.0
 python-Levenshtein==0.23.0
 python-markdown-math==0.8
 python3-openid==3.2.0

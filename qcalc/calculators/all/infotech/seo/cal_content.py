@@ -1,12 +1,18 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
-from wordcloud import WordCloud, STOPWORDS
-import matplotlib.pyplot as plt
+from wordcloud import WordCloud
 import yake
 from qcore import QChart
 from qcore.mod_anno import *
-from qutil import word_count, text2words, url2text, qaddr, nzs
+from qutil import (
+    get_wordcloud_stop_words,
+    nzs,
+    qaddr,
+    text2words,
+    url2text,
+    word_count,
+)
 import pandas as pd
 
 example_text = "Data science and data analysis help us understand big data through data visualization and data cleaning. "\
@@ -140,7 +146,7 @@ def word_cloud(
     words = text2words(text_content)
     if len(words) == 0:
         raise Exception('Error (WC): The selected content has no words to generate cloud')
-    stopwords = set(STOPWORDS)
+    stopwords = get_wordcloud_stop_words()
 
     comment_words = ''
     for i in range(len(words)):

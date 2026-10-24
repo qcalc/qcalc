@@ -4,7 +4,7 @@
 import cartopy.crs as ccrs
 import cartopy
 import matplotlib.pyplot as plt
-from qcore import QChart
+from .mod_qchart import QChart
 import numpy as np
 
 
@@ -47,8 +47,8 @@ class QMap(QChart):
 
     def distance(self, lat1, long1, lat2, long2):
         fig, ax = self.create_figure(projection=ccrs.PlateCarree(central_longitude=(long1 + long2) / 2))
-        offset_lat = max(abs(long1 - long2), 10) / 2
-        offset_lng = max(abs(lat1 - lat2), 10) / 2
+        offset_lng = max(abs(long1 - long2), 10) / 2
+        offset_lat = max(abs(lat1 - lat2), 10) / 2
         ax.set_extent([
             max(min(long1, long2) - offset_lng, -180),
             min(max(long1, long2) + offset_lng, 180),

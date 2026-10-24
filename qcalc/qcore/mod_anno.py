@@ -3,9 +3,14 @@
 
 import io
 import json
+import logging
 import pandas as pd
 from .mod_qfile import QFile
 from .qc_qty import Qty
+from qutil.mod_data import to_bool
+
+
+logger = logging.getLogger(__name__)
 
 
 # Short character input field up to 50 characters.
@@ -44,13 +49,13 @@ class qemail(str):
         pass
 
 
-# File upload field with a 2 MB limit.
-class qfile(QFile):  # file 2 MB
+# File upload field; per-file limit is QCALC_MAX_FILE_MB (a field's 'max_mb' overrides it).
+class qfile(QFile):
     pass
 
 
-# Image upload field with a 2 MB limit.
-class qimage(QFile):  # file 2 MB
+# Image upload field; per-file limit is QCALC_MAX_FILE_MB (a field's 'max_mb' overrides it).
+class qimage(QFile):
     pass
 
 
@@ -327,7 +332,7 @@ def convert_to_type(value, target_type):
         elif target_type in [float, qfl]:
             return float(value)
         elif target_type == bool:
-            return bool(value)
+            return to_bool(value)
         elif target_type == qtable:
             try:
                 value = json.loads(value)
@@ -352,7 +357,11 @@ def convert_to_type(value, target_type):
             return Qty(value)
         else:
             return value
-    except (ValueError, TypeError):
+    except (ValueError, TypeError) as e:
+        logger.warning(
+            "convert_to_type fallback: value=%r target_type=%r error=%s",
+            value, target_type, e
+        )
         return value
 
 

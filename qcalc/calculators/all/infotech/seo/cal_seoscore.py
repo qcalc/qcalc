@@ -1,14 +1,13 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
-import requests
 from bs4 import BeautifulSoup
 from qcore import qurl, qtexta
 import re
 import pandas as pd
 from urllib.parse import urljoin
 import time
-from qutil import word_count as get_word_count, url2html, soup2text, qaddr
+from qutil import word_count as get_word_count, url2html, soup2text, qaddr, fetch_url
 
 
 def seo_score__info():
@@ -173,7 +172,7 @@ def pgsize(urls: qtexta = qaddr()):
         # print(sizes)
         for tag, asset_url in asset_urls:
             asset_url = urljoin(url, asset_url)
-            asset_response = requests.get(asset_url, timeout=(3, 15))
+            asset_response = fetch_url(asset_url, check_status=False)
             ln_asset = len(asset_response.content) / 1024
             total_size += ln_asset
             sizes[tags[tag]] += ln_asset

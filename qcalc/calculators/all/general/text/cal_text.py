@@ -4,11 +4,20 @@
 import pandas as pd
 from titlecase import titlecase
 from qcore import qtexta, QScreen, qchar, qtable, as_qtable, qfile, qurl, qhtml
-from wordcloud import STOPWORDS
 from functools import partial
 import math
 import re
-from qutil import get_synonyms, validated_col, demo_url, word_count, url2text, nzs
+from qutil import (
+    demo_url,
+    get_synonyms,
+    get_wordcloud_stop_words,
+    nzs,
+    url2text,
+    validated_col,
+    word_count,
+)
+
+WORDCLOUD_STOP_WORDS = get_wordcloud_stop_words()
 
 example_text = "Data science and data analysis help us understand big data through data visualization and data cleaning. "\
                "Modern data science relies on powerful Python code, libraries, and specialized Python tools to extract deep insights. "\
@@ -82,7 +91,7 @@ def case_check(word, **kwargs):
     wt = word.title()
     wl = re.findall(r'\w+', word)[0].lower()  # word AsAP. becomes asap
     # print(word)
-    if kwargs['ignore'] and wl in STOPWORDS:
+    if kwargs['ignore'] and wl in WORDCLOUD_STOP_WORDS:
         wt = word.lower()
     avlist = kwargs['avlist']
     # print(avlist)

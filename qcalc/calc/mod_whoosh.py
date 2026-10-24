@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
-from whoosh.fields import Schema, TEXT, ID, KEYWORD, STORED
+from whoosh.fields import Schema, TEXT, ID, KEYWORD
 from whoosh.index import create_in, open_dir
 from whoosh.filedb.filestore import RamStorage
 from whoosh.analysis import StemmingAnalyzer
@@ -11,6 +11,7 @@ import uuid
 from django.conf import settings
 from .mod_qcals import QCals
 from whoosh.qparser import QueryParser, FuzzyTermPlugin, DisMaxParser, QueryParserError
+from whoosh.query import And, Or, Term
 from qcore import QScreen
 from whoosh import scoring
 
@@ -46,7 +47,7 @@ class QSearch:
             title=TEXT(stored=True, analyzer=StemmingAnalyzer()),
             desc=TEXT(stored=True, analyzer=StemmingAnalyzer()),
             tags=KEYWORD(stored=True, commas=True, lowercase=True, analyzer=StemmingAnalyzer()),
-            node_type=STORED()
+            node_type=ID(stored=True)
         )
 
         if cls.mode == 'f':
@@ -73,14 +74,26 @@ class QSearch:
         return ix
 
     @classmethod
-    def perform_search(cls, query_string: str, idonly=False):
+    def perform_search(cls, query_string: str, idonly=False, limit=20,
+                       node_types=None):
         query_string = (query_string or '').strip()
         if not query_string:
             return []
+        if limit < 1:
+            raise ValueError('Search limit must be at least 1')
 
-        # with cls.ix.searcher() as searcher:
-        # with cls.ix.searcher(weighting=scoring.BM25F()) as searcher:
-        # Use BM25F for relevance scoring, with field boosting
+        if isinstance(node_types, str):
+            node_types = {node_types}
+        elif node_types:
+            node_types = set(node_types)
+        else:
+            node_types = set()
+        node_types = {
+            str(node_type).strip()
+            for node_type in node_types
+            if str(node_type).strip()
+        }
+
         fieldboosts = {
             "id": 3.0,
             "name": 2.5,
@@ -88,8 +101,7 @@ class QSearch:
             "tags": 1.5,
             "desc": 1.1
         }
-        _fields = fieldboosts.keys()
-        with cls.ix.searcher(weighting=scoring.BM25F(field_B=fieldboosts)) as searcher:
+        with cls.ix.searcher(weighting=scoring.BM25F()) as searcher:
             if idonly:
                 parser = QueryParser("id", schema=cls.ix.schema)
                 parsed_string = query_string
@@ -97,14 +109,27 @@ class QSearch:
                 parser = DisMaxParser(fieldboosts, schema=cls.ix.schema)  # MultifieldParser, fields, group=OrGroup
                 parsed_string = query_string
 
-            results_list, results = cls._run_query(searcher, parser, parsed_string)
+            results_list, results = cls._run_query(
+                searcher,
+                parser,
+                parsed_string,
+                limit=limit,
+                node_types=node_types,
+            )
 
             # | Free-text search terms may collide with Whoosh query syntax (quotes,
             # | colons, wildcards, unbalanced parens) - fall back to an escaped,
             # | plain-text query instead of letting a QueryParserError bubble up.
             if results is None:
                 escaped = re.sub(r'[^\w\s]', ' ', query_string).strip()
-                results_list, results = cls._run_query(searcher, parser, escaped, safe=True)
+                results_list, results = cls._run_query(
+                    searcher,
+                    parser,
+                    escaped,
+                    safe=True,
+                    limit=limit,
+                    node_types=node_types,
+                )
 
             # | Zero-hit exact search - retry once with fuzzy matching so minor
             # | typos still surface results.
@@ -112,12 +137,20 @@ class QSearch:
                 fuzzy_parser = DisMaxParser(fieldboosts, schema=cls.ix.schema)
                 fuzzy_parser.add_plugin(FuzzyTermPlugin())
                 fuzzy_string = ' '.join([f'{word}~1/1' for word in query_string.split()])
-                results_list, results = cls._run_query(searcher, fuzzy_parser, fuzzy_string, safe=True)
+                results_list, results = cls._run_query(
+                    searcher,
+                    fuzzy_parser,
+                    fuzzy_string,
+                    safe=True,
+                    limit=limit,
+                    node_types=node_types,
+                )
 
         return results_list
 
     @classmethod
-    def _run_query(cls, searcher, parser, parsed_string, safe=False):
+    def _run_query(cls, searcher, parser, parsed_string, safe=False, limit=20,
+                   node_types=None):
         # | Returns (results_list, results) - results is None only when the
         # | initial (non-safe) parse itself failed, signalling the caller to retry.
         try:
@@ -126,7 +159,14 @@ class QSearch:
             if safe:
                 return [], []
             return [], None
-        results = searcher.search(query, limit=20)  # Limit results to top 20 for performance
+        if node_types:
+            type_terms = [
+                Term('node_type', node_type)
+                for node_type in sorted(node_types)
+            ]
+            type_query = type_terms[0] if len(type_terms) == 1 else Or(type_terms)
+            query = And([query, type_query])
+        results = searcher.search(query, limit=limit)
         # | Convert results to a list of dictionaries (+ relevance score) to use outside searcher
         results_list = [{**dict(result), 'score': result.score} for result in results]
         return results_list, results

@@ -7,7 +7,7 @@ import qutil as ut
 from qvars import qc_gpref as gs
 from qutil import QDateTime
 import pandas as pd
-from qcore import str_type, Qty
+from .qc_qty import str_type, Qty
 from qconst import TOK_UOM, TOK_PART, TOK_PART_UOM, TOK_INDEX_SEP
 
 

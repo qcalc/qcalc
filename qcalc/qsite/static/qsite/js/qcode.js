@@ -294,6 +294,15 @@
 
     function codeMirrorWidgetMenuAction(textareaId, action) {
         closeCodeMirrorWidgetMenus();
+        const textarea = document.getElementById(textareaId);
+        const editor = textarea && textarea.codeMirrorEditor;
+
+        if (action === 'find' || action === 'replace') {
+            if (editor) {
+                editor.execCommand(action);
+            }
+            return;
+        }
 
         if (action === 'upload') {
             const uploadInput = document.getElementById(textareaId + '_upload');

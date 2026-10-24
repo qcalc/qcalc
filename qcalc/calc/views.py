@@ -5,6 +5,8 @@ import qvars
 from calc import QTemp, QList, QFav, QCalAlias
 from django.shortcuts import render
 from django.http import HttpResponse, QueryDict
+from django.utils.html import format_html
+from django.views.decorators.http import require_POST
 import catalog.views
 from .mod_ucals import get_uc_list
 from .views_form_data import *
@@ -20,6 +22,27 @@ from django.conf import settings
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+@require_POST
+def q2cal_search(request: HtmxHttpRequest):
+    from calculators.all.general.user.cal_chat import q2cal
+
+    query = request.POST.get('query', '').strip()
+    if not query:
+        return HttpResponse(format_html(
+            '<div class="alert alert-danger" role="alert">{}</div>',
+            'Enter a calculation to search for.',
+        ))
+
+    try:
+        result = q2cal(query, request.POST.get('n', 3))
+    except ValueError as error:
+        return HttpResponse(format_html(
+            '<div class="alert alert-danger" role="alert">{}</div>',
+            error,
+        ))
+    return HttpResponse(result)
 
 
 def clear_calcs(request: HtmxHttpRequest):

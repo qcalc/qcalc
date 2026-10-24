@@ -3,7 +3,7 @@
 
 import numpy as np
 import pandas as pd
-from qutil import css2floats, css2strs, css2ints, css2values, validated_col
+from qutil import css2floats, css2strs, css2ints, css2values, validated_col, preprocess_expression
 from qcore import qtexta, qlist, qchar, qtable, QChart, as_qtable
 from calc import QCals
 import matplotlib.dates as mdates  # requires for 3D as 3D cant natively handle date axes
@@ -69,6 +69,7 @@ def surface3d_error_chart(
     title='3D Surface Chart with Error',
     surface_type='Surface'
 ):
+    z_expr = preprocess_expression(z_expr)
     xnums, xtype = css2values(x_values, time2val='hr')
     if xtype in (date, datetime): xnums = mdates.date2num(xnums)
     ynums = css2floats(y_values)

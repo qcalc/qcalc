@@ -143,6 +143,24 @@ def css2strs(cs_string, separator=','):
     return list_strings
 
 
+def css2dict(cs_string, separator=',', pair_separator='='):
+    """Parse ``"key=value,key2=value2"`` text into a dict of stripped strings.
+
+    Empty items and items with an empty key are skipped; an item without ``pair_separator`` maps to ``''``.
+    A later duplicate key overrides an earlier one. Returns the input as-is when a dict is provided
+    and ``{}`` for blank/None input.
+    """
+    if isinstance(cs_string, dict): return cs_string
+    if cs_string is None: return {}
+    result = {}
+    for item in str(cs_string).split(separator):
+        key, _, value = item.partition(pair_separator)
+        key = key.strip()
+        if key == '': continue
+        result[key] = value.strip()
+    return result
+
+
 def css2set(cs_string, separator=','):
     """Convert separated text to a normalized lowercase string set.
 

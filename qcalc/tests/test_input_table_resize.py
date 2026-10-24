@@ -210,14 +210,14 @@ def test_structural_cmd_post_field_forces_full_form_response(monkeypatch):
 
 
 # --- callback_button(): input-updating command buttons (Format Code, Load Code,
-# Check Syntax, ...) must also request a full-form response, since they target
+# Validate Code, ...) must also request a full-form response, since they target
 # "closest form" directly and the server's default response is now the
 # output-only fragment ---
 
 def test_callback_button_marks_request_as_structural():
     from qutil.mod_links import callback_button
 
-    html = callback_button("mycal", "Check Syntax", "__command", args=["syntax"])
+    html = callback_button("mycal", "Validate Code", "__command", args=["validate"])
 
     assert 'hx-target="closest form"' in html
     assert '"qcalc_structural_cmd": "1"' in html

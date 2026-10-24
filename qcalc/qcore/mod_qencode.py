@@ -9,7 +9,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 from .mod_qimage import QImage
 from .mod_qchart import QChart
 import json
-from qcore import qchat, qhtml
+from .mod_anno import qchat, qhtml
 import datetime
 import decimal
 
@@ -33,6 +33,22 @@ _SERIALIZE_POLICIES = {
         'allow_user': False,
     },
 }
+
+
+def _pack_table(df: pd.DataFrame):
+    return {
+        '__qcalc_type': 'table',
+        'columns': [str(col) for col in df.columns],
+        'data': df.values.tolist(),
+    }
+
+
+def _pack_table_dict(value: dict):
+    return {
+        '__qcalc_type': 'table',
+        'columns': value['columns'],
+        'data': value['data'],
+    }
 
 
 class QEncoderBase(DjangoJSONEncoder):
@@ -107,11 +123,7 @@ def _serialize_common_profile(value, policy, _seen=None):
             _seen.discard(value_id)
 
     if isinstance(value, pd.DataFrame):
-        return {
-            '__qcalc_type': 'table',
-            'columns': [str(col) for col in value.columns],
-            'data': value.values.tolist(),
-        }
+        return _pack_table(value)
 
     if isinstance(value, (datetime.date, datetime.time, datetime.datetime)):
         return str(QDateTime(value))
@@ -213,43 +225,46 @@ def step2_pack_value(value, _seen=None):
         return {'__qcalc_type': 'qty', 'value': str(value)}
 
     if isinstance(value, QChart):
+        # _seen only tracks containers currently being packed (cycle detection),
+        # so a value shared in two places is packed twice instead of becoming None
         _seen.add(value_id)
-        chart_data = value.data or {}
-        if isinstance(chart_data, dict):
-            chart_data = {
-                key: val for key, val in chart_data.items()
-                if key not in {'chart', 'fig', 'ax'}
+        try:
+            chart_data = value.data or {}
+            if isinstance(chart_data, dict):
+                chart_data = {
+                    key: val for key, val in chart_data.items()
+                    if key not in {'chart', 'fig', 'ax'}
+                }
+            return {
+                '__qcalc_type': 'chart',
+                'chtype': value.chtype,
+                'data': step2_pack_value(chart_data, _seen),
             }
-        return {
-            '__qcalc_type': 'chart',
-            'chtype': value.chtype,
-            'data': step2_pack_value(chart_data, _seen),
-        }
+        finally:
+            _seen.discard(value_id)
 
     if isinstance(value, pd.DataFrame):
-        return {
-            '__qcalc_type': 'table',
-            'columns': [str(col) for col in value.columns],
-            'data': value.values.tolist(),
-        }
+        return _pack_table(value)
 
     if isinstance(value, dict) and {'columns', 'data'} <= value.keys():
-        return {
-            '__qcalc_type': 'table',
-            'columns': value['columns'],
-            'data': value['data'],
-        }
+        return _pack_table_dict(value)
 
     if isinstance(value, (datetime.date, datetime.datetime, datetime.time)):
         return str(QDateTime(value))
 
     if isinstance(value, dict):
         _seen.add(value_id)
-        return {str(key): step2_pack_value(val, _seen) for key, val in value.items()}
+        try:
+            return {str(key): step2_pack_value(val, _seen) for key, val in value.items()}
+        finally:
+            _seen.discard(value_id)
 
     if isinstance(value, (list, tuple, set)):
         _seen.add(value_id)
-        return [step2_pack_value(item, _seen) for item in value]
+        try:
+            return [step2_pack_value(item, _seen) for item in value]
+        finally:
+            _seen.discard(value_id)
 
     if isinstance(value, (str, int, float, bool)) or value is None:
         return value

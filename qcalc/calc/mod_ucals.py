@@ -6,7 +6,7 @@ from .mod_qcals import QCals
 from qcore import qinfo, qerror
 from qutil.mod_tree import dict_to_tree
 from qutil import TreeNode, create_category_node, user_name, get_functions, \
-    extract_common_prefix, names2fid, fid2owner
+    extract_calculator_name, names2fid, fid2owner
 import copy
 import logging
 
@@ -117,7 +117,7 @@ class UCals:
         results = []
 
         added = False
-        cal_name_determind = extract_common_prefix(functions)
+        cal_name_determind = extract_calculator_name(functions)
         if cal_name_determind == '':
             raise Exception(
                 f"Error (SUC): Meta __info() not found. You may click on [Format code] to create one automatically.")

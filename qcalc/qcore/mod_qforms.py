@@ -4,6 +4,7 @@
 from .qc_qty import *
 from .mod_qfields import *
 from qutil import fchoices, variable_to_title
+from qutil.mod_settings import max_file_mb
 from .mod_qfvalidators import validate_file_size
 from .mod_qcutil import request_prefs
 
@@ -29,16 +30,16 @@ class QFieldHandler:
             options = self.get_options(field_meta, post_data)
             if json_s2f and json_s2f[i]['type'] == 'c':
                 type_key = field_meta['type'].lower()
-                f = getattr(self, f"create_{type_key}_field")(field_meta, post_data, options)
+                f = self._get_field_builder(type_key, field_meta['name'])(field_meta, post_data, options)
             else:
                 if ':' in field_meta['type']:
                     type_spec = field_meta['type'].lower().split(':')
                     type_key = type_spec[0]
                     variant = type_spec[1]
-                    f = getattr(self, f"create_{type_key}_field")(field_meta, variant, options)
+                    f = self._get_field_builder(type_key, field_meta['name'])(field_meta, variant, options)
                 else:
                     type_key = field_meta['type'].lower()
-                    f = getattr(self, f"create_{type_key}_field")(field_meta, options)
+                    f = self._get_field_builder(type_key, field_meta['name'])(field_meta, options)
 
             spec_attrs = field_meta.get('attrs', None) or {}
             for attr, value in spec_attrs.items():
@@ -47,6 +48,60 @@ class QFieldHandler:
             self.formfields[field_meta['name']] = f
 
         # print(self.formfields)
+
+    def _field_builders(self):
+        return {
+            'boolean': self.create_boolean_field,
+            'btn': self.create_btn_field,
+            'char': self.create_char_field,
+            'checkbox': self.create_checkbox_field,
+            'checkboxselectmultiple': self.create_checkboxselectmultiple_field,
+            'choice': self.create_choice_field,
+            'codeedit': self.create_codeedit_field,
+            'combo': self.create_combo_field,
+            'date': self.create_date_field,
+            'datetime': self.create_datetime_field,
+            'decimal': self.create_decimal_field,
+            'duration': self.create_duration_field,
+            'email': self.create_email_field,
+            'file': self.create_file_field,
+            'filepath': self.create_filepath_field,
+            'float': self.create_float_field,
+            'genericipaddress': self.create_genericipaddress_field,
+            'hidden': self.create_hidden_field,
+            'html': self.create_html_field,
+            'image': self.create_image_field,
+            'integer': self.create_integer_field,
+            'multiplechoice': self.create_multiplechoice_field,
+            'multivalue': self.create_multivalue_field,
+            'nullboolean': self.create_nullboolean_field,
+            'qty': self.create_qty_field,
+            'radio': self.create_radio_field,
+            'range': self.create_range_field,
+            'rchoice': self.create_rchoice_field,
+            'read': self.create_read_field,
+            'regex': self.create_regex_field,
+            'select2': self.create_select2_field,
+            'slug': self.create_slug_field,
+            'table': self.create_table_field,
+            'text': self.create_text_field,
+            'textarea': self.create_textarea_field,
+            'textedit': self.create_textedit_field,
+            'time': self.create_time_field,
+            'typedchoice': self.create_typedchoice_field,
+            'typedmultiplechoice': self.create_typedmultiplechoice_field,
+            'uom': self.create_uom_field,
+            'uom2': self.create_uom2_field,
+            'uomx': self.create_uomx_field,
+            'url': self.create_url_field,
+            'uuid': self.create_uuid_field,
+        }
+
+    def _get_field_builder(self, type_key, field_name):
+        builder = self._field_builders().get(type_key)
+        if builder is None:
+            raise ValueError(f"Unknown field type '{type_key}' for '{field_name}'")
+        return builder
 
     # noinspection PyMethodMayBeStatic
     def get_options(self, field_meta, post_data):
@@ -108,7 +163,7 @@ class QFieldHandler:
             fld_meta = field_meta['comp'][key]
             opts = self.get_options(fld_meta, post_data)
             type_key = fld_meta['type'].lower()
-            f = getattr(self, f"create_{type_key}_field")(fld_meta, opts)
+            f = self._get_field_builder(type_key, fld_meta['name'])(fld_meta, opts)
 
             spec_attrs = fld_meta.get('attrs', None) or {}
             for attr, value in spec_attrs.items():
@@ -121,43 +176,31 @@ class QFieldHandler:
             fsufxs.append(fld_meta['sufx'])
         return QtyField(fields, fnames, fvalues, fsufxs, **options)
 
+    def _uom_choices(self, uname):
+        lmt = unit2lmt(uname)
+        use_subset = self.uom_subset
+        cache_key = (lmt, use_subset, uname) if use_subset else lmt
+        list_exists = cache_key in self.list_added
+        if not list_exists:
+            self.list_added[cache_key] = lmt2ulist(lmt, subset=use_subset, default_uname=uname)
+        return lmt, list_exists, self.list_added[cache_key]
+
     def create_uom2_field(self, field_meta, options):
         # | in case of uom2 and select2 field_meta['initial'] is replaced with current posted value
         # | however options['initial'] remains the original arguement value
         uname = options['initial'] or 'm'
-        lmt = unit2lmt(uname)
-        use_subset = self.uom_subset
-        cache_key = (lmt, use_subset, uname) if use_subset else lmt
-        list_exists = True
-        if cache_key not in self.list_added:
-            list_exists = False
-            self.list_added[cache_key] = lmt2ulist(lmt, subset=use_subset, default_uname=uname)
-        ulist = self.list_added[cache_key]
+        lmt, list_exists, ulist = self._uom_choices(uname)
         return Uom2Field(field_meta, lmt, list_exists, choices=ulist, **options)
 
     def create_uom_field(self, field_meta, options):  # tested, deb@08.23
         uname = field_meta['initial']
-        lmt = unit2lmt(uname)
-        use_subset = self.uom_subset
-        cache_key = (lmt, use_subset, uname) if use_subset else lmt
-        list_exists = True
-        if cache_key not in self.list_added:
-            list_exists = False
-            self.list_added[cache_key] = lmt2ulist(lmt, subset=use_subset, default_uname=uname)
-        ulist = self.list_added[cache_key]
+        lmt, list_exists, ulist = self._uom_choices(uname)
         return UomField(field_meta, lmt, list_exists, choices=ulist, **options)
 
     # noinspection PyMethodMayBeStatic
     def create_uomx_field(self, field_meta, options):  # tested, deb@11.23
         uname = field_meta['initial']
-        lmt = unit2lmt(uname)
-        use_subset = self.uom_subset
-        cache_key = (lmt, use_subset, uname) if use_subset else lmt
-        list_exists = True
-        if cache_key not in self.list_added:
-            list_exists = False
-            self.list_added[cache_key] = lmt2ulist(lmt, subset=use_subset, default_uname=uname)
-        ulist = self.list_added[cache_key]
+        lmt, list_exists, ulist = self._uom_choices(uname)
         return UomxField(field_meta, lmt, list_exists, choices=ulist, **options)
 
     def create_table_field(self, field_meta, options):
@@ -276,9 +319,11 @@ class QFieldHandler:
 
     # noinspection PyMethodMayBeStatic
     def create_file_field(self, field_meta, options):  # tested
-        max_mb = float(field_meta.get('max_mb', '10.0'))
+        max_mb = max_file_mb(field_meta.get('max_mb'))
         options['validators'].append(validate_file_size(max_mb))
-        return forms.FileField(**options)
+        field = forms.FileField(**options)
+        field.widget.attrs.setdefault('data-max-mb', f'{max_mb:g}')  # read by validateFileSize() in qcalc.js
+        return field
 
     # noinspection PyMethodMayBeStatic
     def create_filepath_field(self, _field_meta, options):
@@ -292,9 +337,11 @@ class QFieldHandler:
 
     # noinspection PyMethodMayBeStatic
     def create_image_field(self, field_meta, options):
-        max_mb = float(field_meta.get('max_mb', '10.0'))
+        max_mb = max_file_mb(field_meta.get('max_mb'))
         options['validators'].append(validate_file_size(max_mb))
-        return forms.ImageField(**options)
+        field = forms.ImageField(**options)
+        field.widget.attrs.setdefault('data-max-mb', f'{max_mb:g}')  # read by validateFileSize() in qcalc.js
+        return field
 
     # noinspection PyMethodMayBeStatic
     def create_integer_field(self, _field_meta, options):  # tested

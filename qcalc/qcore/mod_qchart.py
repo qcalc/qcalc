@@ -110,7 +110,7 @@ class QChart:
 
         # | Handle width and height
         self.width = width or QThread.get_pref('chart_width', qconst.CHART_WIDTH)
-        self.height = int(self.width * aspect) if aspect > 0.0 else QThread.get_pref('chart_height', qconst.CHART_WIDTH)
+        self.height = int(self.width * aspect) if aspect > 0.0 else QThread.get_pref('chart_height', qconst.CHART_HEIGHT)
         self.figsize = (self.width / 100, self.height / 100)
         self.aspect = self.height / self.width
 
@@ -132,6 +132,8 @@ class QChart:
         self.legend_labels = None
 
     def __str__(self):
+        if self.b64 is None:
+            return 'Chart image not rendered'
         return f'Chart image base64 size {len(self.b64)} bytes'
 
     def set_labels(self, xlabel=None, ylabel=None, zlabel=None, title=None, grid=False):
@@ -410,10 +412,9 @@ class QChart:
         if ylabels is None: ylabels = ['y']
 
         fig, ax = self.create_figure()
-        i = 0
-        for yvals in yvalsm:
-            ax.plot(xvals, yvals, label=ylabels[i])
-            i += 1
+        for i, yvals in enumerate(yvalsm):
+            label = ylabels[i] if i < len(ylabels) else f'y{i + 1}'
+            ax.plot(xvals, yvals, label=label)
 
         if x_tick_positions is None and x_tick_labels is not None and x_tick_max_labels is not None:
             limit = min(len(xvals), len(x_tick_labels))

@@ -442,9 +442,12 @@ function get_card_once(cid){
   }
 }
 
-function validateFileSize(input, max_mb=10.0) {
+function validateFileSize(input, max_mb) {
     const file = input.files[0];
-    const maxSize = Math.ceil(max_mb * 1024 * 1024); // default 10 MB in bytes
+    if (!file) return;
+    // limit comes from the server (data-max-mb, QCALC_MAX_FILE_MB / field max_mb); 10 MB is only a fallback
+    max_mb = max_mb ?? (parseFloat(input.dataset.maxMb) || 10.0);
+    const maxSize = Math.ceil(max_mb * 1024 * 1024); // in bytes
     if (file.size > maxSize) {
         alert("File size must be less than "+max_mb+" MB.");
         input.value = ''; // Clear the input

@@ -6,7 +6,6 @@
 from __future__ import annotations
 
 import re
-from locale import atof
 import numpy as np
 import qconst
 
@@ -41,7 +40,7 @@ class MeasureQuantity:
                 match = self._number.match(s)
                 if match is None:
                     raise TypeError('Error (MQ): No number found')
-                self.value = atof(match.group(0))
+                self.value = float(match.group(0))  # not locale.atof: pattern is ASCII digits only, '.' decimal
                 self.unit = find_unit(s[len(match.group(0)):])
 
     def __str__(self):
@@ -51,10 +50,31 @@ class MeasureQuantity:
         return self.__class__.__name__ + '(' + repr(self.value) + ',' + repr(self.unit.name()) + ')'
 
     def _sum(self, other, sign1, sign2):
+        # Units with an offset (degC, degF) are points on a scale; zero-offset units (K, degR)
+        # act as intervals when combined with them.
         if not isMeasureQuantity(other):
             raise TypeError('Error (MQ): Incompatible types')
-        new_value = sign1 * self.value + sign2 * other.value * other.unit.conversion_factor_to(self.unit)
-        return self.__class__(new_value, self.unit)
+        su, ou = self.unit, other.unit
+        if not su.is_compatible(ou):
+            raise TypeError('Error (MQ): Incompatible units')
+
+        if su.offset == 0 and ou.offset == 0:  # plain scaled units
+            return self.__class__(sign1 * self.value + sign2 * other.value * ou.factor / su.factor, su)
+
+        if ou.offset == 0 and sign1 == 1:  # point +/- interval, e.g. 30 degC + 5 K
+            return self.__class__(self.value + sign2 * other.value * ou.factor / su.factor, su)
+
+        if su.offset == 0 and sign2 == 1:  # interval + point, or point - interval (via __rsub__)
+            return self.__class__(other.value + sign1 * self.value * su.factor / ou.factor, ou)
+
+        if su.offset != 0 and ou.offset != 0:
+            if sign1 == sign2:  # point + point: convert then add, so (a + b) / 2 averaging works
+                return self.__class__(sign1 * self.value + sign2 * _convert_value(other.value, ou, su), su)
+            # point - point is an interval, returned in the zero-offset base unit
+            diff = sign1 * su.to_base(self.value) + sign2 * ou.to_base(other.value)
+            return self.__class__(diff, su.base_name)
+
+        raise TypeError('Error (MQ): cannot subtract a point from an interval')
 
     def __add__(self, other):
         return self._sum(other, 1, 1)
@@ -68,8 +88,13 @@ class MeasureQuantity:
         return self._sum(other, -1, 1)
 
     def __cmp__(self, other):
-        diff = self._sum(other, 1, -1)
-        return (diff.value > 0) - (diff.value < 0)
+        if not isMeasureQuantity(other):
+            raise TypeError('Error (MQ): Incompatible types')
+        if not self.unit.is_compatible(other.unit):
+            raise TypeError('Error (MQ): Incompatible units')
+        a = round(self.unit.to_base(self.value), 12)
+        b = round(other.unit.to_base(other.value), 12)
+        return (a > b) - (a < b)
 
     def __lt__(self, other):
         return self.__cmp__(other) < 0
@@ -78,10 +103,17 @@ class MeasureQuantity:
         return self.__cmp__(other) <= 0
 
     def __eq__(self, other):
-        return self.__cmp__(other) == 0
+        # equal only when compatible and numerically equal in base units; never raises
+        # (unlike ordering, == must return False for incompatible units or non-quantities)
+        if not isMeasureQuantity(other):
+            return False
+        return _base_key(self) == _base_key(other)
 
     def __ne__(self, other):
-        return self.__cmp__(other) != 0
+        return not self == other
+
+    def __hash__(self):
+        return hash(_base_key(self))
 
     def __gt__(self, other):
         return self.__cmp__(other) > 0
@@ -138,7 +170,8 @@ class MeasureQuantity:
         return self.__class__(-self.value, self.unit)
 
     def __bool__(self):
-        return self.value != 0
+        # a quantity without a value (e.g. '@ft') is empty, like None
+        return self.value is not None and self.value != 0
 
     def to(self, unit):
         if isinstance(unit, str):  # deb@04.04.24
@@ -172,9 +205,9 @@ class MeasureQuantity:
         return tuple(result)
 
     def in_base_units(self):
-        new_value = self.value * self.unit.factor
+        new_value = self.unit.to_base(self.value)
         terms = []
-        for i in range(9):
+        for i in range(len(_base_names)):
             unit = _base_names[i]
             power = self.unit.powers[i]
             if power != 0:
@@ -208,6 +241,12 @@ class MeasureQuantity:
 
 def isMeasureQuantity(x):
     return hasattr(x, 'value') and hasattr(x, 'unit')
+
+
+def _base_key(q):
+    # identity of a quantity: value in zero-offset base units (rounded) plus dimension powers
+    value = None if q.value is None else round(q.unit.to_base(q.value), 12)
+    return value, tuple(q.unit.powers)
 
 
 def _round(x):

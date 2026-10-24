@@ -3,10 +3,11 @@
 
 import re
 import json
+from functools import lru_cache
 from qutil import css2strs, preprocess_expression
 from qcore.qc_mbase import _fps_names, _cgs_names, _base_categories, powers_to_bname_lmt, _unit_operators
 from qcore.qc_munit import isMeasureUnit
-from qcore.qc_units import _unit_table, _unit_info, _base_names, _unit_tree, unit_desc
+from qcore.qc_units import _unit_table, _unit_info, _base_names, _unit_tree, unit_desc, safe_eval_unit
 from qcore.qc_mquantity import MeasureQuantity as MQty, find_unit, isMeasureQuantity
 from qcore.qc_units_subset import UNITS_SUBSET_KEYS
 
@@ -64,27 +65,11 @@ class Qty(MQty):
     def __str__(self):
         return f'{self.val} {self.uom}'
 
-    def _base_key(self):
-        value = None if self.value is None else round(self.value * self.unit.factor, 12)
-        return value, tuple(self.unit.powers)
-
     def __cmp__(self, other):
         if other == '' or other is None:
             return 1
         else:
             return super().__cmp__(other)
-
-    def __eq__(self, other):
-        if not isMeasureQuantity(other):
-            return False
-        return self._base_key() == (None if other.value is None else round(other.value * other.unit.factor, 12),
-                                    tuple(other.unit.powers))
-
-    def __ne__(self, other):
-        return not self == other
-
-    def __hash__(self):
-        return hash(self._base_key())
 
     @property
     def val(self):
@@ -172,21 +157,21 @@ def compose_qty(qstrs_wwo_comma):
     qstrs = css2strs(qstrs_wwo_comma)
     ln = len(qstrs)
     qty_str = ''
-    if ln >= 0:
-        try:
-            qty_str = qstrs[0]
-            if ln > 1:
-                var_qt = MQty(qstrs[0])
-                for i in range(1, ln):
-                    var_qt2 = MQty(qstrs[i])
-                    if var_qt.value is None:
-                        var_qt = var_qt2
-                    elif var_qt2.value is not None:
-                        var_qt += MQty(qstrs[i])
-                qty_str = str(var_qt)
-        except:
-            ln = 0
-            pass
+    try:
+        if ln == 0:
+            return '', 0
+        qty_str = qstrs[0]
+        if ln > 1:
+            var_qt = MQty(qstrs[0])
+            for i in range(1, ln):
+                var_qt2 = MQty(qstrs[i])
+                if var_qt.value is None:
+                    var_qt = var_qt2
+                elif var_qt2.value is not None:
+                    var_qt += var_qt2
+            qty_str = str(var_qt)
+    except Exception:
+        ln = 0
     return qty_str, ln
 
 
@@ -206,7 +191,7 @@ def is_str_named_uom(uname):
 def str_to_uom(uname: str):
     unit = None
     try:
-        unit = eval(uname, _unit_table)  # direct eval() on purpose
+        unit = safe_eval_unit(uname, _unit_table)
         unit = unit if isMeasureUnit(unit) else None
     except:
         pass
@@ -251,7 +236,9 @@ def read_unit(sunit):
         s = s.replace(op, ' ' + op + ' ')
         return s
 
-    s = ' ' + list(map(lambda op: rep(op), _unit_operators))[-1] + ' '
+    for op in _unit_operators:
+        rep(op)
+    s = f' {s} '
     w = s
     vars_ = (re.findall('[_a-z][_a-z0-9]*', sunit, re.I))
     for var in vars_:
@@ -263,19 +250,18 @@ def read_unit(sunit):
     return {"Read as": s, "Write as": w, "Category": pun.category, "Dimension": pun.dimension, "Quantity": pun.base_qty}
 
 
+@lru_cache(maxsize=4096)
 def str_type(sunit):
     if len(sunit) > 96:  # @26.03.24 anything that long most possibly is not a unit
         return 'text', sunit, 0
-    elif is_str_uom(sunit):
+    if str_to_uom(sunit) is not None:
         return 'uom', sunit, 0  # only uom e.g. 'ft'
-    elif is_str_qty(sunit):  # ln=1
+    if str_to_qty(sunit) is not None:  # ln=1
         return 'qty', sunit, 1  # single part e.g. '3.5 ft'
-    else:
-        qty_str, ln = compose_qty(sunit)
-        if qty_str != '' and ln > 1:
-            return 'qty', qty_str, ln  # 2,3,4 multipart e.g. '12h,45min,30s'
-        else:
-            return 'text', sunit, 0
+    qty_str, ln = compose_qty(sunit)
+    if qty_str != '' and ln > 1:
+        return 'qty', qty_str, ln  # 2,3,4 multipart e.g. '12h,45min,30s'
+    return 'text', sunit, 0
 
 
 def unit2lmt(uname):
@@ -445,48 +431,3 @@ def search_unit_result(sterm):
         matches = []
     return matches[0:100]
 
-
-def _test():
-    import time
-    x = Qty('5 ft')
-    y = Qty(x, 'inch')
-    print('y=', y)
-    # exit(0)
-
-    n = 100
-    start_time = time.time()
-    q1 = q2 = q3 = q4 = ''
-    for i in range(n):
-        q1 = compose_qty('1ft,2inch')
-        q2 = compose_qty('None ft,2inch')
-        q3 = compose_qty('@ft,2inch')
-        q4 = compose_qty('xyz, abc')
-    end_time = time.time()
-    diff1 = end_time - start_time
-    print(q1, q2, q3, q4)
-    print(diff1)
-
-    start_time = time.time()
-    for i in range(n):
-        q1 = compose_qty2('1ft,2inch')
-        q2 = compose_qty2('None ft,2inch')
-        q3 = compose_qty2('@ft,2inch')
-        q4 = compose_qty2('xyz, abc')  # fails
-    end_time = time.time()
-    diff2 = end_time - start_time
-    print(q1, q2, q3, q4)
-    print(diff2)
-    print(diff1 / diff2)
-
-    print(read_unit('mmH2O/g/ft'))
-
-    print(str_to_uom('ft'))
-    print(str_to_uom('ft/s'))
-    print(str_to_named_uom('ft/s'))
-    print(str_to_named_uom('ft'))
-    print(compose_qty('3ft,2inch'))
-    print(is_str_qty('3ft,2inch'))
-
-
-if __name__ == '__main__':
-    _test()

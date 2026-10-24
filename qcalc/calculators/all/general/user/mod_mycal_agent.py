@@ -21,6 +21,12 @@ class AIGenerationError(ValueError):
         self.code = code
 
 
+class CalculatorValidationError(ValueError):
+    def __init__(self, result):
+        super().__init__(result['error'])
+        self.result = result
+
+
 class AgentResponse:
     def __init__(self, action, message='', code='', prompt='', validation_error=''):
         self.action = action
@@ -109,11 +115,31 @@ class MyCalAgent:
     def _validate_code(code):
         result = MyCalTools.validate_calculator(code)
         if not result['valid']:
-            raise ValueError(result['error'])
+            raise CalculatorValidationError(result)
 
     @staticmethod
     def _load_reference_context(reference_cals):
         return MyCalTools.get_reference_context(reference_cals)
+
+    @classmethod
+    def _resolve_reference_context(cls, query, reference_cals,
+                                   cal_name_hint, state):
+        effective_references = reference_cals or state.get('reference_cals', '')
+        state['reference_cals'] = effective_references
+        if effective_references:
+            state['auto_reference_cal'] = ''
+            return cls._load_reference_context(effective_references)
+
+        auto_reference = state.get('auto_reference_cal', '')
+        if auto_reference:
+            return cls._load_reference_context(auto_reference)
+
+        similar = MyCalTools.find_similar_calculator(
+            query,
+            exclude_names=[cal_name_hint],
+        )
+        state['auto_reference_cal'] = similar['name']
+        return MyCalTools.get_similar_calculator_context(similar)
 
     @staticmethod
     def _conversation_context(state):
@@ -174,6 +200,16 @@ Continuation rules:
 - Preserve unrelated behavior, inputs, outputs, and metadata.
 """.strip()
 
+        validation_section = ''
+        if validation_error:
+            validation_section = f"""
+The previous candidate failed deterministic qCalc validation:
+{validation_error}
+
+Repair the current editor code with the smallest necessary change.
+Preserve the user's requested behavior and return the complete calculator code.
+""".strip()
+
         return f"""
 You are generating Python calculator code for a qCalc FRONTEND calculator edited in mycal() or mycal2().
 Follow frontend requirements in the specification and ignore backend-only implementation details.
@@ -216,60 +252,64 @@ Current user instruction:
 Current editor code:
 {current_code}
 
-Validation error:
-{validation_error}
+{validation_section}
 """.strip()
 
     @classmethod
     def _generate_response(cls, user_prompt, current_code, cal_name_hint='',
-                           max_attempts=1, reference_context='', state=None,
-                           mode='draft'):
+                           max_validation_repairs=1, reference_context='',
+                           state=None, mode='draft'):
         prompt = user_prompt.strip()
         if prompt == '':
             raise ValueError('Please provide AI prompt')
 
         draft = current_code
-        last_error = ''
-        last_prompt = ''
-        last_response = None
-        for _ in range(max_attempts):
+        validation_feedback = ''
+        for repair_count in range(max_validation_repairs + 1):
+            response = None
             ai_prompt = cls._build_prompt(
                 prompt,
                 draft,
-                last_error,
+                validation_feedback,
                 reference_context=reference_context,
                 state=state,
                 mode=mode,
             )
-            last_prompt = ai_prompt
             try:
                 generated = ask_gpt(ai_prompt, temperature=0.2)
+            except Exception as error:
+                raise AIGenerationError(
+                    f'AI request failed: {error}',
+                    prompt=ai_prompt,
+                    code=draft,
+                ) from error
+
+            try:
                 response = cls._parse_agent_response(generated)
                 response.prompt = ai_prompt
-                last_response = response
                 if response.action != 'propose_code':
                     return response
 
                 draft = cls._extract_python_code(response.code)
                 response.code = draft
-                prepared = MyCalTools.prepare_calculator(draft, cal_name_hint)
-                draft = prepared['code']
+                formatted = MyCalTools.format_calculator(draft)
+                draft = formatted['code']
                 response.code = draft
+            except Exception as error:
+                raise AIGenerationError(
+                    f'AI response did not contain usable calculator code: {error}',
+                    prompt=ai_prompt,
+                    code=response.code if response is not None else draft,
+                ) from error
+
+            try:
                 cls._validate_code(draft)
                 return response
-            except Exception as e:
-                last_error = str(e)
-                if last_response is not None:
-                    last_response.validation_error = last_error
-
-        if last_response is not None:
-            last_response.prompt = last_prompt
-            return last_response
-
-        raise AIGenerationError(
-            f'AI did not return usable code after {max_attempts} attempt(s): {last_error}',
-            prompt=last_prompt,
-        )
+            except CalculatorValidationError as error:
+                response.validation_error = str(error)
+                if repair_count >= max_validation_repairs:
+                    return response
+                validation_feedback = json.dumps(error.result, indent=2)
 
     @staticmethod
     def _save_turn(state, user_prompt, response, kind='continue'):
@@ -302,7 +342,7 @@ Validation error:
 
     @classmethod
     def send(cls, user_prompt, current_code, cal_name_hint='',
-             reference_cals='', max_attempts=1):
+             reference_cals='', max_validation_repairs=1):
         if user_prompt.strip() == '':
             raise ValueError('Please enter an agent message')
 
@@ -312,7 +352,7 @@ Validation error:
                 current_code,
                 cal_name_hint=cal_name_hint,
                 reference_cals=reference_cals,
-                max_attempts=max_attempts,
+                max_validation_repairs=max_validation_repairs,
             )
 
         return cls.draft(
@@ -320,12 +360,12 @@ Validation error:
             current_code,
             cal_name_hint=cal_name_hint,
             reference_cals=reference_cals,
-            max_attempts=max_attempts,
+            max_validation_repairs=max_validation_repairs,
         )
 
     @classmethod
     def draft(cls, user_prompt, current_code, cal_name_hint='',
-              reference_cals='', max_attempts=1):
+              reference_cals='', max_validation_repairs=1):
         prompt = user_prompt.strip()
         if prompt == '':
             raise ValueError('Please provide AI prompt')
@@ -334,20 +374,26 @@ Validation error:
         state = {
             'original_prompt': prompt,
             'reference_cals': reference_cals,
+            'auto_reference_cal': '',
             'latest_code': '',
             'latest_error': '',
             'turns': [],
             'iteration': 0,
         }
+        reference_context = cls._resolve_reference_context(
+            prompt,
+            reference_cals,
+            cal_name_hint,
+            state,
+        )
         QMyCalAI.setp(state)
-        reference_context = cls._load_reference_context(reference_cals)
 
         try:
             response = cls._generate_response(
                 prompt,
                 current_code,
                 cal_name_hint=cal_name_hint,
-                max_attempts=max_attempts,
+                max_validation_repairs=max_validation_repairs,
                 reference_context=reference_context,
                 state=state,
                 mode='draft',
@@ -359,7 +405,7 @@ Validation error:
 
     @classmethod
     def continue_task(cls, user_prompt, current_code, cal_name_hint='',
-                      reference_cals='', max_attempts=1):
+                      reference_cals='', max_validation_repairs=1):
         state = QMyCalAI.getp({})
         prompt = user_prompt.strip()
         history_prompt = prompt
@@ -382,23 +428,27 @@ Validation error:
             state = {
                 'original_prompt': prompt,
                 'reference_cals': reference_cals,
+                'auto_reference_cal': '',
                 'latest_code': current_code,
                 'latest_error': '',
                 'turns': [],
                 'iteration': 0,
             }
-            QMyCalAI.setp(state)
 
-        effective_references = reference_cals or state.get('reference_cals', '')
-        reference_context = cls._load_reference_context(effective_references)
-        state['reference_cals'] = effective_references
+        reference_context = cls._resolve_reference_context(
+            state.get('original_prompt', prompt),
+            reference_cals,
+            cal_name_hint,
+            state,
+        )
+        QMyCalAI.setp(state)
 
         try:
             response = cls._generate_response(
                 prompt,
                 current_code,
                 cal_name_hint=cal_name_hint,
-                max_attempts=max_attempts,
+                max_validation_repairs=max_validation_repairs,
                 reference_context=reference_context,
                 state=state,
                 mode='continue',

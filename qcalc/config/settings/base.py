@@ -130,6 +130,8 @@ PASSWORD_HASHERS = [
 # MIDDLEWARE
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#middleware
+# If you use Nginx/CDN to serve static files efficiently, then you may not need WhiteNoise. 
+# If Django is serving static itself, WhiteNoise is usually a strong improvement.
 MIDDLEWARE = [
     'qsite.middleware.IgnoreDisallowedHostMiddleware',
     "django.middleware.security.SecurityMiddleware",
@@ -353,7 +355,14 @@ SOCIALACCOUNT_ADAPTER = "qsite.users.adapters.SocialAccountAdapter"
 # Your stuff...
 # ------------------------------------------------------------------------------
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 50000  # default is 1000
+# Django applies this to non-file form data only (e.g. large table JSON); uploaded files are not counted.
 DATA_UPLOAD_MAX_MEMORY_SIZE = 40 * 1024 * 1024
+
+# File size limits (keep in sync with nginx client_max_body_size, the hard cap on the whole request):
+# - QCALC_MAX_FILE_MB: default per-file limit for upload fields (field 'max_mb' overrides) and remote URL fetches
+# - QCALC_MAX_FILE_MB_CEILING: largest per-file limit any field may request; must stay below nginx client_max_body_size
+QCALC_MAX_FILE_MB = env.float("QCALC_MAX_FILE_MB", default=10.0)
+QCALC_MAX_FILE_MB_CEILING = env.float("QCALC_MAX_FILE_MB_CEILING", default=45.0)
 
 # HINT: Configure the DEFAULT_AUTO_FIELD setting or
 # the CalcConfig.default_auto_field attribute to point to a subclass of AutoField
@@ -415,9 +424,15 @@ FIXER_API_KEY = env("FIXER_API_KEY", default="")
 FIXER_API_URL = env("FIXER_API_URL", default="")
 
 OPENAI_API_KEY = env("OPENAI_API_KEY", default="")
+# Optional quota overrides for the shared keys, e.g. "user_day=20,ip_day=50,global_day=150,global_month=2500"
+OPENAI_API_KEY_QUOTA = env("OPENAI_API_KEY_QUOTA", default="")
 
 OPENW_API_KEY = env("OPENW_API_KEY", default="")
+OPENW_API_KEY_QUOTA = env("OPENW_API_KEY_QUOTA", default="")
 OPENW_API_URL = env("OPENW_API_URL", default="")
+
+# META key holding the real client IP ("" = REMOTE_ADDR); set it only if a trusted proxy provides the header
+CLIENT_IP_HEADER = ""
 
 PIP_INSTALL = env("PIP_INSTALL", default="")
 PIP_UNINSTALL = env("PIP_UNINSTALL", default="")

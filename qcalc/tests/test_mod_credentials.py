@@ -20,6 +20,11 @@ class _FakeManager:
         return None, True
 
 
+@pytest.fixture(autouse=True)
+def no_quota(monkeypatch):
+    monkeypatch.setattr(mc, "consume_system_quota", lambda *_a, **_k: None)
+
+
 @pytest.fixture
 def fake_user():
     return _FakeUser()

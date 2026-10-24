@@ -248,6 +248,8 @@ DJANGO_EMAIL_HOST_PASSWORD="<your_email_password>"
 
 > **Important:** `DB_HOST` and `MEMCACHE_HOST` must be the Docker **container/service names** (`postgres`, `memcached`), not `localhost`.
 
+> **File size limits:** uploads default to 10 MB per file. To change this, see [File Size Limits](related-topics/file-size-limits.md).
+
 ### 7c. `gpref.json`
 
 ```bash

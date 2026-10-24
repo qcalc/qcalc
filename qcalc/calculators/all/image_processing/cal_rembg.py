@@ -45,7 +45,7 @@ def image_upscale__info():
             'upload_image': {
                 'help_text': 'Maximum image file size is 5 MB. '
                              'Either select an image file to upload or enter the Image Url.',
-                'max_mb': '5', 'attrs': {'onchange': 'validateFileSize(this,5)'}
+                'max_mb': '5'  # browser check reads this via data-max-mb
             },
             'option': {
                 'type': 'choice',

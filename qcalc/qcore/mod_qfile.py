@@ -8,7 +8,7 @@ from django.conf import settings
 from django.core.files.uploadedfile import InMemoryUploadedFile
 import base64
 import json
-import requests
+from qutil.mod_url import fetch_url
 
 
 # https://docs.djangoproject.com/en/4.0/ref/settings/#std-setting-DATA_UPLOAD_MAX_MEMORY_SIZE
@@ -50,7 +50,10 @@ class QFile:
             # 'sqlite, unknown - application/octet-stream'
         }
         ct = self.file_mem.content_type
-        return ctypes[ct] if ct in ctypes else 'unknown'
+        if ct in ctypes:
+            return ctypes[ct]
+        ext = os.path.splitext(self.file_name)[1].lower().lstrip('.')
+        return ext or 'unknown'
 
     def save2temp(self):
         temp_filename = str(uuid.uuid4())  # Use a unique identifier
@@ -81,7 +84,7 @@ class QFile:
     def load_content(sfunc, content: dict):
         fdata = InMemoryUploadedFile(
             file=io.BytesIO(base64.b64decode(content['file'])),
-            field_name=['field_name'],
+            field_name=content.get('field_name', sfunc),
             name=content['name'],
             content_type=content['content_type'],
             size=content['size'],
@@ -92,10 +95,9 @@ class QFile:
 
 def qf2bio(qf: QFile, url=''):
     if url != '':  # url precedence
-        response = requests.get(url)
-        bio = io.BytesIO(response.content)
+        bio = io.BytesIO(fetch_url(url).content)
     elif qf is not None:
         bio = qf.bin_buf()
     else:
-        raise Exception(f'Error (QF2BIO): A valid file or URL is not found')
+        raise Exception('Error (QF2BIO): A valid file or URL is not found')
     return bio

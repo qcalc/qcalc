@@ -68,6 +68,10 @@ def qformat(val, unit=None, pref=None) -> None | str | list[str]:
     else:
         dec = pref['decimal']
 
+    if isinstance(val, (int, float)) and not math.isfinite(val):
+        sval = 'inf' if val > 0 else '-inf'
+        return sval if unit is None else [sval, funame]
+
     if pref['ignore_decimal_format']:
         return str(val) if unit is None else [str(val), funame]
 

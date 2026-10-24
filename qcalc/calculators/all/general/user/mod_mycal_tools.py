@@ -1,14 +1,23 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
-from calc import get_code
-from qenv import PROJ_DIR
-from qutil import css2strs, ensure_info_function, format_py_code
+import re
 
-from .cal_mycal import validate_calculator_defaults, validate_calculator_info
+from calc import QCals, QSearch, get_code
+from qenv import PROJ_DIR
+from qutil import (
+    CALCULATOR_SEARCH_STOP_WORDS,
+    css2strs,
+    format_py_code,
+    get_functions,
+)
+
+from .mod_mycal_validation import get_calculator_validation_report
 
 _MAX_REFERENCE_CALS = 3
 _MAX_REFERENCE_CODE_CHARS = 6000
+_MAX_RELEVANT_CALS = 5
+_SIMILAR_CALCULATOR_RESULTS = 10
 _CREATION_SPEC_PATH = PROJ_DIR.path(
     'qcalc_res', 'train', 'qcalc-calculator-creation-spec.md'
 )
@@ -23,13 +32,78 @@ class MyCalTools:
         return _CALCULATOR_CREATION_SPEC
 
     @staticmethod
+    def _normalize_calculator_search(query):
+        terms = re.findall(r'[a-z0-9_+-]+', str(query).lower())
+        meaningful_terms = [
+            term for term in terms
+            if len(term) > 1
+               and term not in CALCULATOR_SEARCH_STOP_WORDS
+        ]
+        return ' '.join(dict.fromkeys(meaningful_terms))
+
+    @classmethod
+    def find_relevant_calculators(cls, query, exclude_names=None):
+        normalized_query = cls._normalize_calculator_search(query)
+        if not normalized_query:
+            return []
+
+        excluded = {
+            str(name).strip()
+            for name in (exclude_names or [])
+            if str(name).strip()
+        }
+        results = QSearch.perform_search(
+            normalized_query,
+            limit=_SIMILAR_CALCULATOR_RESULTS,
+            node_types='c',
+        )
+        calculators = []
+
+        for result in results:
+            name = result['id']
+            if name not in QCals.qc_user_list or name in excluded:
+                continue
+
+            code = get_code(name, show_meta=True, as_html=False)
+            if not code:
+                continue
+
+            calculators.append({
+                'found': True,
+                'query': normalized_query,
+                'name': name,
+                'title': result.get('title', ''),
+                'description': result.get('desc', ''),
+                'tags': result.get('tags', ''),
+                'score': result.get('score', 0.0),
+                'code': code[:_MAX_REFERENCE_CODE_CHARS].strip(),
+            })
+            if len(calculators) >= _MAX_RELEVANT_CALS:
+                break
+
+        return calculators
+
+    @classmethod
+    def find_similar_calculator(cls, query, exclude_names=None):
+        calculators = cls.find_relevant_calculators(query, exclude_names)
+        if calculators:
+            return calculators[0]
+
+        return {
+            'found': False,
+            'query': cls._normalize_calculator_search(query),
+            'name': '',
+            'code': '',
+        }
+
+    @staticmethod
     def get_reference_calculators(reference_cals):
         names = list(dict.fromkeys(css2strs(reference_cals)))[:_MAX_REFERENCE_CALS]
         calculators = []
         missing = []
 
         for name in names:
-            code = get_code(name, show_meta=True)
+            code = get_code(name, show_meta=True, as_html=False)
             if not code:
                 missing.append(name)
                 continue
@@ -66,43 +140,23 @@ class MyCalTools:
         return context
 
     @staticmethod
-    def prepare_calculator(code, cal_name_hint=''):
-        prepared_code, functions = ensure_info_function(code, cal_name_hint)
+    def get_similar_calculator_context(calculator):
+        if not calculator.get('found'):
+            return ''
+        return (
+            f"# Automatically selected similar calculator: {calculator['name']}\n"
+            f"# Title: {calculator['title']}\n"
+            f"{calculator['code']}"
+        )
+
+    @staticmethod
+    def format_calculator(code):
+        formatted_code = format_py_code(code)
         return {
-            'code': format_py_code(prepared_code),
-            'functions': functions,
+            'code': formatted_code,
+            'functions': get_functions(formatted_code),
         }
 
     @staticmethod
     def validate_calculator(code):
-        checks = []
-        validators = (
-            ('metadata', validate_calculator_info),
-            ('default_execution', validate_calculator_defaults),
-        )
-
-        for name, validator in validators:
-            try:
-                validator(code)
-            except Exception as error:
-                checks.append({
-                    'name': name,
-                    'passed': False,
-                    'message': str(error),
-                })
-                return {
-                    'valid': False,
-                    'checks': checks,
-                    'error': str(error),
-                }
-            checks.append({
-                'name': name,
-                'passed': True,
-                'message': '',
-            })
-
-        return {
-            'valid': True,
-            'checks': checks,
-            'error': '',
-        }
+        return get_calculator_validation_report(code)

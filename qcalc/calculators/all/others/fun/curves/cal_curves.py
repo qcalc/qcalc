@@ -18,8 +18,8 @@ def lissa(
     const_b: qchar = '30'
 ):
     chart = pareq(
-        x='a*cos(3*t)',
-        y='b*sin(2*t)',
+        x=f'{const_a}*cos(3*t)',
+        y=f'{const_b}*sin(2*t)',
         variable='t',
         variable_start=0,
         variable_stop=6.28,
@@ -27,8 +27,6 @@ def lissa(
         x_label='x',
         y_label='y',
         title='Lissajous Curve',
-        const_1='a', const_1_part=const_a,
-        const_2='b', const_2_part=const_b,
         aspect=1
     )
     return {'chart': chart}
@@ -48,8 +46,8 @@ def hypo1(
     Distance_d: qchar = '1'
 ):
     chart = pareq(
-        x='(R-r)*cos(t)+d*cos((R-r)*t/r)',
-        y='(R-r)*sin(t)-d*sin((R-r)*t/r)',
+        x=f'({Fixed_r}-{Inner_r})*cos(t)+{Distance_d}*cos(({Fixed_r}-{Inner_r})*t/{Inner_r})',
+        y=f'({Fixed_r}-{Inner_r})*sin(t)-{Distance_d}*sin(({Fixed_r}-{Inner_r})*t/{Inner_r})',
         variable='t',
         variable_start=0,
         variable_stop=90,
@@ -57,9 +55,6 @@ def hypo1(
         x_label='x',
         y_label='y',
         title='Hypotrochoid Curve',
-        const_1='R', const_1_part=Fixed_r,
-        const_2='r', const_2_part=Inner_r,
-        const_3='d', const_3_part=Distance_d,
         aspect=1
     )
     return {'chart': chart}

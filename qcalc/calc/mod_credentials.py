@@ -7,11 +7,7 @@ from cryptography.fernet import Fernet, InvalidToken
 from django.conf import settings
 from django.apps import apps
 from qutil import check_setting
-
-PROVIDERS = {
-    'openai': {'label': 'OpenAI', 'setting': 'OPENAI_API_KEY'},
-    'openweather': {'label': 'OpenWeather', 'setting': 'OPENW_API_KEY'},
-}
+from .mod_cred_quota import PROVIDERS, consume_system_quota, QuotaExceeded  # noqa: F401
 
 
 def provider_choices():
@@ -130,4 +126,6 @@ def get_effective_api_key(user, provider: str) -> str:
     if provider not in PROVIDERS:
         raise Exception(f'Unsupported provider: {provider}')
     setting_name = PROVIDERS[provider]['setting']
-    return check_setting(getattr(settings, setting_name, ''), setting_name, optional=False)
+    api_key = check_setting(getattr(settings, setting_name, ''), setting_name, optional=False)
+    consume_system_quota(user, provider)
+    return api_key

@@ -54,6 +54,7 @@ You can also enter a longer expression over several lines when it is clearer to 
 - **Multiline indentation** applies `Tab` or `Shift+Tab` to every selected line.
 - **Column-100 ruler** provides a subtle vertical guide for keeping lines readable.
 - **Line wrapping** keeps long lines visible without requiring horizontal scrolling.
+- **Find and replace** searches the current editor, highlights matches, and supports replacing one or all matches. Select text before opening Find or Replace to use it as the initial search term. Searches are case-insensitive when the query is all lowercase and case-sensitive when it contains an uppercase letter. Use `/pattern/` for a regular-expression search.
 - **Browser context menu** remains available for familiar commands such as Copy, Paste, and Select All.
 
 ## 5. Keyboard shortcuts
@@ -62,13 +63,17 @@ You can also enter a longer expression over several lines when it is clearer to 
 | --- | --- |
 | `Tab` | Insert four spaces at the cursor, or indent all selected lines. |
 | `Shift+Tab` | Outdent the current line, or outdent all selected lines. |
+| `Ctrl+F` / `Cmd+F` | Find text in the current code editor. |
+| `Ctrl+G` / `Cmd+G` | Find the next match. |
+| `Shift+Ctrl+G` / `Shift+Cmd+G` | Find the previous match. |
+| `Shift+Ctrl+F` (Windows/Linux) / `Option+Cmd+F` (macOS) | Find and replace. |
 | `Ctrl+S` (Windows/Linux) | Download the current editor contents as a Python file. |
 | `Cmd+S` (macOS) | Download the current editor contents as a Python file. |
 | `F11` | Toggle fullscreen editing for the current code editor. |
 
 ## 6. File and fullscreen controls
 
-The buttons below the editor let you move code between qCalc and a local file:
+The code-actions menu provides **Find**, **Replace**, clipboard, and file actions. The buttons below the editor let you move code between qCalc and a local file:
 
 - Use the **Upload from Python file** button to load a `.py` file into the editor.
 - Use the **Save to Python file** button, or the `Ctrl+S`/`Cmd+S` shortcut, to download the current contents as a `.py` file.

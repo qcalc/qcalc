@@ -33,7 +33,7 @@ from qutil import (
     DotDict, dd_list,  # mod_dict
     user_name, user_process, user_ip, local_ip,  # mod_user
     page_link, calurl, cal_link, callback_button, action_button, action_script, addcal_button,  # mod_links
-    iif, joinx, css2floats, css2ints, css2values, css2strs, vals2css, css2set,  # mod_basic
+    iif, joinx, css2floats, css2ints, css2values, css2strs, vals2css, css2set, css2dict,  # mod_basic
     md2html, demo_url, is_debug, is_blank, normalize_name, to_float, pct2fraction, val2fraction, to_cast,
     to_bool, parameter_values, as_float, specified_args, preprocess_expression, time2float, variable_to_title,
     title_to_variable, replace_variables, replace_parameter_values, csv2qtbl, np2qtbl,
@@ -83,7 +83,8 @@ __evacon__ = [
     'require_unique_pairs', 'require_complete_pair_grid', 'validate_value_columns_against_master',
     'qformat_q', 'qformat_v', 'to_ucur',  # qcore.mod_qcutil
     'ai_prompt_field', 'br',  # qcor.mod_fields
-    'iif', 'joinx', 'css2floats', 'css2ints', 'css2values', 'css2strs', 'vals2css', 'css2set',  # qutil.mod_basic
+    'iif', 'joinx', 'css2floats', 'css2ints', 'css2values', 'css2strs', 'vals2css', 'css2set', 'css2dict',
+    # qutil.mod_basic
     'np', 'qdf', 'qcol', 'qrow', 'qsum', 'qapply', 'qadd', 'qsub', 'qmul', 'qdiv', 'qto_values',  # qapi.mod_qtbl
     'qconvert', 'qbinary', 'qdf_demo_data',
     'qtypes', 'qmodules', 'qsymbols', 'qsymstat', 'qsymhelp',  # qapi.mod_autil

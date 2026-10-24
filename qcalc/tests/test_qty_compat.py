@@ -262,6 +262,9 @@ class TestQtyCompatibility(unittest.TestCase):
 
         q_none = Qty("@ft")
         self.assertIsNone(q_none.val)
+        self.assertFalse(bool(q_none))  # no value is falsy, like None
+        self.assertTrue(bool(Qty("5 ft")))
+        self.assertFalse(bool(Qty("0 ft")))
         q_none.nzq()
         self.assertEqual(q_none.val, 0.0)
 

@@ -6,8 +6,13 @@ import qconst
 import json
 from django.core.exceptions import ValidationError
 import pandas as pd
-from qcore import Qty, as_qtable
+from .qc_qty import Qty
+from .mod_anno import as_qtable
 from qutil import QThread
+
+
+class QTableValidationError(ValueError):
+    """Validation error for user-correctable table input issues."""
 
 
 def _normalize_token(value):
@@ -77,11 +82,11 @@ def _table_columns(table):
     if isinstance(table, dict):
         cols = table.get('columns')
         if not isinstance(cols, list):
-            raise Exception("Table dict must contain a list under key 'columns'")
+            raise QTableValidationError("Table dict must contain a list under key 'columns'")
         return cols
     if hasattr(table, 'columns'):
         return list(table.columns)
-    raise Exception('Unsupported table type. Expected DataFrame-like or qtbl dict table.')
+    raise QTableValidationError('Unsupported table type. Expected DataFrame-like or qtbl dict table.')
 
 
 def _column_lookup(table):
@@ -97,7 +102,7 @@ def _column_lookup(table):
         lookup[key] = col
     if ambiguous:
         pairs = ', '.join(f"'{left}' vs '{right}'" for left, right in ambiguous)
-        raise Exception(
+        raise QTableValidationError(
             f"Ambiguous column names detected (differ only by case/spacing): {pairs}. "
             'Please keep one canonical version.'
         )
@@ -120,7 +125,7 @@ def _table_column_values(table, column_name):
     if isinstance(table, dict):
         cols = table.get('columns', [])
         if column_name not in cols:
-            raise Exception(f"Column not found: {column_name}")
+            raise QTableValidationError(f"Column not found: {column_name}")
         idx = cols.index(column_name)
         values = []
         for row in table.get('data', []):
@@ -216,14 +221,14 @@ def require_columns(
 
     if duplicate_bases:
         pairs = ', '.join(f"'{left}' vs '{right}'" for left, right in duplicate_bases)
-        raise Exception(
+        raise QTableValidationError(
             f"Ambiguous column names detected (same base name after trimming/unit split): {pairs}. "
             'Please keep one canonical version.'
         )
 
     if required_col_uoms is None and unitized_cols:
         preview = ', '.join(f"'{name}'" for name in unitized_cols[:10])
-        raise Exception(
+        raise QTableValidationError(
             f"{table_name}: One or more column headers include a unit using '{qconst.TBL_UOM_SEP}'. "
             f"This table expects plain header names without units in the title. "
             f"Please remove the unit from these header(s): {preview}."
@@ -241,13 +246,13 @@ def require_columns(
             header_uom = item['uom']
             base_key = _normalize_token(base_name)
             if base_key not in canonical_required_uoms:
-                raise Exception(
+                raise QTableValidationError(
                     f"{table_name}: Header '{item['actual']}' includes a unit using '{qconst.TBL_UOM_SEP}', "
                     f"but this table does not allow units in the '{base_name}' header. "
                     f"Please remove the unit from this header."
                 )
             if not header_uom:
-                raise Exception(
+                raise QTableValidationError(
                     f"{table_name} column '{item['actual']}' has an empty unit part after '{qconst.TBL_UOM_SEP}'."
                 )
 
@@ -255,7 +260,7 @@ def require_columns(
             try:
                 Qty(1.0, header_uom, expected_uom)
             except Exception as e:
-                raise Exception(
+                raise QTableValidationError(
                     f"{table_name} column '{item['actual']}' unit '{header_uom}' is not compatible with "
                     f"expected unit '{expected_uom}' for '{base_name}'."
                 ) from e
@@ -266,7 +271,7 @@ def require_columns(
         missing = [col for col in required_cols if col not in actual_bases]
         if missing:
             expected = ', '.join(expected_cols)
-            raise Exception(
+            raise QTableValidationError(
                 f"{table_name} missing required column(s): {', '.join(missing)}. "
                 f"Expected columns: {expected}."
             )
@@ -282,7 +287,7 @@ def require_columns(
     missing = [col for col in required_cols if _normalize_token(col) not in lookup]
     if missing:
         expected = ', '.join(expected_cols)
-        raise Exception(
+        raise QTableValidationError(
             f"{table_name} missing required column(s): {', '.join(missing)}. "
             f"Expected columns: {expected}."
         )
@@ -304,7 +309,7 @@ def require_columns(
         if suspicious:
             preview = ', '.join(f"'{actual}' ~ '{expected}'" for actual, expected in suspicious[:10])
             expected = ', '.join(expected_cols)
-            raise Exception(
+            raise QTableValidationError(
                 f"{table_name} has suspicious column name(s) under Strict Table Input mode: {preview}. "
                 f"Rename these columns to the expected canonical names. Expected columns: {expected}."
             )
@@ -319,7 +324,7 @@ def require_columns(
         if unexpected:
             allowed = ', '.join(expected_cols)
             found = ', '.join(unexpected[:10])
-            raise Exception(
+            raise QTableValidationError(
                 f"{table_name} has unexpected column(s) under Strict Table Input mode: {found}. "
                 f"Allowed columns: {allowed}."
             )
@@ -397,7 +402,7 @@ def require_values_subset(
     if unknown:
         typed = {_normalize_token(v): str(v).strip() for v in _table_column_values(child_df, child_col)}
         unknown_preview = ', '.join(typed.get(key, key) for key in unknown[:10])
-        raise Exception(
+        raise QTableValidationError(
             f"{child_table} '{child_col}' has value(s) not found in "
             f"{parent_table} '{parent_col}': {unknown_preview}"
         )
@@ -442,7 +447,7 @@ def require_unique_values(
 
     if duplicates:
         preview = ', '.join(f"{left}/{right}" for left, right in duplicates[:10])
-        raise Exception(f"{table_name} '{column_name}' has duplicate value(s): {preview}")
+        raise QTableValidationError(f"{table_name} '{column_name}' has duplicate value(s): {preview}")
 
     return [seen[key] for key in ordered_keys]
 
@@ -493,7 +498,7 @@ def require_unique_pairs(
             f"{pair_display_by_key[key][0]}-{pair_display_by_key[key][1]}"
             for key in duplicate_keys[:10]
         )
-        raise Exception(f"{table_name} contains duplicate pair row(s): {preview}")
+        raise QTableValidationError(f"{table_name} contains duplicate pair row(s): {preview}")
 
     return set(pair_keys)
 
@@ -554,7 +559,7 @@ def require_complete_pair_grid(
         preview = ', '.join(missing[:10])
         left_title = left_label or left_col
         right_title = right_label or right_col
-        raise Exception(
+        raise QTableValidationError(
             f"{pair_table_name} missing {left_title}-{right_title} pair(s): {preview}"
         )
 
@@ -604,7 +609,7 @@ def validate_value_columns_against_master(
     for value in master_values:
         key = value if case_sensitive else _normalize_token(value)
         if key in master_lookup and master_lookup[key] != value:
-            raise Exception(
+            raise QTableValidationError(
                 f"Duplicate values in {master_table_name} '{master_value_col}' (case-insensitive): "
                 f"{master_lookup[key]}, {value}"
             )
@@ -623,7 +628,7 @@ def validate_value_columns_against_master(
         if key in reserved_keys:
             continue
         if key in matrix_lookup and matrix_lookup[key] != col:
-            raise Exception(
+            raise QTableValidationError(
                 f"Duplicate value columns in {matrix_table_name} (case-insensitive): "
                 f"{matrix_lookup[key]}, {col}"
             )
@@ -636,7 +641,7 @@ def validate_value_columns_against_master(
             if key not in matrix_lookup
         ]
         if missing:
-            raise Exception(
+            raise QTableValidationError(
                 f"Values from {master_table_name} '{master_value_col}' must exist as columns in "
                 f"{matrix_table_name}. Missing column(s): {', '.join(missing)}"
             )
@@ -648,7 +653,7 @@ def validate_value_columns_against_master(
             if key not in master_lookup
         ]
         if unknown:
-            raise Exception(
+            raise QTableValidationError(
                 f"Value column(s) in {matrix_table_name} must exist in "
                 f"{master_table_name} '{master_value_col}'. Unknown column(s): {', '.join(unknown)}"
             )
@@ -709,7 +714,7 @@ def table_columns_validator(field_name, required_cols, optional_cols=None):
                 list(required_cols),
                 optional_cols=list(optional_cols),
             )
-        except Exception as e:
+        except QTableValidationError as e:
             raise ValidationError(str(e)) from e
 
     return _validator

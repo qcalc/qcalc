@@ -68,6 +68,9 @@ class MeasureUnit:
             return NotImplemented
         return self.powers == other.powers and self.factor == other.factor and self.offset == other.offset
 
+    def __hash__(self):
+        return hash((tuple(self.powers), float(self.factor), float(self.offset)))
+
     def __lt__(self, other):
         if not isMeasureUnit(other):
             return NotImplemented
@@ -133,6 +136,10 @@ class MeasureUnit:
                 [value * other for value in self.powers],
             )
         raise TypeError("Error (MU): Only integer and inverse integer exponents allowed")
+
+    def to_base(self, value):
+        # value in this unit -> value in the zero-offset base unit, e.g. 25 degC -> 298.15 K
+        return (value + self.offset) * self.factor
 
     def conversion_factor_to(self, other):
         if self.powers != other.powers:

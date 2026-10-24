@@ -28,7 +28,6 @@ dangerous_keywords = [
     'exec', 'eval', 'open', 'compile', 'globals', 'locals', 'vars', 'dir', 'help',
     'getattr', 'setattr', 'delattr', 'hasattr', 'type', 'super', '__builtins__',
     'QThread', 'as_qtable', 'csv2df', 'np2df',
-    #'qreq',
 ]
 
 allowed_keywords = ['__info'] # parameter to __info()
@@ -110,7 +109,10 @@ def is_code_safe(code, gdict):
             raise ImportError(f"Import of '{name}' is disallowed for security reasons.")
 
         if not qconst.ALLOW_UNSAFE_USER_CALCULATOR_IMPORTS and name not in preloaded_modules + allowed_modules:
-            raise ImportError(f"Import of '{name}' is not allowed.")
+            raise ImportError(
+                f"Import of '{name}' is not available in user calculators. "
+                "Remove it or use qmodules() to see the allowed modules."
+            )
 
         return importlib.import_module(name)
 
@@ -140,6 +142,9 @@ def safe_execute(code, safe_globals=None, safe_locals=None):
 
     if is_code_safe(code, safe_globals):
         exec(code, safe_globals, safe_locals)
+        # Functions resolve names through their globals, so expose sibling
+        # helpers and other user-defined values after execution.
+        safe_globals.update(safe_locals)
         return safe_locals
     else:
         raise ValueError("Unsafe code detected")

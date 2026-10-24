@@ -55,6 +55,41 @@ def test_step2_pack_value_handles_qty_datetime_and_dataframe():
     assert packed_df['data'] == [[1, 3], [2, 4]]
 
 
+def test_step2_pack_value_shared_references_are_not_dropped():
+    shared_list = [1, 2]
+    shared_dict = {'k': 'v'}
+    payload = {'a': shared_list, 'b': shared_list, 'c': shared_dict, 'd': [shared_dict, shared_dict]}
+
+    packed = enc.step2_pack_value(payload)
+
+    assert packed['a'] == [1, 2]
+    assert packed['b'] == [1, 2]
+    assert packed['c'] == {'k': 'v'}
+    assert packed['d'] == [{'k': 'v'}, {'k': 'v'}]
+
+
+def test_step2_pack_value_shared_chart_is_packed_each_time():
+    from qcore import QChart
+
+    chart = QChart()
+    chart.save_data({'xvals': [1, 2], 'labels': ['s1']}, 'lines')
+
+    packed = enc.step2_pack_value({'first': chart, 'second': chart})
+
+    for key in ('first', 'second'):
+        assert packed[key]['__qcalc_type'] == 'chart'
+        assert packed[key]['data'] == {'xvals': [1, 2], 'labels': ['s1']}
+
+
+def test_step2_pack_value_still_breaks_real_cycles():
+    cyclic = {'name': 'x'}
+    cyclic['self'] = cyclic
+
+    packed = enc.step2_pack_value(cyclic)
+
+    assert packed == {'name': 'x', 'self': None}
+
+
 def test_step2_unpack_for_run_unpacks_compact_markers():
     payload = {
         'mass': {'__qcalc_type': 'qty', 'value': '2 kg'},

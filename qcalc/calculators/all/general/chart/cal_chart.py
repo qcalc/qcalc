@@ -3,7 +3,7 @@
 
 import numpy as np
 import pandas as pd
-from qutil import replace_words, css2floats, css2strs, validated_col, css2values
+from qutil import replace_words, css2floats, css2strs, validated_col, css2values, preprocess_expression
 from qcore import qtexta, qchar, qtable, QChart, legend_locations, qlist, as_qtable
 from calc import QCals
 import matplotlib.dates as mdates  # requires for 3D as 3D cant natively handle date axes
@@ -57,7 +57,7 @@ def surface3d_chart__info():
     return {
         'title': '3D Surface Chart',
         'desc': 'Use cases: Visualizing 3D surfaces for multivariate data, '
-        'e.g., topographical data, mathematical surfaces',
+                'e.g., topographical data, mathematical surfaces',
         'schema': {
             'x_values': {'type': 'qtexta'},
             'y_values': {'type': 'qtexta'},
@@ -102,7 +102,7 @@ def line3d_chart__info():
     return {
         'title': '3D Line Chart',
         'desc': 'Use cases: Visualizing 3D line plots for multivariate data, '
-        'e.g., trajectory analysis, 3D parametric curves',
+                'e.g., trajectory analysis, 3D parametric curves',
         'schema': {
             'x_values': {'type': 'qtexta'},
             'y_values': {'type': 'qtexta'},
@@ -135,7 +135,7 @@ def line_chart__info():
     return {
         'title': 'Simple Line Chart',
         'desc': 'Use cases: Visualizing trends and relationships between two variables over a continuous range, '
-        'e.g., time series data, experimental measurements',
+                'e.g., time series data, experimental measurements',
         'schema': {
             'x_values': {'type': 'qtexta'},
             'y_values': {'type': 'qtexta'}
@@ -165,7 +165,7 @@ def line2_chart__info():
     return {
         'title': 'Simple Double Line Chart',
         'desc': 'Use cases: Visualizing trends and relationships between two variables over a continuous range with two data series, '
-        'e.g., comparing experimental measurements or time series data',
+                'e.g., comparing experimental measurements or time series data',
     }
 
 
@@ -200,7 +200,7 @@ def scatter_chart__info():
     return {
         'title': 'Simple Scatter Chart',
         'desc': 'Use cases: Visualizing the relationship between two variables using scatter plots, '
-        'e.g., correlation analysis, experimental data comparison',
+                'e.g., correlation analysis, experimental data comparison',
     }
 
 
@@ -228,7 +228,7 @@ def bar_chart__info():
     return {
         'title': 'Simple Bar Chart',
         'desc': 'Use cases: Visualizing categorical data using bar charts, '
-        'e.g., monthly sales, survey results',
+                'e.g., monthly sales, survey results',
         'schema': {
             'names': {'type': 'textarea'},
             'values': {'type': 'textarea'}
@@ -257,7 +257,7 @@ def pie_chart__info():
     return {
         'title': 'Simple Pie Chart',
         'desc': 'Use cases: Visualizing parts of a whole using pie charts, '
-        'e.g., market share distribution, budget allocation',
+                'e.g., market share distribution, budget allocation',
         'schema': {
             'radius': {'attrs': {'max': '2.0', 'min': '0.2'}},
             'legend': {'type': 'choice', 'choices': legend_locations},
@@ -290,7 +290,7 @@ def pie2_chart__info():
     return {
         'title': 'Simple Pie Chart based on Tabular Data',
         'desc': 'Use cases: Visualizing parts of a whole using pie charts based on tabular data, '
-        'e.g., market share distribution, budget allocation',
+                'e.g., market share distribution, budget allocation',
     }
 
 
@@ -320,7 +320,7 @@ def pareto_chart__info():
     return {
         'title': 'Simple Pareto Chart',
         'desc': 'Use cases: Visualizing the distribution of values and identifying the most significant factors using Pareto charts, '
-        'e.g., defect analysis, sales contribution analysis',
+                'e.g., defect analysis, sales contribution analysis',
     }
 
 
@@ -341,7 +341,7 @@ def histogram__info():
     return {
         'title': 'Simple Histogram',
         'desc': 'Use cases: Visualizing the distribution of a dataset using histograms, '
-        'e.g., frequency analysis, data distribution assessment',
+                'e.g., frequency analysis, data distribution assessment',
         'schema': {
             'values': {'type': 'textarea'}
         },
@@ -366,7 +366,7 @@ def pareq__info():
     ret = {
         'title': 'Parametric Equation',
         'desc': 'Use cases: Visualizing parametric equations over a continuous range, '
-        'e.g., plotting curves defined by x(t) and y(t) for various applications',
+                'e.g., plotting curves defined by x(t) and y(t) for various applications',
         'layout': 'tb',
         'inp1': '1-6',
     }
@@ -378,25 +378,12 @@ def pareq(
     y: qtexta = 'sin(theta)',
     variable: qchar = 'theta', variable_start=0, variable_stop=6.28, variations=100,
     x_label='x', y_label='y', title='Parametric Equation',
-    const_1: qchar = '', const_1_part='',
-    const_2: qchar = '', const_2_part='',
-    const_3: qchar = '', const_3_part='',
     aspect=0
 ):
     v = np.linspace(variable_start, variable_stop, variations)
 
-    if const_1_part != '':
-        x = replace_words(x, [const_1], f'({const_1_part})')
-        y = replace_words(y, [const_1], f'({const_1_part})')
-    if const_2_part != '':
-        x = replace_words(x, [const_2], f'({const_2_part})')
-        y = replace_words(y, [const_2], f'({const_2_part})')
-    if const_3_part != '':
-        x = replace_words(x, [const_3], f'({const_3_part})')
-        y = replace_words(y, [const_3], f'({const_3_part})')
-
-    xv = [QCals.safe_eval(replace_words(x, [variable], f'({val})')) for val in v]
-    yv = [QCals.safe_eval(replace_words(y, [variable], f'({val})')) for val in v]
+    xv = [QCals.safe_eval(x, ldict={variable: val}) for val in v]
+    yv = [QCals.safe_eval(y, ldict={variable: val}) for val in v]
     if aspect != '':
         asp = float(aspect)
     else:
@@ -411,7 +398,7 @@ def fx2__info():
     return {
         'title': 'Plot Multiple Equations',
         'desc': 'Use cases: Visualizing multiple equations over a continuous range, '
-        'e.g., comparing different mathematical functions or experimental data',
+                'e.g., comparing different mathematical functions or experimental data',
     }
 
 
@@ -419,25 +406,14 @@ def fx2(
     y_expressions: qtexta = 'sin(theta)\ncos(theta)',
     variable: qchar = 'theta', variable_start=0, variable_stop=6.28, variations=100,
     x_label='x', y_labels='', title='Plot Multiple Equations',
-    const_1: qchar = '', const_1_part: qchar = '',
-    const_2: qchar = '', const_2_part: qchar = '',
-    const_3: qchar = '', const_3_part: qchar = '',
     aspect=0.0
 ):
     xvals = np.linspace(variable_start, variable_stop, variations)
 
-    if const_1_part != '':
-        y_expressions = replace_words(y_expressions, [const_1], f'({const_1_part})')
-    if const_2_part != '':
-        y_expressions = replace_words(y_expressions, [const_2], f'({const_2_part})')
-    if const_3_part != '':
-        y_expressions = replace_words(y_expressions, [const_3], f'({const_3_part})')
-
     y_xpr_list = [line.strip() for line in y_expressions.split('\n')]
     ylabels = css2strs(y_labels) if y_labels else y_xpr_list
-    yvalsm = [[QCals.safe_eval(replace_words(expr, [variable], f'({val})')) for val in xvals]
+    yvalsm = [[QCals.safe_eval(expr, ldict={variable: val}) for val in xvals]
               for expr in y_xpr_list]
-
     if aspect != '':
         asp = float(aspect)
     else:
@@ -452,7 +428,7 @@ def mesh__info():
     return {
         'title': 'Simple Network Diagram or 2D Mesh',
         'desc': 'Use cases: Visualizing simple network diagrams or 2D meshes, '
-        'e.g., network topology, connectivity analysis',
+                'e.g., network topology, connectivity analysis',
     }
 
 
@@ -481,7 +457,7 @@ def quadrant_chart__info():
     return {
         'title': 'Quadrant Chart',
         'desc': 'Use cases: Visualizing data points within four quadrants based on two categorical dimensions, '
-        'e.g., market segmentation, risk assessment',
+                'e.g., market segmentation, risk assessment',
     }
 
 

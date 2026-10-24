@@ -311,6 +311,8 @@ DJANGO_EMAIL_HOST_USER="<you@yourdomain.com>"
 DJANGO_EMAIL_HOST_PASSWORD="<your_email_password>"
 ```
 
+> **File size limits:** uploads default to 10 MB per file. To change this, see [File Size Limits](related-topics/file-size-limits.md).
+
 ### 10c. Edit Global Preferences `gpref.json`
 
 You can keep the file as it is for time being.

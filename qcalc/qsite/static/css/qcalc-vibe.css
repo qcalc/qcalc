@@ -732,6 +732,10 @@ label {
   padding-right: 0rem;
 }
 
+.outpart .alert[role=alert] {
+  overflow-wrap: anywhere;
+}
+
 .qhtml {
   border: 1px solid #ff6b57;
   padding: 2px;

@@ -41,6 +41,7 @@ ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 ACCOUNT_SIGNUP_FORM_HONEYPOT_FIELD = "phone_number" # work on allauth 0.63+
 # Tell allauth to safely trust the IP coming from Nginx
 ALLAUTH_TRUSTED_CLIENT_IP_HEADER = "X-Real-IP" # check nginx settings
+CLIENT_IP_HEADER = "HTTP_X_REAL_IP"  # set by nginx from $remote_addr
 ACCOUNT_RATE_LIMITS = {
     "signup": "5/h", # Each IP address can make 5 signup attempts per hour.
     "login": "10/m", # Each IP address can make 10 login attempts per minute.

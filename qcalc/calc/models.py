@@ -153,6 +153,29 @@ class MyCredential(models.Model):
         return f"{self.user.username}: {self.provider}"
 
 
+class SystemKeyUsage(models.Model):
+    # Counts uses of a system-owned API key per provider, scope (user/ip/global) and period (day/month)
+    provider = models.CharField(max_length=40)
+    scope = models.CharField(max_length=10)
+    subject = models.CharField(max_length=64, blank=True, default='')
+    period = models.CharField(max_length=10)  # YYYY-MM-DD or YYYY-MM
+    count = models.PositiveIntegerField(default=0)
+    changed_on = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['provider', 'scope', 'subject', 'period'], name='unique_system_key_usage'
+            )
+        ]
+        indexes = [
+            models.Index(fields=['period']),
+        ]
+
+    def __str__(self):
+        return f"{self.provider}/{self.scope}/{self.subject}/{self.period}: {self.count}"
+
+
 # Admin Customization
 @admin.register(MyStuff)
 class MyStuffAdmin(admin.ModelAdmin):
@@ -174,3 +197,10 @@ class MyCredentialAdmin(admin.ModelAdmin):
     list_display = ('user', 'provider', 'added_on', 'changed_on')
     search_fields = ('user__username', 'provider')
     list_filter = ('provider', 'added_on')
+
+
+@admin.register(SystemKeyUsage)
+class SystemKeyUsageAdmin(admin.ModelAdmin):
+    list_display = ('provider', 'scope', 'subject', 'period', 'count', 'changed_on')
+    search_fields = ('subject',)
+    list_filter = ('provider', 'scope', 'period')

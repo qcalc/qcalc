@@ -236,12 +236,18 @@ def specified_args(func_or_args, spec, empty_spec='*'):
     excluded = set()
     has_positive_token = False
 
-    all_args_lower = [a.lower() for a in all_args]
-    all_args_t2v = [title_to_variable(variable_to_title(a)) for a in all_args]
+    def squeeze_colon(text):
+        """Remove spaces around ':' (e.g. 'Sales : Q1' -> 'Sales:Q1')."""
+        return ':'.join(part.strip() for part in text.split(':')) if ':' in text else text
+
+    all_args_norm = [squeeze_colon(a) for a in all_args]
+    all_args_lower = [a.lower() for a in all_args_norm]
+    all_args_t2v = [title_to_variable(variable_to_title(a)) for a in all_args_norm]
 
     def find_arg_index(name):
-        if name in all_args:
-            return all_args.index(name)
+        name = squeeze_colon(name)
+        if name in all_args_norm:
+            return all_args_norm.index(name)
 
         name_lower = name.lower()
         if name_lower in all_args_lower:
@@ -269,6 +275,8 @@ def specified_args(func_or_args, spec, empty_spec='*'):
         if isinstance(item, int):
             return [item - 1]
 
+        item = squeeze_colon(item)
+
         if item.isdigit():
             return [int(item) - 1]
 
@@ -279,7 +287,7 @@ def specified_args(func_or_args, spec, empty_spec='*'):
         if "*" in item:
             item_lower = item.lower()
             matches = []
-            for i, arg in enumerate(all_args):
+            for i, arg in enumerate(all_args_norm):
                 cands = {
                     arg.lower(),
                     all_args_lower[i],

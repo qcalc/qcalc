@@ -58,6 +58,7 @@ Parameter names can be matched flexibly:
 - **Title Case & Display Names**: `Cost Chart` matches `cost_chart` or `cost_chart__r`.
 - **Result Suffixes**: Names automatically resolve across result suffixes if any (e.g., `__r`).
 - **Partial Pattern Matching (`*`)**: Use `*` anywhere within a string pattern to match parameter names (e.g. `agr*nt` matches `argument`, `*cost*` matches all cost columns).
+- **Spaces around `:`**: Spaces before and after a colon are ignored, in both the specification and the parameter name. `Sales : Q1`, `Sales: Q1` and `Sales:Q1` all match the same parameter.
 
 | Specification | Target Parameter(s) | Result |
 |---|---|---|
@@ -124,7 +125,7 @@ Each entry is `Table[: Row[: Column]]`, with entries separated by commas:
 | `"Ratios"` | Whole table |
 | `"Income Statement: Sales, Ratios: ROE"` | Several cells |
 
-Each part (table, row, column) follows the rules above: names (case-insensitive), 1-based positions, ranges, `*` wildcards and `~` exclusions.
+Each part (table, row, column) follows the rules above: names (case-insensitive), 1-based positions, ranges, `*` wildcards and `~` exclusions. Spaces around the `:` separators are optional, so `Income Statement:Net Income` and `Income Statement : Net Income` are equivalent.
 
 - **Row matching**: a row is matched by any of its text columns, not just the first one. In an income statement both `Line Item` and `Acronym` work; in the `Stock` table below both `item` and `size` work. A name or wildcard selects every row sharing the value (e.g. all rows with size `large`). Row numbers always count the table's rows and never match text.
 - **Value columns**: columns holding numbers, quantities or percentages. Text columns are used only to find rows. Percent text such as `8.28%` becomes the fraction `0.0828`. Blank rows are skipped.

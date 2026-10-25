@@ -145,9 +145,7 @@ def flatten_tables(result, cells_spec: str):
     flat = {}
     flat_aliases = {}
     for token in tokens:
-        parts = [part.strip() for part in token.split(':', 2)]
-        parts += [''] * (3 - len(parts))
-        table_part, row_part, column_part = parts
+        table_part, row_part, column_part = (css2strs(token, ':') + ['', '', ''])[:3]
         for table_name in specified_args(names, [table_part], empty_spec='*'):
             cells, aliases = _table_cells(table_name, as_qtable(tables[table_name]), row_part, column_part)
             flat.update(cells)

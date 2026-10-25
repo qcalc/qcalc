@@ -451,6 +451,17 @@ class TestSpecifiedArgs(unittest.TestCase):
             ["a"],
         )
 
+    def test_spaces_around_colon_are_ignored(self):
+        args = ["Sales : Q1", "Sales:Q2", "Cost :Q1", "Other"]
+        self.assertEqual(specified_args(args, ["Sales:Q1"]), ["Sales : Q1"])
+        self.assertEqual(specified_args(args, ["Sales :  Q2"]), ["Sales:Q2"])
+        self.assertEqual(specified_args(args, ["cost : q1"]), ["Cost :Q1"])
+        self.assertEqual(specified_args(args, ["Sales : *"]), ["Sales : Q1", "Sales:Q2"])
+        self.assertEqual(specified_args(args, ["~Sales : Q1"]), ["Sales:Q2", "Cost :Q1", "Other"])
+        self.assertEqual(specified_args(args, ["Sales : Q1 - Cost : Q1"]), ["Sales : Q1", "Sales:Q2", "Cost :Q1"])
+        self.assertEqual(specified_args("Sales : Q1, Other", ["Sales:Q1"]), ["Sales : Q1"])
+        self.assertEqual(specified_args(args, ["Sales : Q3"]), [])
+
 
 if __name__ == "__main__":
     unittest.main()

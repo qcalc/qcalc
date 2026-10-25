@@ -148,7 +148,7 @@ class CodeWidget_codemirror(Widget):
                 display: flex;
                 gap: 0.35rem;
                 position: absolute;
-                right: 10px;
+                right: 5px;
                 top: 10px;
                 z-index: 25;
             }
@@ -186,7 +186,7 @@ class CodeWidget_codemirror(Widget):
             <div class="code-widget-menu">
                 <button type="button" class="btn btn-info btncmd code-widget-menu-toggle" title="Code actions"
                         aria-label="Code actions" onclick="toggleCodeMirrorWidgetMenu(this, '{self.id}_menu')">
-                    <i class="icon-menu7"></i>
+                    <i class="icon-menu"></i>
                 </button>
                 <div id="{self.id}_menu" class="dropdown-menu cal-menu dropdown-menu-right code-widget-menu-panel">
                     <button type="button" class="dropdown-item" onclick="codeMirrorWidgetMenuAction('{self.id}', 'find')">Find (Ctrl+F)</button>

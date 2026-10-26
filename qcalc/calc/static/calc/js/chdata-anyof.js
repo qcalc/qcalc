@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2024-2026 Debasish C Saha
 
+// "anyof" groups from a calculator's __info(), e.g. {"1": {"fields": ["x", "y", "z"]}}:
+// only one field of a group keeps a value. Entering a value in one field clears the others.
+// Fields are not hidden (see showhide for that) and are cleared by setting .value, which fires no change event.
 (function() {
     const TOK_ID_PREFIX = "id_";
     const TOK_FIELD_SEP = "_";
@@ -12,6 +15,7 @@
     }
     window.__qcalc_AnyofBootstrapped = true;
 
+    // Clear a field and its "_part" sub-inputs (composite fields such as quantity keep each part in its own input).
     function clearFieldValue(fieldId) {
         var fieldElem = document.getElementById(fieldId);
         if (fieldElem) {
@@ -24,6 +28,8 @@
         }
     }
 
+    // i is the position of this field in the group, so its siblings are the other indexes.
+    // The "bound" token stops the listener being added twice when the form is re-initialised after an htmx swap.
     function bindAnyofField(groupId, groupFields, idPrefix, i, fieldId) {
         var fieldElem = document.getElementById(fieldId);
         if (!fieldElem) {
@@ -39,7 +45,7 @@
         fieldElem.addEventListener("change", function() {
             var editedVal = fieldElem.value;
             if (!editedVal) {
-                return;
+                return;  // emptying a field leaves the others as they are
             }
 
             for (var j = 0; j < groupFields.length; j++) {
@@ -66,6 +72,8 @@
             }
         }
 
+        // Fire a change on each base field so a pre-filled field clears its siblings when the form opens.
+        // Where several fields are pre-filled, the first one in the group wins.
         for (var m = 0; m < groupFields.length; m++) {
             var triggerElem = document.getElementById(idPrefix + groupFields[m]);
             if (triggerElem) {

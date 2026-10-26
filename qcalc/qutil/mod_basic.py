@@ -5,7 +5,7 @@ import sys
 import os
 import bisect
 import qconst
-from qutil.mod_data import str2type, time2float
+from qutil.mod_data import str2type, time2float, is_blank
 from qutil.mod_datetime import QDateTime
 from datetime import date, datetime, time as dt_time
 
@@ -141,6 +141,20 @@ def css2strs(cs_string, separator=','):
     if cs_string == '': return []
     list_strings = [x.strip() for x in cs_string.split(separator)]
     return list_strings
+
+
+def css2list(cs_string, separator=','):
+    """Tolerant ``css2strs``: separated text, or a list/tuple, to a list of non-empty stripped strings.
+
+    Unlike ``css2strs`` it returns ``[]`` for blank-like input (None, nan, 'none', ...), also splits on
+    newlines, skips empty items (``'a, ,b'`` gives ``['a', 'b']``) and converts list items to ``str``.
+    """
+    if is_blank(cs_string): return []
+    if isinstance(cs_string, str):
+        items = css2strs(cs_string.replace('\n', separator), separator)
+    else:
+        items = cs_string
+    return [text for text in (str(item).strip() for item in items) if text]
 
 
 def css2dict(cs_string, separator=',', pair_separator='='):

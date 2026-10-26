@@ -114,6 +114,8 @@ class QJField:  # 11422
         elif arg_type in [qcode, 'codeedit', 'qcode']:
             self.jf['type'] = 'codeedit'
             self.jf['attrs']['class'] = 'code'
+            # a code field has always been required; a schema 'required': False can now override it
+            self.jf['required'] = True
         elif arg_type in [qtime, 'time', 'qtime']:
             self.jf['type'] = 'time'
         elif arg_type in [quom, 'quom', 'uom', 'uomx', 'quomx']:

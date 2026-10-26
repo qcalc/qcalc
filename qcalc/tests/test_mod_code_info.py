@@ -282,6 +282,108 @@ def test_titles_use_qcalc_title_casing_and_proper_words():
     assert 'proper' not in plain.spec
 
 
+def test_public_key_hints_and_ordering():
+    hints = {
+        'calculate': 'Solve', 'layout': 'lr', 'interactive': True, 'remember': False, 'table_out_all': 'yes',
+        'kins': 'eva, mycal', 'tags': 'a,  b,, c', 'proper': 'SOP', 'onsubmit': 'alert(1)',
+        'images': {'top': 'a.png, b.png', 'bottom': ''},
+    }
+    result = build_info('def calc(x=1.0)', hints=hints)
+
+    assert list(result.spec) == [
+        'title', 'calculate', 'layout', 'interactive', 'images', 'onsubmit', 'kins', 'tags', 'proper',
+        'remember', 'table_out_all',
+    ]
+    assert result.spec['tags'] == 'a, b, c'
+    assert result.spec['images'] == {'top': ['a.png', 'b.png']}
+    assert result.spec['table_out_all'] is True and result.spec['remember'] is False
+
+
+def test_remember_true_and_missing_flags_write_nothing():
+    spec = build_info('def calc(x=1.0)', hints={'remember': True, 'interactive': False}).spec
+
+    assert not {'remember', 'interactive', 'table_out_all'} & set(spec)
+
+
+def test_invalid_layout_is_ignored_with_a_note():
+    result = build_info('def calc(x=1.0)', hints={'layout': 'diagonal'})
+
+    assert 'layout' not in result.spec
+    assert any('layout' in w for w in result.warnings)
+
+
+def test_multiline_script_is_a_triple_quoted_block():
+    script = 'function f(v){\n    return v;\n}\nfunction g(v){\n    return !v;\n}'
+    result = build_info('def calc(x=1.0)', hints={'script': script})
+    namespace = {}
+
+    assert "'script': \"\"\"" in result.code
+    exec(result.code, namespace)
+    assert namespace['calc__info']()['script'].split() == script.split()
+
+
+def test_anyof_groups_are_validated():
+    result = build_info('def calc(a=1.0, b=1.0, c=1.0)', hints={'anyof': 'a, b\na, ghost\nc'})
+
+    assert result.spec['anyof'] == {'1': {'fields': ['a', 'b']}}
+    assert any("'ghost'" in w for w in result.warnings)
+    assert any('at least two' in w for w in result.warnings)
+
+
+def test_extra_keys_accept_public_keys_only():
+    extra = "{'step2': [{'step': 'run'}], 'single_instance': True, 'row': ['x-y'], 'inp1': 0.5, 'xpr': 1, 'foo': 2}"
+    result = build_info('def calc(x=1.0)', hints={'extra': extra})
+
+    assert result.spec['step2'] == [{'step': 'run'}] and result.spec['single_instance'] is True
+    assert not {'row', 'inp1', 'xpr', 'foo'} & set(result.spec)
+    assert sum('legacy' in w for w in result.warnings) == 2
+    assert any("'xpr'" in w and 'itself' in w for w in result.warnings)
+    assert any("'foo'" in w for w in result.warnings)
+
+
+def test_extra_must_be_a_dict_literal():
+    for bad in ('step2 = 1', '[1, 2]', '{"a": undefined_name}'):
+        result = build_info('def calc(x=1.0)', hints={'extra': bad})
+
+        assert any(w.startswith('extra:') for w in result.warnings)
+        assert 'a' not in result.spec
+
+
+def test_extra_overrides_generated_keys():
+    result = build_info('def calc(x=1.0)', hints={'tags': 'a', 'extra': "{'tags': 'b, c'}"})
+
+    assert result.spec['tags'] == 'b, c'
+
+
+def test_extra_dicts_are_merged_into_generated_ones():
+    # the '__' showhide key (always hidden fields) as used by the demo calculators
+    source = 'def calc(use_extra=False, extra_cost=1.0, secret=1.0, note="")'
+    extra = "{'showhide': {'__': {'fields': ['secret']}}, 'schema': {'note': {'help_text': 'A note'}}}"
+    result = build_info(source, hints={'extra': extra})
+
+    assert list(result.spec['showhide']) == ['use_extra', '__']
+    assert result.spec['showhide']['__'] == {'fields': ['secret']}
+    assert result.spec['schema']['note'] == {'help_text': 'A note'}
+
+
+def test_blank_markers_in_override_cells_and_flag_strings_follow_the_shared_helpers():
+    result = build_info(
+        'def calc(x=1.0)',
+        overrides=[{'arg': 'x', 'help': 'nan', 'label': 'None', 'group': 'null'}],
+        hints={'table_out_all': 'no', 'interactive': 'yes', 'tags': 'NA'},
+    )
+
+    assert 'schema' not in result.spec and 'input_blocks' not in result.spec
+    assert 'table_out_all' not in result.spec and result.spec['interactive'] is True
+    assert 'tags' not in result.spec  # a blank marker is not a tag, and no tags are generated
+
+
+def test_no_tags_are_generated_by_default():
+    spec = build_info('def sop_plan(use_extra=False, extra_cost=1.0)').spec
+
+    assert 'tags' not in spec
+
+
 def test_function_selection_rules():
     module = "def helper(a):\n    return a\n\ndef main(x=1.0):\n    return helper(x)\n\ndef main__info():\n    return {}\n"
 

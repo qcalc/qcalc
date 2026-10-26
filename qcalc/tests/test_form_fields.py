@@ -1,7 +1,7 @@
 from django import forms
 
 from qconst import TOK_INDEX_SEP
-from qcore.mod_anno import qhtml
+from qcore.mod_anno import qcode, qhtml
 from qcore.mod_qjfield import QJField
 from qcore.mod_qforms import QFieldHandler
 from qcore.mod_qwidgets import CodeWidget_codemirror, QtyWidget
@@ -119,6 +119,41 @@ def test_qty_widget_reads_exact_child_names_with_double_underscore():
     values = widget.value_from_datadict(posted, {}, 'qtc_input')
 
     assert values == ['2', 'ft', '3', 'inch']
+
+
+def _code_field_html(**schema_overrides):
+    qjf = QJField('markdown_text', qcode, 'x', 'id_c_', False, '')
+    meta = {**qjf.jf, **schema_overrides}  # what the schema entry of __info() adds on top of the field
+    handler = QFieldHandler('x', [meta], 'c', [qjf.s2f], {}, {})
+    form = type('DynaForm', (forms.Form,), handler.formfields)()
+    return form['markdown_text']
+
+
+def test_code_field_is_required_by_default():
+    bound = _code_field_html()
+
+    assert bound.field.required
+    assert ' required' in str(bound)
+
+
+def test_code_field_schema_can_make_it_optional():
+    bound = _code_field_html(required=False)
+
+    assert not bound.field.required
+    assert ' required' not in str(bound)
+
+
+def test_code_field_stays_required_through_qjfield():
+    assert QJField('code', qcode, '', 'id_c_', False, '').jf['required'] is True
+    assert QJField('code', 'codeedit', '', 'id_c_', False, '').jf['required'] is True
+
+
+def test_code_field_uses_standard_field_options():
+    bound = _code_field_html(help_text='Some help', disabled=True)
+
+    assert bound.label == 'Markdown Text'
+    assert bound.help_text == 'Some help'
+    assert bound.field.disabled
 
 
 def test_code_widget_loads_find_and_replace_assets():

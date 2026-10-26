@@ -89,12 +89,42 @@ def test_infogen_proper_words_are_applied_and_written():
     assert "'proper': 'SOP'" in code
 
 
+def test_infogen_public_keys_from_the_form():
+    code = _code(infogen(
+        source='def calc(a=1.0, b=2.0, c=3.0)',
+        calculate='Solve', kins='eva, mycal', layout='lr', interactive=True, remember=False,
+        table_out_all=True, anyof='a, b\nb, c', images_top='x/a.png, x/b.png',
+        onsubmit='alert(1)', script='function f(v){\n    return v;\n}',
+        extra="{'step2': [{'step': 'chart', 'caption': 'Chart', 'spec': {'field': 'Chart'}}]}",
+    ))
+    namespace = {}
+    exec(code, namespace)
+    info = namespace['calc__info']()
+
+    assert info['calculate'] == 'Solve' and info['layout'] == 'lr'
+    assert info['kins'] == 'eva, mycal'
+    assert info['interactive'] is True and info['remember'] is False and info['table_out_all'] is True
+    assert info['anyof'] == {'1': {'fields': ['a', 'b']}, '2': {'fields': ['b', 'c']}}
+    assert info['images'] == {'top': ['x/a.png', 'x/b.png']}
+    assert info['onsubmit'] == 'alert(1)'
+    assert 'function f(v){' in info['script']
+    assert info['step2'][0]['step'] == 'chart'
+
+
+def test_infogen_defaults_add_no_optional_keys():
+    code = _code(infogen(source='def calc(a=1.0)'))
+
+    for key in ('interactive', 'remember', 'table_out_all', 'images', 'onsubmit', 'script', 'kins', 'anyof'):
+        assert f"'{key}'" not in code
+
+
 def test_infogen_own_info_is_consistent():
     info = infogen__info()
     schema = info['schema']
     tabs = {t['title']: t['fields'] for t in info['input_blocks'][0]['tabs']}
 
-    assert tabs['Details'] == ['title', 'desc', 'tags', 'proper', 'outputs']
+    assert tabs['Details'] == ['title', 'desc', 'calculate', 'tags', 'kins', 'proper', 'outputs']
+    assert list(tabs) == ['Source', 'Details', 'Layout', 'Behavior', 'Script', 'Advanced']
     assert sorted(sum(tabs.values(), [])) == sorted(inspect.signature(infogen).parameters)
     assert info['calculate'] == 'Generate' and info['tags']
     assert schema['tabs']['initial'] == 'auto'

@@ -23,6 +23,15 @@ var SCRIPT_RUNTIME_VAR = "@";
     }
     window.__qcalc_ShowhideBootstrapped = true;
 
+    // Visibility of the fields controlled by a changed field, from the "callback" of its showhide entry.
+    // changedVal is the checked state for a checkbox, otherwise the field's text value (always a string).
+    // The result is true/false for all the fields, or an array with one true/false per field.
+    //   ""                  no callback, default rule: show the fields while the changed field is empty/unchecked
+    //                       and hide them once it has a value, i.e. the opposite of '@'. Rarely used, prefer
+    //                       an explicit callback. May complement anyof rules.
+    //   "@==='x'", "@"      inline expression, '@' is replaced by the value as a JS literal (quoted if a string)
+    //   {"v1": "true", ...} map from the value to a JSON result, e.g. "[true, false]"
+    //   "fname"             name of a global function in the calculator's script: fname(value)
     function evaluateShowhideValue(changedVal, callback) {
         var tf_va;
         if (typeof callback === "string" && callback === "") {

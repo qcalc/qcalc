@@ -19,15 +19,37 @@ Inference layers:
 3. Body: comparisons such as ``arg == 'x'`` or ``arg in ('a', 'b')`` give choices;
    ``return {...}`` keys give output names.
 4. Overrides and hints supplied by the caller always win.
+
+Only the public keys of ``__info()`` (see ``views_info_meta.q1141_read_func_meta``) are generated.
+Internal keys are set by qcalc itself and legacy keys are superseded by ``input_blocks`` /
+``output_blocks``, so both are refused, including in the ``extra`` hint.
 """
 
 import ast
-import math
 import re
+import textwrap
 from dataclasses import dataclass, field
 
+import qconst
+from .mod_basic import css2list
+from .mod_data import is_blank, to_bool
 from .mod_func import variable_to_title
+
 __all__ = ['InfoResult', 'build_info']
+
+# Generated keys, in output order. 'schema' etc. are inferred; the rest come from hints or 'extra'.
+PUBLIC_KEYS = (
+    'title', 'desc', 'calculate', 'layout', 'interactive',
+    'input_columns', 'output_columns', 'input_blocks', 'output_blocks',
+    'showhide', 'anyof', 'autofill', 'related', 'images', 'onsubmit', 'script', 'inserts',
+    'step2', 'single_instance', 'single_instance_key', 'provides_data', 'consumes_data',
+    'schema', 'kins', 'tags', 'proper', 'remember', 'table_out_all',
+)
+INTERNAL_KEYS = {
+    'name', 'help', 'clean', 'template', 'qsel2', 'qlist', 'table_in', 'table_out',
+    'xpr', 'url', 'loop', 'cost',
+}
+LEGACY_KEYS = {'row', 'col', 'inp1', 'out1'}
 
 TABLE_ANNOTATIONS = {'qtable', 'qtbl'}
 SKIP_ANNOTATIONS = {'qfunc', 'qhide', 'qhidex'}
@@ -89,7 +111,7 @@ class _Arg:
 
 def _make_titler(proper):
     """Title function using qcalc's variable_to_title plus the calculator's ``proper`` words."""
-    proper_dict = {w.lower(): w for w in _list_hint(proper)}
+    proper_dict = {w.lower(): w for w in css2list(proper)}
     return lambda text: variable_to_title(str(text).strip(), proper_dict)
 
 
@@ -101,18 +123,6 @@ def _stem(token):
 
 def _tokens(name):
     return [_stem(t) for t in name.lower().split('_') if t]
-
-
-def _is_blank(value):
-    if value is None:
-        return True
-    if isinstance(value, float) and math.isnan(value):
-        return True
-    return isinstance(value, str) and not value.strip()
-
-
-def _truthy(value):
-    return str(value).strip().lower() in ('1', 'true', 'yes', 'y', 'on')
 
 
 # --------------------------------------------------------------------------- parsing
@@ -335,7 +345,7 @@ def _normalize_overrides(overrides):
         clean = {}
         for key, value in dict(row).items():
             norm = _OVERRIDE_KEYS.get(re.sub(r'[\s-]+', '_', str(key).strip().lower()))
-            if norm and not _is_blank(value):
+            if norm and not is_blank(value):
                 clean[norm] = value.strip() if isinstance(value, str) else value
         name = clean.pop('arg', None)
         if name and clean:
@@ -344,7 +354,7 @@ def _normalize_overrides(overrides):
 
 
 def _parse_choices(value, title):
-    if _is_blank(value):
+    if is_blank(value):
         return {}
     if isinstance(value, dict):
         return {str(k): str(v) for k, v in value.items()}
@@ -385,14 +395,6 @@ def _parse_rule(text):
     if not values:
         raise ValueError(f"show_when '{text}' has no value")
     return controller, op, values
-
-
-def _list_hint(value):
-    if _is_blank(value):
-        return []
-    if isinstance(value, str):
-        return [v.strip() for v in re.split(r'[,\n]', value) if v.strip()]
-    return [str(v) for v in value]
 
 
 # --------------------------------------------------------------------------- grouping
@@ -673,6 +675,81 @@ def _schema_entry(arg, override, detected_choices, doc, table_helpers, warnings,
     return entry or None, None
 
 
+# --------------------------------------------------------------------------- other public keys
+
+def _js_value(text):
+    """A JavaScript string key: multi-line code is emitted as a triple quoted block."""
+    text = textwrap.dedent(str(text)).strip('\n').rstrip()
+    if '\n' not in text:
+        return text.strip()
+    if '\\' in text or '"""' in text:
+        return text
+    pad = INDENT * 2
+    body = '\n'.join(pad + line if line.strip() else '' for line in text.split('\n'))
+    return _Raw('"""\n' + body + '\n' + pad + '"""')
+
+
+def _build_anyof(value, arg_names, warnings):
+    """Groups of fields of which any one is enough, one group per line: 'a, b' -> {'1': {'fields': [...]}}."""
+    if is_blank(value):
+        return {}
+    groups = str(value).splitlines() if isinstance(value, str) else list(value)
+    result = {}
+    for group in groups:
+        fields = css2list(group)
+        known = [f for f in fields if f in arg_names]
+        warnings.extend(f"anyof: unknown argument '{f}' ignored" for f in fields if f not in arg_names)
+        if len(known) < 2:
+            if fields:
+                warnings.append(f"anyof: group {fields} needs at least two known arguments, ignored")
+            continue
+        result[str(len(result) + 1)] = {'fields': known}
+    return result
+
+
+def _build_images(value):
+    if not isinstance(value, dict):
+        return {}
+    images = {}
+    for side in ('top', 'bottom'):
+        paths = css2list(value.get(side))
+        if paths:
+            images[side] = paths
+    return images
+
+
+def _parse_extra(value, warnings):
+    """Extra public keys as a dict literal, for keys without a dedicated hint (step2, autofill, ...)."""
+    if is_blank(value):
+        return {}
+    if isinstance(value, str):
+        try:
+            value = ast.literal_eval(value.strip())
+        except (ValueError, SyntaxError) as e:
+            warnings.append(f'extra: not a valid dict literal, ignored ({e})')
+            return {}
+    if not isinstance(value, dict):
+        warnings.append('extra: a dict is required, ignored')
+        return {}
+    result = {}
+    for key, item in value.items():
+        if key in PUBLIC_KEYS:
+            result[key] = item
+        elif key in LEGACY_KEYS:
+            warnings.append(f"extra: '{key}' is legacy (use input_blocks/output_blocks), ignored")
+        elif key in INTERNAL_KEYS:
+            warnings.append(f"extra: '{key}' is set by qcalc itself, ignored")
+        else:
+            warnings.append(f"extra: unknown key '{key}' ignored")
+    return result
+
+
+def _ordered(spec):
+    ordered = {key: spec[key] for key in PUBLIC_KEYS if key in spec}
+    ordered.update({key: val for key, val in spec.items() if key not in ordered})
+    return ordered
+
+
 # --------------------------------------------------------------------------- rendering
 
 def _format_key(key):
@@ -719,13 +796,18 @@ def build_info(source, overrides=None, hints=None, table_helpers=None):
     ``label``, ``help_text``, ``choices`` (dict, list or ``'a=Label A, b=Label B'``), ``group`` (tab title),
     ``show_when`` (``"controller == value"``, ``!=``, ``in a, b``), ``type`` and ``initial``.
 
-    ``hints``: ``func_name``, ``title``, ``desc``, ``tags``, ``calculate``, ``layout``, ``tabs``
-    (``False`` disables, ``True`` forces tab layout), ``outputs`` (names, list or comma separated text),
-    ``output_groups`` (``{tab: [output names]}``), ``scan_body`` (``False`` skips body scans) and
-    ``explicit_defaults`` (``True`` also writes type/initial for fields with a non-None default;
-    by default qcalc derives them from the signature, so they are omitted) and ``proper``
-    (comma separated words whose case is kept in titles, e.g. ``'SOP, BOM'``; also written as the
-    ``proper`` key of ``__info``).
+    ``hints``: ``func_name``, ``title``, ``desc``, ``tags``, ``kins``, ``proper`` and ``calculate`` (button
+    caption) are plain text. ``layout`` is ``'lr'`` or ``'tb'`` and ``tabs`` is ``False`` to disable or ``True``
+    to force the tab layout. ``outputs`` is names (list or comma separated text) and ``output_groups`` is
+    ``{tab: [output names]}``. ``scan_body=False`` skips body scans and ``explicit_defaults=True`` also writes
+    type/initial for fields with a non-None default (qcalc derives them from the signature otherwise).
+    ``interactive``, ``remember`` (written only when False) and ``table_out_all`` are flags.
+    ``anyof`` is one group of argument names per line, ``images`` is ``{'top': paths, 'bottom': paths}``,
+    ``onsubmit`` and ``script`` are JavaScript, and ``extra`` is a dict literal for the other public keys
+    (``step2``, ``autofill``, ``related``, ``provides_data``, ...). A dict in ``extra`` is merged into the
+    generated dict of the same key (``showhide``, ``schema``, ...) with its entries winning; any other
+    value replaces the generated one. ``proper`` words keep their
+    case in titles, e.g. ``'SOP, BOM'``.
 
     ``table_helpers``: names of available ``table_<arg>`` schema builders, e.g. ``{'table_sop_demand'}``.
     """
@@ -748,7 +830,7 @@ def build_info(source, overrides=None, hints=None, table_helpers=None):
 
     scan_body = hints.get('scan_body', True) is not False
     detected = _scan_choices(tree, [a.name for a in args if not a.is_table]) if scan_body else {}
-    outputs = _list_hint(hints.get('outputs')) or (_scan_outputs(func_node) if scan_body else [])
+    outputs = css2list(hints.get('outputs')) or (_scan_outputs(func_node) if scan_body else [])
 
     groups = _find_groups(args)
     assignment = _assign_groups(args, groups, overrides)
@@ -783,11 +865,17 @@ def build_info(source, overrides=None, hints=None, table_helpers=None):
     output_tabs = _build_output_tabs(outputs, output_groups, titler) \
         if outputs and (len(outputs) >= MIN_OUTPUTS_FOR_TABS or output_groups) else []
 
-    layout = hints.get('layout') or ('tb' if use_tabs or output_tabs else None)
+    layout = hints.get('layout')
+    if layout and layout not in qconst.QCALC_LAYOUTS:
+        warnings.append(f"layout '{layout}' ignored, use one of {qconst.QCALC_LAYOUTS}")
+        layout = None
+    layout = layout or ('tb' if use_tabs or output_tabs else None)
     if layout:
         spec['layout'] = layout
     if hints.get('calculate'):
-        spec['calculate'] = hints['calculate']
+        spec['calculate'] = str(hints['calculate']).strip()
+    if to_bool(hints.get('interactive')):
+        spec['interactive'] = True
     if use_tabs and tabs:
         spec['input_columns'] = 1
     if output_tabs:
@@ -798,18 +886,38 @@ def build_info(source, overrides=None, hints=None, table_helpers=None):
         spec['output_blocks'] = [{'column': 1, 'tabs': output_tabs}]
     if showhide:
         spec['showhide'] = showhide
+    anyof = _build_anyof(hints.get('anyof'), {a.name for a in args}, warnings)
+    if anyof:
+        spec['anyof'] = anyof
+    images = _build_images(hints.get('images'))
+    if images:
+        spec['images'] = images
+    for key in ('onsubmit', 'script'):
+        if not is_blank(hints.get(key)):
+            spec[key] = _js_value(hints[key])
     if schema:
         spec['schema'] = schema
 
-    tags = hints.get('tags')
-    if _is_blank(tags):
-        words = [w for w in func_name.lower().split('_') if w]
-        words += [titler(g['key']).lower() for g in groups.values()]
-        tags = ', '.join(dict.fromkeys(words))
-    spec['tags'] = tags
-    proper = _list_hint(hints.get('proper'))
+    kins = css2list(hints.get('kins'))
+    if kins:
+        spec['kins'] = ', '.join(kins)
+    tags = css2list(hints.get('tags'))
+    if tags:
+        spec['tags'] = ', '.join(tags)
+    proper = css2list(hints.get('proper'))
     if proper:
         spec['proper'] = ', '.join(proper)
+    if hints.get('remember') is not None and not to_bool(hints['remember']):
+        spec['remember'] = False
+    if to_bool(hints.get('table_out_all')):
+        spec['table_out_all'] = True
+
+    for key, value in _parse_extra(hints.get('extra'), warnings).items():
+        if isinstance(value, dict) and isinstance(spec.get(key), dict):
+            spec[key] = {**spec[key], **value}  # e.g. add showhide '__' or one schema entry, keep the rest
+        else:
+            spec[key] = value
+    spec = _ordered(spec)
 
     code = _render_code(func_name, spec, helpers_used)
     ast.parse(code)  # the generated code must always be valid Python

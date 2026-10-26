@@ -7,7 +7,7 @@ import re
 import pandas as pd
 
 from calc import QCals, mod_optima_tables
-from qcore import as_qtable, qchar, qcode, qerror, qhtml, qtable, qtext, qwarn
+from qcore import as_qtable, qchar, qcode, qerror, qhtml, qtable, qtexta, qtext, qwarn
 from qutil import md2html
 from qutil.mod_code_info import build_info as _build_info
 
@@ -66,11 +66,27 @@ def infogen__info():
                 'tabs': [
                     {
                         'title': 'Source',
-                        'fields': ['source', 'func_name', 'tabs', 'scan_body', 'explicit_defaults', 'overrides'],
+                        'fields': ['source', 'func_name', 'overrides', 'scan_body', 'explicit_defaults'],
                     },
                     {
                         'title': 'Details',
-                        'fields': ['title', 'desc', 'tags', 'proper', 'outputs'],
+                        'fields': ['title', 'desc', 'calculate', 'tags', 'kins', 'proper', 'outputs'],
+                    },
+                    {
+                        'title': 'Layout',
+                        'fields': ['layout', 'tabs', 'images_top', 'images_bottom', 'table_out_all'],
+                    },
+                    {
+                        'title': 'Behavior',
+                        'fields': ['interactive', 'remember', 'anyof'],
+                    },
+                    {
+                        'title': 'Script',
+                        'fields': ['onsubmit', 'script'],
+                    },
+                    {
+                        'title': 'Advanced',
+                        'fields': ['extra'],
                     },
                 ],
             },
@@ -88,7 +104,9 @@ def infogen__info():
             },
             'title': {'help_text': 'Calculator title. Defaults to a title built from the function name.'},
             'desc': {'help_text': 'Description. Defaults to the first paragraph of the docstring.'},
-            'tags': {'help_text': 'Comma separated tags. Defaults to words from the name and feature groups.'},
+            'calculate': {'help_text': 'Caption of the calculate button. Defaults to "Calculate".'},
+            'tags': {'help_text': 'Comma separated tags. No tags are generated when left empty.'},
+            'kins': {'help_text': 'Comma separated related calculators.'},
             'proper': {
                 'help_text': (
                     'Comma separated words that keep their case in titles, e.g. "SOP, BOM, qCalc". '
@@ -101,11 +119,56 @@ def infogen__info():
                     'return a dict literal.'
                 ),
             },
+            'layout': {
+                'type': 'choice',
+                'choices': {'auto': 'Automatic', 'lr': 'Left / Right', 'tb': 'Top / Bottom'},
+                'initial': 'auto',
+                'help_text': 'Position of the input and output sections. Automatic uses top / bottom with tabs.',
+            },
             'tabs': {
                 'type': 'choice',
                 'choices': {'auto': 'Automatic', 'yes': 'Use tabs', 'no': 'No tabs'},
                 'initial': 'auto',
                 'help_text': 'Group input fields in tabs.',
+            },
+            'images_top': {'help_text': 'Comma separated image paths shown above the form.'},
+            'images_bottom': {'help_text': 'Comma separated image paths shown below the form.'},
+            'table_out_all': {
+                'type': 'checkbox',
+                'initial': False,
+                'help_text': 'Show all rows of output tables, without pagination.',
+            },
+            'interactive': {
+                'type': 'checkbox',
+                'initial': False,
+                'help_text': 'Recalculate automatically when an input changes.',
+            },
+            'remember': {
+                'type': 'checkbox',
+                'initial': True,
+                'help_text': 'Remember the last input values. Written only when unchecked.',
+            },
+            'anyof': {
+                'help_text': 'One group per line, e.g. "unit_cost, cost_of_excess". Any one field of a group is enough.',
+            },
+            'onsubmit': {
+                'required': False,
+                'attrs': {'data-lang': 'javascript'},
+                'help_text': 'JavaScript run on submit.',
+            },
+            'script': {
+                'required': False,
+                'attrs': {'data-lang': 'javascript'},
+                'help_text': 'JavaScript functions for show/hide or other front end logic.',
+            },
+            'extra': {
+                'required': False,
+                'help_text': (
+                    'Other public __info() keys as a Python dict literal, e.g. '
+                    "{'step2': [...], 'autofill': {...}, 'related': {...}, 'showhide': {'__': {'fields': [...]}}}. "
+                    'Dicts are merged into the generated ones and win on conflicts. '
+                    'Values must be literals, and internal and legacy keys are refused.'
+                ),
             },
             'scan_body': {
                 'type': 'checkbox',
@@ -134,15 +197,27 @@ def infogen__info():
 def infogen(
     source: qcode = 'def my_calc(objective, rate_pct=5.0, use_extra=False, extra_cost=0.0):',
     func_name: qchar = '',
-    title: qchar = '',
-    desc: qtext = '',
-    tags: qtext = '',
-    proper: qtext = '',
-    outputs: qtext = '',
-    tabs='auto',
+    overrides: qtable = pd.DataFrame({col: [''] for col in OVERRIDE_COLUMNS}),
     scan_body=True,
     explicit_defaults=False,
-    overrides: qtable = pd.DataFrame({col: [''] for col in OVERRIDE_COLUMNS}),
+    title: qchar = '',
+    desc: qtext = '',
+    calculate: qchar = '',
+    tags: qtext = '',
+    kins: qtext = '',
+    proper: qtext = '',
+    outputs: qtext = '',
+    layout='auto',
+    tabs='auto',
+    images_top: qtext = '',
+    images_bottom: qtext = '',
+    table_out_all=False,
+    interactive=False,
+    remember=True,
+    anyof: qtexta = '',
+    onsubmit: qcode = '',
+    script: qcode = '',
+    extra: qcode = '',
 ):
     try:
         source = source.strip()
@@ -154,14 +229,27 @@ def infogen(
             'func_name': func_name,
             'title': title.strip(),
             'desc': desc.strip(),
+            'calculate': calculate.strip(),
             'tags': tags.strip(),
+            'kins': kins.strip(),
             'proper': proper.strip(),
             'outputs': outputs,
+            'layout': layout if layout != 'auto' else '',
             'tabs': {'yes': True, 'no': False}.get(tabs),
+            'anyof': anyof.strip(),
+            'onsubmit': onsubmit.strip(),
+            'script': script.strip(),
+            'extra': extra.strip(),
+            'images': {'top': images_top, 'bottom': images_bottom},
         }
         hints = {k: v for k, v in hints.items() if v not in ('', None)}
-        hints['scan_body'] = bool(scan_body)
-        hints['explicit_defaults'] = bool(explicit_defaults)
+        hints.update(
+            scan_body=bool(scan_body),
+            explicit_defaults=bool(explicit_defaults),
+            table_out_all=bool(table_out_all),
+            interactive=bool(interactive),
+            remember=bool(remember),
+        )
         result = _build_info(
             source,
             overrides=_override_rows(overrides),

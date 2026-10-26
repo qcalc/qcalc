@@ -89,19 +89,29 @@ def cal_link(calurl, caption='', link_class='', icon_class='', target='a', cid='
         return f'<div class="col mb-4">{link_card}</div>'
 
 
-def callback_button(sfunc, caption, cmd, args=None, kwargs=None):
+def _spin_inner(caption, spinner):
+    """Wrap a button caption with the shared calculate-button spinner markup."""
+    if not spinner:
+        return caption
+    return (f'<span class="calculate-content">{caption}</span>'
+            '<span class="htmx-indicator calculate-spinner"><div class="spinner"></div></span>')
+
+
+def callback_button(sfunc, caption, cmd, args=None, kwargs=None, spinner=False):
     """Build a submit button that posts a calculator callback command.
 
     The generated button posts to ``/calc/<sfunc>/?part=2`` with command payload
     in ``hx-vals`` so server-side callback handlers can execute structured UI
     actions (for example format/load/check commands).
+    Set ``spinner=True`` to show the calculate-button spinner while the request runs.
     """
     # | to execute calculator callback command
     # | 'if', '' = inside form, default
     # | 'rc' = anywhere inside card, replace card
     args = [] if args is None else args
     kwargs = {} if kwargs is None else kwargs
-    htm = '<button type="submit" class="btn btn-info btncmd" '  # POST
+    btn_class = 'btn btn-info btncmd btn-spin' if spinner else 'btn btn-info btncmd'
+    htm = f'<button type="submit" class="{btn_class}" '  # POST
 
     # | hx-swap must be explicit: the form itself carries hx-swap="outerHTML"
     # | (for its own #output-part target) and hx-swap is inheritable, so
@@ -115,26 +125,29 @@ def callback_button(sfunc, caption, cmd, args=None, kwargs=None):
     # | fragment, so mark this submit as structural
     extra = {"extra": {"cmd": cmd, "args": args, "kwargs": kwargs}, "qcalc_structural_cmd": "1"}
     htm += "hx-vals='" + json.dumps(extra) + "'>"
-    htm += f'{caption}</button>'
+    htm += f'{_spin_inner(caption, spinner)}</button>'
     return htm
 
 
-def action_button(name, caption, button_class=''):
+def action_button(name, caption, button_class='', spinner=False):
     """Build a named button for a calculator form action script.
     action_button() is suitable for manually constructed form_top or form_bottom inserts, 
     such as Apply Rates and Apply Compare. It is not currently a replacement for 
     declarative form-field buttons btn:0.
+    Set ``spinner=True`` to show the calculate-button spinner while the action runs.
     """
     if not isinstance(name, str) or not name:
         raise ValueError('name must be a non-empty string')
 
     classes = 'btn btn-info btncmd ml-2'
+    if spinner:
+        classes += ' btn-spin'
     if button_class:
         classes += f' {button_class}'
 
     return (
         f'<button type="button" class="{escape(classes, quote=True)}" '
-        f'name="{escape(name, quote=True)}">{escape(str(caption))}</button>'
+        f'name="{escape(name, quote=True)}">{_spin_inner(escape(str(caption)), spinner)}</button>'
     )
 
 
@@ -181,6 +194,8 @@ def action_script(
                 {sync_script}
                 const cid = getCidOf($(this));
                 {update_script}
+                const busyButton = $(this).addClass("is-busy");
+                $(document).one("htmx:afterRequest", function() {{ busyButton.removeClass("is-busy"); }});
                 window.QCalcActions.updateExtra(cid, {payload_json});
                 window.QCalcActions.qcalc_FullFormSubmit(cid);
             }});

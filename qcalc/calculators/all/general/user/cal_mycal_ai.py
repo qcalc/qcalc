@@ -141,7 +141,7 @@ def mycal2(cal_name='',
            ai_prompt: qtexta = '',
            _ai_buttons=qhtml(br(
                callback_button('mycal2', 'New AI Task', '__command', args=['ai_new']) +
-               callback_button('mycal2', 'Send to AI', '__command', args=['ai_send']))),
+               callback_button('mycal2', 'Send to AI', '__command', args=['ai_send'], spinner=True))),
            code: qcode = """
 def addlen(x='7 ft',y='8 m'):
     z=Qty(x)+Qty(y)

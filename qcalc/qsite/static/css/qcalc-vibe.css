@@ -958,6 +958,39 @@ label {
   display: flex;
 }
 
+/* callback_button()/action_button() with spinner=True reuse the calculate spinner markup */
+.btn-spin {
+  position: relative;
+}
+
+.btn-spin .calculate-spinner {
+  position: absolute;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+/* htmx-request is on the button itself (callback_button); is-busy is set by action_script */
+.btn-spin.htmx-request .calculate-content,
+.btn-spin.is-busy .calculate-content {
+  visibility: hidden;
+}
+
+.btn-spin.htmx-request .calculate-spinner,
+.btn-spin.is-busy .calculate-spinner {
+  display: flex;
+}
+
+/* hide the Calculate spinner only for auto-runs triggered by interactive mode (see interactive.js) */
+form.qcalc-auto-calc .btncal .calculate-spinner {
+  display: none !important;
+}
+
+form.qcalc-auto-calc .btncal .calculate-content {
+  visibility: visible !important;
+}
+
 .outbtn {
   padding: 6px !important;
   font-size: 0.82rem;

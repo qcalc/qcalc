@@ -33,7 +33,7 @@ def map_distance__info():
             'method': {
                 'fields': ['from_latitude', 'from_longitude', 'to_latitude', 'to_longitude',
                            'from_location', 'to_location'],
-                'callback': "'@'==='1' ? [true, true, true, true, false, false] : "
+                'callback': "@==='1' ? [true, true, true, true, false, false] : "
                             '[false, false, false, false, true, true]'
             }
         }

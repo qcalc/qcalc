@@ -170,7 +170,7 @@ def bodyfat2__info():
             'sex': FLD_GENDER_CHOICE
         },
         'showhide': {
-            'sex': {'fields': ['hip'], 'callback': "'@'=='F'"}
+            'sex': {'fields': ['hip'], 'callback': "@=='F'"}
         },
     }
 

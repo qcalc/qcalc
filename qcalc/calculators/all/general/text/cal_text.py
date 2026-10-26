@@ -43,7 +43,7 @@ def textcase__info():
         'showhide': {
             'format': {
                 'fields': ['ignore_stopwords', 'abbreviations'],
-                'callback': "'@'=='t'"
+                'callback': "@=='t'"
             }
         },
     }

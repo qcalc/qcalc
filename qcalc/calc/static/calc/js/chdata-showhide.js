@@ -28,7 +28,9 @@ var SCRIPT_RUNTIME_VAR = "@";
         if (typeof callback === "string" && callback === "") {
             tf_va = !changedVal;
         } else if (typeof callback === "string" && callback.indexOf(SCRIPT_RUNTIME_VAR) !== -1) {
-            tf_va = eval(callback.replace(SCRIPT_RUNTIME_VAR, changedVal));
+            //tf_va = eval(callback.replace(SCRIPT_RUNTIME_VAR, changedVal));
+            var literal = (typeof changedVal === "string") ? JSON.stringify(changedVal) : String(changedVal);
+            tf_va = eval(callback.split(SCRIPT_RUNTIME_VAR).join(literal));
         } else if (callback !== null && typeof callback === "object" && callback.constructor === Object) {
             tf_va = JSON.parse(callback[changedVal]);
         } else if (typeof window[callback] === "function") {

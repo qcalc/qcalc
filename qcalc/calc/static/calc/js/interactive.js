@@ -130,12 +130,24 @@
             timer = setTimeout(function() {
                 var calculateButton = form.querySelector('button[type="submit"]');
                 if (calculateButton && !calculateButton.disabled) {
+                    // marker lets CSS hide the spinner for this code-triggered run only
+                    form.classList.add('qcalc-auto-calc');
                     calculateButton.click();
                 }
             }, 300);
         }
 
         form.qcalcCancelInteractive = cancelPendingCalculation;
+
+        form.addEventListener('htmx:afterRequest', function() {
+            form.classList.remove('qcalc-auto-calc');
+        });
+        // a real user click always shows the spinner
+        form.addEventListener('click', function(event) {
+            if (event.isTrusted) {
+                form.classList.remove('qcalc-auto-calc');
+            }
+        }, true);
 
         form.addEventListener('focusout', function(event) {
             if (isInputTableEvent(event)) {

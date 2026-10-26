@@ -14,7 +14,7 @@ def geo_location__info():
         'showhide': {
             'method': {
                 'fields': ['latitude', 'longitude', 'location'],
-                'callback': "'@'==='1' ? [true, true, false] : [false, false, true]"
+                'callback': "@==='1' ? [true, true, false] : [false, false, true]"
             }
         }
     }

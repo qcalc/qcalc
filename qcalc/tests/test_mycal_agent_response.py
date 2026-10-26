@@ -4,8 +4,8 @@ import qsett
 
 qsett.init()
 
-from calculators.all.general.user import mod_mycal_agent
-from calculators.all.general.user.mod_mycal_agent import MyCalAgent
+from calculators.all.general.author import mod_mycal_agent
+from calculators.all.general.author.mod_mycal_agent import MyCalAgent
 
 
 def test_answer_preserves_unexpected_code_field_as_conversation():

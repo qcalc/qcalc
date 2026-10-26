@@ -3,12 +3,12 @@ import qsett
 qsett.init()
 
 from calc import get_code
-from calculators.all.general.user import mod_mycal_tools
-from calculators.all.general.user.mod_mycal_validation import (
+from calculators.all.general.author import mod_mycal_tools
+from calculators.all.general.author.mod_mycal_validation import (
     format_calculator_validation_report,
     get_calculator_validation_report,
 )
-from calculators.all.general.user.mod_mycal_tools import MyCalTools
+from calculators.all.general.author.mod_mycal_tools import MyCalTools
 
 
 def test_reference_calculators_return_structured_results(monkeypatch):

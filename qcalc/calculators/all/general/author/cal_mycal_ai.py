@@ -100,8 +100,8 @@ def mycal2__info():
     return {
         'title': 'Create My Calculator - AI Assisted',
         'desc': 'Generate and validate calculator code with AI assistance before saving.',
-        'kins': 'eva, mycal, ai_chat, q2cal',
-        'tags': 'ai, create calculator, natural language',
+        'kins': 'eva, mycal, infogen, ai_chat, q2cal',
+        'tags': 'ai, create calculator, natural language, developer, author',
         'schema': {
             'ai_prompt': ai_prompt_field(
                 label='Agent Message',

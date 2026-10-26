@@ -80,6 +80,9 @@
     "all-general": {
         "desc": "General-purpose calculators for everyday conversions, utilities, expression evaluation, and common quick tasks."
     },
+    "all-general-author": {
+        "desc": "qCalc calculator creation tools for authors"
+    },
     "all-general-chart": {
         "desc": "General charting calculators to visualize data trends, comparisons, and quick numeric insights."
     },

@@ -3,7 +3,7 @@
 
 from qcore import qcode, qhtml, qinfo, qerror, br
 from calc.mod_mfunc import *
-from calc import UCals, QCals
+from calc import UCals
 from qutil import callback_button, page_link, format_py_code, ensure_calculator_info, extract_calculator_name, \
     get_functions, pretty_json, addcal_button
 
@@ -65,8 +65,8 @@ def mycal__input(kwargs):
 def mycal__info():
     return {
         'title': 'Create My Calculator',
-        'kins': 'eva, mycal2, ai_chat',
-        'tags': 'create calculator, prompt',
+        'kins': 'eva, mycal2, infogen, ai_chat, q2cal',
+        'tags': 'create calculator, developer, author',
         'inserts': {
             'form_bottom':
                 callback_button('mycal', 'Format Code', '__modify', kwargs={'code': 'format'}) +
@@ -109,17 +109,17 @@ def addlen__info():
         return f'Error (MC): {e}'
 
 
-def mytree__info():
-    return {'title': 'Read My Calculator cache'}
-
-
-def mytree():
-    uc = UCals()
-    node = uc.get_tree()
-    if node:
-        utree_node = node.tree_to_dict()
-    else:
-        utree_node = {}
-    return {
-        'data_from_tree': pretty_json(utree_node)  # | simple json dumps
-    }
+# def mytree__info():
+#     return {'title': 'Read My Calculator cache'}
+#
+#
+# def mytree():
+#     uc = UCals()
+#     node = uc.get_tree()
+#     if node:
+#         utree_node = node.tree_to_dict()
+#     else:
+#         utree_node = {}
+#     return {
+#         'data_from_tree': pretty_json(utree_node)  # | simple json dumps
+#     }

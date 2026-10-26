@@ -19,7 +19,7 @@ from qutil import (
     md_math_script,
 )
 
-from .mod_mycal_tools import MyCalTools
+from ..author.mod_mycal_tools import MyCalTools
 
 
 def _render_ai_chat(turns):

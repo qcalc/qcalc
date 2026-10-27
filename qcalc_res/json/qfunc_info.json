@@ -17,11 +17,11 @@
     },
     "html_reader": {
         "tags": "file reader, file, data",
-        "desc": "This calculator function removes all tags from HTML content to display plain text. Convert HTML to clear text easily."
+        "desc": "This calculator function reads HTML from a file, URL, or text and displays the source. Convert HTML to clear text. Text mode allows editing as well."
     },
     "js_reader": {
         "tags": "file reader, file, data, code",
-        "desc": "This calculator function reads JavaScript from a file, URL, or text and displays the source code."
+        "desc": "This calculator function reads JavaScript from a file, URL, or text and displays the source code. Text mode allows editing as well."
     },
     "csv_reader": {
         "tags": "file reader, file, data",
@@ -33,7 +33,7 @@
     },
     "md_reader": {
         "tags": "file reader, file, data",
-        "desc": "This calculator function reads and converts markdown files, text, or URLs into HTML format."
+        "desc": "This calculator function reads and converts markdown files, text, or URLs into HTML format. Text mode allow editing as well."
     },
     "file_reader": {
         "tags": "file reader, file, data",

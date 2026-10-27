@@ -158,8 +158,9 @@ def q1145_result_to_form_schema(request, func_id, cid, result, proper_dict):
         elif isinstance(value, qpage):
             safe_text = escape(str(value))
             request.ojson_data[name] = qhtml(
+                "<div class='md-content'>"
                 "<pre style='white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word;'>"
-                f"{safe_text}</pre>"
+                f"{safe_text}</pre></div>"
             )
             request.ojson_data_type.append('html')
         elif isinstance(value, float):

@@ -69,7 +69,7 @@ def create_openai_chat_completion(messages, temperature=None, max_tokens=None):
     except openai.NotFoundError as error:
         if getattr(error, 'code', None) == 'model_not_found':
             raise ValueError(
-                f'OpenAI model "{model}" was not found or is not available '
+                f'AI model "{model}" was not found or is not available '
                 'to your API key. Check the model name in User Preferences.'
             ) from error
         raise

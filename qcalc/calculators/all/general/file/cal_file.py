@@ -99,6 +99,7 @@ def binary_file_info(upload_file):
 def file_reader__info():
     return {
         'title': 'File Reader',
+        'layout': 'tb',
         'inserts': {
             'out_bottom': md_math_script(),
         },

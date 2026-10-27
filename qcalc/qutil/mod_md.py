@@ -108,3 +108,9 @@ def wrap_md_images(html: str):
         wrapper.append(image.extract())
 
     return str(soup)
+
+
+def code2html(code: str, lang: str):
+    # the fence must be longer than any backtick run in the code so it cannot close early
+    fence = '`' * max(3, max((len(m) for m in re.findall(r'`+', code)), default=0) + 1)
+    return md2html(f'{fence}{lang}\n{code.strip(chr(10))}\n{fence}', wrap=True)

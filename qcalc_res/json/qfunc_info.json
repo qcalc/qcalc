@@ -19,6 +19,10 @@
         "tags": "file reader, file, data",
         "desc": "This calculator function removes all tags from HTML content to display plain text. Convert HTML to clear text easily."
     },
+    "js_reader": {
+        "tags": "file reader, file, data, code",
+        "desc": "This calculator function reads JavaScript from a file, URL, or text and displays the source code."
+    },
     "csv_reader": {
         "tags": "file reader, file, data",
         "desc": "This calculator function reads and processes CSV data for easy viewing in a table."

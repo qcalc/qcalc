@@ -72,9 +72,7 @@ class LinelessNode(template.Node):
 
 @register.tag
 def lineless(parser, token):
-    """
-    Removes all empty lines in the content - quicker
-    """
+    """Removes all empty lines in the content - quicker"""
     nodelist = parser.parse(('endlineless',))
     parser.delete_first_token()
     return LinelessNode(nodelist)
@@ -82,9 +80,7 @@ def lineless(parser, token):
 
 @register.tag
 def lineless_ex(parser, token):
-    """
-    Removes empty lines in the content excluding textarea and pre -- slower
-    """
+    """Removes empty lines in the content excluding textarea and pre -- slower"""
     nodelist = parser.parse(('endlineless_ex',))
     parser.delete_first_token()
     return LinelessNodeX(nodelist)

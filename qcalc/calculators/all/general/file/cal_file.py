@@ -4,7 +4,7 @@
 import re
 from bs4 import BeautifulSoup
 from qconst import delimiter_help_text
-from qutil import nzs, csv2df, demo_url, md2html, md_math_script, action_script, fetch_url
+from qutil import nzs, csv2df, demo_url, md2html, md_math_script, action_script, fetch_url, code2html
 from qcore.mod_anno import *
 from calc.mod_result import df2normalized
 
@@ -57,31 +57,29 @@ def md_reader__info():
     }
 
 
+# the default qcode must be left adjusted
 def md_reader(upload_markdown: qfile = None, md_url: qurl = demo_url('demo.md'),
-              markdown_text: qcode =
-              """
-              # Example Markdown content with LaTeX math equations.
+              markdown_text: qcode = """
+# Example Markdown content with LaTeX math equations.
 
-              ## This is a sample Markdown content.
+## This is a sample Markdown content.
 
-              $$(a + b)^2 = a^2 + 2ab + b^2$$
+$$(a + b)^2 = a^2 + 2ab + b^2$$
 
-              $a$ and $b$ are variables in the equation.
+$a$ and $b$ are variables in the equation.
 
-              - Example list item
-              - Another list item
+- Example list item
+- Another list item
 
-              *Italic text*
+*Italic text*
 
-              **Bold text**
+**Bold text**
 
-              ```python
-              # This is a sample Python code block.
-              print("Hello, World!")
-              ```
-
-              """,
-              mode='URL'):
+```python
+# This is a sample Python code block.
+print("Hello, World!")
+```
+""", mode='URL'):
     mode = str(mode).strip().upper()
     if mode == 'URL':
         if not md_url:
@@ -213,12 +211,6 @@ def remove_tags(html):
     return ' '.join(soup.stripped_strings)
 
 
-def word_count(text: str):
-    words = re.findall(r'\w+', text)
-    cnt = len(words)
-    return cnt, words
-
-
 def html_reader__info():
     return {
         'title': 'HTML Reader',
@@ -249,19 +241,18 @@ def html_reader__info():
     }
 
 
+# the default qcode must be left adjusted
 def html_reader(upload_html: qfile = None, html_url: qurl = demo_url('demo.html'),
-                html_text: qcode =
-                """
-                <h1>Hello World</h1>
-                <h2>Subheading</h2>
-                <p>This is a paragraph of text under the subheading.</p>
-                <ul>
-                    <li>First item</li>
-                    <li>Second item</li>
-                    <li>Third item</li>
-                </ul>
-                """
-                , convert_to_text: bool = False, mode='URL'):
+                html_text: qcode = """
+<h1>Hello World</h1>
+<h2>Subheading</h2>
+<p>This is a paragraph of text under the subheading.</p>
+<ul>
+    <li>First item</li>
+    <li>Second item</li>
+    <li>Third item</li>
+</ul>
+""", convert_to_text: bool = False, mode='URL'):
     # https://www.geeksforgeeks.org/remove-all-style-scripts-and-html-tags-using-beautifulsoup/
     mode = str(mode).strip().upper()
     if mode == 'URL':
@@ -281,7 +272,70 @@ def html_reader(upload_html: qfile = None, html_url: qurl = demo_url('demo.html'
         raise Exception(f"Error (HR): mode must be one of 'File', 'URL', or 'Text'")
     if convert_to_text:
         html = remove_tags(html)
-    return qhtml(html)
+        return qhtml(code2html(html, 'text'))
+    return qhtml(code2html(html, 'html'))
+
+
+def js_reader__info():
+    return {
+        'title': 'JavaScript Reader',
+        'showhide': {
+            'mode': {
+                'fields': ['upload_js', 'js_url', 'js_text'],
+                'callback': 'mode_reader_fields',
+            },
+        },
+        'script': """
+        function mode_reader_fields(v){
+            return [v === 'File', v === 'URL', v === 'Text'];
+        }
+        """,
+        'schema': {
+            'mode': {
+                'type': 'choice',
+                'choices': {'File': 'File', 'URL': 'URL', 'Text': 'Text'},
+                'initial': 'URL',
+                'help_text': 'Choose whether to read JavaScript from a file, URL, or text input.',
+            },
+            'js_text': {
+                'attrs': {
+                    'data-lang': 'javascript',
+                },
+            },
+        },
+    }
+
+
+# the default qcode must be left adjusted
+def js_reader(upload_js: qfile = None, js_url: qurl = demo_url('demo.js'),
+              js_text: qcode = """
+function greet(name) {
+    return `Hello, ${name}!`;
+}
+
+const numbers = [1, 2, 3, 4, 5];
+const squares = numbers.map((n) => n * n);
+
+console.log(greet('World'));
+console.log(squares);
+""", mode='URL'):
+    mode = str(mode).strip().upper()
+    if mode == 'URL':
+        if not js_url:
+            raise Exception(f'Error (JR): A valid JavaScript URL is not found')
+        response = fetch_url(js_url, check_status=False)
+        js = response.text
+    elif mode == 'TEXT':
+        if nzs(js_text) == '':
+            raise Exception(f'Error (JR): A valid JavaScript Text is not found')
+        js = js_text
+    elif mode == 'FILE':
+        if upload_js is None:
+            raise Exception(f'Error (JR): A valid JavaScript File is not found')
+        js = upload_js.text()
+    else:
+        raise Exception(f"Error (JR): mode must be one of 'File', 'URL', or 'Text'")
+    return qhtml(code2html(js, 'javascript'))
 
 
 if __name__ == '__main__':

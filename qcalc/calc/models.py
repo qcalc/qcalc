@@ -176,6 +176,20 @@ class SystemKeyUsage(models.Model):
         return f"{self.provider}/{self.scope}/{self.subject}/{self.period}: {self.count}"
 
 
+class APIKey(models.Model):
+    # Bearer keys for /calc/api/. Only a SHA-256 of the key is stored, the plain key is shown once on creation.
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='apikeys', db_index=True)
+    name = models.CharField(max_length=60, blank=True, default='')
+    prefix = models.CharField(max_length=12, unique=True)  # public lookup part of the key
+    key_hash = models.CharField(max_length=64)
+    is_active = models.BooleanField(default=True)
+    added_on = models.DateTimeField(auto_now_add=True)
+    last_used_on = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.user.username}: {self.name or self.prefix}"
+
+
 # Admin Customization
 @admin.register(MyStuff)
 class MyStuffAdmin(admin.ModelAdmin):
@@ -197,6 +211,14 @@ class MyCredentialAdmin(admin.ModelAdmin):
     list_display = ('user', 'provider', 'added_on', 'changed_on')
     search_fields = ('user__username', 'provider')
     list_filter = ('provider', 'added_on')
+
+
+@admin.register(APIKey)
+class APIKeyAdmin(admin.ModelAdmin):
+    list_display = ('user', 'name', 'prefix', 'is_active', 'added_on', 'last_used_on')
+    search_fields = ('user__username', 'name', 'prefix')
+    list_filter = ('is_active',)
+    readonly_fields = ('prefix', 'key_hash')
 
 
 @admin.register(SystemKeyUsage)

@@ -27,6 +27,7 @@ class IgnoreDisallowedHostMiddleware:
 
 
 class CalcMiddleware:
+    API_PREFIX = '/calc/api/'
     _worker_init_lock = threading.Lock()
     _worker_init_done = False
 
@@ -48,7 +49,9 @@ class CalcMiddleware:
     def __call__(self, request):  # | run on every request
         QThread.set_req(request)  # for each request, should be before QPref
         try:
-            if not request.session.session_key or 'hash' not in request.session:
+            # | API clients authenticate with a bearer key, so they must not get a cookie session
+            if not request.path.startswith(self.API_PREFIX) and (
+                    not request.session.session_key or 'hash' not in request.session):
                 # | Run once per user session
                 create_session_once_per_session(request)
                 QPref.setp(qvars.qc_gpref)  # authentication middleware required

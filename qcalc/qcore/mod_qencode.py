@@ -9,11 +9,17 @@ from django.core.serializers.json import DjangoJSONEncoder
 from .mod_qimage import QImage
 from .mod_qchart import QChart
 import json
-from .mod_anno import qchat, qhtml
+from .mod_anno import qchat, qhtml, qerror, qinfo, qwarn
 import datetime
 import decimal
+import math
+import numpy as np
 
 _UNSERIALIZED = object()
+
+API_COMPACT_MAX_ROWS = 20
+# | most specific first; all of these are str subclasses
+_API_MESSAGE_TYPES = ((qerror, 'error'), (qwarn, 'warning'), (qinfo, 'info'), (qhtml, 'html'), (qchat, 'html'))
 
 _SERIALIZE_POLICIES = {
     'json': {
@@ -68,6 +74,9 @@ def serialize_value(value, profile='json', _seen=None):
     if profile == 'step2':
         return step2_pack_value(value, _seen)
 
+    if profile == 'api':
+        return api_pack_value(value, _seen=_seen)
+
     policy = _SERIALIZE_POLICIES.get(profile)
     if policy is not None:
         return _serialize_common_profile(value, policy, _seen)
@@ -78,6 +87,9 @@ def serialize_value(value, profile='json', _seen=None):
 def deserialize_value(value, profile='variant'):
     if profile == 'step2':
         return step2_unpack_for_run(value)
+
+    if profile == 'api':
+        return api_unpack_value(value)
 
     policy = _SERIALIZE_POLICIES.get(profile)
     if policy is not None:
@@ -301,6 +313,138 @@ def step2_unpack_for_cost(value):
             return Qty(value.get('value', ''))
         except Exception:
             return None
+
+    return value
+
+
+def _api_number(value):
+    """Return a JSON-safe float: NaN/inf become None, binary noise is trimmed to 12 significant digits."""
+    if math.isnan(value) or math.isinf(value):
+        return None
+    return float(f'{value:.12g}')
+
+
+def _api_table(columns, rows, compact, max_rows, seen):
+    rows = list(rows)
+    total = len(rows)
+    truncated = compact and total > max_rows
+    if truncated:
+        rows = rows[:max_rows]
+    table = {
+        '__qcalc_type': 'table',
+        'columns': [str(col) for col in columns],
+        'data': [[api_pack_value(cell, compact, max_rows, seen) for cell in row] for row in rows],
+    }
+    if truncated:
+        table['truncated'] = True
+        table['total_rows'] = total
+    return table
+
+
+def api_pack_value(value, compact=False, max_rows=API_COMPACT_MAX_ROWS, _seen=None):
+    """Pack a calculator result into strict JSON with tagged ``__qcalc_type`` objects.
+
+    Unlike the 'json' and 'step2' profiles every nested table cell is packed, quantities keep their number and
+    unit separately, and NaN/inf never reach the output. ``compact`` truncates tables to ``max_rows`` rows and
+    omits chart data, which keeps results small enough for LLM tool output.
+    """
+    if _seen is None:
+        _seen = set()
+
+    if value is None or isinstance(value, bool):
+        return value
+
+    for message_type, kind in _API_MESSAGE_TYPES:
+        if isinstance(value, message_type):
+            return {'__qcalc_type': kind, 'text': str(value)}
+
+    if isinstance(value, str):
+        return str(value)
+
+    if isinstance(value, int):
+        return int(value)
+
+    if isinstance(value, float):
+        return _api_number(float(value))
+
+    if isinstance(value, np.generic):
+        return api_pack_value(value.item(), compact, max_rows, _seen)
+
+    if isinstance(value, Qty):
+        number = value.val
+        return {
+            '__qcalc_type': 'qty',
+            'value': _api_number(float(number)) if isinstance(number, (int, float)) else number,
+            'unit': value.uom,
+            'text': str(value),
+        }
+
+    if isinstance(value, decimal.Decimal):
+        return _api_number(float(value))
+
+    if isinstance(value, datetime.timedelta):
+        return value.total_seconds()
+
+    if isinstance(value, (datetime.date, datetime.time, datetime.datetime, QDateTime)):
+        return str(QDateTime(value)) if not isinstance(value, QDateTime) else str(value)
+
+    if isinstance(value, QChart):
+        if compact:
+            return {'__qcalc_type': 'chart', 'chtype': value.chtype, 'omitted': True}
+        chart_data = value.data if isinstance(value.data, dict) else {}
+        chart_data = {key: val for key, val in chart_data.items() if key not in {'chart', 'fig', 'ax'}}
+        return {
+            '__qcalc_type': 'chart',
+            'chtype': value.chtype,
+            'data': api_pack_value(chart_data, compact, max_rows, _seen),
+        }
+
+    if isinstance(value, (QFile, QImage)):
+        return {'__qcalc_type': 'image' if isinstance(value, QImage) else 'file', 'text': str(value)}
+
+    if isinstance(value, pd.DataFrame):
+        return _api_table(value.columns, value.values.tolist(), compact, max_rows, _seen)
+
+    if isinstance(value, dict) and {'columns', 'data'} <= value.keys():
+        return _api_table(value['columns'], value['data'], compact, max_rows, _seen)
+
+    if isinstance(value, (dict, list, tuple, set)):
+        value_id = id(value)
+        if value_id in _seen:
+            return None
+        _seen.add(value_id)
+        try:
+            if isinstance(value, dict):
+                return {str(key): api_pack_value(val, compact, max_rows, _seen) for key, val in value.items()}
+            return [api_pack_value(item, compact, max_rows, _seen) for item in value]
+        finally:
+            _seen.discard(value_id)
+
+    return str(value)
+
+
+def api_unpack_value(value):
+    """Reverse of :func:`api_pack_value` for inputs: tagged quantities become ``'value unit'`` strings and tables
+    become ``{'columns', 'data'}`` dicts, the same shapes calculators already accept."""
+    if isinstance(value, dict):
+        qtype = value.get('__qcalc_type')
+        if qtype == 'qty':
+            if value.get('text'):
+                return value['text']
+            return f"{value.get('value', '')} {value.get('unit', '')}".strip()
+        if qtype == 'table':
+            return {
+                'columns': list(value.get('columns', [])),
+                'data': [[api_unpack_value(cell) for cell in row] for row in value.get('data', [])],
+            }
+        if qtype in {'error', 'warning', 'info', 'html', 'file', 'image'}:
+            return value.get('text', '')
+        if qtype == 'chart':
+            return api_unpack_value(value.get('data', {}))
+        return {key: api_unpack_value(val) for key, val in value.items()}
+
+    if isinstance(value, list):
+        return [api_unpack_value(item) for item in value]
 
     return value
 

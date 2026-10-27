@@ -16,6 +16,7 @@ def production_mix_profit__info():
             'subject to machine time, labor time, demand, and ramp-change constraints.'
         ),
         'tags': 'business, production, optimization, linear',
+        'api': True,
         'layout': 'tb',
         'out1': '1-3,17-21',
     }

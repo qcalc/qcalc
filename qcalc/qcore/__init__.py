@@ -14,7 +14,7 @@ from .mod_smartcalc import SmartCalc
 from .mod_anno import *
 from .mod_qcutil import *
 from .mod_qencode import QEncoderBase, QEncoderShort, qjson_dumps, qpretty_json, \
-    prepare_for_json, reverse_prepare_for_json, serialize_value, \
+    prepare_for_json, reverse_prepare_for_json, serialize_value, api_pack_value, api_unpack_value, \
     step2_pack_value, step2_unpack_for_run, step2_unpack_for_cost
 from .mod_qforms import QFieldHandler
 from .mod_qfile import QFile, qf2bio

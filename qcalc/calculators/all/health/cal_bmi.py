@@ -22,6 +22,7 @@ def bmi__info():
         ],
         'interactive': True,
         'proper': 'BMI',
+        'api': True,
     }
 
 

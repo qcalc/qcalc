@@ -2,7 +2,7 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 from django.urls import path, re_path
-from calc import views, views_tabulator, views_step2
+from calc import views, views_tabulator, views_step2, views_api
 from qsite.views import show_docs
 
 urlpatterns = [
@@ -25,6 +25,13 @@ urlpatterns = [
     path('lists/', views.lists, name='calc-lists'),
     path('cart/', views.add_to_cart, name='calc-cart'),
     path('save/', views.q11440b_get_saved_io, name='calc-save'),
+]
+
+# | must stay above the catch-all '<str:fname>/' routes at the bottom
+urlpatterns += [
+    path('api/v1/', views_api.api_index, name='calc-api-index'),
+    path('api/v1/<str:fid>/schema/', views_api.api_schema, name='calc-api-schema'),
+    path('api/v1/<str:fid>/run/', views_api.api_run, name='calc-api-run'),
 ]
 
 urlpatterns += [

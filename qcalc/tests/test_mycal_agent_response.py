@@ -76,7 +76,7 @@ def test_generation_repairs_one_validation_failure(monkeypatch):
     ])
     prompts = []
 
-    def fake_ask_gpt(prompt, temperature):
+    def fake_ask_gpt(prompt):
         prompts.append(prompt)
         return next(responses)
 
@@ -99,7 +99,7 @@ def test_generation_repairs_one_validation_failure(monkeypatch):
 def test_generation_does_not_retry_ai_request_failure(monkeypatch):
     calls = 0
 
-    def failing_ask_gpt(prompt, temperature):
+    def failing_ask_gpt(prompt):
         nonlocal calls
         calls += 1
         raise RuntimeError('service unavailable')
@@ -133,7 +133,7 @@ def test_generation_stops_after_one_failed_validation_repair(monkeypatch):
         ),
     })
 
-    def fake_ask_gpt(prompt, temperature):
+    def fake_ask_gpt(prompt):
         nonlocal calls
         calls += 1
         return invalid_response

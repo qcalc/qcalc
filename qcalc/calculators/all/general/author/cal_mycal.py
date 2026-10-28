@@ -65,6 +65,7 @@ def mycal__input(kwargs):
 def mycal__info():
     return {
         'title': 'Create My Calculator',
+        'interactive': False,
         'kins': 'eva, mycal2, infogen, ai_chat, q2cal',
         'tags': 'create calculator, developer, author',
         'inserts': {

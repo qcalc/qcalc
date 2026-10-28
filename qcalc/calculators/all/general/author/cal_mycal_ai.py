@@ -100,6 +100,7 @@ def mycal2__info():
     return {
         'title': 'Create My Calculator - AI Assisted',
         'desc': 'Generate and validate calculator code with AI assistance before saving.',
+        'interactive': False,
         'kins': 'eva, mycal, infogen, ai_chat, q2cal',
         'tags': 'ai, create calculator, natural language, developer, author',
         'schema': {

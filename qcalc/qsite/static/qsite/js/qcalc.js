@@ -237,8 +237,14 @@ function formReady(cid) {
                     tags: true,
                     dropdownCssClass : drop,
                 });
-                var newOption = new Option(defaultValue, defaultValue, true, true);
-                $sel.append(newOption).trigger('change');
+                var hasDefault = $sel.find('option').filter(function() {
+                    return this.value === String(defaultValue);
+                }).length > 0;
+                if (hasDefault) {
+                    $sel.val(defaultValue).trigger('change');
+                } else {
+                    $sel.append(new Option(defaultValue, defaultValue, true, true)).trigger('change');
+                }
             }
         } // function
         $('#' + QCALC_TOK_CARD_PREFIX + cid).find('select').each(function() {

@@ -19,6 +19,7 @@ def eva__info():
     return {
         'title': 'Simple Expression Evaluator',
         'desc': 'Evaluate arbitrary expressions and functions',
+        'interactive': False,
         'kins': 'mycal, mycal2, ai_chat',
         'inserts': {
             'form_top': callback_button('eva', 'Format Code', '__modify', kwargs={'code': 'format'})

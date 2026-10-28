@@ -276,7 +276,7 @@ Current editor code:
                 mode=mode,
             )
             try:
-                generated = ask_gpt(ai_prompt, temperature=0.2)
+                generated = ask_gpt(ai_prompt)
             except Exception as error:
                 raise AIGenerationError(
                     f'AI request failed: {error}',

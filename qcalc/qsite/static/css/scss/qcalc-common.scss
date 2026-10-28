@@ -883,13 +883,23 @@ label {
   display: flex;
   }
 
-/* hide the Calculate spinner only for auto-runs triggered by interactive mode (see interactive.js) */
-form.qcalc-auto-calc .btncal .calculate-spinner {
-  display: none !important;
+/* auto-runs triggered by interactive mode (see interactive.js) show the Calculate spinner only after 500ms */
+form.qcalc-auto-calc.htmx-request .btncal .calculate-spinner {
+  opacity: 0;
+  animation: qcalc-spinner-in 0s linear 500ms forwards;
   }
 
-form.qcalc-auto-calc .btncal .calculate-content {
-  visibility: visible !important;
+form.qcalc-auto-calc.htmx-request .btncal .calculate-content {
+  visibility: visible;
+  animation: qcalc-content-out 0s linear 500ms forwards;
+  }
+
+@keyframes qcalc-spinner-in {
+  to { opacity: 1; }
+  }
+
+@keyframes qcalc-content-out {
+  to { visibility: hidden; }
   }
 
 .outbtn {

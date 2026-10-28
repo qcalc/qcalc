@@ -52,7 +52,7 @@ def openai_reply(monkeypatch):
     def reply(candidates, content):
         captured = {}
 
-        def create_completion(messages, temperature, max_tokens):
+        def create_completion(messages, max_tokens):
             captured['messages'] = messages
             captured['max_tokens'] = max_tokens
             message = SimpleNamespace(content=content)
@@ -102,6 +102,20 @@ def test_q2cal_keeps_values_the_user_specified(openai_reply):
     result = cal_chat.q2cal('bmi for 70 kg and 1.75 m')
 
     assert 'bmi/mass/70%20kg/height/1.75%20m' in result
+
+
+def test_q2cal_accepts_markdown_fenced_calls(openai_reply):
+    openai_reply([BMI], "```python\n[bmi(mass='70 kg', height='1.75 m')]\n```")
+
+    result = cal_chat.q2cal('bmi for 70 kg and 1.75 m')
+
+    assert 'bmi/mass/70%20kg/height/1.75%20m' in result
+
+
+def test_q2cal_accepts_calls_surrounded_by_prose(openai_reply):
+    openai_reply([BMI], "Here you go:\n[bmi()]\nHope this helps.")
+
+    assert '/calc/add/?fname=bmi' in cal_chat.q2cal('body mass index')
 
 
 def test_q2cal_accepts_calls_returned_as_strings(openai_reply):

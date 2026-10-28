@@ -130,7 +130,7 @@
             timer = setTimeout(function() {
                 var calculateButton = form.querySelector('button[type="submit"]');
                 if (calculateButton && !calculateButton.disabled) {
-                    // marker lets CSS hide the spinner for this code-triggered run only
+                    // marker lets CSS delay the spinner (500ms) for this code-triggered run only
                     form.classList.add('qcalc-auto-calc');
                     calculateButton.click();
                 }

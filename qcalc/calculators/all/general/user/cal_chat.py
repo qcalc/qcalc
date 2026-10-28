@@ -3,6 +3,7 @@
 
 import ast
 import inspect
+import re
 from html import escape
 from urllib.parse import quote
 
@@ -99,9 +100,18 @@ def _calculator_context(calculators):
     return '\n\n---\n\n'.join(blocks)
 
 
+def _extract_call_list(content):
+    # Models may wrap the list in a Markdown fence or add surrounding prose.
+    text = str(content or '').strip()
+    start, end = text.find('['), text.rfind(']')
+    if start != -1 and end > start:
+        return text[start:end + 1]
+    return re.sub(r'^```[\w-]*\s*|\s*```$', '', text).strip()
+
+
 def _parse_calculator_calls(content, calculator_names, max_count):
     try:
-        parsed = ast.parse(str(content or '').strip(), mode='eval').body
+        parsed = ast.parse(_extract_call_list(content), mode='eval').body
     except SyntaxError as error:
         raise ValueError(
             f'Could not return valid function calls: {content!r}'
@@ -152,6 +162,7 @@ def q2cal__info():
     return {
         'title': 'What do You Want to Calculate?',
         'desc': 'Find the most relevant qCalc calculator from a natural-language query.',
+        'interactive': False,
         'tags': 'ai, calculator search, natural language',
         'schema': {
             'query': ai_prompt_field(
@@ -214,7 +225,6 @@ def q2cal(query: qtexta = 'Calculate body mass index for 70 kg and 1.75 m',
     ]
     response = create_openai_chat_completion(
         messages,
-        temperature=0.5,
         max_tokens=300,
     )
 

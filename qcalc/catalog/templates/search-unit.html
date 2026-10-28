@@ -9,7 +9,7 @@
             <i class="icon-balance"></i>{{ node.title }}</a>
       {% elif node.node_type == 'q' %}
             <a href="/calc/conv2/"
-               hx-get="/calc/add/?path=conv2/quantity/{{ node.data }}/mode/q2u/value/1/from_qty/{{ node.name|deslash }}/unit_cost/-/__info/{{ node.data }}/---/"
+               hx-get="/calc/add/?path=conv2/quantity/{{ node.data }}/mode/q2u/value/1/from_qty/{{ node.name|deslash }}/unit_cost/-/---/"
                hx-target="#content-holder" hx-swap="afterbegin">
             <i class="icon-balance"></i>{{ node.title }}</a>
       {% endif %}

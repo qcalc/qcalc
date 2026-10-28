@@ -52,8 +52,6 @@ show(y)
     out = QScreen()
     syms = QCals.qsymbol_dict.copy()
     syms.update({"show": show})
-    # reserved_syms = set(syms)
-    # strict_assign = QPref.getp1('strict_assign')
 
     aeval = Interpreter(
         # nested_symtable requires an asteval Group-based symtable (built via

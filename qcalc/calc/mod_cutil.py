@@ -3,7 +3,6 @@
 import qconst
 from .mod_mfunc import q0162_dictify_fargs
 from .mod_qcals import QCals
-import inspect
 from django.conf import settings
 from qcore import Qty, complex_input_xpr, complex_input_url
 from qutil import fid2help_file, QDateTime
@@ -238,21 +237,12 @@ def xpr2loop(xpr: str):
     return xpr + "/varx_start/1/varx_stop/1/varx_step/1/step_round/2"
 
 
-def get_fhelp(func_id, __info):
-    func_help = ''
+def get_fhelp(func_id):
     # | start callback point __help (q1, mod_cutil.py, line 117)
-    # | func__help([__info])
+    # | func__help()
     # | get additional help text if any, will be printed after static help text inside help window
     fhelp = QCals.addr(func_id + '__help')
-    if fhelp is not None:
-        args_count = len(inspect.signature(fhelp).parameters)
-
-        if args_count == 0:
-            func_help = fhelp()
-        elif args_count == 1:
-            func_help = fhelp(__info)
-    # | end of exit point
-    return func_help
+    return fhelp if fhelp else ''
 
 
 def valid_numq(val, is_print=False):

@@ -115,7 +115,7 @@ def circ(interest_rate='12 pct/yr', interest_rate_for='mo'):
     return Qty(pir * 100, 'pct/' + irfq.uom)
 
 
-def fv__info(__info):
+def fv__info():
     return {
         'title': 'Future Value (FV) of a Principal and Periodic Payment',
         'schema': {

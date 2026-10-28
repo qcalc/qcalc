@@ -44,14 +44,12 @@ def q11429_func_to_form_schema(request: HtmxHttpRequest, func_addr, func_id, cid
     cache_def = QCache.get_data(func_id) if gs['schema_cache'] else None
 
     if cache_def is None:
-        __info = kwargs.get('__info', None)  # | __info from url path, used to call func__info(__info)
-        fargs, fanns, finfs = func_meta(func_addr, func_id, __info)
+        fargs, fanns, finfs = func_meta(func_addr, func_id)
         cache_def = {'fargs': fargs, 'fanns': fanns, 'finfs': finfs}
-        if __info is None:  # | __info means some form elements data are dynamically populated e.g. choices
-            if gs['schema_cache']:
-                QCache.set_data(func_id, cache_def)  # | save only if form elements data are static
-                if 'upload_image' in fargs:
-                    assert fargs['upload_image'] is None
+        if gs['schema_cache']:
+            QCache.set_data(func_id, cache_def)  # | save only if form elements data are static
+            if 'upload_image' in fargs:
+                assert fargs['upload_image'] is None
     else:
         fargs = cache_def['fargs']
         fanns = cache_def['fanns']
@@ -336,6 +334,7 @@ def q11449_form_data_postprocess_and_run(request, func_id):  # cid
                 json_data_type = {fld['name']: fld['type'] for fld in request.json_schema}
                 # print('json_data_type', json_data_type)
                 if request.cmd in ['', 'run']:
+                    request.json_doc['fxpr'] = ''
                     if request.json_doc['info']['xpr']:
                         max_table_cells = request.pref.get('xpr_max_table_cells', qconst.TABLE_MAX_CELLS_XPR)
                         if _has_large_dataframe(request.json_d4f, max_table_cells):
@@ -349,7 +348,6 @@ def q11449_form_data_postprocess_and_run(request, func_id):  # cid
                         # if output has any scalar items or not i.e. number (float, int) or qty
                         # accordingly the icon will be placed during template preparation
                     if request.json_doc['fxpr']:
-                        # request.json_doc['floop'] = floop_from_json(func_id, request.json_d4f, json_data_type)
                         request.json_doc['floop'] = xpr2loop(request.json_doc['fxpr'])
                     if request.json_doc['info']['url']:
                         request.json_doc['furl'] = furl_from_json(func_id, request.json_d4f, json_data_type)
@@ -578,6 +576,7 @@ def q11441a_get_user_pref(request: HtmxHttpRequest):
     us = QPref.getp().copy()  # User Session Preference, Defaults for the user
     request.pref.update(us)  # User Request Preference, Defaults for this request of the user
     request.pref.setdefault('interactive_enabled', True)
+    request.pref.setdefault('slider_enabled', request.pref.get('slider', True))
     # print('user pref', request.pref)
 
 
@@ -612,6 +611,11 @@ PERSISTENT_REQUEST_PREFS = {
     },
     'interactive_enabled': {
         'pref': 'interactive_enabled',
+        'parse': _parse_request_pref_bool,
+        'serialize': _serialize_request_pref_bool,
+    },
+    'slider_enabled': {
+        'pref': 'slider_enabled',
         'parse': _parse_request_pref_bool,
         'serialize': _serialize_request_pref_bool,
     },
@@ -652,7 +656,7 @@ def q11442_func_call_by_name(request: HtmxHttpRequest, func_id, arg_dict=None): 
         unflat_args = q0162_dictify_fargs(arg_dict2run)
         # *******
         q11441b_update_req_pref(request)
-        # QPref.getp(request) is Session Pref
+        # QPref.getp() is Session Pref
         pref = request.pref  # Request Pref
         # *******
         timeout = pref.get('execution_timeout', 60)

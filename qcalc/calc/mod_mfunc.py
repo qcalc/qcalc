@@ -26,9 +26,8 @@ except Exception:
 logger = logging.getLogger(__name__)
 
 
-def func_meta(func_addr, func_id, __info=None):
-    fargs, fanns, finfs = get_fdef(func_addr, func_id, __info)
-    __info = __info or fargs.get('__info', None)  # __info from func args, used to control caching
+def func_meta(func_addr, func_id):
+    fargs, fanns, finfs = get_fdef(func_addr, func_id)
     flat_fargs = flatten_fargs(fargs)
     flat_fanns = flatten_fargs(fanns)
     flat_finfs = flatten_finfo(finfs)
@@ -64,19 +63,12 @@ def q0164_execute_qfunc(func_id, unflat_args: dict, timeout, pref, request):
         #     f'Timeout: {timeout}, IsolatedUserCode: {user_code}'
         # )
         special_code = func_id in ['pref', 'gpref', 'mycal']  # exec_mode = "0" and "direct"
-        # user_code = _is_dynamic_user_calculation(func_id)
         effective_timeout = None if timeout <= 0 else timeout
 
         system_name = platform.system()
         is_linux = system_name == 'Linux'  # Linux or not
-        # is_sqlite = bool('sqlite' in settings.DB_ENGINE.lower())
         if special_code:
             path = 'direct'
-        # elif user_code:
-        #     if is_sqlite:
-        #         path = 'direct'  # user_code with sqlite better run direct
-        #     else:
-        #         path = 'thread'  # user_code should be run in thread if possible
         elif exec_mode == '0':
             if is_linux and timeout > 0:
                 path = 'linux-signal-or-fallback'  # Linux with timeout enabled, exec_mode == "0"
@@ -196,7 +188,7 @@ def flatten_finfo(func_args: dict, prefix='') -> dict:
     return flat_dict
 
 
-def get_fdef(func_addr, func_id, __info=None):
+def get_fdef(func_addr, func_id):
     def get_fargs(func_addr):  # arguements
         arg_names = inspect.getfullargspec(func_addr).args
         defaults = inspect.getfullargspec(func_addr).defaults
@@ -213,20 +205,15 @@ def get_fdef(func_addr, func_id, __info=None):
                 for v in params}
         return anns
 
-    def get_finf(func_id, __info):  # info
+    def get_finf(func_id):  # info
         # sfunc = func_addr.__name__
         func_info_from_func_def = {}
         try:
             # | start callback point __info (q11429, mod_mfunc.py, line 166)
-            # | func__info([__info])
+            # | func__info()
             # | information for form design and initial default input values
             fninfo = QCals.addr(func_id + '__info')
-            args_count = len(inspect.signature(fninfo).parameters)
-
-            if args_count == 0:
-                func_info_from_func_def = fninfo()
-            elif args_count == 1:
-                func_info_from_func_def = fninfo(__info)
+            func_info_from_func_def = fninfo()
             # | end exit point
         except:
             pass
@@ -242,7 +229,7 @@ def get_fdef(func_addr, func_id, __info=None):
 
     qargs = get_fargs(func_addr)
     annos = get_fanns(func_addr)
-    infs = get_finf(func_id, __info)
+    infs = get_finf(func_id)
 
     for arg, ann in annos.items():
         if ann is not None and ann == qfunc:

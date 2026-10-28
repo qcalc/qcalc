@@ -166,8 +166,8 @@ def test_validation_allows_additional_metadata_functions():
         "    return speed\n\n"
         "def projectile_motion__info():\n"
         "    return {'title': 'Projectile Motion'}\n\n"
-        "def projectile_motion__help(topic, detail):\n"
-        "    return f'{topic}: {detail}'\n"
+        "def projectile_motion__help():\n"
+        "    return f'help topic'\n"
     )
 
     assert result['valid'] is True

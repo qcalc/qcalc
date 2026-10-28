@@ -182,7 +182,7 @@ def qty_ulist(request: HtmxHttpRequest):
     lmt = request.GET.get('quantity', 'L').upper()
     mode = request.GET.get('mode', 'u2u').lower()
     val = request.GET.get('value', 1)
-    url = f'/calc/add/?path=conv2/quantity/{lmt}/mode/{mode}/value/{val}/unit_cost/-/__info/{lmt}/---/'
+    url = f'/calc/add/?path=conv2/quantity/{lmt}/mode/{mode}/value/{val}/unit_cost/-/---/'
     return redirect(url)
 
 

@@ -546,24 +546,8 @@ This is an advanced integration option. Most calculator authors should use the c
 
 ## 8. Parameterized Metadata
 
-An `__info()` function may accept a parameter named `__info` as well which can be thought of as a dynamic mode selector.
-qCalc passes this selected mode when the calculator is opened. It is useful when the mode changes available choices, 
-such as length versus weight conversion.
+An `__info()` function accepting a parameter named `__info` is now obsolete.
 
-```python
-def unit_converter__info(__info=None):
-    category = (__info or 'length').lower()
-    choices = {
-        'length': {'m': 'Metres', 'ft': 'Feet'},
-        'weight': {'kg': 'Kilograms', 'lb': 'Pounds'},
-    }[category]
-    return {
-        'title': f'{category.title()} Unit Converter',
-        'schema': {'from_unit': {'type': 'choice', 'choices': choices}},
-    }
-```
-
-The calculator function may also accept `__info` if it needs the selected mode during calculation.
 
 ## 9. DotDict Notation
 

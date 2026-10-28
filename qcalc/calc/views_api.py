@@ -12,7 +12,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
 import qutil as ut
-from .mod_api_core import ApiError, list_calculators, get_schema, run_calculator
+from .mod_api_core import ApiError, list_calculators, get_schema, run_calculator, enforce_quota
 from .mod_api_keys import authenticate_api_key
 
 logger = logging.getLogger(__name__)
@@ -27,7 +27,9 @@ def _json(data, status=200, headers=None):
 
 
 def _error_response(err: ApiError):
-    headers = {'WWW-Authenticate': 'Bearer'} if err.status == 401 else None
+    headers = dict(err.headers)
+    if err.status == 401:
+        headers['WWW-Authenticate'] = 'Bearer'
     return _json({'error': err.to_dict()}, err.status, headers)
 
 
@@ -51,7 +53,8 @@ def api_view(*methods):
         def wrapper(request, *args, **kwargs):
             try:
                 if request.method not in methods:
-                    raise ApiError('method_not_allowed', f"Use {' or '.join(methods)}", 405)
+                    raise ApiError('method_not_allowed', f"Use {' or '.join(methods)}", 405,
+                                   headers={'Allow': ', '.join(methods)})
 
                 key = authenticate_api_key(_bearer_token(request))
                 if key is None:
@@ -59,6 +62,7 @@ def api_view(*methods):
 
                 # | calculators read the user and per-request state through the thread-bound request
                 request.user = key.user
+                request.api_key = key
                 ut.q1139_request_init(request)
                 return view(request, *args, **kwargs)
             except ApiError as e:
@@ -93,15 +97,42 @@ def api_schema(request, fid):
     return _json(get_schema(fid))
 
 
-@api_view('POST')
-def api_run(request, fid):
-    try:
-        body = json.loads(request.body or b'{}')
-    except ValueError:
-        raise ApiError('bad_request', 'Request body must be valid JSON', 400)
-    if not isinstance(body, dict):
-        raise ApiError('bad_request', 'Request body must be a JSON object', 400)
+_RESERVED_QUERY_PARAMS = {'api_key', 'mode'}
 
-    return _json(run_calculator(
-        fid, body.get('inputs'), body.get('mode', 'full'), request=request,
-    ))
+
+def _query_inputs(request):
+    """GET (DEBUG only): every query parameter except ``mode`` and ``api_key`` is an input. A value that starts
+    with ``{`` or ``[`` is read as JSON, so a table can be passed as ``{"columns": [...], "data": [[...]]}``."""
+    inputs = {}
+    for name in request.GET:
+        if name in _RESERVED_QUERY_PARAMS:
+            continue
+        value = request.GET.get(name, '')
+        if value.lstrip()[:1] in ('{', '['):
+            try:
+                value = json.loads(value)
+            except ValueError:
+                raise ApiError('bad_request', f"'{name}' looks like JSON but is not valid JSON", 400, name)
+        inputs[name] = value
+    return inputs, request.GET.get('mode', 'full')
+
+
+@api_view('GET', 'POST')
+def api_run(request, fid):
+    if request.method == 'GET':
+        # | dev convenience for browser testing: a run is not a safe read (it costs quota and CPU), so production
+        # | accepts POST only. Query parameters carry plain values and small JSON, and appear in logs and history.
+        if not settings.DEBUG:
+            raise ApiError('method_not_allowed', 'Use POST', 405, headers={'Allow': 'POST'})
+        inputs, mode = _query_inputs(request)
+    else:
+        try:
+            body = json.loads(request.body or b'{}')
+        except ValueError:
+            raise ApiError('bad_request', 'Request body must be valid JSON', 400)
+        if not isinstance(body, dict):
+            raise ApiError('bad_request', 'Request body must be a JSON object', 400)
+        inputs, mode = body.get('inputs'), body.get('mode', 'full')
+
+    enforce_quota(request.api_key)  # only runs are limited; list and schema calls are not counted
+    return _json(run_calculator(fid, inputs, mode, request=request))

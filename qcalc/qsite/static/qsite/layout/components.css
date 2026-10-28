@@ -286,3 +286,18 @@
 /* inputfile — hidden file input, label acts as button */
 .inputfile { width: .1px; height: .1px; opacity: 0; overflow: hidden; position: absolute; z-index: -1; }
 .inputfile + label { cursor: pointer; margin-right: 0px;}
+
+/* qslider.js: common numeric slider, colors are copied from the bound input */
+.qcalc-slider {
+  position: fixed;
+  z-index: 2000;
+  box-sizing: border-box;
+  padding: 4px 8px 2px;
+  border: 1px solid var(--primary, #17a2b8);
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .2);
+}
+.qcalc-slider[hidden] { display: none; }
+.qcalc-slider input[type=range] { width: 100%; margin: 0; accent-color: var(--primary, #17a2b8); }
+.qcalc-slider-ends { display: flex; justify-content: space-between; font-size: .7rem; opacity: .7; }
+.qcalc-slider-ends output { font-weight: 600; opacity: 1; }

@@ -520,7 +520,6 @@ class QCals:
                 if flag == 0:  # newly added node
                     cur_node.title = _qty_info[qname]['description']
                     cur_node.desc = ''
-                    # cur_node.desc = unit_short_desc(uname)+' '+unit_info.get(uname, {}).get('desc','')
                     cur_node.is_leaf = True
                     cur_node.node_type = 'q'
                     cur_node.data = dim
@@ -544,8 +543,8 @@ class QCals:
         return safe_execute(code, cls.qsymbol_dict.copy() if gdict is None else gdict, ldict)
 
     @classmethod
-    def func_title_desc_tags(cls, sfunc, __info=None, scope='qpots'):
-        func_info = cls.run_func_info(sfunc, __info, scope)
+    def func_title_desc_tags(cls, sfunc, scope='qpots'):
+        func_info = cls.run_func_info(sfunc, scope)
         if 'title' in func_info:
             title = func_info['title']
         else:
@@ -560,20 +559,10 @@ class QCals:
         return title, desc, tags
 
     @classmethod
-    def run_func_info(cls, func_id, __info, scope='qpots'):
+    def run_func_info(cls, func_id, scope='qpots'):
         try:
             fninfo = cls.addr(func_id + "__info", scope)
-            # Check if fninfo accepts an argument
-            args_count = len(inspect.signature(fninfo).parameters)
-
-            if args_count == 0:
-                func_info_from_func_def = fninfo()
-
-            elif args_count == 1:
-                func_info_from_func_def = fninfo(__info)
-            else:
-                raise ValueError(f'Error (RFI): {func_id}__info has an invalid number of arguments')
-
+            func_info_from_func_def = fninfo()
             func_info_from_jsonfile = qfunc_info.get(func_id, {})
             func_info_from_func_def.update(func_info_from_jsonfile)
         except Exception as e:

@@ -8,6 +8,7 @@ from qvars import qfunc_dict_layout
 from .mod_cutil import get_help_path
 from .mod_layout_dynamic import has_dynamic_layout
 from .mod_qcals import QCals
+from qcore import request_prefs
 
 
 def template_name(layout, inp1, out1):
@@ -48,7 +49,8 @@ def _normalize_layout_blocks(blocks, spec_source):
     return result
 
 
-def q1141_read_func_meta(func_id, __info=None, scope='qpots'):  # __info__
+def q1141_read_func_meta(func_id, scope='qpots'):
+    pref = request_prefs()
     json_doc = {}
     json_doc['help'] = 'y' if get_help_path(func_id).exists() else 'nohelp.html'  # internal
     json_doc['clean'] = False  # if form has clean_data or not # internal
@@ -63,7 +65,7 @@ def q1141_read_func_meta(func_id, __info=None, scope='qpots'):  # __info__
         # 'label', 'label_suffix', 'help_text', 'error_messages', 'validators', 'localize'
         # 'attr':{'size':n, 'readonly':True, ...}
         # input interaction patterns
-        'interactive': False,
+        'interactive': pref.get('interactive', False),
         'autofill': {},  # {"arg1":{"fields":["autof1","autof2",...], "autofill":{"arg1v1":[v1,v2,...],...}}, ...}
         'related': {},  # v4.21 {"1":{"fields":{"arg1":i1,"arg2":i2,...},"relation":{}},"2":...}
         'showhide': {},
@@ -74,7 +76,7 @@ def q1141_read_func_meta(func_id, __info=None, scope='qpots'):  # __info__
         # layout
         'row': [],  # ['arg1-argN',...] #legacy
         'col': [],  # number or ['arg1-argN',...] # legacy
-        'layout': 'lr',  # 'lr' or 'tb'
+        'layout': pref.get('layout', 'lr'),  # 'lr' or 'tb'
         'inp1': '*',  # array or css string, parameter filtering
         'out1': '*',  # array or css string, parameter filtering
         'input_columns': None,  # 1 or 2, used by dynamic renderer, optional, inference from blocks is the default,
@@ -112,7 +114,8 @@ def q1141_read_func_meta(func_id, __info=None, scope='qpots'):  # __info__
 
     # run func_info() and then supersede by qfunc_info.json
     # that is higest precedence: 1 __info() < 1.5 qfunc_info.json
-    func_info = QCals.run_func_info(func_id, __info, scope)
+    # func_info = QCals.run_func_info(func_id, __info, scope)
+    func_info = QCals.run_func_info(func_id, scope)
     for key in [
         'title',
         'desc',

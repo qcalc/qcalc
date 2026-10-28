@@ -25,6 +25,7 @@ def test_persistent_request_preferences_round_trip_without_commands():
             'ignoredec': '1',
             'layout': 'tb',
             'interactive_enabled': '0',
+            'slider_enabled': '0',
             'cmd': 'resize',
             'args': ['rows'],
         },
@@ -39,11 +40,13 @@ def test_persistent_request_preferences_round_trip_without_commands():
         'ignore_decimal_format': True,
         'layout': 'tb',
         'interactive_enabled': False,
+        'slider_enabled': False,
     }
     assert serialized == {
         'ignoredec': '1',
         'layout': 'tb',
         'interactive_enabled': '0',
+        'slider_enabled': '0',
     }
 
 
@@ -56,13 +59,46 @@ def test_user_preference_initializes_per_card_interactive_state(monkeypatch):
     assert request.pref == {
         'interactive': False,
         'interactive_enabled': True,
+        'slider_enabled': True,
     }
+
+
+@pytest.mark.parametrize('user_pref, expected', [
+    ({}, True),
+    ({'slider': True}, True),
+    ({'slider': False}, False),
+])
+def test_user_preference_initializes_per_card_slider_state(monkeypatch, user_pref, expected):
+    monkeypatch.setattr(QPref, 'getp', lambda: dict(user_pref))
+    request = SimpleNamespace(pref={})
+
+    q11441a_get_user_pref(request)
+
+    assert request.pref['slider_enabled'] is expected
+
+
+def test_card_slider_state_overrides_user_preference(monkeypatch):
+    monkeypatch.setattr(QPref, 'getp', lambda: {'slider': False})
+    request = SimpleNamespace(pref={}, extra={'slider_enabled': '1'})
+
+    q11441a_get_user_pref(request)
+    apply_persistent_request_prefs(request)
+
+    assert request.pref['slider'] is False
+    assert request.pref['slider_enabled'] is True
+
+
+def test_invalid_slider_state_is_rejected():
+    request = SimpleNamespace(extra={'slider_enabled': 'yes'}, pref={})
+
+    with pytest.raises(ValueError, match='Invalid boolean request preference'):
+        apply_persistent_request_prefs(request)
 
 
 def test_refresh_get_imports_persistent_request_preferences():
     request = SimpleNamespace(
         method='GET',
-        GET={'extra': '{"ignoredec":"1","layout":"tb","interactive_enabled":"0"}'},
+        GET={'extra': '{"ignoredec":"1","layout":"tb","interactive_enabled":"0","slider_enabled":"0"}'},
         POST={},
         cmd='',
         extra={},
@@ -76,11 +112,13 @@ def test_refresh_get_imports_persistent_request_preferences():
         'ignoredec': '1',
         'layout': 'tb',
         'interactive_enabled': '0',
+        'slider_enabled': '0',
     }
     assert request.pref == {
         'ignore_decimal_format': True,
         'layout': 'tb',
         'interactive_enabled': False,
+        'slider_enabled': False,
     }
 
 

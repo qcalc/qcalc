@@ -23,20 +23,8 @@ def convert_list(ulist):
     return links
 
 
-# def conv2__help(__info=None):
-#     lmt = 'L' if __info is None else __info.upper()
-#     ulist = lmt2ulist(lmt)
-#     clist = convert_list(ulist)
-#     cid = 'conv2_help__page'
-#     tbl = list2table(clist, ["Conversion Options"], cid, 'table')
-#     return tbl
-
-
-def conv2__info(__info=None):
-    if __info is None:
-        lmt = 'L'
-    else:
-        lmt = __info.upper()
+def conv2__info():
+    lmt = 'L'
     ulist = lmt2ulist(lmt)
     qlist = lmt2qlist(lmt)
     if len(qlist) > 0:
@@ -58,6 +46,7 @@ def conv2__info(__info=None):
             'quantity': {
                 # 'type':'qsel2' doesn't trigger hx-get, because select2 change the element properties at runtime
                 'type': 'choice', 'choices': _base_categ_mlist(),
+                'initial': lmt,
                 'attrs': {
                     'hx-get': '/catalog/ulist/',
                     'hx-target': 'closest .calc',
@@ -107,7 +96,7 @@ def conv2__input(_kwargs):
 
 
 def conv2(quantity='L', mode='u2u', value: qtexta = '1.0', from_unit=['ft'], from_qty='l_earth_moon',
-          to_units=['m'], to_qty='', unit_cost: qtx = '@UNC/ft', __info: qhide = 'L'):
+          to_units=['m'], to_qty='', unit_cost: qtx = '@UNC/ft'):
     qfrom = None
     from_unit_ = ''
     to_units_ = to_units

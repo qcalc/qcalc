@@ -18,6 +18,7 @@ from qutil import to_bool
 from qvars import qc_gpref as gs
 from .mod_mfunc import func_meta, q0164_execute_qfunc
 from .mod_qcals import QCals
+from .mod_api_quota import consume_api_quota, ApiQuotaExceeded
 
 logger = logging.getLogger(__name__)
 
@@ -29,12 +30,14 @@ _api_flag_cache: dict[str, bool] = {}
 
 
 class ApiError(Exception):
-    def __init__(self, code: str, message: str, status: int = 400, field: str | None = None):
+    def __init__(self, code: str, message: str, status: int = 400, field: str | None = None,
+                 headers: dict | None = None):
         super().__init__(message)
         self.code = code
         self.message = message
         self.status = status
         self.field = field
+        self.headers = headers or {}
 
     def to_dict(self):
         err = {'code': self.code, 'message': self.message}
@@ -50,7 +53,8 @@ def api_enabled(func_id: str) -> bool:
     flag = _api_flag_cache.get(func_id)
     if flag is None:
         try:
-            flag = bool(QCals.run_func_info(func_id, None, 'q').get('api'))
+            # flag = bool(QCals.run_func_info(func_id, None, 'q').get('api'))
+            flag = bool(QCals.run_func_info(func_id, 'q').get('api'))
         except Exception:
             flag = False
         _api_flag_cache[func_id] = flag
@@ -67,7 +71,7 @@ def _resolve(func_id):
 
 
 def _summary(func_id):
-    title, desc, tags = QCals.func_title_desc_tags(func_id, None, 'q')
+    title, desc, tags = QCals.func_title_desc_tags(func_id, 'q')
     return {'id': func_id, 'title': title, 'desc': desc, 'tags': tags}
 
 
@@ -192,6 +196,14 @@ def decode_inputs(addr, raw) -> dict:
         elif parameter.default is inspect.Parameter.empty:
             raise ApiError('missing_argument', f"Missing required argument '{name}'", 422, name)
     return args
+
+
+def enforce_quota(api_key) -> None:
+    """Count one run against the key's rate limits; raises ApiError 429 when a limit is reached."""
+    try:
+        consume_api_quota(api_key)
+    except ApiQuotaExceeded as e:
+        raise ApiError('rate_limited', str(e), 429, headers={'Retry-After': str(e.retry_after)})
 
 
 def run_calculator(func_id: str, inputs=None, mode: str = 'full', request=None) -> dict:

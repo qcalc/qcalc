@@ -18,7 +18,7 @@
   * [7.1 `__input(_kwargs)`](#71-__input_kwargs)
   * [7.2 `__modify(arg_name, arg_value, action)`](#72-__modifyarg_name-arg_value-action)
   * [7.3 `__command(fkwargs, extra)`](#73-__commandfkwargs-extra)
-  * [7.4 `__help(__info=None)`](#74-__help__infonone)
+  * [7.4 `__help()`](#74-__help)
   * [8. Working with quantities and units using `Qty()`](#8-working-with-quantities-and-units-using-qty)
   * [9. Form behavior patterns you can reuse](#9-form-behavior-patterns-you-can-reuse)
   * [10. Full template (copy/paste)](#10-full-template-copypaste)
@@ -112,7 +112,7 @@ meta function declarations may also need some parameters as mentioned below (wil
   - `wall_paint__input(kwargs)`
   - `wall_paint__modify(arg_name, arg_value, action)`
   - `wall_paint__command(kwargs, extra)`
-  - `wall_paint__help(optional:__info)`
+  - `wall_paint__help()`
 
 ## 3. Minimal calculator example
 
@@ -249,7 +249,7 @@ def beam_load__command(fkwargs, extra):
     return "Unknown command"
 ```
 
-## 7.4 `__help(__info=None)`
+## 7.4 `__help()`
 
 Use to provide custom help HTML for the calculator.
 

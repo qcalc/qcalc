@@ -82,19 +82,6 @@ def q1119_urlpath_to_func_args(request, dictf):
     faddr = QCals.addr(sfunc)
     if not faddr:
         raise Exception(f'Error (FTFC): Function ({sfunc}) not found or you may not be authorised to run the function.')
-    params = inspect.signature(faddr).parameters
-    fargs = list(params)
-    # print('fargs', fargs)
-    if '__info' in fargs:
-        request.recall = False
-        request.remember = False
-        if '__info' not in kwargs:
-            if request.method == 'GET':
-                kwargs['__info'] = params['__info'].default
-                # print("GET kwargs['__info']", kwargs['__info'])
-            else:
-                kwargs['__info'] = request.POST.get('__info')
-                # print("POST kwargs['__info']", kwargs['__info'])
 
     # check if any value need to be erased e.g circle()
     if skip_precheck:
@@ -486,12 +473,11 @@ def q1_add_func_help(request: HtmxHttpRequest, **kwargs):
     request.token = request.token or request.GET.get('token', '')
 
     func_id = kwargs.get('fname', '').strip()
-    __info = request.GET.get('__info', None)
     template = 'calculator-help-partial.html'
 
     try:
-        context = q1141_read_func_meta(func_id, __info=__info)
-        dyn_html = '' # get_fhelp(func_id, __info)
+        context = q1141_read_func_meta(func_id)
+        dyn_html = ''
         context['dyn_html'] = dyn_html
         help_path = get_help_path(func_id)
         help_exists = help_path.exists()
@@ -517,8 +503,6 @@ def q1_add_func_help(request: HtmxHttpRequest, **kwargs):
 
 
 def q1_run_func(request: HtmxHttpRequest, **dictf):
-    # request.remember = False
-    # request.recall = False
     # ut.q1139_request_init(request) # | called inside q1199_func_to_form_common
     dictf.update({'cmd': 'save_io'})  # | or 'save'
     q1199_func_to_form_common(request, **dictf)
@@ -528,15 +512,13 @@ def q1_run_func(request: HtmxHttpRequest, **dictf):
 
 def q1149_func_to_form_context(request: HtmxHttpRequest, func_id, cid, kwargs):
     func_addr = QCals.addr(func_id)
-    __info = kwargs.get('__info', None)
-    request.json_doc = q1141_read_func_meta(func_id, __info)
-    request.json_doc['info']['help'] = get_fhelp(func_id, __info)
+    request.json_doc = q1141_read_func_meta(func_id)
+    request.json_doc['info']['help'] = get_fhelp(func_id)
     request.json_doc['info']['inp1'] = ut.specified_args(func_addr, request.json_doc['info']['inp1'], empty_spec='')
     request.json_doc['info']['input_blocks'] = _normalize_layout_blocks(
         request.json_doc['info'].get('input_blocks', []),
         func_addr,
     )
-    # print('|', request.json_doc['info']['input_blocks'])
     q11429_func_to_form_schema(request, func_addr, func_id, cid, kwargs)
     apply_persistent_request_prefs(request)
     apply_request_layout(request)

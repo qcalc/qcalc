@@ -25,6 +25,7 @@ def _api_env(monkeypatch):
         views_api, 'authenticate_api_key',
         lambda raw: type('_Key', (), {'user': _FakeUser()})() if raw == 'good-key' else None,
     )
+    monkeypatch.setattr(views_api, 'enforce_quota', lambda key: None)
     QThread.set_req(None)
     yield
     QThread.set_req(None)
@@ -114,9 +115,76 @@ def test_run_view_errors_are_json_with_status_codes():
     assert response.status_code == 400
 
 
-def test_wrong_method_is_405():
+def test_rate_limit_returns_429_json_with_retry_after(monkeypatch):
+    from calc.mod_api_core import ApiError
+
+    def _limited(_key):
+        raise ApiError('rate_limited', 'limit reached', 429, headers={'Retry-After': '120'})
+
+    monkeypatch.setattr(views_api, 'enforce_quota', _limited)
+    response, data = _call(views_api.api_run, 'post', body={}, fid='bmi')
+    assert response.status_code == 429
+    assert data['error']['code'] == 'rate_limited'
+    assert response['Retry-After'] == '120'
+
+
+def test_only_runs_are_rate_limited(monkeypatch):
+    calls = []
+    monkeypatch.setattr(views_api, 'enforce_quota', lambda key: calls.append(1))
+    _call(views_api.api_index)
+    _call(views_api.api_schema, fid='bmi')
+    assert calls == []
+    _call(views_api.api_run, 'post', body={}, fid='bmi')
+    assert calls == [1]
+
+
+def test_wrong_method_is_405(monkeypatch):
+    monkeypatch.setattr(views_api.settings, 'DEBUG', False)
     response, data = _call(views_api.api_run, 'get', fid='bmi')
     assert response.status_code == 405 and data['error']['code'] == 'method_not_allowed'
+    assert response['Allow'] == 'POST'
+
+    request = RequestFactory().post('/calc/api/v1/', HTTP_AUTHORIZATION='Bearer good-key')
+    response = views_api.api_index(request)
+    assert response.status_code == 405 and response['Allow'] == 'GET'
+
+
+def test_get_run_is_rejected_in_production(monkeypatch):
+    monkeypatch.setattr(views_api.settings, 'DEBUG', False)
+    response, data = _call(views_api.api_run, path='/calc/api/v1/bmi/run/?weight=70 kg', fid='bmi')
+    assert response.status_code == 405
+
+
+def test_get_run_in_debug_reads_inputs_from_query(monkeypatch):
+    monkeypatch.setattr(views_api.settings, 'DEBUG', True)
+    response, data = _call(views_api.api_run, path='/calc/api/v1/bmi/run/?weight=70 kg&height=1.75 m', fid='bmi')
+    assert response.status_code == 200
+    assert data['result']['BMI']['value'] == pytest.approx(22.857, abs=0.01)
+
+
+def test_get_run_in_debug_supports_mode_json_values_and_errors(monkeypatch):
+    monkeypatch.setattr(views_api.settings, 'DEBUG', True)
+    path = '/calc/api/v1/production_mix_profit/run/?mode=compact&available_machine_time=1000 hr/mo'
+    response, data = _call(views_api.api_run, path=path, fid='production_mix_profit')
+    assert response.status_code == 200 and data['mode'] == 'compact'
+
+    response, data = _call(views_api.api_run, path='/calc/api/v1/bmi/run/?zzz=1', fid='bmi')
+    assert response.status_code == 422 and data['error']['field'] == 'zzz'
+
+    response, data = _call(views_api.api_run, path='/calc/api/v1/bmi/run/?weight={bad', fid='bmi')
+    assert response.status_code == 400 and data['error']['field'] == 'weight'
+
+    parsed, mode = views_api._query_inputs(
+        RequestFactory().get('/x/?api_key=k&mode=full&t={"columns":["A"],"data":[[1]]}&n=3'))
+    assert parsed == {'t': {'columns': ['A'], 'data': [[1]]}, 'n': '3'} and mode == 'full'
+
+
+def test_get_run_counts_against_the_rate_limit(monkeypatch):
+    monkeypatch.setattr(views_api.settings, 'DEBUG', True)
+    calls = []
+    monkeypatch.setattr(views_api, 'enforce_quota', lambda key: calls.append(1))
+    _call(views_api.api_run, path='/calc/api/v1/bmi/run/', fid='bmi')
+    assert calls == [1]
 
 
 def test_malformed_keys_are_rejected_without_a_database_lookup():

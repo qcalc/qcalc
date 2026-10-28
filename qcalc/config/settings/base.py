@@ -130,7 +130,7 @@ PASSWORD_HASHERS = [
 # MIDDLEWARE
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#middleware
-# If you use Nginx/CDN to serve static files efficiently, then you may not need WhiteNoise. 
+# If you use Nginx/CDN to serve static files efficiently, then you may not need WhiteNoise.
 # If Django is serving static itself, WhiteNoise is usually a strong improvement.
 MIDDLEWARE = [
     'qsite.middleware.IgnoreDisallowedHostMiddleware',
@@ -430,6 +430,11 @@ OPENAI_API_KEY_QUOTA = env("OPENAI_API_KEY_QUOTA", default="")
 OPENW_API_KEY = env("OPENW_API_KEY", default="")
 OPENW_API_KEY_QUOTA = env("OPENW_API_KEY_QUOTA", default="")
 OPENW_API_URL = env("OPENW_API_URL", default="")
+
+# /calc/api/ keys: run calls per key, per user (all of a user's keys together) and globally; 0 = unlimited.
+# Optional override, e.g. "key_day=500,key_month=10000,user_day=1000,global_day=20000,global_month=0"
+QCALC_API_KEY_QUOTA = env("QCALC_API_KEY_QUOTA", default="")
+QCALC_API_KEYS_MAX_PER_USER = int(env("QCALC_API_KEYS_MAX_PER_USER", default="5"))
 
 # META key holding the real client IP ("" = REMOTE_ADDR); set it only if a trusted proxy provides the header
 CLIENT_IP_HEADER = ""

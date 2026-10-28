@@ -11,8 +11,12 @@ from calc.mod_credentials import (
     set_user_api_key,
     delete_user_api_key,
 )
-from qcore import QScreen, quom, color_schemes, legend_locations, qtext, qinfo
-from qutil import nzs, css2strs, truncate, user_process, callback_button, QThread, is_loggedin, addcal_button
+from calc.mod_api_keys import ApiKeyError, create_api_key, list_api_keys, revoke_api_key, delete_api_key
+from calc.mod_api_quota import api_limits, key_usage
+from django.conf import settings
+import logging
+from qcore import QScreen, quom, color_schemes, legend_locations, qtext, qinfo, qwarn
+from qutil import nzs, css2strs, truncate, user_process, callback_button, QThread, is_loggedin, addcal_button, qaddr
 from qvars import qc_gpref as gs
 from calc import (
     OPENAI_MODEL_CHOICES,
@@ -24,6 +28,8 @@ from calc import (
 MIN_EXECUTION_TIMEOUT = 1
 MAX_EXECUTION_TIMEOUT = 900
 
+logger = logging.getLogger(__name__)
+
 
 def _normalize_theme(theme_name, fallback='default'):
     choices = StdList.theme_list.get('choices', []) if isinstance(StdList.theme_list, dict) else []
@@ -33,7 +39,7 @@ def _normalize_theme(theme_name, fallback='default'):
 
 
 def pref__info():
-    general_options = 'theme, interactive, defa_currency, uom_subset_enabled, memory, strict_*'
+    general_options = 'theme, interactive, slider, layout, defa_currency, uom_subset_enabled, memory, strict_*'
     number_options = 'ignore_decimal_format, decimal, *_decimal, thousands_separator, exponent_*'
     chart_options = 'chart_*'
     other_options = 'execution_timeout, xpr_max_table_cells, openai_model'
@@ -59,6 +65,13 @@ def pref__info():
             },
             'interactive': {
                 'help_text': 'Enable or disable interactive mode when a calculator supports. When enabled, calculations are triggered automatically whenever an input changes.',
+            },
+            'slider': {
+                'help_text': 'Show a slider under the focused numeric input to adjust its value by dragging. It can also be switched on or off for a single calculator from its menu.',
+            },
+            'layout': {
+                'help_text': 'Select default layout',
+                'type': 'choice', 'choices': {'lr': 'Left/Right Layout', 'tb': 'Top/Bottom Layout'},
             },
             'ignore_decimal_format': {
                 'help_text': 'Ignore decimal format specified below when displaying numbers.',
@@ -137,12 +150,12 @@ def pref__info():
         'input_columns': 1,
         'input_blocks': input_blocks,
         'script':
-"""
-$(document).ready(function() {
-    theme_choice_id = QCALC_TOK_ID_PREFIX + getCid() + '_@theme';
-    themeChanger(theme_choice_id);
-});
-""",
+            """
+            $(document).ready(function() {
+                theme_choice_id = QCALC_TOK_ID_PREFIX + getCid() + '_@theme';
+                themeChanger(theme_choice_id);
+            });
+            """,
         'inserts': {
             'form_bottom': addcal_button('api_keys', 'Personal API Keys'),
         },
@@ -160,6 +173,8 @@ def pref__input(_kwargs):  # alternative to func__info() 'schema':{}'
         # 'request': '__req__',
         'theme': us['theme'],
         'interactive': us['interactive'],
+        'slider': us['slider'],
+        'layout': us['layout'],
         'ignore_decimal_format': us['ignore_decimal_format'],
         'decimal': us['decimal'],
         'qty_decimal': us['qty_decimal'],
@@ -186,6 +201,8 @@ def pref__input(_kwargs):  # alternative to func__info() 'schema':{}'
 def pref(  # pref-03
     theme,
     interactive: bool,
+    slider: bool,
+    layout,
     ignore_decimal_format: bool,
     decimal: int,
     qty_decimal: int,
@@ -207,13 +224,14 @@ def pref(  # pref-03
     xpr_max_table_cells: int,
     openai_model,
 ):
-
     theme = _normalize_theme(theme)
     openai_model = normalize_openai_model(openai_model)
     # user settings
     us = {  # pref-04
         'theme': theme,
         'interactive': interactive,
+        'slider': slider,
+        'layout': layout,
         'ignore_decimal_format': ignore_decimal_format,
         'decimal': decimal,
         'qty_decimal': qty_decimal,
@@ -248,7 +266,7 @@ def pref(  # pref-03
 
 def api_keys__info():
     return {
-        'title': 'Personal API Keys',
+        'title': 'Personal API Keys for External Providers',
         'desc': 'Save your personal provider API keys securely.',
         'kins': 'pref, ai_chat, mycal2',
         'tags': 'ai, preferences',
@@ -278,11 +296,11 @@ def api_keys__info():
             'action': {'fields': ['provider', 'api_key'], 'callback': 'show_action_fields'}
         },
         'script':
-"""
-function show_action_fields(v){
-    return [v !== 'activate' && v !== 'inactivate', v === 'set'];
-}
-""",
+            """
+            function show_action_fields(v){
+                return [v !== 'activate' && v !== 'inactivate', v === 'set'];
+            }
+            """,
         'calculate': 'Apply',
     }
 
@@ -293,7 +311,7 @@ def api_keys__input(_kwargs):
     }
 
 
-def api_keys(action='status', provider='openai', api_key:qtext=''):
+def api_keys(action='status', provider='openai', api_key: qtext = ''):
     req = QThread.get_req()
     if not is_loggedin(req):
         raise Exception('Please login to manage personal API keys')
@@ -329,6 +347,109 @@ def api_keys(action='status', provider='openai', api_key:qtext=''):
             'Personal Key': personal_key_status,
             'System Fallback': 'Configured' if has_system_api_key(provider) else 'Not configured',
         })
+    return resp
+
+
+def api_access__info():
+    return {
+        'title': 'Personal API Keys for qCalc',
+        'desc': 'Create and manage keys for calling qCalc calculators from your own scripts and apps.',
+        'kins': 'api_keys, pref',
+        'tags': 'api, account',
+        'remember': False,
+        'layout': 'tb',
+        'xpr': False,
+        'url': False,
+        'schema': {
+            'action': {
+                'type': 'choice',
+                'choices': {
+                    'status': 'Show my keys',
+                    'create': 'Create a key',
+                    'revoke': 'Revoke a key',
+                    'delete': 'Delete a key',
+                },
+            },
+            'name': {
+                'help_text': 'A label to tell your keys apart, e.g. "spreadsheet".',
+                'attrs': {'autocomplete': 'off'},
+            },
+            'prefix': {
+                'help_text': 'The 8 character prefix shown in the key list (the part after "qck_").',
+                'attrs': {'autocomplete': 'off'},
+            },
+        },
+        'showhide': {
+            'action': {'fields': ['name', 'prefix'], 'callback': 'show_action_fields'}
+        },
+        'script':
+            """
+            function show_action_fields(v){
+                return [v === 'create', v === 'revoke' || v === 'delete'];
+            }
+            """,
+        'calculate': 'Apply',
+    }
+
+
+def _api_key_table(user):
+    keys = list_api_keys(user)
+    usage = key_usage([k.pk for k in keys])
+    limits = api_limits()
+
+    def fmt_used(used, limit):
+        return f'{used} / {limit}' if limit else f'{used}'
+
+    rows = [[
+        k.name, f'qck_{k.prefix}_...', 'Active' if k.is_active else 'Revoked',
+        k.added_on.strftime('%Y-%m-%d'),
+        k.last_used_on.strftime('%Y-%m-%d %H:%M') if k.last_used_on else 'Never',
+        fmt_used(usage[str(k.pk)]['day'], limits.get('key_day')),
+        fmt_used(usage[str(k.pk)]['month'], limits.get('key_month')),
+    ] for k in keys]
+    return {
+        'columns': ['Name', 'Key', 'State', 'Created', 'Last used (UTC)', 'Runs today', 'Runs this month'],
+        'data': rows,
+    }
+
+
+def api_access(action='status', name='', prefix=''):
+    req = QThread.get_req()
+    if not is_loggedin(req):
+        raise Exception('Please login to manage API access keys')
+
+    user = req.user
+    resp = {}
+    try:
+        if action == 'create':
+            _record, raw_key = create_api_key(user, name, max_active=settings.QCALC_API_KEYS_MAX_PER_USER)
+            resp['New API Key'] = qinfo(raw_key)
+            resp['Important'] = qwarn('Copy this key now. It is shown only once and cannot be recovered.')
+            logger.note('API: key created | user=%s | prefix=%s', user.username, _record.prefix)
+        elif action == 'revoke':
+            record = revoke_api_key(user, prefix)
+            resp['Revoked'] = f"'{record.name}' (qck_{record.prefix}_...) can no longer be used"
+            logger.note('API: key revoked | user=%s | prefix=%s', user.username, record.prefix)
+        elif action == 'delete':
+            record = delete_api_key(user, prefix)
+            resp['Deleted'] = f"'{record.name}' (qck_{record.prefix}_...)"
+            logger.note('API: key deleted | user=%s | prefix=%s', user.username, record.prefix)
+        elif action != 'status':
+            raise Exception(f'Unsupported action: {action}')
+    except ApiKeyError as e:
+        raise Exception(str(e))
+
+    limits = api_limits()
+    resp['My API Keys'] = _api_key_table(user)
+    resp['Limits per key'] = (
+        f"{limits.get('key_day') or 'unlimited'} runs/day, {limits.get('key_month') or 'unlimited'} runs/month; "
+        f"{limits.get('user_day') or 'unlimited'} runs/day across all your keys (resets 00:00 UTC)"
+    )
+    resp['Max active keys'] = settings.QCALC_API_KEYS_MAX_PER_USER
+    resp['Base URL'] = f'{qaddr()}/calc/api/v1/'
+    resp['Example'] = (
+        f'curl -H "Authorization: Bearer <your key>" "{qaddr()}/calc/api/v1/?q=bmi"'
+    )
     return resp
 
 
@@ -395,7 +516,7 @@ def temp__command(fkwargs, extra):
 def temp__info():
     return {
         'title': 'Your Temporary Data',
-        'kins':'mycal, mycal2, ai_chat, rates',
+        'kins': 'mycal, mycal2, ai_chat, rates',
         'schema': {
             'data': {
                 'type': 'choice',
@@ -409,8 +530,8 @@ def temp__info():
                     'qr': 'Your console variables',  # QRam
                     'qmy+qm': 'Your temporary calculators',  # QMyCal (db)
                     'qf': 'Your temporary favorites',  # QFavs (db)
-                    'qaichat': 'Your AI chat cache', # QOpenAIChat
-                    'qaical': 'Your AI assisted calculator creation cache', # QMyCalAI
+                    'qaichat': 'Your AI chat cache',  # QOpenAIChat
+                    'qaical': 'Your AI assisted calculator creation cache',  # QMyCalAI
                     'all': 'All your temporary data',  # All
                 },
             },

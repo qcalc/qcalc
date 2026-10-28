@@ -133,6 +133,11 @@
          hx-include="#extra_{{ input.cid }}"
          hx-target="closest .calc" hx-swap="outerHTML">Refresh Input</a>
       <a class="dropdown-item" href="/calc/{{input.doc.name}}/" target="_blank">Open in New Tab</a>
+      <div class="dropdown-divider"></div>
+      <a class="dropdown-item" href="javascript:;" id="slider-{{ input.cid }}"
+         role="menuitemcheckbox" aria-checked="{% ctf request.pref.slider_enabled 'true' 'false' %}"
+         title="Show a slider under the focused numeric input"
+         onclick="qcalc_ToggleSlider(this, '{{ input.cid }}')"><i class="mr-2 {% ctf request.pref.slider_enabled 'icon-checkbox-checked2' 'icon-checkbox-unchecked2' %}"></i>Numeric Slider</a>
     </div><!-- important, path ensures not to recall -->
   </div>
 </div>

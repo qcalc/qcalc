@@ -524,7 +524,7 @@ It defines calculator metadata and, where applicable, the calculator UI schema a
 
 ### `__help`
 
-`<calculator>__help(__info=None)` MAY be implemented to provide dynamic calculator help content.
+`<calculator>__help()` MAY be implemented to provide dynamic calculator help content.
 
 A calculator MUST NOT invent metadata hook names.
 

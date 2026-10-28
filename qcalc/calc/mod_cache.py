@@ -348,16 +348,10 @@ class QMem:
 
 
 # | global, prefix='schema:'
-# These are module-level global object creation, so they run on import, once per Python process.
-# from django.utils.functional import SimpleLazyObject
-# QCache = SimpleLazyObject(lambda: QCacheGen(alias=check_setting(settings.QSCHEMA_CACHE_ALIAS)))
-# QPref = SimpleLazyObject(lambda: QDBSession(prefix='pref', volatile=False, defa=qvars.qc_gpref))
-
 # | global cache (not user or session specific, it is common) to save calculator schema
 QCache = QCacheGen(alias=check_setting(settings.QSCHEMA_CACHE_ALIAS, "QSCHEMA_CACHE_ALIAS"))
 # QCache.active will be false if cache is not configured properly; runserver checks this at startup.
 # | session specific user preferences and data - stay alive throughout the session
-# QPref = QSession(prefix='pref', volatile=False, defa=qvars.qc_gpref)  # User Preferences
 QPref = QDBSession(prefix='pref', volatile=False, defa=qvars.qc_gpref)  # User Preferences
 QData = QSession(prefix='data', volatile=False)  # User Data e.g. rates etc.
 # | session_specific users temporary storage for uploaded files - can be cleared from temp()
@@ -385,3 +379,5 @@ QMyCalAI = QSession(prefix='mycal_ai', volatile=False)
 # | session_specific prompt/response cache for mycal2()
 QOpenAIChat = QSession(prefix='ai_chat', volatile=False)
 
+def session_prefs():
+    return QPref.getp()

@@ -29,11 +29,10 @@ def meta__info():
 
 
 def meta(func_id: str = 'gold'):
-    # func_id = func_name
     func_addr = QCals.addr(func_id, 'qop')
 
     if func_addr:
-        fargs, fanns, finfs = func_meta(func_addr, func_id, None)
+        fargs, fanns, finfs = func_meta(func_addr, func_id)
         resp = qpretty_json({'fargs': fargs, 'fanns': fanns, 'finfs': finfs})
     else:
         resp = f"Function {func_id} not found"

@@ -1,7 +1,7 @@
 {
   "theme": "default",
   "interactive": false,
-  "slider": true,
+  "slider": false,
   "layout": "lr",
   "ignore_decimal_format": false,
   "decimal": 5,

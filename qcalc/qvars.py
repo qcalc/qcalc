@@ -35,7 +35,7 @@ qc_gpref = {  # pref-01
     # user settings
     'theme': 'default',
     'interactive': False,
-    'slider': True,
+    'slider': False,
     'layout': 'lr',
     'ignore_decimal_format': False,
     'decimal': 8,  # 2-16

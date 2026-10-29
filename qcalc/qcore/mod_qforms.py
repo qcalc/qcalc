@@ -1,12 +1,35 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
+from django.utils.html import format_html
 from .qc_qty import *
 from .mod_qfields import *
 from qutil import fchoices, variable_to_title
 from qutil.mod_settings import max_file_mb
 from .mod_qfvalidators import validate_file_size
 from .mod_qcutil import request_prefs
+
+
+class RangeWidget(forms.NumberInput):
+    # Slider showing min, current (live) and max values
+    input_type = 'range'
+
+    def render(self, name, value, attrs=None, renderer=None):
+        attrs = dict(attrs or {})
+        attrs['oninput'] = 'this.parentNode.querySelector("output").value=this.value'
+        attrs['style'] = 'width:100%'
+        slider = super().render(name, value, attrs, renderer)
+        a = {**self.attrs, **attrs}
+        lo = a.get('min', 0)
+        hi = a.get('max', 100)
+        cur = lo if value in (None, '') else value
+        return format_html(
+            '<div class="range-wrap" style="width:100%;max-width:20rem">{}'
+            '<div style="display:flex;justify-content:space-between;font-size:.85em;line-height:1;margin-top:-.2rem;color:#6c757d">'
+            '<span class="range-min">{}</span>'
+            '<output class="range-cur" style="font-weight:400;color:#0d6efd">{}</output>'
+            '<span class="range-max">{}</span></div></div>',
+            slider, lo, cur, hi)
 
 
 class QFieldHandler:
@@ -351,7 +374,12 @@ class QFieldHandler:
 
     # noinspection PyMethodMayBeStatic
     def create_range_field(self, field_meta, options):  # tested deb@29.10.23
-        options['widget'] = field_meta.get('widget', forms.NumberInput(attrs={'type': 'range'}))
+        options['widget'] = field_meta.get('widget', RangeWidget())
+        for key in ('min_value', 'max_value'):
+            if key in field_meta:
+                options[key] = field_meta[key]
+        if 'step' in field_meta:
+            options['widget'].attrs['step'] = field_meta['step']
         return forms.IntegerField(**options)
 
     # noinspection PyMethodMayBeStatic

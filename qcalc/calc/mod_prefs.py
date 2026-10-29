@@ -115,23 +115,32 @@ def serialize_persistent_request_prefs(request):
 
 def resolve_effective_prefs(request):
     # | compute the effective value of every option in one place, into request.pref and info
+    # Inputs, one per level:
+    #   session:    the user's saved defaults in pref()
+    #   calculator: only the options __info() declared
+    #   request:    only the values posted by the page in 'extra'
     info = request.json_doc['info']
     declared = set(request.json_doc.get('declared', ()))
     session = getattr(request, 'session_pref', {})
     overrides = _request_overrides(request)
 
     for key, option in PREF_OPTIONS.items():
+        # Step 1: session level value, or the option's default when the user never saved one
         session_key = option.get('session', key)
         session_has = session_key in session
         session_value = session[session_key] if session_has else option.get('default')
 
+        # Step 2a: 'gate' mode (interactive): the calculator and the session must both allow it
         if option.get('mode') == 'gate':
+            # the calculator defaults to the session value when it did not declare the option
             calc_value = info.get(key) if key in declared else session_value
             info[key] = bool(calc_value) and bool(session_value)
+            # request.pref keeps the session value, it is the user's veto
             if session_has:
                 request.pref[key] = session_value
             continue
 
+        # Step 2b: 'override' mode, the most specific level wins: request > calculator > session > default
         if key in overrides:
             value = overrides[key]
         elif key in declared:
@@ -141,8 +150,11 @@ def resolve_effective_prefs(request):
         elif 'default' in option:
             value = option['default']
         else:
+            # no level defines it and there is no default, leave it undefined
             continue
 
+        # Step 3: publish the effective value, request.pref for the code and templates that read preferences,
+        # info for the options a calculator may declare
         request.pref[key] = value
         if option.get('calc'):
             info[key] = value

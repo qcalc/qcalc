@@ -37,6 +37,7 @@ qc_gpref = {  # pref-01
     'interactive': False,
     'slider': False,
     'layout': 'lr',
+    'calc_per_row': 0,  # 0-6, 0 = no cap
     'ignore_decimal_format': False,
     'decimal': 8,  # 2-16
     'qty_decimal': 5,  # 2-16

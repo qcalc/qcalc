@@ -311,6 +311,12 @@ def static_ver_theme(request, file):
 
 
 @register.simple_tag
+def calc_cols():
+    # CSS variable value; 100 effectively means no cap
+    return int(QPref.getp1('calc_per_row', 0) or 0) or 100
+
+
+@register.simple_tag
 def get_text(key):
     return StdList.text_list.get(key, '')
 

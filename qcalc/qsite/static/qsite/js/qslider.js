@@ -57,14 +57,26 @@
         }
     }
 
-    // enabled unless this calculator's extra says slider_enabled is "0"
+    // The extra only carries a request level override. Without one, the effective value (user preference
+    // or calculator default) is what the server rendered in the "..." menu item.
+    function sliderEnabled(cid) {
+        var extra = extraFor(cid);
+        if (extra && (extra.slider_enabled === '0' || extra.slider_enabled === '1')) {
+            return extra.slider_enabled === '1';
+        }
+        var item = document.getElementById('slider-' + cid);
+        if (item) {
+            return item.getAttribute('aria-checked') !== 'false';
+        }
+        return true;
+    }
+
     function calculatorEnabled(el) {
         var form = el.form || el.closest('form');
         if (!form || form.id.indexOf(FORM_PREFIX) !== 0) {
             return true;
         }
-        var extra = extraFor(form.id.slice(FORM_PREFIX.length));
-        return !extra || extra.slider_enabled !== '0';
+        return sliderEnabled(form.id.slice(FORM_PREFIX.length));
     }
 
     function eligible(el) {
@@ -346,8 +358,7 @@
 
     // "..." menu item: flips this calculator's flag, persisted in its extra field
     window.qcalc_ToggleSlider = function(item, cid) {
-        var extra = extraFor(cid) || {};
-        var on = extra.slider_enabled === '0';
+        var on = !sliderEnabled(cid);
         if (window.QCalcActions && window.QCalcActions.updateExtra) {
             window.QCalcActions.updateExtra(cid, {slider_enabled: on ? '1' : '0'});
         }

@@ -39,10 +39,10 @@ def _normalize_theme(theme_name, fallback='default'):
 
 
 def pref__info():
-    general_options = 'theme, interactive, slider, layout, defa_currency, uom_subset_enabled, memory, strict_*'
+    general_options = 'interactive, slider, layout, calc_per_row, uom_subset_enabled, memory, strict_*'
     number_options = 'ignore_decimal_format, decimal, *_decimal, thousands_separator, exponent_*'
     chart_options = 'chart_*'
-    other_options = 'execution_timeout, xpr_max_table_cells, openai_model'
+    other_options = 'theme, defa_currency, execution_timeout, xpr_max_table_cells, openai_model'
     pane1 = {'title': 'General', 'fields': general_options}
     pane2 = {'title': 'Number', 'fields': number_options}
     pane3 = {'title': 'Chart', 'fields': chart_options}
@@ -72,6 +72,10 @@ def pref__info():
             'layout': {
                 'help_text': 'Select default layout',
                 'type': 'choice', 'choices': {'lr': 'Left/Right Layout', 'tb': 'Top/Bottom Layout'},
+            },
+            'calc_per_row': {
+                'attrs': {'max': '6', 'min': '0'},
+                'help_text': 'Maximum number of calculators in a row from 1 to 6; 0 for no cap. Fewer are shown when the screen is narrow. Takes effect after page reload.',
             },
             'ignore_decimal_format': {
                 'help_text': 'Ignore decimal format specified below when displaying numbers.',
@@ -175,6 +179,7 @@ def pref__input(_kwargs):  # alternative to func__info() 'schema':{}'
         'interactive': us['interactive'],
         'slider': us['slider'],
         'layout': us['layout'],
+        'calc_per_row': us['calc_per_row'],
         'ignore_decimal_format': us['ignore_decimal_format'],
         'decimal': us['decimal'],
         'qty_decimal': us['qty_decimal'],
@@ -203,6 +208,7 @@ def pref(  # pref-03
     interactive: bool,
     slider: bool,
     layout,
+    calc_per_row: int,
     ignore_decimal_format: bool,
     decimal: int,
     qty_decimal: int,
@@ -232,6 +238,7 @@ def pref(  # pref-03
         'interactive': interactive,
         'slider': slider,
         'layout': layout,
+        'calc_per_row': max(0, min(int(calc_per_row), 6)),
         'ignore_decimal_format': ignore_decimal_format,
         'decimal': decimal,
         'qty_decimal': qty_decimal,

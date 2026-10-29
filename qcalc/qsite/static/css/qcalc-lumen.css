@@ -1012,10 +1012,15 @@ form.qcalc-auto-calc.htmx-request .btncal .calculate-content {
    Container queries
    ========================================================= */
 div.calc {
-  min-width: 352px;
+  min-width: 368px;
   /*** enables container queries on card width ***/
   container-type: inline-size;
   container-name: calc;
+}
+
+/* user cap on calculators per row (--calc-cols); min-width above still wraps earlier on narrow screens */
+#content-holder > .calc {
+  flex-basis: calc(100% / var(--calc-cols, 100) - 1px);
 }
 
 div.inpart {

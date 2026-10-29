@@ -40,7 +40,7 @@
         <div id="page-holder" class="row">
           @@include('insert-page.html')
         </div>
-        <div id="content-holder" class="row">
+        <div id="content-holder" class="row" style="--calc-cols: {% calc_cols %}">
           @@include('insert-card.html')
           @@include('insert-card-space.html')
         </div>

@@ -6,6 +6,9 @@
 /* select and select2 1.879rem */
 /* Mobile input focus-zoom guard:
    iOS/Android browsers may zoom focused text inputs below 16px. */
+/* whitespace */
+/* right-margin between val and uom/part */
+/* right-margin for lone field, reserved for a button */
 /* 12rem; */
 /* -1rem */
 /* important */
@@ -69,7 +72,7 @@
 /**/
 /* Scrollable region */
 .scrollable {
-  width: 20.125rem; /* Width of the scrollable area */
+  width: 20.25rem; /* Width of the scrollable area */
   max-height: 200px; /* Maximum height for the scrollable area */
   border: 1px solid #c4cdd5; /* Optional: Add a border */
   padding: 10px;
@@ -632,6 +635,7 @@ textarea {
   margin-bottom: 0.25rem;
   margin-top: 0rem;
   height: 2rem;
+  margin-right: 0.25rem; /* parts */
 }
 
 .select2-container--default .select2-selection--single .select2-selection__rendered {
@@ -889,43 +893,55 @@ label {
 /* sizes - large */
 .chr {
   width: 10rem;
+  margin-right: 0.125rem;
 } /* short char */
 .uom {
   width: 10rem;
+  margin-right: 0.125rem;
 } /* lone uom */
 .val {
   width: 10rem;
+  margin-right: 0.125rem;
 } /* lone val */
 .val-p {
   width: 10rem;
+  margin-right: 0.125rem;
 } /* val with part - qchar, qfl, qin */
 .val-pp {
   width: 10rem;
-} /* val parts - qchar, qfl, qin _part */
+  margin-right: 0.125rem;
+} /* ->val parts - qchar, qfl, qin _part */
 .val-q {
   width: 10rem;
+  margin-right: 0.125rem;
 } /* qty val with uom */
 .uom-q {
   width: 10rem;
-} /* qty uom */
+  margin-right: 0.125rem;
+} /* ->qty uom */
 .val-pq {
   width: 9rem;
+  margin-right: 0.125rem;
 } /* qty val with part */
 .uom-pq {
   width: 9rem;
-} /* qty uom part */
+  margin-right: 0.125rem;
+} /* ->qty uom part */
 .oval-q {
   width: 10rem;
+  margin-right: 0.125rem;
 } /* output qty val with uom */
 .ouom-q {
   width: 8rem;
-} /* output qty uom */
+} /* ->output qty uom */
 .inp {
-  width: 20.125rem;
+  width: 20.25rem;
+  margin-right: 0.125rem;
 } /* text, str input */
 .texta {
-  width: 20.125rem;
+  width: 20.25rem;
   height: 5rem;
+  margin-right: 0.125rem;
 }
 
 .vt {
@@ -1133,13 +1149,6 @@ div.io {
 }
 /* IO section: 375px-420px; Medium width  */
 @container io (min-width: 375px) and (max-width: 420px) {
-  /*
-    .btncal {
-      height: 36px;
-      width: 36px;
-      padding-left: 8px;
-    }
-  */
   /* sizes - medium */
   .chr {
     width: 9rem;
@@ -1187,10 +1196,10 @@ div.io {
     width: 7rem !important;
   }
   .inp {
-    width: 18.125rem;
+    width: 18.25rem;
   }
   .texta {
-    width: 18.125rem;
+    width: 18.25rem;
     height: 5rem;
   }
   .img-plot {
@@ -1246,10 +1255,10 @@ div.io {
     width: 6rem !important;
   }
   .inp {
-    width: 16.125rem;
+    width: 16.25rem;
   }
   .texta {
-    width: 16.125rem;
+    width: 16.25rem;
     height: 5rem;
   }
 }

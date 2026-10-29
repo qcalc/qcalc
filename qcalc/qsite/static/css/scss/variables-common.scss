@@ -13,26 +13,29 @@ $control-border-radius: 4px;
 $mobile-breakpoint-max: 767.98px;
 $mobile-input-font-size-min: 16px;
 
+$spc: 0.125rem; /* whitespace */
+$gap: 0.125rem; /* right-margin between val and uom/part */
+$gap2: 0.125rem; /* right-margin for lone field, reserved for a button */
 $val: 10rem; /* 12rem; */
 $uom-q: 10rem;
 $val-pq: 9rem;
 $uom-pq: 9rem;
 $ouom-q: $uom-q - 2rem; /* -1rem */
-$inp: $val + $uom-q + 0.125rem;
+$inp: $val + $uom-q + $spc + $gap;
 
 $val-m: $val - 1rem;
 $uom-q-m: $uom-q - 1rem;
 $val-pq-m: $val-pq;
 $uom-pq-m: $uom-pq;
 $ouom-q-m: $ouom-q - 1rem;
-$inp-m: $val-m + $uom-q-m + 0.125rem;
+$inp-m: $val-m + $uom-q-m + $spc + $gap;
 
 $val-s: $val - 2rem;
 $uom-q-s: $uom-q - 2rem;
 $val-pq-s: $val-pq - 1rem;
 $uom-pq-s: $uom-pq - 1rem;
 $ouom-q-s: $ouom-q - 2rem;
-$inp-s: $val-s + $uom-q-s + 0.125rem;
+$inp-s: $val-s + $uom-q-s + $spc + $gap;
 
 $vt: 3rem;
 $border-radius: 6px;

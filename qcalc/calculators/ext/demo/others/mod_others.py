@@ -13,7 +13,3 @@ def gold__info():
 def gold(weight='5 gm', price='79 UNC/gm'):
     total = Qty(weight, 'gm') * Qty(price, 'UNC/gm')
     return {'Total Price': Qty(total, 'UNC')}
-#
-# def gold(weight=5, price=79):
-#     total = weight * price
-#     return {'Total Price': total}

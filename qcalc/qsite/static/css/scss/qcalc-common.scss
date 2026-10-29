@@ -564,6 +564,7 @@ textarea {
   margin-bottom: 0.25rem;
   margin-top: 0rem;
   height: v.$control-height; //1.73rem;
+  margin-right: 0.25rem; /* parts */
   }
 
 .select2-container--default .select2-selection--single .select2-selection__rendered {
@@ -811,19 +812,19 @@ label {
   }
 
 /* sizes - large */
-.chr    {width: v.$val;}    /* short char */
-.uom    {width: v.$val;}    /* lone uom */
-.val    {width: v.$val;}    /* lone val */
-.val-p  {width: v.$val;}    /* val with part - qchar, qfl, qin */
-.val-pp {width: v.$uom-q;}  /* val parts - qchar, qfl, qin _part */
-.val-q  {width: v.$val;}    /* qty val with uom */
-.uom-q  {width: v.$uom-q;}  /* qty uom */
-.val-pq {width: v.$val-pq;} /* qty val with part */
-.uom-pq {width: v.$uom-pq;} /* qty uom part */
-.oval-q {width: v.$val;}    /* output qty val with uom */
-.ouom-q {width: v.$ouom-q;} /* output qty uom */
-.inp    {width: v.$inp;}    /* text, str input */
-.texta  {width: v.$inp; height: 5rem;}
+.chr    {width: v.$val; margin-right: v.$gap2;}    /* short char */
+.uom    {width: v.$val; margin-right: v.$gap2;}    /* lone uom */
+.val    {width: v.$val; margin-right: v.$gap2;}    /* lone val */
+.val-p  {width: v.$val; margin-right: v.$gap;}    /* val with part - qchar, qfl, qin */
+.val-pp {width: v.$uom-q; margin-right: v.$gap;}  /* ->val parts - qchar, qfl, qin _part */
+.val-q  {width: v.$val; margin-right: v.$gap;}    /* qty val with uom */
+.uom-q  {width: v.$uom-q; margin-right: v.$gap2;}  /* ->qty uom */
+.val-pq {width: v.$val-pq; margin-right: v.$gap;} /* qty val with part */
+.uom-pq {width: v.$uom-pq; margin-right: v.$gap2;} /* ->qty uom part */
+.oval-q {width: v.$val; margin-right: v.$gap;}    /* output qty val with uom */
+.ouom-q {width: v.$ouom-q; margin-right: v.$gap2;} /* ->output qty uom */
+.inp    {width: v.$inp; margin-right: v.$gap2;}    /* text, str input */
+.texta  {width: v.$inp; height: 5rem; margin-right: v.$gap2;}
 
 .vt     {width: v.$vt;}
 
@@ -1024,13 +1025,6 @@ div.io {
 
 /* IO section: 375px-420px; Medium width  */
 @container io (min-width: 375px) and (max-width: 420px){
-/*
-  .btncal {
-    height: 36px;
-    width: 36px;
-    padding-left: 8px;
-  }
-*/
   /* sizes - medium */
   .chr    {width: v.$val-m;}
   .uom    {width: v.$val-m;}

@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
+# Tests generated with AI assistance. Reviewed and validated by the author.
 
 import json
 from types import SimpleNamespace
@@ -9,7 +10,8 @@ import qsett
 
 qsett.init()
 
-from calc.views import apply_request_layout
+from calc.views import apply_effective_prefs
+from calc.mod_prefs import resolve_effective_prefs
 from calc.views_form_data import (
     apply_persistent_request_prefs,
     q11421_get_extra_form_data_posted,
@@ -52,14 +54,16 @@ def test_persistent_request_preferences_round_trip_without_commands():
 
 def test_user_preference_initializes_per_card_interactive_state(monkeypatch):
     monkeypatch.setattr(QPref, 'getp', lambda: {'interactive': False})
-    request = SimpleNamespace(pref={})
+    request = SimpleNamespace(pref={}, json_doc={'info': {}})
 
     q11441a_get_user_pref(request)
+    resolve_effective_prefs(request)
 
     assert request.pref == {
         'interactive': False,
         'interactive_enabled': True,
         'slider_enabled': True,
+        'layout': 'lr',
     }
 
 
@@ -70,19 +74,21 @@ def test_user_preference_initializes_per_card_interactive_state(monkeypatch):
 ])
 def test_user_preference_initializes_per_card_slider_state(monkeypatch, user_pref, expected):
     monkeypatch.setattr(QPref, 'getp', lambda: dict(user_pref))
-    request = SimpleNamespace(pref={})
+    request = SimpleNamespace(pref={}, json_doc={'info': {}})
 
     q11441a_get_user_pref(request)
+    resolve_effective_prefs(request)
 
     assert request.pref['slider_enabled'] is expected
 
 
 def test_card_slider_state_overrides_user_preference(monkeypatch):
     monkeypatch.setattr(QPref, 'getp', lambda: {'slider': False})
-    request = SimpleNamespace(pref={}, extra={'slider_enabled': '1'})
+    request = SimpleNamespace(pref={}, extra={'slider_enabled': '1'}, json_doc={'info': {}})
 
     q11441a_get_user_pref(request)
     apply_persistent_request_prefs(request)
+    resolve_effective_prefs(request)
 
     assert request.pref['slider'] is False
     assert request.pref['slider_enabled'] is True
@@ -132,7 +138,8 @@ def test_invalid_request_layout_is_rejected(layout):
 
 def test_request_layout_selects_static_template():
     request = SimpleNamespace(
-        pref={'layout': 'tb'},
+        pref={},
+        extra={'layout': 'tb'},
         json_doc={
             'info': {
                 'layout': 'lr',
@@ -145,7 +152,7 @@ def test_request_layout_selects_static_template():
         },
     )
 
-    apply_request_layout(request)
+    apply_effective_prefs(request)
 
     assert request.json_doc['info']['layout'] == 'tb'
     assert request.json_doc['info']['template'] == 'tb2'
@@ -153,7 +160,8 @@ def test_request_layout_selects_static_template():
 
 def test_request_layout_preserves_dynamic_template():
     request = SimpleNamespace(
-        pref={'layout': 'tb'},
+        pref={},
+        extra={'layout': 'tb'},
         json_doc={
             'info': {
                 'layout': 'lr',
@@ -166,7 +174,7 @@ def test_request_layout_preserves_dynamic_template():
         },
     )
 
-    apply_request_layout(request)
+    apply_effective_prefs(request)
 
     assert request.json_doc['info']['layout'] == 'tb'
     assert request.json_doc['info']['template'] == 'dynamic'

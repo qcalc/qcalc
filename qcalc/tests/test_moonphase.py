@@ -1,3 +1,7 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2024-2026 Debasish C Saha
+# Tests generated with AI assistance. Reviewed and validated by the author.
+
 from datetime import date
 
 from calculators.all.science.astronomy.cal_earth_rotation import moonphase

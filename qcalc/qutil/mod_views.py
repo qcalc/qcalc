@@ -77,7 +77,9 @@ def create_session_once_per_session(request):
 
 
 def q1139_request_init(request: HtmxHttpRequest):
-    request.pref = {}
+    request.pref = {}  # effective preferences, resolved by calc.mod_prefs.resolve_effective_prefs
+    request.session_pref = {}  # session level: user's saved defaults
+    request.req_pref = {}  # request level: values posted by the page
     # request.dec = ''
     request.context = {}
     request.json_schema = []

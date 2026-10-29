@@ -34,22 +34,9 @@ import qconst
 from .mod_basic import css2list
 from .mod_data import is_blank, to_bool
 from .mod_func import variable_to_title
+from .mod_info_keys import INTERNAL_KEYS, LEGACY_KEYS, PUBLIC_KEYS
 
 __all__ = ['InfoResult', 'build_info']
-
-# Generated keys, in output order. 'schema' etc. are inferred; the rest come from hints or 'extra'.
-PUBLIC_KEYS = (
-    'title', 'desc', 'calculate', 'layout', 'interactive',
-    'input_columns', 'output_columns', 'input_blocks', 'output_blocks',
-    'showhide', 'anyof', 'autofill', 'related', 'images', 'onsubmit', 'script', 'inserts',
-    'step2', 'single_instance', 'single_instance_key', 'provides_data', 'consumes_data',
-    'schema', 'kins', 'tags', 'proper', 'remember', 'table_out_all',
-)
-INTERNAL_KEYS = {
-    'name', 'help', 'clean', 'template', 'qsel2', 'qlist', 'table_in', 'table_out',
-    'xpr', 'url', 'loop', 'cost',
-}
-LEGACY_KEYS = {'row', 'col', 'inp1', 'out1'}
 
 TABLE_ANNOTATIONS = {'qtable', 'qtbl'}
 SKIP_ANNOTATIONS = {'qfunc', 'qhide', 'qhidex'}

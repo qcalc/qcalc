@@ -1,3 +1,7 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2024-2026 Debasish C Saha
+# Tests generated with AI assistance. Reviewed and validated by the author.
+
 import unittest
 
 from qutil import specified_args, unspecified_args

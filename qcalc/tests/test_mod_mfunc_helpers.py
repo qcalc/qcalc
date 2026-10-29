@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: MIT
+# Copyright (c) 2024-2026 Debasish C Saha
 # Tests moved from qcalc/calc/mod_mfunc.py — improved assertions based on original examples
 
 import qsett

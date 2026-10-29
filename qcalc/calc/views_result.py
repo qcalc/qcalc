@@ -34,7 +34,7 @@ from qutil import QDateTime
 from .mod_cache import QMem
 from .mod_cutil import keep_format
 from .mod_result import df2normalized
-from .views_info_meta import _normalize_layout_blocks
+from .views_info_meta import _normalize_layout_blocks, resolve_static_side
 
 logger = logging.getLogger(__name__)
 
@@ -277,6 +277,8 @@ def q1145_result_to_form_schema(request, func_id, cid, result, proper_dict):
 
         specified_labels = ut.specified_args(logical_result_list, request.json_doc['info']['out1'], empty_spec='')
         request.json_doc['info']['out1'] = specified_labels
+        if request.json_doc['info'].get('template') != 'dynamic':
+            resolve_static_side(request.json_doc['info'], 'output', logical_result_list)
         request.json_doc['info']['output_blocks'] = _normalize_layout_blocks(
             request.json_doc['info'].get('output_blocks', []),
             logical_result_list,

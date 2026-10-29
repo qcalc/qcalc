@@ -11,7 +11,17 @@ import catalog.views
 from .mod_ucals import get_uc_list
 from .views_form_data import *
 from .mod_layout_dynamic import has_dynamic_layout, build_layout_plan
-from .views_info_meta import q1141_read_func_meta, template_name, _normalize_layout_blocks
+from .mod_prefs import (
+    apply_persistent_request_prefs,
+    resolve_effective_prefs,
+    serialize_persistent_request_prefs,
+)
+from .views_info_meta import (
+    q1141_read_func_meta,
+    refresh_template,
+    resolve_static_side,
+    _normalize_layout_blocks,
+)
 from .views_result import q1145_result_to_form_schema, q1146_result_transfer
 from .views_step2 import cache_step2_io
 from qutil import HtmxHttpRequest, preprocess_expression, fid2owner
@@ -279,16 +289,14 @@ def q1199_func_to_form_common(request: HtmxHttpRequest, **dictf):  # main view
             pass
 
         # Server-side flat printable view: prefer static (non-dynamic) tb layout
-        # Use initial values (None or empty lists) so the template selection
-        # falls back to static template logic (template_name) rather than dynamic renderer.
         if getattr(request, 'print_mode', '') == 'flat':
             try:
                 info = request.json_doc.setdefault('info', {})
                 # Force top-to-bottom preference for reading order
                 info['layout'] = 'tb'
-                # Set columns to None to prefer template's static resolution
-                info['input_columns'] = None
-                info['output_columns'] = None
+                # Single column on both sides for the flat printable view
+                info['input_columns'] = 1
+                info['output_columns'] = 1
                 # Empty block lists ensure has_dynamic_layout() is False
                 info['input_blocks'] = []
                 info['output_blocks'] = []
@@ -299,17 +307,8 @@ def q1199_func_to_form_common(request: HtmxHttpRequest, **dictf):  # main view
                 info['tabulator_print_all'] = True
                 request.context['tabulator_print_all'] = True
 
-                # Recompute template choice so gen-calculator-core will render using
-                # static top-to-bottom template (not dynamic) in flat printable mode.
-                try:
-                    if has_dynamic_layout(info):
-                        info['template'] = 'dynamic'
-                    else:
-                        info['template'] = template_name(info.get('layout', 'lr'), info.get('inp1', '*'),
-                                                         info.get('out1', '*'))
-                except Exception:
-                    # ignore and fall back to whatever template was earlier
-                    pass
+                # Render with the static top-to-bottom template unless the layout is dynamic.
+                info['template'] = 'dynamic' if has_dynamic_layout(info) else 'tb'
 
                 # Ensure any already-built context entries reflect the modified info
                 try:
@@ -519,9 +518,11 @@ def q1149_func_to_form_context(request: HtmxHttpRequest, func_id, cid, kwargs):
         request.json_doc['info'].get('input_blocks', []),
         func_addr,
     )
+    if not has_dynamic_layout(request.json_doc['info']):
+        resolve_static_side(
+            request.json_doc['info'], 'input', ut.specified_args(func_addr, '*', empty_spec=''))
     q11429_func_to_form_schema(request, func_addr, func_id, cid, kwargs)
-    apply_persistent_request_prefs(request)
-    apply_request_layout(request)
+    apply_effective_prefs(request)
     request.context['input'] = q11469_form_data_create_dynaform_and_fill(
         request, request.json_schema, request.json_data, request.json_s2f,
         request.json_doc, cid, 0)  # data, form, doc[info]
@@ -601,21 +602,11 @@ def q1149_func_to_form_context(request: HtmxHttpRequest, func_id, cid, kwargs):
     return
 
 
-def apply_request_layout(request: HtmxHttpRequest):
-    layout = request.pref.get('layout')
-    if layout is None:
-        return
-
-    info = request.json_doc['info']
-    info['layout'] = layout
-    if has_dynamic_layout(info):
-        info['template'] = 'dynamic'
-    else:
-        info['template'] = template_name(
-            layout,
-            info.get('inp1', '*'),
-            info.get('out1', '*'),
-        )
+def apply_effective_prefs(request: HtmxHttpRequest):
+    # | session, calculator and request levels resolved in one place, then what depends on them
+    apply_persistent_request_prefs(request)
+    resolve_effective_prefs(request)
+    refresh_template(request.json_doc['info'])
 
 
 def get_file(request, sfunc, sfld, value):

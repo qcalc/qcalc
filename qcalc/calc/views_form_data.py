@@ -10,7 +10,8 @@ import json
 from .mod_mfunc import *
 import pandas as pd
 from qvars import qc_gpref as gs
-from qconst import QCALC_LAYOUTS, TOK_UOM, TOK_PART_UOM, TOK_ID_PREFIX, TOK_FIELD_SEP, TOK_INDEX_SEP
+from .mod_prefs import apply_persistent_request_prefs, serialize_persistent_request_prefs
+from qconst import TOK_UOM, TOK_PART_UOM, TOK_ID_PREFIX, TOK_FIELD_SEP, TOK_INDEX_SEP
 from django.conf import settings
 from django.forms import forms
 from django.http import JsonResponse
@@ -572,69 +573,10 @@ def q11441_data_for_function(request: HtmxHttpRequest):  # , kwargs):
 
 
 def q11441a_get_user_pref(request: HtmxHttpRequest):
-    # | import user preferences into the current request
+    # | session level: import user preferences into the current request
     us = QPref.getp().copy()  # User Session Preference, Defaults for the user
-    request.pref.update(us)  # User Request Preference, Defaults for this request of the user
-    request.pref.setdefault('interactive_enabled', True)
-    request.pref.setdefault('slider_enabled', request.pref.get('slider', True))
-    # print('user pref', request.pref)
-
-
-def _parse_request_pref_bool(value):
-    if value == '1':
-        return True
-    if value == '0':
-        return False
-    raise ValueError(f'Invalid boolean request preference: {value!r}')
-
-
-def _serialize_request_pref_bool(value):
-    return '1' if value else '0'
-
-
-def _parse_request_layout(value):
-    if value not in QCALC_LAYOUTS:
-        raise ValueError(f'Invalid calculator layout: {value!r}')
-    return value
-
-
-PERSISTENT_REQUEST_PREFS = {
-    'ignoredec': {
-        'pref': 'ignore_decimal_format',
-        'parse': _parse_request_pref_bool,
-        'serialize': _serialize_request_pref_bool,
-    },
-    'layout': {
-        'pref': 'layout',
-        'parse': _parse_request_layout,
-        'serialize': str,
-    },
-    'interactive_enabled': {
-        'pref': 'interactive_enabled',
-        'parse': _parse_request_pref_bool,
-        'serialize': _serialize_request_pref_bool,
-    },
-    'slider_enabled': {
-        'pref': 'slider_enabled',
-        'parse': _parse_request_pref_bool,
-        'serialize': _serialize_request_pref_bool,
-    },
-}
-
-
-def apply_persistent_request_prefs(request: HtmxHttpRequest):
-    for extra_key, definition in PERSISTENT_REQUEST_PREFS.items():
-        if extra_key in request.extra:
-            request.pref[definition['pref']] = definition['parse'](request.extra[extra_key])
-
-
-def serialize_persistent_request_prefs(request: HtmxHttpRequest):
-    result = {}
-    for extra_key, definition in PERSISTENT_REQUEST_PREFS.items():
-        pref_key = definition['pref']
-        if pref_key in request.pref:
-            result[extra_key] = definition['serialize'](request.pref[pref_key])
-    return json.dumps(result, separators=(',', ':'))
+    request.session_pref = us
+    request.pref.update(us)  # effective values are computed later by resolve_effective_prefs()
 
 
 def q11441b_update_req_pref(request: HtmxHttpRequest):

@@ -21,6 +21,7 @@ def bmi__info():
             }
         ],
         'interactive': True,
+        'layout': 'lr',
         'proper': 'BMI',
         'api': True,
     }

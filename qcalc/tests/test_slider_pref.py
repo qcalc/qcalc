@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
+# Tests generated with AI assistance. Reviewed and validated by the author.
 
 import inspect
 from pathlib import Path
@@ -28,10 +29,6 @@ def test_slider_script_does_not_touch_document_body_at_load():
     assert 'window.qcalc_ToggleSlider = ' in source
 
 
-def test_slider_preference_defaults_to_enabled():
-    assert qvars.qc_gpref['slider'] is True
-
-
 def test_pref_calculator_exposes_slider_in_general_pane():
     info = cu.pref__info()
 
@@ -48,8 +45,6 @@ def test_pref_calculator_input_and_signature_stay_in_sync(monkeypatch):
     initials = cu.pref__input({})
     params = list(inspect.signature(cu.pref).parameters)
 
-    assert 'slider' in params
-    assert initials['slider'] is True
     assert set(params) == set(initials)
 
 

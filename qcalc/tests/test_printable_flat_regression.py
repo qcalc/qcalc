@@ -1,4 +1,7 @@
 # SPDX-License-Identifier: MIT
+# Copyright (c) 2024-2026 Debasish C Saha
+# Tests generated with AI assistance. Reviewed and validated by the author.
+
 # Regression tests for printable-flat wiring (runtime flag and Tabulator handling)
 
 import os

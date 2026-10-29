@@ -92,6 +92,15 @@ SHOWHIDE_SCHEMA = {
     },
 }
 
+SHARED_DATA_SCHEMA = {
+    'type': 'object',
+    'properties': {
+        'dataset_type': {'type': 'string'},
+        'dataset_key': {'type': 'string'},
+    },
+    'additionalProperties': True,
+}
+
 TAB_SCHEMA = {
     'type': 'object',
     'additionalProperties': False,
@@ -116,52 +125,77 @@ BLOCK_SCHEMA = {
     },
 }
 
+_INFO_PROPERTY_SCHEMAS = {
+    'title': {'type': 'string'},
+    'desc': {'type': 'string'},
+    'calculate': {'type': 'string'},
+    'schema': {
+        'type': 'object',
+        'additionalProperties': {
+            'type': 'object',
+            'properties': {
+                'type': {'type': 'string'},
+            },
+            'additionalProperties': True,
+        },
+    },
+    'interactive': {'type': 'boolean'},
+    'anyof': ANYOF_SCHEMA,
+    'autofill': AUTOFILL_SCHEMA,
+    'related': RELATED_SCHEMA,
+    'showhide': SHOWHIDE_SCHEMA,
+    'images': {'type': 'object'},
+    'layout': {
+        'type': 'string',
+        'enum': ['lr', 'tb'],
+    },
+    'inp1': FIELD_SELECTOR_SCHEMA,
+    'out1': FIELD_SELECTOR_SCHEMA,
+    'input_columns': {'type': 'integer', 'enum': [1, 2]},
+    'output_columns': {'type': 'integer', 'enum': [1, 2]},
+    'input_blocks': {
+        'type': 'array',
+        'items': BLOCK_SCHEMA,
+    },
+    'output_blocks': {
+        'type': 'array',
+        'items': BLOCK_SCHEMA,
+    },
+    'onsubmit': {'type': 'string'},
+    'script': {'type': 'string'},
+    'kins': {'type': 'string'},
+    'tags': {'type': 'string'},
+    'proper': {'type': 'string'},
+    'inserts': {'type': 'object'},
+    'step2': {
+        'type': 'array',
+        'items': {
+            'type': 'object',
+            'properties': {
+                'step': {'type': 'string'},
+                'func': {'type': 'string'},
+                'caption': {'type': 'string'},
+                'spec': {'type': ['object', 'string']},
+            },
+            'required': ['step'],
+            'additionalProperties': True,
+        },
+    },
+    'single_instance': {'type': 'boolean'},
+    'single_instance_key': {'type': 'string'},
+    'provides_data': SHARED_DATA_SCHEMA,
+    'consumes_data': SHARED_DATA_SCHEMA,
+    'remember': {'type': 'boolean'},
+    'table_out_all': {'type': 'boolean'},
+    'api': {'type': 'boolean'},
+    'fargs': {'type': 'object'},
+}
+
+# The accepted keys are the public keys of qutil.mod_info_keys plus the legacy inp1/out1 (see test_info_keys.py).
 INFO_SCHEMA = {
     'type': 'object',
     'additionalProperties': False,
-    'properties': {
-        'title': {'type': 'string'},
-        'desc': {'type': 'string'},
-        'calculate': {'type': 'string'},
-        'schema': {
-            'type': 'object',
-            'additionalProperties': {
-                'type': 'object',
-                'properties': {
-                    'type': {'type': 'string'},
-                },
-                'additionalProperties': True,
-            },
-        },
-        'interactive': {'type': 'boolean'},
-        'anyof': ANYOF_SCHEMA,
-        'autofill': AUTOFILL_SCHEMA,
-        'related': RELATED_SCHEMA,
-        'showhide': SHOWHIDE_SCHEMA,
-        'images': {'type': 'object'},
-        'layout': {
-            'type': 'string',
-            'enum': ['lr', 'tb'],
-        },
-        'inp1': FIELD_SELECTOR_SCHEMA,
-        'out1': FIELD_SELECTOR_SCHEMA,
-        'input_columns': {'type': 'integer', 'enum': [1, 2]},
-        'output_columns': {'type': 'integer', 'enum': [1, 2]},
-        'input_blocks': {
-            'type': 'array',
-            'items': BLOCK_SCHEMA,
-        },
-        'output_blocks': {
-            'type': 'array',
-            'items': BLOCK_SCHEMA,
-        },
-        'onsubmit': {'type': 'string'},
-        'script': {'type': 'string'},
-        'kins': {'type': 'string'},
-        'tags': {'type': 'string'},
-        'proper': {'type': 'string'},
-        'inserts': {'type': 'object'},
-    },
+    'properties': _INFO_PROPERTY_SCHEMAS,
 }
 
 INFO_VALIDATOR = Draft202012Validator(INFO_SCHEMA)

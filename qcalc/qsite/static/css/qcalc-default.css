@@ -594,6 +594,10 @@ textarea {
 }
 
 /* select2 */
+.select2-results__option {
+  padding: 2px;
+}
+
 .select2-results {
   font-size: 0.82rem !important;
 }
@@ -607,15 +611,10 @@ textarea {
   margin-bottom: 0.25rem;
   margin-top: 0rem;
   height: 2rem;
-  margin-right: 0.25rem; /* parts */
 }
 
 .select2-container--default .select2-selection--single .select2-selection__rendered {
   line-height: 1.6rem;
-}
-
-.select2-container {
-  width: auto;
 }
 
 /* spinner */
@@ -863,6 +862,11 @@ label {
 }
 
 /* sizes - large */
+.select2-container {
+  width: auto;
+  margin-right: 0.125rem;
+}
+
 .chr {
   width: 10rem;
   margin-right: 0.125rem;
@@ -905,6 +909,7 @@ label {
 } /* output qty val with uom */
 .ouom-q {
   width: 8rem;
+  margin-right: 0.125rem;
 } /* ->output qty uom */
 .inp {
   width: 20.25rem;

@@ -35,7 +35,6 @@ def demo_showhide__info():  # val
         'showhide': {
             'x': {'fields': ['y', 'z', 't']}
         },
-        'row': ['x-y', 'z-t'],
     }
 
 
@@ -55,7 +54,6 @@ def demo_sh0__info():  # val+callback
             '{'
             'return v>2;'
             '}',
-        'row': ['x-y', 'z-t'],
     }
 
 
@@ -75,7 +73,6 @@ def demo_sh1__info():  # qty+callback
             '{'
             'return v>2;'
             '}',
-        'row': ['x-y', 'z-t'],
     }
 
 

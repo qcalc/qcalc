@@ -70,8 +70,6 @@ INFO_KEYS = {
     'api': _key('public', override=False),  # read by qapi (mod_api_core)
     'fargs': _key('public', override=False),  # read by mod_mfunc (COMBINE_FINF)
     # legacy
-    'row': _key('legacy'),
-    'col': _key('legacy'),
     'inp1': _key('legacy'),
     'out1': _key('legacy'),
     # internal

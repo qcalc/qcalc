@@ -150,8 +150,6 @@ def demo_chkl(sex=dict2options(FLD_GENDER_CHOICE, initial='M', type='choice')):
 def demo_lay4__info():
     return {
         'title': 'Layout Testing Row and Column',
-        'row': ["4-v", "q-s"],
-        'col': ["b-d", "e-g"]
     }
 
 
@@ -166,7 +164,6 @@ def demo_lay4(x='99 g', y=1, z=2,
 def demo_lay3__info():
     return {
         'title': 'Layout Multielement Row',
-        'row': ["t-v", "q-s"],
     }
 
 
@@ -181,7 +178,6 @@ def demo_lay3(x='99 g', y=1, z=2,
 def demo_lay2__info():
     return {
         'title': 'Layout Multielement Column',
-        'col': ["t-v", "w-s"],
     }
 
 
@@ -196,7 +192,6 @@ def demo_lay2(x='99 g', y=1, z=2,
 def demo_lay1__info():
     return {
         'title': 'Test Column laytout with UOM',
-        'col': ['x-y', 'z-t'],
     }
 
 
@@ -207,7 +202,6 @@ def demo_lay1(x=5, y='6 ft', z=7, t='8 ft'):
 def demo_lay0__info():
     return {
         'title': 'Test Column laytout no UOM',
-        'col': ['x-y', 'z-t'],
     }
 
 

@@ -121,8 +121,6 @@ def q1141_read_func_meta(func_id, scope='qpots'):
         # visual aids
         'images': {},  # {'top':['img1',...],'bottom':['img1',...],left and right not supported}
         # layout
-        'row': [],  # ['arg1-argN',...] #legacy
-        'col': [],  # number or ['arg1-argN',...] # legacy
         'layout': 'lr',  # 'lr' or 'tb', effective value is resolved per request (mod_prefs)
         'inp1': '*',  # array or css string, parameter filtering
         'out1': '*',  # array or css string, parameter filtering

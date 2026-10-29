@@ -90,7 +90,6 @@ def demo_table2__info():
             'x': {'initial': df_x},
             'tsel': QList.get("test")
         },
-        'col': ['x', 'y'],
     }
 
 
@@ -117,7 +116,6 @@ def demo_table__info():
             'x': {'initial': df_x},
             'tsel': QList.get("test")
         },
-        'col': ['x', 'y'],
     }
 
 
@@ -244,7 +242,6 @@ def demo_hide(x=5, y: qhide = 3, z=100.5, t: float = 200, u='5ft'):
 def demo_cal2__info():
     return {
         'title': 'Cal Calling Cal',
-        'col': ['c-b', 'r2-anytext'],
     }
 
 

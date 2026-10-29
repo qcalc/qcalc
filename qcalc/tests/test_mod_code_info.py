@@ -335,12 +335,12 @@ def test_anyof_groups_are_validated():
 
 
 def test_extra_keys_accept_public_keys_only():
-    extra = "{'step2': [{'step': 'run'}], 'single_instance': True, 'row': ['x-y'], 'inp1': 0.5, 'xpr': 1, 'foo': 2}"
+    extra = "{'step2': [{'step': 'run'}], 'single_instance': True, 'inp1': 0.5, 'xpr': 1, 'foo': 2}"
     result = build_info('def calc(x=1.0)', hints={'extra': extra})
 
     assert result.spec['step2'] == [{'step': 'run'}] and result.spec['single_instance'] is True
-    assert not {'row', 'inp1', 'xpr', 'foo'} & set(result.spec)
-    assert sum('legacy' in w for w in result.warnings) == 2
+    assert not {'inp1', 'xpr', 'foo'} & set(result.spec)
+    assert sum('legacy' in w for w in result.warnings) == 1
     assert any("'xpr'" in w and 'itself' in w for w in result.warnings)
     assert any("'foo'" in w for w in result.warnings)
 

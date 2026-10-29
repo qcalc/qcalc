@@ -30,9 +30,9 @@ GENERATED_KEYS = (
     'schema', 'kins', 'tags', 'proper', 'remember', 'table_out_all', 'fargs',
 )
 INTERNAL = {'name', 'help', 'clean', 'template', 'qsel2', 'qlist', 'table_in', 'table_out', 'xpr', 'url', 'loop', 'cost'}
-LEGACY = {'row', 'col', 'inp1', 'out1'}
+LEGACY = {'inp1', 'out1'}
 OVERRIDABLE = {
-    'title', 'desc', 'calculate', 'schema', 'interactive', 'autofill', 'related', 'showhide', 'anyof', 'row', 'col',
+    'title', 'desc', 'calculate', 'schema', 'interactive', 'autofill', 'related', 'showhide', 'anyof',
     'layout', 'inp1', 'out1', 'input_columns', 'output_columns', 'input_blocks', 'output_blocks', 'onsubmit',
     'script', 'kins', 'tags', 'xpr', 'url', 'loop', 'step2', 'cost', 'single_instance', 'single_instance_key',
     'provides_data', 'consumes_data', 'inserts', 'table_out_all', 'proper', 'remember',

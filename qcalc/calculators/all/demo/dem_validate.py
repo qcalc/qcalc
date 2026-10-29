@@ -16,9 +16,6 @@ def demo_vali__info():
             'd_disabled': {'disabled': True},
             'email': {'validators': [validate_email]}
         },
-        "col": ['2-4', '5-8'],
-        # "row":['8'],
-        # "template": 'v4.21',
         'autofill': {
             'a_autofill': {
                 'fields': ['a_required', 'email'],

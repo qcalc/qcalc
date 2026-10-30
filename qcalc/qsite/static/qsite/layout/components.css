@@ -298,6 +298,19 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, .2);
 }
 .qcalc-slider[hidden] { display: none; }
-.qcalc-slider input[type=range] { width: 100%; margin: 0; accent-color: var(--primary, #17a2b8); }
+/* mobile: in-flow under the field instead of floating */
+.qcalc-slider.qcalc-slider-inline {
+  position: static;
+  width: auto;
+  margin: 4px 0 8px;
+  padding: 6px 10px 4px;
+  box-shadow: none;
+}
+.qcalc-slider-inline input[type=range] {
+  height: 32px;
+  touch-action: none;
+}
+.qcalc-slider-inline .qcalc-slider-ends { font-size: .8rem; }
+.qcalc-slider input[type=range] { width: 100%; margin: 0; accent-color: var(--primary, #17a2b8); cursor: pointer; }
 .qcalc-slider-ends { display: flex; justify-content: space-between; font-size: .7rem; opacity: .7; }
 .qcalc-slider-ends output { font-weight: 600; opacity: 1; }

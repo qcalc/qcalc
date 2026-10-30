@@ -929,6 +929,14 @@ div.calc {
   flex-basis: calc(100% / var(--calc-cols, 100) - 1px);
   }
 
+/* col-sm only grows from 576px up; let calculators fill the row on small screens too */
+@media (max-width: v.$mobile-breakpoint-max) {
+  #content-holder > .calc {
+    flex-grow: 1;
+    max-width: 100%;
+    }
+  }
+
 div.inpart {
   min-width: v.$min-section;
   /*** enables container queries on inpart width ***/

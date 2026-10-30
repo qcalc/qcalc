@@ -1025,6 +1025,13 @@ div.calc {
   flex-basis: calc(100% / var(--calc-cols, 100) - 1px);
 }
 
+/* col-sm only grows from 576px up; let calculators fill the row on small screens too */
+@media (max-width: 767.98px) {
+  #content-holder > .calc {
+    flex-grow: 1;
+    max-width: 100%;
+  }
+}
 div.inpart {
   min-width: 320px;
   /*** enables container queries on inpart width ***/

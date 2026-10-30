@@ -200,13 +200,19 @@ class QFieldHandler:
         return QtyField(fields, fnames, fvalues, fsufxs, **options)
 
     def _uom_choices(self, uname):
+        # In subset mode the list may carry an extra default unit (e.g. 'roti' for gold), so
+        # lists of one lmt can differ. Each distinct list gets its own datalist id; reusing one
+        # id for several datalists makes the client collect every option once per datalist.
         lmt = unit2lmt(uname)
-        use_subset = self.uom_subset
-        cache_key = (lmt, use_subset, uname) if use_subset else lmt
+        ulist = lmt2ulist(lmt, subset=self.uom_subset, default_uname=uname)
+        cache_key = (lmt, tuple(u[0] for u in ulist))
         list_exists = cache_key in self.list_added
         if not list_exists:
-            self.list_added[cache_key] = lmt2ulist(lmt, subset=use_subset, default_uname=uname)
-        return lmt, list_exists, self.list_added[cache_key]
+            n = sum(1 for k in self.list_added if isinstance(k, tuple) and k[0] == lmt)
+            list_id = lmt if n == 0 else f'{lmt}_{n}'
+            self.list_added[cache_key] = (list_id, ulist)
+        list_id, ulist = self.list_added[cache_key]
+        return list_id, list_exists, ulist
 
     def create_uom2_field(self, field_meta, options):
         # | in case of uom2 and select2 field_meta['initial'] is replaced with current posted value

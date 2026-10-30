@@ -95,6 +95,25 @@ def test_rchoice_field_without_explicit_choices():
     assert handler.formfields['scale'].choices == [('2', '2')]
 
 
+def test_uom_subset_datalists_have_unique_ids(monkeypatch):
+    monkeypatch.setattr('qcore.mod_qforms.request_prefs', lambda: {'uom_subset_enabled': True})
+    schema = [
+        {'name': name, 'type': 'uom2', 'initial': unit, 'required': False}
+        for name, unit in [('a', 'sqft'), ('b', 'roti'), ('c', 'decimal'), ('d', 'roti'), ('e', 'm2')]
+    ]
+    handler = QFieldHandler('x', schema, 'cid', [{'type': 's'}] * len(schema), {}, {})
+    widgets = [handler.formfields[n].widget for n in 'abcde']
+
+    # A datalist is emitted only by the first widget of each distinct list; ids must be unique.
+    emitted = [w.list_id for w in widgets if not w.list_exists]
+    assert len(emitted) == len(set(emitted))
+    assert {w.list_id for w in widgets} == set(emitted)
+    # fields sharing the same option list share the id
+    assert widgets[0].list_id == widgets[4].list_id
+    assert widgets[1].list_id == widgets[3].list_id
+    assert widgets[0].list_id != widgets[1].list_id
+
+
 def test_qty_widget_reads_exact_child_names_with_double_underscore():
     widgets = {
         '': forms.TextInput(),

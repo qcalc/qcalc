@@ -43,6 +43,68 @@
     var cfg = null;
     var suspendedForm = null;
     var wasEnabled = false;
+    var INLINE_QUERY = '(pointer: coarse), (max-width: 575.98px)';
+    var inlineMq = window.matchMedia(INLINE_QUERY);
+
+    function inlineMode() {
+        return inlineMq.matches;
+    }
+
+    // Phones: the slider is a normal block right after the field, so it scrolls with
+    // the page and can't drift when the soft keyboard / visual viewport changes.
+    function anchorFor(el) {
+        return el.closest('.input-group') || el;
+    }
+
+    // Layout changes (collapsing the old slider, docking under another field) must not
+    // happen between pointerdown and click, or the tap lands on whatever moved under the
+    // finger. Run them after the click, with a timeout for taps that never click.
+    var settleTimer = null;
+    var settleClick = null;
+    var settling = false;
+
+    function cancelSettle() {
+        window.clearTimeout(settleTimer);
+        if (settleClick) {
+            document.removeEventListener('click', settleClick);
+        }
+        settleTimer = null;
+        settleClick = null;
+        settling = false;
+    }
+
+    function afterTap(fn) {
+        cancelSettle();
+        settling = true;
+        var run = function() {
+            cancelSettle();
+            fn();
+        };
+        settleClick = function() {
+            window.setTimeout(run, 0);
+        };
+        document.addEventListener('click', settleClick);
+        settleTimer = window.setTimeout(run, 600);
+    }
+
+    function dock() {
+        var anchor = anchorFor(active);
+        if (box.previousElementSibling !== anchor) {
+            anchor.insertAdjacentElement('afterend', box);
+        }
+        box.classList.add('qcalc-slider-inline');
+        box.style.left = '';
+        box.style.top = '';
+        box.style.width = '';
+        box.style.visibility = 'visible';
+    }
+
+    function undock() {
+        if (box.classList.contains('qcalc-slider-inline')) {
+            box.classList.remove('qcalc-slider-inline');
+            document.body.appendChild(box);
+        }
+    }
 
     function extraFor(cid) {
         var field = document.getElementById(EXTRA_PREFIX + cid);
@@ -198,6 +260,14 @@
             unbind();
             return;
         }
+        if (inlineMode()) {
+            if (!settling) {
+                dock();
+            }
+            return;
+        }
+        cancelSettle();
+        undock();
         var r = active.getBoundingClientRect();
         if (r.bottom < 0 || r.top > window.innerHeight) {
             box.style.visibility = 'hidden';
@@ -226,14 +296,50 @@
         var cs = window.getComputedStyle(el);
         box.style.background = cs.backgroundColor;
         box.style.color = cs.color;
+        var shifting = inlineMode() && !box.hidden
+            && box.classList.contains('qcalc-slider-inline')
+            && box.previousElementSibling !== anchorFor(el);
         box.hidden = false;
+        if (shifting) {
+            // still shown under the previous field: keep its space until the tap is over
+            box.style.visibility = 'hidden';
+            afterTap(function() {
+                if (active === el) {
+                    place();
+                    reveal(el);
+                }
+            });
+            return;
+        }
+        cancelSettle();
         place();
+        reveal(el);
+    }
+
+    function reveal(el) {
+        if (inlineMode()) {
+            window.setTimeout(function() {
+                if (active === el && box && !box.hidden) {
+                    box.scrollIntoView({block: 'nearest', behavior: 'smooth'});
+                }
+            }, 300);
+        }
     }
 
     function unbind() {
         resume();
-        if (box) {
-            box.hidden = true;
+        if (box && !box.hidden) {
+            if (inlineMode() && box.classList.contains('qcalc-slider-inline')) {
+                // keep the slider's height until the tap is over, so nothing shifts under the finger
+                box.style.visibility = 'hidden';
+                afterTap(function() {
+                    if (!active) {
+                        box.hidden = true;
+                    }
+                });
+            } else {
+                box.hidden = true;
+            }
         }
         active = null;
         cfg = null;
@@ -349,6 +455,7 @@
     });
 
     window.addEventListener('resize', place);
+    inlineMq.addEventListener('change', place);
     document.addEventListener('scroll', place, true);
     document.addEventListener('htmx:afterSwap', function() {
         if (active && !document.documentElement.contains(active)) {

@@ -376,8 +376,9 @@ function chainEvent(elementId, eventName, eventFn)
     }
 }
 
-function sm2toggle()
+function sm2toggle() // closes the mobile secondary sidebar if open; safe to combine with other close handlers
 {
+    if (!document.body.classList.contains('sidebar-mobile-secondary')) return;
     document.querySelector('.sidebar-mobile-secondary-toggle').click();
 }
 

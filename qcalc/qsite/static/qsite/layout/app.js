@@ -70,6 +70,27 @@ var App = (function () {
         });
     }
 
+    /* close the mobile main sidebar after picking a navigation option */
+    function _sidebarMobileMainAutoClose() {
+        $(document).on('click', '#sidebar-main .nav-sidebar a.nav-link', function () {
+            if ($(this).parent().hasClass('nav-item-submenu')) return; // only toggles a submenu
+            if (!$('body').hasClass('sidebar-mobile-main')) return;
+            $('body').removeClass('sidebar-mobile-main');
+            _removeBackdrop();
+        });
+    }
+
+    /* close the mobile secondary sidebar after an action link is clicked or a form is submitted */
+    function _sidebarMobileSecondaryAutoClose() {
+        function close() {
+            if (!$('body').hasClass('sidebar-mobile-secondary')) return;
+            $('body').removeClass('sidebar-mobile-secondary');
+            _removeBackdrop();
+        }
+        $(document).on('click', '#sidebar-secondary a[hx-get]', close);
+        $(document).on('submit', '#sidebar-secondary form', close);
+    }
+
     /* .sidebar-mobile-expand → fullscreen sidebar on mobile */
     function _sidebarMobileFullscreen() {
         $(document).on('click', '.sidebar-mobile-expand', function (e) {
@@ -112,6 +133,8 @@ var App = (function () {
             _sidebarSecondaryToggle();
             _sidebarMobileMainToggle();
             _sidebarMobileSecondaryToggle();
+            _sidebarMobileMainAutoClose();
+            _sidebarMobileSecondaryAutoClose();
             _sidebarMobileFullscreen();
             _headerElements();
             _dropdownSubmenu();

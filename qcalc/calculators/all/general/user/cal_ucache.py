@@ -15,6 +15,7 @@ from calc.mod_api_keys import ApiKeyError, create_api_key, list_api_keys, revoke
 from calc.mod_api_quota import api_limits, key_usage
 from django.conf import settings
 import logging
+import qconst
 from qcore import QScreen, quom, color_schemes, legend_locations, qtext, qinfo, qwarn
 from qutil import nzs, css2strs, truncate, user_process, callback_button, QThread, is_loggedin, addcal_button, qaddr
 from qvars import qc_gpref as gs
@@ -42,7 +43,7 @@ def pref__info():
     general_options = 'interactive, slider, layout, calc_per_row, uom_subset_enabled, memory, strict_*'
     number_options = 'ignore_decimal_format, decimal, *_decimal, thousands_separator, exponent_*'
     chart_options = 'chart_*'
-    other_options = 'theme, defa_currency, execution_timeout, xpr_max_table_cells, openai_model'
+    other_options = 'theme, defa_currency, execution_timeout, xpr_max_table_cells, remember_file_kb, openai_model'
     pane1 = {'title': 'General', 'fields': general_options}
     pane2 = {'title': 'Number', 'fields': number_options}
     pane3 = {'title': 'Chart', 'fields': chart_options}
@@ -137,11 +138,17 @@ def pref__info():
             },
             'execution_timeout': {
                 'attrs': {'max': MAX_EXECUTION_TIMEOUT, 'min': MIN_EXECUTION_TIMEOUT},
-                'help_text': 'Calculator execution timeout in seconds from 1 to 900.',
+                'help_text': f'Calculator execution timeout in seconds from {MIN_EXECUTION_TIMEOUT} to {MAX_EXECUTION_TIMEOUT}.',
             },
             'xpr_max_table_cells': {
                 'attrs': {'max': '10000', 'min': '0'},
                 'help_text': 'Maximum number of table cells expression building can continue with, from 0 to 10000.',
+            },
+            'remember_file_kb': {
+                'attrs': {'max': str(qconst.REMEMBER_FILE_KB_MAX), 'min': '0'},
+                'help_text': f'Largest uploaded file in KB that is remembered as calculator input, '
+                             f'from 0 to {str(qconst.REMEMBER_FILE_KB_MAX)}; 0 never remembers files. '
+                             f'Larger files must be selected again.',
             },
             'openai_model': {
                 'type': 'select2',
@@ -199,6 +206,7 @@ def pref__input(_kwargs):  # alternative to func__info() 'schema':{}'
         'strict_table_input': us['strict_table_input'],
         'execution_timeout': us['execution_timeout'],
         'xpr_max_table_cells': us['xpr_max_table_cells'],
+        'remember_file_kb': us['remember_file_kb'],
         'openai_model': us['openai_model'],
     }
 
@@ -228,6 +236,7 @@ def pref(  # pref-03
     strict_table_input: bool,
     execution_timeout: int,
     xpr_max_table_cells: int,
+    remember_file_kb: int,
     openai_model,
 ):
     theme = _normalize_theme(theme)
@@ -258,6 +267,7 @@ def pref(  # pref-03
         'strict_table_input': strict_table_input,
         'execution_timeout': int(execution_timeout),
         'xpr_max_table_cells': xpr_max_table_cells,
+        'remember_file_kb': max(0, min(int(remember_file_kb), qconst.REMEMBER_FILE_KB_MAX)),
         'openai_model': openai_model,
     }
     try:

@@ -83,6 +83,10 @@ TABLE_MAX_COLS = 125  # Maximum number of columns
 TABLE_MAX_CELLS = 50000  # Maximum number of celss
 TABLE_MAX_CELLS_XPR = 1000 # Maximum number of cells that allows an expression to be built
 
+# Size limit (KB) of an uploaded file the session remembers as calculator input; user preference, 0 = never remember files
+REMEMBER_FILE_KB_DEFAULT = 300
+REMEMBER_FILE_KB_MAX = 450
+
 # Expression builder limit
 SCALAR_LENGTH = 512  # Maximum length of a scalar value or string for expression builder to process
 

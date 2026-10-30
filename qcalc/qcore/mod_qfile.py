@@ -9,6 +9,7 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 import base64
 import json
 from qutil.mod_url import fetch_url
+from qutil.mod_file import decode_text
 
 
 # https://docs.djangoproject.com/en/4.0/ref/settings/#std-setting-DATA_UPLOAD_MAX_MEMORY_SIZE
@@ -28,10 +29,10 @@ class QFile:
         return f'File {self.file_name}'
 
     def text(self):
-        return self.file_bytes.decode('utf-8')
+        return decode_text(self.file_bytes)
 
     def txt_buf(self):
-        return io.StringIO(self.file_bytes.decode('utf-8'))
+        return io.StringIO(decode_text(self.file_bytes))
 
     def bin_buf(self):
         return io.BytesIO(self.file_bytes)  # base64.b64encode
@@ -43,16 +44,19 @@ class QFile:
             'text/plain': 'txt',
             'text/xml': 'xml',
             'text/html': 'html',
+            'text/markdown': 'md',
             'application/json': 'json',
             'application/msaccess': 'accdb',
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'xlsx',
             # 'sqlite, unknown - application/octet-stream'
         }
+        ext = os.path.splitext(self.file_name)[1].lower().lstrip('.')
+        if ext in ('md', 'markdown'):  # browsers often send .md as text/plain
+            return ext
         ct = self.file_mem.content_type
         if ct in ctypes:
             return ctypes[ct]
-        ext = os.path.splitext(self.file_name)[1].lower().lstrip('.')
         return ext or 'unknown'
 
     def save2temp(self):

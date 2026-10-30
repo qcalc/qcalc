@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
+from django.template.defaultfilters import filesizeformat
 from django.utils.html import format_html
 from .qc_qty import *
 from .mod_qfields import *
@@ -30,6 +31,19 @@ class RangeWidget(forms.NumberInput):
             '<output class="range-cur" style="font-weight:400;color:#0d6efd">{}</output>'
             '<span class="range-max">{}</span></div></div>',
             slider, lo, cur, hi)
+
+
+class RememberedFileInput(forms.FileInput):
+    # A browser never pre-fills a file input, so the name of a file remembered
+    # on the server (QFile restored from QMem) is shown next to the input instead.
+    def render(self, name, value, attrs=None, renderer=None):
+        html = super().render(name, value, attrs, renderer)
+        file_name = getattr(value, 'file_name', None)
+        if not file_name:
+            return html
+        return format_html(
+            '{}<small class="remembered-file text-muted d-block">Remembered: {} ({})</small>',
+            html, file_name, filesizeformat(len(value.file_bytes)))
 
 
 class QFieldHandler:
@@ -350,6 +364,7 @@ class QFieldHandler:
     def create_file_field(self, field_meta, options):  # tested
         max_mb = max_file_mb(field_meta.get('max_mb'))
         options['validators'].append(validate_file_size(max_mb))
+        options['widget'] = options['widget'] or RememberedFileInput()
         field = forms.FileField(**options)
         field.widget.attrs.setdefault('data-max-mb', f'{max_mb:g}')  # read by validateFileSize() in qcalc.js
         return field
@@ -368,6 +383,7 @@ class QFieldHandler:
     def create_image_field(self, field_meta, options):
         max_mb = max_file_mb(field_meta.get('max_mb'))
         options['validators'].append(validate_file_size(max_mb))
+        options['widget'] = options['widget'] or RememberedFileInput()
         field = forms.ImageField(**options)
         field.widget.attrs.setdefault('data-max-mb', f'{max_mb:g}')  # read by validateFileSize() in qcalc.js
         return field

@@ -21,6 +21,7 @@
   "strict_assign": false,
   "strict_table_input": false,
   "execution_timeout": 60,
+  "remember_file_kb": 300,
   "openai_model": "gpt-5.4-mini",
   "range_limit": 999,
   "demo_mode": true,

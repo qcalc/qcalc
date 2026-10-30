@@ -2,6 +2,7 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 import qvars
+import qconst
 from qutil import css2strs, nzs, HtmxHttpRequest, check_setting, QThread, fid2owner, get_object, is_loggedin
 from django.core.cache import caches
 from django.conf import settings
@@ -301,15 +302,25 @@ class QMem:
             rqsn.modified = True
 
     @classmethod
+    def file_limit_bytes(cls):
+        # | user preference remember_file_kb, clamped to 0..REMEMBER_FILE_KB_MAX; 0 = never remember files
+        kb = QPref.getp1('remember_file_kb', qconst.REMEMBER_FILE_KB_DEFAULT)
+        try:
+            kb = int(kb)
+        except (TypeError, ValueError):
+            kb = qconst.REMEMBER_FILE_KB_DEFAULT
+        return max(0, min(kb, qconst.REMEMBER_FILE_KB_MAX)) * 1024
+
+    @classmethod
     def setf(cls, sfunc, mem_dict):
         request = QThread.get_req()
         if sfunc in cls.xlist:
             return
+        limit = cls.file_limit_bytes()
         for key, val in mem_dict.items():
             if isinstance(val, QFile):
-                # | do not cache the file if more than 300 KB
-                # | by default memcached item size is 1 MB
-                if len(val.file_bytes) > 307200:  # 300KB
+                # | the whole session is one cache item (memcached default max 1 MB), so large files are not kept
+                if len(val.file_bytes) > limit:
                     mem_dict[key] = ''
 
         rqsn = request.session

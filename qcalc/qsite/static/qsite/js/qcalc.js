@@ -458,7 +458,11 @@ function validateFileSize(input, max_mb) {
     if (file.size > maxSize) {
         alert("File size must be less than "+max_mb+" MB.");
         input.value = ''; // Clear the input
+        return;
     }
+    // a newly chosen file replaces the one remembered on the server
+    const remembered = input.parentElement.querySelector('.remembered-file');
+    if (remembered) remembered.remove();
 }
 
 function addFooterClick() {

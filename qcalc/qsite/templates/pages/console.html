@@ -19,13 +19,14 @@
     .command-line .response {
         user-select: text; /* Allow text selection */
     }
-    .elem-wrapper.fullscreen .qconsole {
+    .elem-wrapper.fullscreen-local .qconsole {
         height: 95vh;
+        height: 95dvh;
     }
 </style>
-<div class="elem-wrapper" style="width:100%;">
+<div class="elem-wrapper block-wrap dark-surface">
 <div id="qconsole" class="qconsole "></div>
-<span class="fullscreen-square" onclick="toggleFullscreen(this.closest('.elem-wrapper'))"></span>
+<div class="wrap-actions"><button type="button" class="fullscreen-square" title="Maximize" aria-label="Maximize" onclick="toggleFullscreen(this.closest('.elem-wrapper'))"></button></div>
 </div>
 <script src="{% static_ver 'qsite/js/qconsole.js' %}"></script>
 {% endblock %}

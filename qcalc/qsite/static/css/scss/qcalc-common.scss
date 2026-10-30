@@ -37,8 +37,8 @@
 	  border: 1px solid v.$border-default;
 	  }
 
-/* Full Screen */
-.fullscreen {
+/* Full Screen: CSS overlay shared by all maximizable controls (no browser Fullscreen API) */
+.elem-wrapper.fullscreen-local {
     background: v.$background-fullscreen;
     padding: v.$fullscreen-padding;
     z-index: 9999;
@@ -46,26 +46,91 @@
     }
 
 .elem-wrapper {
+    --fs-offset: calc(#{v.$fullscreen-padding} + 4px); /* corner offset of .wrap-actions */
+    --fs-size: 20px; /* maximize square and sibling action buttons */
     position: relative;
     display: inline-block;
     }
 
-.fullscreen-square {
+/* Full-width controls (qcode, console); tables and chat define their own block rules */
+.elem-wrapper.block-wrap {
+    display: block;
+    width: 100%;
+    }
+
+/* Corner toolbar shared by all maximizable controls; the maximize square is always its last item */
+.wrap-actions {
     position: absolute;
-    top: calc(v.$fullscreen-padding + 3px);
-    right: calc(v.$fullscreen-padding + 3px);
-    width: 20px;
-    height: 20px;
-    border: 2px solid v.$border-fullscreen-square;
-    background-color: v.$background-fullscreen-square;
+    top: var(--fs-offset);
+    right: var(--fs-offset);
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    z-index: 20; /* keep above table header and editor content */
+    }
+
+.fullscreen-square,
+.wrap-actions-btn {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--fs-size);
+    height: var(--fs-size);
+    margin: 0;
+    padding: 0;
+    border: 2px solid var(--fs-border, #{v.$border-fullscreen-square});
+    background-color: var(--fs-bg, #{v.$background-fullscreen-square});
+    color: var(--fs-fg, inherit);
+    line-height: 1;
     cursor: pointer;
     border-radius: 4px;
     box-sizing: border-box; /* Ensures padding and border don't affect size */
     }
 
-.fullscreen-square:hover {
-    border-color: v.$border-hover-fullscreen-square;
+.fullscreen-square:hover,
+.wrap-actions-btn:hover {
+    border-color: var(--fs-border-hover, #{v.$border-hover-fullscreen-square});
     }
+
+/* Override Bootstrap's dotted button:focus outline; keyboard focus gets a soft ring like .btn:focus */
+.fullscreen-square:focus,
+.wrap-actions-btn:focus {
+    outline: 0;
+    }
+
+.fullscreen-square:focus-visible,
+.wrap-actions-btn:focus-visible {
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+
+/* Always-dark controls (qcode/Dracula, console): light-on-dark toolbar buttons */
+.elem-wrapper.dark-surface {
+    --fs-border: rgba(255, 255, 255, 0.35);
+    --fs-border-hover: rgba(255, 255, 255, 0.65);
+    --fs-bg: transparent;
+    --fs-fg: #f8f8f2;
+    }
+
+/* Overlay geometry for fullscreen-local (no browser Fullscreen API) */
+.elem-wrapper.fullscreen-local {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh; /* excludes mobile browser UI */
+  box-sizing: border-box;
+  }
+
+body.qcalc-fs-lock {
+  overflow: hidden;
+  }
+
+@media (pointer: coarse) {
+  .elem-wrapper {
+    --fs-size: 28px;
+    }
+  }
 
 /* Trial: fullscreen behavior for table-in and table-out wrappers. */
 /* Keep table surfaces aligned with each themed section while preserving control contrast. */
@@ -83,10 +148,6 @@
   width: 100%;
   max-width: 100%;
   overflow-x: auto;
-  }
-
-.elem-wrapper.table-wrap .fullscreen-square {
-  z-index: 20; /* keep icon above table header */
   }
 
 .elem-wrapper.table-wrap .table-responsive.table-in,
@@ -209,33 +270,10 @@
   margin: 0;
 }
 
-/* Shared fullscreen layout for table wrappers (browser fullscreen + local fullscreen). */
-.elem-wrapper.table-wrap.fullscreen,
-.elem-wrapper.table-wrap.fullscreen-local {
-  /* display: flex;  remove */
-  /* flex-direction: column; remove (no effect without flex) */
-  /* gap: 8px;  remove (no effect without flex) */
-  width: 100vw;
-  height: 100vh;
-  padding: v.$fullscreen-padding;
-  box-sizing: border-box;
-  overflow: auto;
-  }
-
-/* Local fullscreen overlay mode used for no-flicker structural re-renders. */
-.elem-wrapper.table-wrap.fullscreen-local {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  background: v.$background-fullscreen;
-  padding: v.$fullscreen-padding;
-  }
-
-/* Let table region fill remaining vertical space in fullscreen modes. */
-.elem-wrapper.table-wrap:is(.fullscreen, .fullscreen-local) .table-responsive.table-in,
-.elem-wrapper.table-wrap:is(.fullscreen, .fullscreen-local) .table-responsive.table-out,
-.elem-wrapper.table-wrap:is(.fullscreen, .fullscreen-local) .tabulator {
-  flex: 1 1 auto;
+/* Let table region fill the overlay in fullscreen mode. */
+.elem-wrapper.table-wrap.fullscreen-local .table-responsive.table-in,
+.elem-wrapper.table-wrap.fullscreen-local .table-responsive.table-out,
+.elem-wrapper.table-wrap.fullscreen-local .tabulator {
   min-height: 0;
   height: auto;
   max-height: none;
@@ -243,13 +281,8 @@
   max-width: 100%;
   }
 
-/* Keep table-in controls visible under table in fullscreen modes. */
-.elem-wrapper.table-wrap:is(.fullscreen, .fullscreen-local) .table-responsive.table-in + span {
-  flex: 0 0 auto;
-}
-
 /* Trial: keep tabulator context menu visible above fullscreen content. */
-.elem-wrapper.table-wrap:is(.fullscreen, .fullscreen-local) .tabulator-menu {
+.elem-wrapper.table-wrap.fullscreen-local .tabulator-menu {
   z-index: 10050;
   }
 
@@ -701,19 +734,12 @@ label {
   width: 100%;
   }
 
-.elem-wrapper.chat-wrap .fullscreen-square {
-  z-index: 20;
-  }
-
-.elem-wrapper.chat-wrap.fullscreen {
+.elem-wrapper.chat-wrap.fullscreen-local {
   display: flex;
-  width: 100vw;
-  height: 100vh;
-  box-sizing: border-box;
   overflow: hidden;
   }
 
-.elem-wrapper.chat-wrap.fullscreen .qchat {
+.elem-wrapper.chat-wrap.fullscreen-local .qchat {
   flex: 1 1 auto;
   min-height: 0;
   height: 100%;

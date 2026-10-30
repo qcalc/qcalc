@@ -8,7 +8,7 @@ from django.forms import Widget
 import pandas as pd
 import json
 from qutil import resize_df
-from qcore.mod_anno import is_qtbl, wrap_actions
+from qcore.mod_anno import is_qtbl, wrap_actions, fullscreen_button
 from qconst import TOK_ROW, TOK_COL, TOK_TABLE_RESIZE, TOK_TABLE_ED, TOK_TABLE_UPDATE, TOK_ID_PREFIX, TOK_FIELD_SEP
 
 
@@ -140,31 +140,12 @@ class CodeWidget_codemirror(Widget):
                 caret-color: currentColor;
                 color: inherit !important;
             }
-            .elem-wrapper.fullscreen .CodeMirror {
+            .elem-wrapper.fullscreen-local .CodeMirror {
                 height: calc(100vh - 16px);
-            }
-            .code-widget-controls {
-                align-items: center;
-                display: flex;
-                gap: 0.35rem;
-                position: absolute;
-                right: 5px;
-                top: 10px;
-                z-index: 25;
-            }
-            .code-widget-controls .fullscreen-square {
-                position: static;
+                height: calc(100dvh - 16px);
             }
             .code-widget-menu {
                 position: relative;
-            }
-            .code-widget-menu-toggle {
-                align-items: center;
-                display: inline-flex;
-                height: 20px;
-                justify-content: center;
-                min-width: 20px;
-                padding: 0;
             }
             .code-widget-menu-panel {
                 min-width: 180px;
@@ -179,12 +160,11 @@ class CodeWidget_codemirror(Widget):
         </style>
         '''
         ret += f'''
-        <div class="elem-wrapper" style="width:100%;">
+        <div class="elem-wrapper block-wrap dark-surface">
         <textarea id="{self.id}" name="{name}"{extra_attrs_str}{' disabled' if disabled else ''}{' readonly' if readonly else ''}>{escape(value) if value else ""}</textarea>
-        <div class="code-widget-controls">
-            <span class="fullscreen-square" onclick="toggleFullscreen(this.closest('.elem-wrapper'))"></span>
+        <div class="wrap-actions">
             <div class="code-widget-menu">
-                <button type="button" class="btn btn-info btncmd code-widget-menu-toggle" title="Code actions"
+                <button type="button" class="wrap-actions-btn" title="Code actions"
                         aria-label="Code actions" onclick="toggleCodeMirrorWidgetMenu(this, '{self.id}_menu')">
                     <i class="icon-menu"></i>
                 </button>
@@ -200,6 +180,7 @@ class CodeWidget_codemirror(Widget):
                     <button type="button" class="dropdown-item" onclick="codeMirrorWidgetMenuAction('{self.id}', 'save')">Save to file</button>
                 </div>
             </div>
+            {fullscreen_button()}
         </div>
          <input type="file" id="{self.id}_upload" accept=".py,text/x-python" class="inputfile"
              onchange="uploadCodeMirrorWidget(this, '{self.id}')">

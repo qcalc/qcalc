@@ -44,35 +44,6 @@
         return specByLanguage[language] || specByLanguage.python;
     }
 
-    function toggleWrapperFullscreen(wrapper) {
-        if (!wrapper) {
-            return;
-        }
-
-        if (typeof window.toggleFullscreen === 'function') {
-            window.toggleFullscreen(wrapper);
-            return;
-        }
-
-        if (!document.fullscreenElement) {
-            wrapper.classList.add('fullscreen');
-            if (wrapper.requestFullscreen) {
-                wrapper.requestFullscreen().catch(function(err) {
-                    alert('Error attempting to enable fullscreen: ' + err.message);
-                });
-            }
-            return;
-        }
-
-        if (document.exitFullscreen) {
-            document.exitFullscreen().then(function() {
-                wrapper.classList.remove('fullscreen');
-            });
-        } else {
-            wrapper.classList.remove('fullscreen');
-        }
-    }
-
     function initializeCodeMirrorWidget(textareaId) {
         const textarea = document.getElementById(textareaId);
         if (!textarea || textarea.dataset.codemirrorInitialized === 'true') {
@@ -125,17 +96,22 @@
                 'Cmd-S': function() {
                     downloadCodeMirrorWidget(textareaId);
                 },
-                F11: function(cm) {
-                    const wrapper = textarea.closest('.elem-wrapper');
-                    toggleWrapperFullscreen(wrapper);
-                    setTimeout(function() {
-                        cm.refresh();
-                    }, 100);
+                F11: function() {
+                    toggleFullscreen(textarea.closest('.elem-wrapper'));
                 }
             }
         });
 
         textarea.dataset.codemirrorInitialized = 'true';
+
+        const fsWrapper = textarea.closest('.elem-wrapper');
+        if (fsWrapper) {
+            fsWrapper.addEventListener('qcalc:fullscreen', function() {
+                setTimeout(function() {
+                    editor.refresh();
+                }, 50);
+            });
+        }
 
         if (typeof ResizeObserver !== 'undefined') {
             new ResizeObserver(function() {

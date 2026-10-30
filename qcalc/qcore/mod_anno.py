@@ -365,10 +365,15 @@ def convert_to_type(value, target_type):
         return value
 
 
+def fullscreen_button():
+    return ('<button type="button" class="fullscreen-square" title="Maximize" aria-label="Maximize" '
+            'onclick="toggleFullscreen(this.closest(\'.elem-wrapper\'))"></button>')
+
+
 def wrap_actions(html_element, wrapper_class=''):
     cls = f"elem-wrapper {wrapper_class}".strip()
     return f"""<div class="{cls}">{html_element}
-    <span class="fullscreen-square" onclick="toggleFullscreen(this.closest('.elem-wrapper'))"></span></div>"""
+    <div class="wrap-actions">{fullscreen_button()}</div></div>"""
 
 
 # json data type doesn't have q-prfix, refer to mod_qjfield.py

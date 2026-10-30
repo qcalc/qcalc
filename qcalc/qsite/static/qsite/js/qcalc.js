@@ -509,37 +509,35 @@ document.addEventListener('DOMContentLoaded', function() {
     fileinput(document, window, 0);
 });
 
-function toggleFullscreen(elem) {
-    // Table wrappers use local fullscreen to avoid flicker on form re-render.
-    if (elem && elem.classList && elem.classList.contains('table-wrap')) {
-        elem.classList.toggle('fullscreen-local');
+// All controls maximize through a CSS overlay (.fullscreen-local, position: fixed).
+// The browser Fullscreen API is not used: it is unsupported on iPhone Safari and unreliable on mobile.
+function setFullscreen(elem, on) {
+    if (!elem || !elem.classList) {
         return;
     }
-
-    if (!document.fullscreenElement) {
-        elem.classList.add('fullscreen');
-        elem.requestFullscreen().catch(err => {
-            alert(`Error attempting to enable fullscreen: ${err.message}`);
-        });
-    } else {
-        document.exitFullscreen().then(() => {
-            elem.classList.remove('fullscreen');
-        });
-    }
+    elem.classList.toggle('fullscreen-local', on);
+    document.body.classList.toggle('qcalc-fs-lock', !!document.querySelector('.elem-wrapper.fullscreen-local'));
+    elem.dispatchEvent(new CustomEvent('qcalc:fullscreen', { bubbles: true, detail: { on: on } }));
 }
 
-// Escape closes only local table fullscreen overlays; browser fullscreen keeps its own ESC behavior.
+function toggleFullscreen(elem) {
+    if (!elem || !elem.classList) {
+        return;
+    }
+    setFullscreen(elem, !elem.classList.contains('fullscreen-local'));
+}
+
 document.addEventListener('keydown', function(event) {
     if (event.key !== 'Escape') {
         return;
     }
 
-    const localFullscreen = document.querySelector('.elem-wrapper.table-wrap.fullscreen-local');
+    const localFullscreen = document.querySelector('.elem-wrapper.fullscreen-local');
     if (!localFullscreen) {
         return;
     }
 
-    localFullscreen.classList.remove('fullscreen-local');
+    setFullscreen(localFullscreen, false);
 });
 
 

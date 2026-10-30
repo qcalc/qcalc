@@ -1,9 +1,12 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
+import io
+
 import pandas as pd
 
 import qconst
+from qutil.mod_url import fetch_url
 
 
 def df2qtbl(df):
@@ -74,6 +77,10 @@ def csv2df(buff_or_url, delimiter=',', quoting='1'):
         anyway = False
 
     delimiter = DELIMITER_ALIASES.get(delimiter, delimiter)
+
+    if isinstance(buff_or_url, str) and buff_or_url.strip().lower().startswith(('http://', 'https://')):
+        # pandas would fetch with urllib's default User-Agent (blocked by Cloudflare) and skip the SSRF/size guards
+        buff_or_url = io.BytesIO(fetch_url(buff_or_url.strip()).content)
 
     if buff_or_url:
         # a regex delimiter (e.g. r'\s+' for "whitespace") needs the python engine

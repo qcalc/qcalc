@@ -14,6 +14,9 @@ from qutil.mod_settings import is_debug, max_file_mb
 
 _MAX_REDIRECTS = 3
 _FETCH_TOTAL_TIMEOUT_S = 20  # per-chunk read timeouts alone don't stop a slow-drip response
+# Default library user agents (python-requests, Python-urllib) are rejected with 403 by Cloudflare
+# bot protection; a stable custom UA also lets a Cloudflare WAF skip rule target the server's own fetches.
+_FETCH_HEADERS = {'User-Agent': 'Mozilla/5.0 (compatible; QCalcFetcher/1.0; +https://qcalc.org)'}
 
 
 def assert_public_http_url(url: str):
@@ -53,7 +56,7 @@ def fetch_url(url: str, *, max_bytes: int | None = None, check_status: bool = Tr
     deadline = time.monotonic() + _FETCH_TOTAL_TIMEOUT_S
     for _ in range(_MAX_REDIRECTS + 1):
         assert_public_http_url(url)  # re-validated on every redirect hop
-        with requests.get(url, timeout=(3, 15), stream=True, allow_redirects=False) as resp:
+        with requests.get(url, headers=_FETCH_HEADERS, timeout=(3, 15), stream=True, allow_redirects=False) as resp:
             if resp.is_redirect:
                 url = urljoin(url, resp.headers['Location'])
                 continue

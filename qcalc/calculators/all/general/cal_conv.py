@@ -2,7 +2,7 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 from qcore import _unit_tree, qx, qxi, to_ucur
-from qcore import read_unit, lmt2ulist, lmt2cat, _unit_info, _base_categ_mlist, lmt2qlist
+from qcore import read_unit, lmt2ulist, lmt2cat, _unit_info, _base_categ_mlist, lmt2qlist, dim_to_bname, _base_names, _conv_names
 from qutil import css2strs, list2table, find_matched_variables, cal_link, calurl
 from calc import QCals
 import itertools
@@ -23,28 +23,40 @@ def convert_list(ulist):
     return links
 
 
-def conv2__info():
-    lmt = 'L'
+def _conv2_ulist(lmt):
     ulist = lmt2ulist(lmt)
-    qlist = lmt2qlist(lmt)
+    if not ulist and len(lmt) > 1:  # | composite dimension without units, same default as the qty catalog
+        ulist = []
+        for names, label in ((_base_names, 'primary base'), (_conv_names, 'secondary base')):
+            uname = dim_to_bname(lmt, names)
+            if uname not in [u[0] for u in ulist]:
+                ulist.append((uname, f'{uname} ({label})'))
+    return ulist
+
+
+def _conv2_mode_list(qlist):
     if len(qlist) > 0:
-        mode_list = {
+        return {
             'u2u': 'Unit -> Unit',
             'u2q': 'Unit -> Quantity',
             'q2u': 'Quantity -> Unit',
             'q2q': 'Quantity -> Quantity'
         }
-    else:
-        mode_list = {
-            'u2u': 'Unit -> Unit',
-        }
+    return {'u2u': 'Unit -> Unit'}
+
+
+def conv2__info():
+    lmt = 'L'
+    ulist = lmt2ulist(lmt)
+    qlist = lmt2qlist(lmt)
+    mode_list = _conv2_mode_list(qlist)
 
     return {
         'title': f'Unit Converter',
         'desc': '',
         'schema': {
             'quantity': {
-                # 'type':'qsel2' doesn't trigger hx-get, because select2 change the element properties at runtime
+                # | 'type':'qsel2' doesn't trigger hx-get, because select2 change the element properties at runtime
                 'type': 'choice', 'choices': _base_categ_mlist(),
                 'initial': lmt,
                 'attrs': {
@@ -89,10 +101,45 @@ def conv2__info():
     }
 
 
-def conv2__input(_kwargs):
+def _conv2_lmt(request, kwargs):
+    # | posted value while submitting, url value while loading; '-', '--' etc. fall back to 'L'
+    if request is not None and request.method == 'POST':
+        lmt = request.POST.get('quantity', '')
+    else:
+        lmt = kwargs.get('quantity', '')
+    lmt = str(lmt).upper()
+    return lmt if lmt in dict(_base_categ_mlist()) else 'L'
+
+
+def conv2__schema(request, kwargs):
+    # | unit and quantity choices depend on the selected quantity (dimension)
+    lmt = _conv2_lmt(request, kwargs)
+    ulist = _conv2_ulist(lmt)
+    qlist = lmt2qlist(lmt)
     return {
-        'unit_cost': to_ucur('@UNC/ft'),
+        'mode': {'choices': _conv2_mode_list(qlist)},
+        'from_unit': {'choices': ulist},
+        'to_units': {'choices': ulist},
+        'from_qty': {'choices': qlist},
+        'to_qty': {'choices': qlist},
     }
+
+
+def conv2__input(kwargs):
+    # | default selections must be valid for the selected quantity
+    lmt = _conv2_lmt(None, kwargs)
+    ulist = _conv2_ulist(lmt)
+    qlist = lmt2qlist(lmt)
+    inp = {'unit_cost': to_ucur('@UNC/ft')}
+    if lmt == 'L':  # | explicit, because fargs may carry values set by a previous quantity
+        inp.update(from_unit=['ft'], to_units=['m'], from_qty='l_earth_moon', to_qty='')
+        return inp
+    if ulist:
+        inp['from_unit'] = [ulist[0][0]]
+        inp['to_units'] = [ulist[1][0] if len(ulist) > 1 else ulist[0][0]]
+    inp['from_qty'] = qlist[0][0] if qlist else ''
+    inp['to_qty'] = ''
+    return inp
 
 
 def conv2(quantity='L', mode='u2u', value: qtexta = '1.0', from_unit=['ft'], from_qty='l_earth_moon',

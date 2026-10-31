@@ -41,7 +41,7 @@ All services (qCalc/Gunicorn, Nginx, Certbot, PostgreSQL, Memcached) run as Dock
 
 ## Prerequisites
 
-- Ubuntu 22.04 LTS or 24.04 LTS VPS with root / sudo access
+- Ubuntu 22.04 LTS, 24.04 LTS, or 26.04 VPS with root / sudo access
 - A registered domain name pointed at the VPS IP address
 - SSH access to the server
 
@@ -142,10 +142,12 @@ nano ~/qcalc_dock/Dockerfile
 
 Search and replace the following placeholders:
 
-- `<your_host_name>`
-- `<pg_user_password>` or `<mysql_user_password>` and `<mysql_root_password>`
+- `<your_host_name>` (1 occurrence)
+- `<pg_user_password>` or `<mysql_user_password>` and `<mysql_root_password>` (1 occurrence)
 
-Review Gunicorn instances and number of workers.
+Review Gunicorn instances (look for `GUNICORN_INSTANCE_ID`) and number of workers (look for `--workers`).
+There are multiple lines for multiple instances, keep/delete according to the number of instances you want.
+Also, there are multiple workers per instances, modify the number as per your requirement.
 
 > The compose file uses `~/qcalc_dock/.local/` paths for all volumes. No edits are required unless you change the installation directory.
 
@@ -176,13 +178,21 @@ nano ~/qcalc_dock/.local/nginx/conf/default.conf.init
 ### 6c. Full HTTPS template (used after the SSL certificate is obtained)
 
 ```bash
-cp ~/qcalc_dock/qcalc/setup/nginx/template_default.conf.template-prod.conf.conf \
+cp ~/qcalc_dock/qcalc/setup/nginx/template_default.conf.template-prod.conf \
    ~/qcalc_dock/.local/nginx/templates/default.conf.template.off
 ```
 
 > The `.off` suffix prevents Nginx from processing this template before the SSL certificate exists.
 > `${NGINX_HOST}` placeholders in this file are automatically replaced by the Nginx Docker container using the `NGINX_HOST` environment variable set in `docker-compose.yml`.
 
+Edit the default.conf.template.off file to make the number of instances consistent:
+```bash
+upstream qcal_servers {
+    server qcal:8001;
+    server qcal:8002;
+    ...
+}
+```
 ---
 
 ## 7. Configure Environment Files
@@ -208,7 +218,7 @@ cp ~/qcalc_dock/qcalc/setup/env/template_prod.env ~/qcalc_dock/qcalc/.setup/prod
 nano ~/qcalc_dock/qcalc/.setup/prod.env
 ```
 
-Key settings to fill in (see `setup/env/template_all_env_settings.env` for the full reference):
+In your newly copied .env file in .setup folder, key settings to fill in are described below (see `setup/env/template_all_env_settings.env` for the full reference).
 Set the DJANGO_SECRET_KEY value after generating the key using the command mentioned as the current value of the key.
 
 Generate a strong secret key on the development system (as your app will run from docker, your server may not need python to be installed to generate secret) and add it to the `prod.env` file. Do not commit the production key to the git repository.
@@ -220,23 +230,49 @@ DJANGO_SECRET_KEY="<python -c 'import secrets; print(secrets.token_urlsafe(50))'
 DB_ENGINE="django.db.backends.postgresql_psycopg2"
 DB_NAME="qcalc"
 DB_USER="qcalc"
-DB_PASSWORD="<db_user_password>"       # matches POSTGRES_PASSWORD in docker-compose.yml
-DB_HOST="postgres"                     # Docker service/container name, not localhost
+### matches POSTGRES_PASSWORD in docker-compose.yml
+DB_PASSWORD="<db_user_password>"
+### Docker service/container name, not localhost
+DB_HOST="postgres"
 DB_PORT="5432"
 
-DEFAULT_CACHE_ALIAS="memcached"
-MEMCACHE_HOST="memcached"    # Docker service/container name
-MEMCACHE_PORT="11211"
+# DEFAULT_CACHE_ALIAS="memcached"
+### Docker service/container name
+# MEMCACHE_HOST="memcached"
+# MEMCACHE_PORT="11211"
 
-# Paths inside the qcalc container (must match docker-compose.yml volumes)
+DEFAULT_CACHE_ALIAS="redis"
+REDIS_PUBSUB="1"
+### 127.0.0.1 if not running from docker, docker service name if running from docker
+REDIS_HOST="redis"
+REDIS_PORT="6379"
+REDIS_DB="1"
+
+### Paths inside the qcalc container (must match docker-compose.yml volumes)
 FILE_UPLOAD_TEMP_DIR="/usr/src/qcalc_dock/.temp/"
 JSON_FILES_DIR="/usr/src/qcalc_dock/qcalc_res/json/"
 HELP_FILES_DIR="/usr/src/qcalc_dock/qcalc_res/help/"
 DOCS_FILES_DIR="/usr/src/qcalc_dock/qcalc_res/docs/"
 AI_MODELS_DIR="/usr/src/qcalc_dock/qcalc_res/model/"
 
-FIXER_API_KEY="<your_fixer_api_key>"        # obtain an API key for currency rates update
-OPENW_API_KEY="<your_openweather_api_key>"  # this is optional
+### You can use either EXRATE or FIXER for currency exchange rate
+### Obtain an EXRATE API key for currency rates update
+EXRATE_API_KEY="<your_exrate_api_key>"
+EXRATE_API_URL="https://v6.exchangerate-api.com/v6/{api_key}/latest/USD"
+
+### You can use either EXRATE or FIXER for currency exchange rate
+### Obtain an FIXER API key for currency rates update
+#FIXER_API_KEY="<your_fixer_api_key>"
+#FIXER_API_URL="http://data.fixer.io/api/latest?access_key="
+
+### Optinally setup OpenAI API Key
+### Obtain an OpenAI API key for ai related functionality
+#OPENAI_API_KEY="<your_fixer_api_key>"
+#OPENAI_API_KEY_QUOTA="user_day=20,ip_day=50,global_day=250,global_month=2500"
+
+### Optinally setup Openweather API Key
+#OPENW_API_KEY="<your_openweather_api_key>"
+#OPENW_API_URL="http://api.openweathermap.org/data/2.5/weather"
 
 DJANGO_EMAIL_BACKEND="django.core.mail.backends.smtp.EmailBackend"
 DJANGO_EMAIL_HOST="<smtp.yourmailprovider.com>"
@@ -264,13 +300,13 @@ cp ~/qcalc_dock/qcalc/setup/env/template_gpref.json ~/qcalc_dock/qcalc/gpref.jso
 docker volume create static
 ```
 
-or if you have opted for postgres
+If you have opted for `postgres`
 
 ```bash
 docker volume create pgdata
 ```
 
-or if you have opted for mysql
+or if you have opted for `mysql`
 
 ```bash
 docker volume create mysqldata
@@ -288,7 +324,7 @@ Activate the HTTP-only Nginx config so Certbot can complete the ACME challenge:
 cp ~/qcalc_dock/.local/nginx/conf/default.conf.init \
    ~/qcalc_dock/.local/nginx/conf/default.conf
 cd ~/qcalc_dock
-docker compose up
+docker compose up -d
 ```
 
 ---
@@ -347,7 +383,11 @@ Restart the containers to pick up the new config:
 cd ~/qcalc_dock
 docker compose restart
 ```
-
+Wait for about 2 minutes. You can use the follwoing command to check the status:
+```bash
+docker ps
+docker logs qclac
+```
 Open `https://<your_domain>` in a browser to verify the site is live and the certificate is valid.
 
 ---
@@ -358,10 +398,19 @@ Open `https://<your_domain>` in a browser to verify the site is live and the cer
 - Replace placeholder API keys in `.setup/prod.env` (Fixer.io, OpenWeather, OpenAI, etc.).
 - Review `robots.txt` — copy and rename a template from `~/qcalc_dock/qcalc/setup/txt/` to `~/qcalc_dock/qcalc/qsite/static/qsiite/` folder.
 
+if you want to expose the site to search engine, then issue following command:
 ```bash
 cp ~/qcalc_dock/qcalc/setup/txt/template_robots.prod.txt \
    ~/qcalc_dock/qcalc/qsite/static/qsite/robots.txt
 ```
+
+if you DO NOT WANT to expose the site to search engine yet (e.g. for a test site), then issue following command:
+```bash
+cp ~/qcalc_dock/qcalc/setup/txt/template_robots.dev.txt \
+   ~/qcalc_dock/qcalc/qsite/static/qsite/robots.txt
+```
+
+
 You verify it using the url: `https://<your_domain>/robots.txt`
 
 ---

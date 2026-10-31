@@ -84,6 +84,17 @@ def q11429_func_to_form_schema(request: HtmxHttpRequest, func_addr, func_id, cid
             else:
                 request.json_doc['info'][key] = finfs[key]
 
+    # | start callback point __schema (q11429, views_form_data.py)
+    # | func__schema(request, func url parameters)
+    # | per-request override of schema properties e.g. choices, evaluated on every form build (not cached)
+    if QCals.func_exists(func_id + '__schema'):
+        schema_override = QCals.addr(func_id + '__schema')(request, kwargs)
+        info_schema = request.json_doc['info']['schema']
+        for name, meta in (schema_override or {}).items():
+            # | new dict, so that the (cached) __info dicts are never mutated
+            info_schema[name] = {**info_schema.get(name, {}), **meta}
+    # | end exit point
+
     # print(fargs, fanns, finfs,request.json_doc['info'])
     request.json_schema = []  # schema for form
     request.json_data = {}  # data for form

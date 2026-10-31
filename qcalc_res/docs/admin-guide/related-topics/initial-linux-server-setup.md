@@ -44,7 +44,7 @@ sudo apt update && sudo apt upgrade -y
 
 ### d. Create swap space 
 
-Recommended for small servers with 4GB of RAM or less. First, check if swap is already configured by running free -h. The command below creates a 1GB swap file. However, it is generally recommended to match your swap size to your total RAM.
+Recommended for small servers with 4GB of RAM or less. First, check if swap is already configured by running `free -h`. The command below creates a 1GB swap file. However, it is generally recommended to match your swap size to your total RAM.
 
 ```bash
 sudo fallocate -l 1G /swapfile

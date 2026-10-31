@@ -175,9 +175,6 @@ def qty_tree(request: HtmxHttpRequest):
     return ut.get_page(request, template, context, 'qty_tree')
 
 
-
-
-
 def qty_ulist(request: HtmxHttpRequest):
     lmt = request.GET.get('quantity', 'L').upper()
     mode = request.GET.get('mode', 'u2u').lower()
@@ -352,6 +349,7 @@ def search_tag(request: HtmxHttpRequest):
     context = {"calc_data": nodes}
     template = 'search-tag.html'
     return render(request, template, context)
+
 
 def search_unit(request: HtmxHttpRequest):
     # check if a unit is being searched

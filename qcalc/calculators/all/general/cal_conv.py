@@ -3,8 +3,8 @@
 
 from qcore import _unit_tree, qx, qxi, to_ucur
 from qcore import read_unit, lmt2ulist, lmt2cat, _unit_info, _base_categ_mlist, lmt2qlist, dim_to_bname, _base_names, _conv_names
-from qutil import css2strs, list2table, find_matched_variables, cal_link, calurl
-from calc import QCals
+from qutil import css2strs, list2table, find_matched_variables, cal_link, calurl, QThread
+from calc import QCals, QMem, QPref
 import itertools
 from qcore.mod_anno import *
 from qconst import amount_help_text
@@ -102,13 +102,22 @@ def conv2__info():
 
 
 def _conv2_lmt(request, kwargs):
-    # | posted value while submitting, url value while loading; '-', '--' etc. fall back to 'L'
+    # | precedence is the same as in the form: posted value > url value > remembered value > 'L'
+    # | '-', '--' and other invalid values are ignored
+    request = request or QThread.get_req()
+    valid = dict(_base_categ_mlist())
+
+    def checked(value):
+        value = str(value or '').upper()
+        return value if value in valid else ''
+
     if request is not None and request.method == 'POST':
-        lmt = request.POST.get('quantity', '')
+        lmt = checked(request.POST.get('quantity'))
     else:
-        lmt = kwargs.get('quantity', '')
-    lmt = str(lmt).upper()
-    return lmt if lmt in dict(_base_categ_mlist()) else 'L'
+        lmt = checked(kwargs.get('quantity'))
+        if not lmt and request is not None and getattr(request, 'recall', False) and QPref.getp1('memory') > 0:
+            lmt = checked((QMem.getf('conv2') or {}).get('quantity'))
+    return lmt or 'L'
 
 
 def conv2__schema(request, kwargs):

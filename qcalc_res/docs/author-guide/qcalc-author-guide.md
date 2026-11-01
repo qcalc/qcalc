@@ -19,6 +19,8 @@
   * [7.2 `__modify(arg_name, arg_value, action)`](#72-__modifyarg_name-arg_value-action)
   * [7.3 `__command(fkwargs, extra)`](#73-__commandfkwargs-extra)
   * [7.4 `__help()`](#74-__help)
+  * [7.5 `__schema(request, kwargs)`](#75-__schemarequest-kwargs)
+  * [7.6 Hooks at a glance](#76-hooks-at-a-glance)
   * [8. Working with quantities and units using `Qty()`](#8-working-with-quantities-and-units-using-qty)
   * [9. Form behavior patterns you can reuse](#9-form-behavior-patterns-you-can-reuse)
   * [10. Full template (copy/paste)](#10-full-template-copypaste)
@@ -100,6 +102,10 @@ syntax checking, saving data, deleting entries, or executing auxiliary actions t
 itself. It provides a clean way to support workflow actions around the calculator while keeping the actual 
 computation logic separate.
 
+- **__schema()**: The `__schema()` function overrides properties of the `schema` entries of `__info()`, 
+typically the `choices` of a field, every time the form is built. Because `__info()` is evaluated once and may be cached, 
+`__schema()` is the place for choices that depend on the request, e.g. units that depend on a selected quantity.
+
 - **__help()**: The `__help()` function supplies help content or contextual guidance for the calculator.
 This allows dynamic help content possible. This is different from static help file that can be associated with a calculator.
 
@@ -112,6 +118,7 @@ meta function declarations may also need some parameters as mentioned below (wil
   - `wall_paint__input(kwargs)`
   - `wall_paint__modify(arg_name, arg_value, action)`
   - `wall_paint__command(kwargs, extra)`
+  - `wall_paint__schema(request, kwargs)`
   - `wall_paint__help()`
 
 ## 3. Minimal calculator example
@@ -218,6 +225,8 @@ This is why `__input()` is best for dynamic defaulting, while posted values stil
 
 ## 7. Optional hooks
 
+For a side-by-side comparison of all the metadata functions, see [7.6 Hooks at a glance](#76-hooks-at-a-glance).
+
 ## 7.1 `__input(_kwargs)`
 
 Use to set or override initial values before render.
@@ -252,6 +261,90 @@ def beam_load__command(fkwargs, extra):
 ## 7.4 `__help()`
 
 Use to provide custom help HTML for the calculator.
+
+## 7.5 `__schema(request, kwargs)`
+
+`__info()` is evaluated once and may be cached, so it cannot produce choices that depend on what the user selected. 
+Use `__schema()` for that. It is called every time the form is built, and the dictionary it returns is merged over 
+the matching `schema` entries of `__info()`.
+
+```python
+def conv2__info():
+    return {
+        'schema': {
+            'quantity': {  # changing it reloads the calculator with the new quantity
+                'type': 'choice', 'choices': _base_categ_mlist(), 'initial': 'L',
+                'attrs': {'hx-get': '/catalog/ulist/', 'hx-target': 'closest .calc',
+                          'hx-swap': 'outerHTML'},
+            },
+            'from_unit': {'type': 'multiplechoice', 'choices': lmt2ulist('L')},  # fallback
+        },
+    }
+
+
+def conv2__schema(request, kwargs):
+    # posted value when submitting, url value when loading
+    lmt = request.POST.get('quantity') if request.method == 'POST' else kwargs.get('quantity', 'L')
+    return {'from_unit': {'choices': lmt2ulist(lmt)}}
+```
+
+- `request` is the current request. `kwargs` holds the values given in the calculator url, 
+e.g. `quantity` for `/calc/add/?path=conv2/quantity/M/`. Remembered input values are not part of `kwargs`.
+- Return `{field_name: {property: value}}`. Only the returned properties replace those from `__info()`, 
+so return only what changes (typically `choices`).
+- When a submitted form is rebuilt for validation, `request.method` is `'POST'` and the selected value is in 
+`request.POST`. Read it from there, otherwise a `choice` or `multiplechoice` field rejects the posted value.
+- Pair it with `__input(kwargs)` to return default values that are valid for the new choices, because the 
+function defaults or `__info()` initial values may not be among them.
+- The `kwargs` values may be placeholders such as `-` or `--`, so validate the value and fall back to a default.
+
+> **Reloading is not automatic yet (backend calculators only).** `__schema()` only runs when the form is built. 
+Changing a field does not rebuild the form by itself. The `hx-get` attributes in the example above, and the 
+`/catalog/ulist/` route they call, are specific to the built-in `conv2` unit converter: selecting a quantity opens 
+the calculator again with that quantity in the url. A backend calculator can add its own `hx-*` attributes and route 
+in the same way. Frontend calculator authors cannot add routes yet, so until a general mechanism is available they 
+can use `__schema()` only when the value comes from the calculator url 
+(for example from a link to `/calc/add/?path=<your_calculator>/<field>/<value>/`).
+
+> **`related` or `__schema()`?** `related` runs in the browser and updates instantly, so use it for small fixed 
+cascades (see [Calculator meta functions](calculator-meta-functions.md#42-related-dependent-selections)). 
+`__schema()` runs on the server, supports large or computed choices and any widget type, and keeps the field's 
+validation, but it needs the form to be rebuilt.
+
+## 7.6 Hooks at a glance
+
+Check this section before adding custom logic. It compares what each metadata function receives, when it runs, 
+and what happens to what it returns. `__info()` is included for comparison.
+
+**When it runs and what it receives**
+
+| Hook | When it runs | Arguments | Data available | Extra data or command sent to it |
+|---|---|---|---|---|
+| `__info()` | Whenever calculator metadata is read: building the form, the catalog (title, description, tags) and the API. The form-related keys (`schema`, `autofill`, `related`, `showhide`, `anyof`, `fargs`, `script`) may be cached. | none | module-level code only | nothing |
+| `__input(kwargs)` | Every time the form is built (first load and after a post), before remembered values are applied | `kwargs`: values given in the calculator url | url `kwargs`. On a post, `kwargs` is empty. The request is available only to backend calculators, through `QThread.get_req()`. | url `path/key/value/...` |
+| `__schema(request, kwargs)` | Every time the form is built, after `__info()` and before the fields are created | `request`, `kwargs` | the request (`request.POST`, `request.method`, ...), url `kwargs`, the `__info()` schema | url `kwargs`, posted values in `request.POST` |
+| `__modify(arg_name, arg_value, action)` | Only when a `callback_button(..., '__modify', ...)` is posted, once per field named in its `args` or `kwargs` | `arg_name`, `arg_value` (the posted value of that field, converted to the field's type), `action` (the text given for that field in `kwargs`) | that one field. Other posted fields only through the request (backend calculators). | `extra = {cmd, args, kwargs}` from the button |
+| `__command(fkwargs, extra)` | Only when a `callback_button(..., '__command', ...)` is posted and the form is valid | `fkwargs`: all fields, validated, as the calculator function would receive them. `extra`: the button data. | all validated fields | `extra = {cmd, args, kwargs}` from the button |
+| `__help()` | When the calculator's help is displayed | none | module-level code only | nothing |
+
+**What it returns and how the return is used**
+
+| Hook | Returns | What happens to the return | If it raises an error | Typical use |
+|---|---|---|---|---|
+| `__info()` | dictionary of info keys | Overrides the defaults of the form. `qfunc_info.json` overrides it in turn. Form-related keys are merged into the calculator's info. | metadata errors are mostly ignored when building the form; other readers may report them | titles, field types, static choices, layout |
+| `__input()` | `{field: value}` | Replaces the default values of those fields. Remembered values, url values and posted values can still override them. | the form fails to build | defaults computed at run time |
+| `__schema()` | `{field: {property: value}}` | Merged over that field's `schema` entry of `__info()` | the form fails to build | `choices` that depend on the request |
+| `__modify()` | a new value, or `qinfo`, `qwarn` or `qerror` | A value replaces that field's value in the re-rendered form. A message object is shown and the posted value is kept. The form is not validated. | the error is logged and the posted value is kept | format or load a value |
+| `__command()` | any output: text, dictionary, or `qinfo`, `qwarn`, `qerror` | Shown as the calculator's output. A message object, or text starting with `Error (` or `Warning (`, is shown as a message only. | shown as `Error (POSTP): ...` | validate, save, delete, other actions |
+| `__help()` | HTML text | shown in the calculator's help area | not handled | dynamic help |
+
+**What the hooks cannot do today**
+
+- Only `__schema()` can change a field's `choices` (or other schema properties) for a request. `__info()` is static and the other hooks only change values.
+- Only `__modify()` can set a field's value after a post, and only one field per call, and only for the fields listed on the button. It cannot set or reset other fields, or their choices.
+- `__command()` returns output only. It cannot change the form, and it does not run if the form is not valid.
+- `__input()` and `__modify()` do not receive the request. Backend calculators can get it with `QThread.get_req()`, which is not allowed in frontend calculators.
+- No hook receives "field X changed" together with all current field values and returns new values and choices for several fields at once. Today this is done by reloading the calculator, as `conv2` does.
 
 ## 8. Working with quantities and units using `Qty()`
 
@@ -368,7 +461,7 @@ def mycalfunc(x="10 ft", y="2 ft", mode="A", notes: qtexta = ""):
   - Fix: Keep exactly the same base name before `__...`.
 
 - Mistake: Unknown meta suffix such as `mycalfunc__metadata`.
-  - Fix: Only use known suffixes (`__info`, `__input`, `__modify`, `__command`, `__help`).
+  - Fix: Only use known suffixes (`__info`, `__input`, `__modify`, `__command`, `__help`, `__schema`).
 
 - Mistake: Returning unitless strings where a quantity is expected.
   - Fix: Normalize with `Qty(...)`, and return converted `Qty` values.
@@ -385,6 +478,6 @@ def mycalfunc(x="10 ft", y="2 ft", mode="A", notes: qtexta = ""):
 - Implement `mycalfunc(...)` with clear defaults.
 - Add `mycalfunc__info()` with at least title and schema/layout as needed.
 - Use `Qty()` at input normalization points and output conversion points.
-- Add optional callbacks only when needed (`__input`, `__modify`, `__command`, `__help`).
+- Add optional callbacks only when needed (`__input`, `__modify`, `__command`, `__schema`, `__help`).
 - Verify calculator appears in catalog and renders expected form behavior.
 - Run sample calculations with mixed units and edge cases.

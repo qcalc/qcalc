@@ -28,7 +28,7 @@ def template_name(layout, input_columns, output_columns):
 def side_columns(columns, group1, all_fields=None):
     """Column count (1 or 2) of one side of a static template.
 
-    An explicit 1 or 2 wins. Otherwise two columns are needed only when some field is left out of
+    An explicit 1 or 2 wins. Otherwise, two columns are needed only when some field is left out of
     the first group. Without the field list (all_fields is None) the spec itself decides.
     """
     if columns in (1, 2):

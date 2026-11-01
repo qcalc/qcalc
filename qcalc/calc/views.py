@@ -9,6 +9,7 @@ from django.utils.html import format_html
 from django.views.decorators.http import require_POST
 import catalog.views
 from .mod_ucals import get_uc_list
+from .mod_mfunc import get_fhelp
 from .views_form_data import *
 from .mod_layout_dynamic import has_dynamic_layout, build_layout_plan
 from .mod_prefs import (
@@ -27,7 +28,6 @@ from .views_step2 import cache_step2_io
 from qutil import HtmxHttpRequest, preprocess_expression, fid2owner
 import qutil as ut
 import json
-# from urllib.parse import unquote  # Required only while fxpr values were URL-encoded for GET transport.
 from django.conf import settings
 import logging
 

@@ -61,7 +61,7 @@ qlib_dict = {
     'timedelta': datetime.timedelta, 'timezone': datetime.timezone,
     'Qty': Qty, 'q': Qty, 'qx': qx, 'qxi': qxi,
     # 'QCals': QCals, 'UCals': UCals, 'QFav': QFav,
-    # 'call': QCals.addr, (circular)
+    # | 'call': QCals.addr, (circular)
 }
 
 __qtypes__ = [
@@ -84,7 +84,7 @@ __evacon__ = [
     'qformat_q', 'qformat_v', 'to_ucur',  # qcore.mod_qcutil
     'ai_prompt_field', 'br',  # qcor.mod_fields
     'iif', 'joinx', 'css2floats', 'css2ints', 'css2values', 'css2strs', 'vals2css', 'css2set', 'css2dict',
-    'css2list', # qutil.mod_basic
+    'css2list',  # qutil.mod_basic
     'np', 'qdf', 'qcol', 'qrow', 'qsum', 'qapply', 'qadd', 'qsub', 'qmul', 'qdiv', 'qto_values',  # qapi.mod_qtbl
     'qconvert', 'qbinary', 'qdf_demo_data',
     'qtypes', 'qmodules', 'qsymbols', 'qsymstat', 'qsymhelp',  # qapi.mod_autil

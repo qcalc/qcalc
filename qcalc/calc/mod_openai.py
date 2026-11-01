@@ -135,10 +135,10 @@ def get_code(func_id: str = 'gold', show_meta=False, as_html=True):
         # func_id = func_name  # for qcalc functions
         if show_meta:
             for meta in qconst.KNOWN_METAS:
-                func_meta_id = f'{func_id}{meta}'
-                if QCals.func_exists(func_meta_id, scope='q'):
-                    fn_info = QCals.addr(func_meta_id, scope='q')
-                    source_blocks.append(inspect.getsource(fn_info))
+                meta_func_id = f'{func_id}{meta}'
+                if QCals.func_exists(meta_func_id, scope='q'):
+                    meta_callback_meta = QCals.addr(meta_func_id, scope='q')
+                    source_blocks.append(inspect.getsource(meta_callback_meta))
         try:
             fn = QCals.addr(func_id, scope='q')
             if fn:

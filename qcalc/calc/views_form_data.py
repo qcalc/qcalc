@@ -7,7 +7,7 @@ from qutil import HtmxHttpRequest, csv2df, user_name, is_loggedin, user_ip, cell
 from qcore import qhidex, qtable, qtbl, QFile, qlist_types, QFieldHandler, QEncoderBase, QJField, convert_to_type, \
     qinfo, qerror, qwarn
 import json
-from .mod_mfunc import *
+from .mod_mfunc import func_meta, COMBINE_FINF, qfunc, q0164_execute_qfunc
 import pandas as pd
 from qvars import qc_gpref as gs
 from .mod_prefs import apply_persistent_request_prefs, serialize_persistent_request_prefs
@@ -61,9 +61,10 @@ def q11429_func_to_form_schema(request: HtmxHttpRequest, func_addr, func_id, cid
     # | start callback point __input (q11429, views_form_data.py, line 37)
     # | func__input(request, func url parameters)
     # | modify initial input values
-    if QCals.func_exists(func_id + '__input'):
-        fn = QCals.addr(func_id + '__input')
-        defa_input = fn(kwargs)
+    input_meta_func = func_id + '__input'
+    if QCals.func_exists(input_meta_func):
+        input_meta_callback = QCals.addr(input_meta_func)  # (kwargs)
+        defa_input = input_meta_callback(kwargs)
         # kwargs.update(defa_input) @ 10.09.24 commented
         if defa_input:  # | precedence: 1. __info < 2 .json (q1141_read_func_meta) < 3. __input
             fargs.update(defa_input)
@@ -87,10 +88,11 @@ def q11429_func_to_form_schema(request: HtmxHttpRequest, func_addr, func_id, cid
     # | start callback point __schema (q11429, views_form_data.py)
     # | func__schema(request, func url parameters)
     # | per-request override of schema properties e.g. choices, evaluated on every form build (not cached)
-    if QCals.func_exists(func_id + '__schema'):
-        schema_override = QCals.addr(func_id + '__schema')(request, kwargs)
+    schema_meta_func = func_id + '__schema'
+    if QCals.func_exists(schema_meta_func):
+        schema_meta_callback = QCals.addr(schema_meta_func)(request, kwargs)  # (request, kwargs)
         info_schema = request.json_doc['info']['schema']
-        for name, meta in (schema_override or {}).items():
+        for name, meta in (schema_meta_callback or {}).items():
             # | new dict, so that the (cached) __info dicts are never mutated
             info_schema[name] = {**info_schema.get(name, {}), **meta}
     # | end exit point
@@ -261,13 +263,13 @@ def q11422_form_data_modify_after_post(request, func_id, sig_type, arg_name, arg
             # | start callback point __modify (q11422, views_form_data.py, line 197)
             # | func__modify(argname, argvalue, action), request.POST[] available
             # | modify input value of a specific argument after posting
-            cfunc = func_id + '__modify'
-            if QCals.func_exists(cfunc):
-                modify_callback = QCals.addr(cfunc)
+            modify_meta_func = func_id + '__modify'
+            if QCals.func_exists(modify_meta_func):
+                modify_meta_callback = QCals.addr(modify_meta_func)  # (arg_name, new_arg_value, action)
                 new_arg_value = convert_to_type(request.POST.get(arg_name), sig_type)
                 action = request.extra.get('kwargs', {}).get(arg_name, '')
                 try:
-                    result = modify_callback(arg_name, new_arg_value, action)
+                    result = modify_meta_callback(arg_name, new_arg_value, action)
                     if isinstance(result, (qerror, qwarn, qinfo)):
                         request._modify_message = result
                         return new_arg_value
@@ -405,15 +407,15 @@ def q11449_form_data_postprocess_and_run(request, func_id):  # cid
                 # | start callback point __command (q11449, views_form_data.py, line 279)
                 # | func__command(request, fkwargs, extra:dict), request.POST[] available
                 # | perform action or validate input values after posting
-                cfunc = func_id + '__command'
-                if QCals.func_exists(cfunc):
-                    command_callback = QCals.addr(cfunc)
+                command_meta_func = func_id + '__command'
+                if QCals.func_exists(command_meta_func):
+                    command_meta_callback = QCals.addr(command_meta_func)  # (args, kwargs)
                     q11441_data_for_function(request)
                     arg_dict2run = request.json_d4f.copy()
                     unflat_args = q0162_dictify_fargs(arg_dict2run)
-                    result = command_callback(unflat_args, request.extra)
+                    result = command_meta_callback(unflat_args, request.extra)
                 else:
-                    result = qerror(f'{cfunc}: not found')
+                    result = qerror(f'{command_meta_func}: not found')
                     request.success &= False
             elif request.cmd == '__modify':
                 modify_message = getattr(request, '_modify_message', None)

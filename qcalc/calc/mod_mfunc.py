@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
-# import qsett
 from .mod_qcals import QCals
 from qcore import qfunc, qdict
 import inspect
@@ -212,8 +211,9 @@ def get_fdef(func_addr, func_id):
             # | start callback point __info (q11429, mod_mfunc.py, line 166)
             # | func__info()
             # | information for form design and initial default input values
-            fninfo = QCals.addr(func_id + '__info')
-            func_info_from_func_def = fninfo()
+            info_meta_func = func_id + '__info'
+            info_meta_callback = QCals.addr(info_meta_func)  # ()
+            func_info_from_func_def = info_meta_callback()
             # | end exit point
         except:
             pass
@@ -251,6 +251,15 @@ def get_fdef(func_addr, func_id):
             infs[arg] = {DICT_CLASS_PLAIN: arg}
     # kwargs = {'func': func, 'kwargs': kwargs}
     return qargs, annos, infs
+
+
+def get_fhelp(func_id):
+    # | start callback point __help (q1, mod_cutil.py, line 117)
+    # | func__help()
+    # | get additional help text if any, will be printed after static help text inside help window
+    help_meta_func = func_id + '__help'
+    help_meta_callback = QCals.addr(help_meta_func)  # ()
+    return help_meta_callback if help_meta_callback else ''
 
 # Test helpers moved to qcalc/tests/test_mod_mfunc_helpers.py
 # See qcalc/tests/test_mod_mfunc_helpers.py for pytest-based tests.

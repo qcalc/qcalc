@@ -17,7 +17,6 @@
     * [4.2 `related`: Dependent selections](#42-related-dependent-selections)
     * [4.3 `showhide`: Reveal inputs only when needed](#43-showhide-reveal-inputs-only-when-needed)
     * [4.4 `anyof`: Alternative ways to provide one value](#44-anyof-alternative-ways-to-provide-one-value)
-    * [4.5 `__schema()`: Choices that depend on the request](#45-__schema-choices-that-depend-on-the-request)
   * [5. Layout Keys](#5-layout-keys)
         * [5.1 Preferred dynamic layout keys](#51-preferred-dynamic-layout-keys)
         * [5.2 Simple split layout keys](#52-simple-split-layout-keys)
@@ -351,6 +350,7 @@ def demo_related(country, province, city):
 
 * The current implementation supports up to four levels of dependency (e.g. country, state, city, zipcode). 
 * Do not put the same field in both `related` and `anyof` or `showhide`; these features can compete for control of it.
+* `related` data is fixed and updates in the browser. For choices that are computed on the server or depend on the request, see `__schema()` in [qCalc Author Guide](qcalc-author-guide.md#75-__schemarequest-kwargs).
 
 ### 4.3 `showhide`: Reveal inputs only when needed
 
@@ -397,41 +397,6 @@ Suppose you want to calculate the area of a circle by providing either the radiu
 
 * Use `anyof` when inputs are alternatives. When a user enters one value, qCalc clears the other fields in that group.
 * `circle_size` here is an arbitrary group name. You may define several groups of fields.
-
-### 4.5 `__schema()`: Choices that depend on the request
-
-`__info()` is evaluated once and may be cached, so it cannot produce choices that depend on what the user selected. For that, define an optional companion function `<calculator_name>__schema(request, kwargs)`. It is called every time the form is built, and its result overrides the matching `schema` properties of `__info()`.
-
-```python
-def conv2__info():
-    return {
-        'schema': {
-            'quantity': {  # changing it reloads the calculator with the new quantity
-                'type': 'choice', 'choices': _base_categ_mlist(), 'initial': 'L',
-                'attrs': {'hx-get': '/catalog/ulist/', 'hx-target': 'closest .calc',
-                          'hx-swap': 'outerHTML'},
-            },
-            'from_unit': {'type': 'multiplechoice', 'choices': lmt2ulist('L')},  # fallback
-        },
-    }
-
-
-def conv2__schema(request, kwargs):
-    # posted value when submitting, url value when loading
-    lmt = request.POST.get('quantity') if request.method == 'POST' else kwargs.get('quantity', 'L')
-    return {'from_unit': {'choices': lmt2ulist(lmt)}}
-```
-
-* `request` is the current request. `kwargs` holds the values given in the calculator url, e.g. `quantity` for `/calc/add/?path=conv2/quantity/M/`.
-* Return a dictionary of `{field_name: {property: value}}`. The properties are merged over the field's `schema` entry from `__info()`, so return only what changes (typically `choices`).
-* When a submitted form is rebuilt for validation, `request.method` is `'POST'` and the selected value is in `request.POST`. Read it from there, otherwise a `choice` or `multiplechoice` field rejects the posted value.
-* Pair it with `__input(kwargs)` to return default values that are valid for the new choices, because the `__info()` or function defaults may not be among them.
-* The kwargs values may be placeholders such as `-` or `--`, so validate the value and fall back to a default.
-
-> **Reloading is not automatic yet (backend calculators only).** `__schema()` only runs when the form is built. Changing a field does not rebuild the form by itself. The `hx-get` attributes in the example above, and the `/catalog/ulist/` route they call, are specific to the built-in `conv2` unit converter: selecting a quantity opens the calculator again with that quantity in the url. A back-end calculator can add its own `hx-*` attributes and route in the same way. Front-end calculator authors cannot add routes yet, so until a general mechanism is available they can use `__schema()` only when the value comes from the calculator url (for example from a link to `/calc/add/?path=<your_calculator>/<field>/<value>/`).
-
-> **`related` or `__schema()`?** `related` runs in the browser and updates instantly, so use it for small fixed cascades (see [4.2](#42-related-dependent-selections)). `__schema()` runs on the server, supports large or computed choices and any widget type, and keeps the field's validation, but it needs the form to be rebuilt.
-
 
 ## 5. Layout Keys
 
@@ -598,7 +563,7 @@ For an easier and more readable way to create the dictionary returned by `__info
 2. Add a plain-language `title` and a concise `desc` when the calculation needs context.
 3. Match every metadata field name to a parameter exactly.
 4. Use `schema` for meaningful choices, labels, help text, and widgets.
-5. Test every `autofill`, `related`, `showhide`, `anyof`, and `__schema()` interaction in a browser.
+5. Test every `autofill`, `related`, `showhide`, and `anyof` interaction in a browser.
 6. Return correctly named outputs.
 7. Use JavaScript and HTML hooks only for trusted, reviewed code.
 8. Use user-friendly tags and titles that make the calculator discoverable.

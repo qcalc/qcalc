@@ -167,7 +167,6 @@ def fxpr_from_json(func_id, json_data, json_data_type, forced=False):
                 return ''
             json_data_copy[name] = sc_val
 
-    # json_data_copy = {k: v for k, v in json_data_copy.items()}  # if v is not None}
     func_call_str = json_to_func_call(func_id, json_data_copy)
     return func_call_str
 
@@ -235,14 +234,6 @@ def json_to_func_call(func_id, json_var):
 
 def xpr2loop(xpr: str):
     return xpr + "/varx_start/1/varx_stop/1/varx_step/1/step_round/2"
-
-
-def get_fhelp(func_id):
-    # | start callback point __help (q1, mod_cutil.py, line 117)
-    # | func__help()
-    # | get additional help text if any, will be printed after static help text inside help window
-    fhelp = QCals.addr(func_id + '__help')
-    return fhelp if fhelp else ''
 
 
 def valid_numq(val, is_print=False):

@@ -87,7 +87,7 @@ def collect(output: qtable = pd.DataFrame({"SL": [1, 2], "Value": [
 
 def cost__input(ctx):
     # probably it is better to restrict invoking __input() during GET only
-    items = ctx.var_url_kwargs.get('items')  # var_url_kwargs data available only during GET
+    items = ctx.var_url('items')  # var_url data available only during GET
     if isinstance(items, pd.DataFrame):  # can't have if items, truth value of df is ambiguous
         items['Quantity'] = items['Quantity'].apply(qformat_q)  # format data
         return {

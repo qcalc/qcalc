@@ -3,7 +3,7 @@
 
 from calc import QMem, QPref, QCache, QKeep, QSave, QInput
 from .mod_cutil import *
-from qutil import HtmxHttpRequest, csv2df, user_name, is_loggedin, user_ip, cell_count
+from qutil import HtmxHttpRequest, csv2df, user_name, is_loggedin, user_ip, cell_count, fchoices
 from qcore import qhidex, qtable, qtbl, QFile, qlist_types, QFieldHandler, QEncoderBase, QJField, convert_to_type, \
     qinfo, qerror, qwarn
 import json
@@ -14,7 +14,7 @@ from qvars import qc_gpref as gs
 from .mod_prefs import apply_persistent_request_prefs, serialize_persistent_request_prefs
 from qconst import TOK_UOM, TOK_PART_UOM, TOK_ID_PREFIX, TOK_FIELD_SEP, TOK_INDEX_SEP
 from django.conf import settings
-from django.forms import forms
+from django.forms import forms, CheckboxInput
 from django.http import JsonResponse
 import time
 import logging
@@ -74,6 +74,7 @@ def q11429_func_to_form_schema(request: HtmxHttpRequest, func_addr, func_id, cid
             fargs.update(defa_input)
     # | end exit point
 
+    remembered = request.hook_ctx.remembered_kwargs  # | without the fields reset by a 'reload' trigger
     if remembered:  # | recall and request is not None
         # | precedence: 1. __info < 2 .json < 3. __input < 4. memory
         fargs.update(remembered)  # | user's previous input from memory
@@ -225,6 +226,8 @@ def q11429_func_to_form_schema(request: HtmxHttpRequest, func_addr, func_id, cid
 
         i += 1  # field
         iarg += 1  # argument
+    q11423_form_data_apply_posted(request)
+    q11424_form_data_add_reload_triggers(request, func_id)
     return
 
 
@@ -285,6 +288,72 @@ def q11422_form_data_modify_after_post(request, func_id, sig_type, arg_name, arg
     return arg_value
 
 
+# | simple field types whose posted value can be shown again after a '__modify' post
+_POSTED_TEXT_TYPES = frozenset({'text', 'char', 'textarea', 'textedit', 'codeedit', 'url', 'uom', 'uomx'})
+_POSTED_NUMBER_TYPES = {'integer': int, 'float': float}
+
+
+def q11423_form_data_apply_posted(request):
+    # | a '__modify' or 'load' button post rebuilds the form from the default values, so what the user has typed
+    # | in the fields not modified by the command would be lost. Show the posted value of simple fields again.
+    # | tables, files, lists and select2 fields are not covered (select2 already shows its posted value)
+    # | extra['cmd'] tells a button post from opening a saved input file, which is also a 'load' post
+    if request.method != 'POST' or request.cmd not in ('__modify', 'load') or not request.extra.get('cmd'):
+        return
+    modified = (set(request.extra.get('args', [])) | set(request.extra.get('kwargs', {})) |
+                set(request.extra.get('reset', [])) | {request.extra.get('to')})
+    for fld in request.json_schema:
+        name, ftype = fld['name'], fld['type']
+        if name in modified or fld.get('disabled'):
+            continue
+        if ftype in ('checkbox', 'boolean'):  # | an unchecked box is not posted at all
+            value = CheckboxInput().value_from_datadict(request.POST, request.FILES, name)
+        elif ftype in ('choice', 'radio', 'multiplechoice'):
+            offered = [str(v) for v, _ in fchoices(fld.get('choices'))]  # | values that are no longer offered are dropped
+            picked = [v for v in request.POST.getlist(name) if v in offered]
+            if ftype == 'multiplechoice':  # | nothing selected is not posted at all
+                value = picked
+            elif picked:
+                value = picked[-1]
+            elif offered and str(fld['initial']) not in offered:  # | the current value (e.g. remembered) is gone too
+                value = offered[0]  # | what a select shows when nothing valid is selected
+            else:
+                continue
+        elif name not in request.POST:
+            continue
+        elif ftype in _POSTED_TEXT_TYPES:
+            value = request.POST[name]
+        elif ftype in _POSTED_NUMBER_TYPES:
+            try:
+                value = _POSTED_NUMBER_TYPES[ftype](request.POST[name]) if request.POST[name].strip() else None
+            except ValueError:
+                continue  # | keep the current value
+        else:
+            continue
+        fld['initial'] = value
+        request.json_data[name] = value
+
+
+def q11424_form_data_add_reload_triggers(request, func_id):
+    # | a field with a 'reload' list in its schema rebuilds the input section when its value changes.
+    # | The listed fields are reset to their default values, the other fields keep what the user has typed.
+    # | The post is the same as the one of a callback_button(), see q11423 and q11421 for what the server does.
+    for fld in request.json_schema:
+        dependents = fld.get('reload')
+        if dependents is None or dependents is False:
+            continue
+        extra = {'cmd': '__modify', 'args': [], 'kwargs': {}, 'reload': True,
+                 'reset': [] if dependents is True else list(dependents)}
+        fld.setdefault('attrs', {}).update({
+            'hx-post': f'/calc/{func_id}/?part=2',
+            'hx-trigger': 'change',
+            'hx-target': 'closest form',
+            'hx-swap': 'innerHTML',  # | must be explicit, the form itself has hx-swap="outerHTML"
+            'hx-vals': json.dumps({'extra': extra, 'qcalc_structural_cmd': '1'}),
+            'data-interactive-ignore': 'true',  # | no automatic calculation while the form is rebuilt
+        })
+
+
 def q11421_get_extra_form_data_posted(request):
     request_data = request.POST if request.method == 'POST' else request.GET
     if 'extra' not in request_data:
@@ -300,6 +369,8 @@ def q11421_get_extra_form_data_posted(request):
     if request.method == 'POST':
         request.POST._mutable = True
         request.POST['extra'] = ""  # reset the extras
+        for name in request.extra.get('reset', []):  # | fields reset by a 'reload' trigger show their defaults
+            request.POST.pop(name, None)
     return
 
 
@@ -424,6 +495,8 @@ def q11449_form_data_postprocess_and_run(request, func_id):  # cid
                 modify_message = getattr(request, '_modify_message', None)
                 if isinstance(modify_message, (qerror, qwarn, qinfo)):
                     result = modify_message
+                elif request.extra.get('reload'):
+                    result = ''  # | a 'reload' trigger only rebuilds the input section, nothing to report
                 else:
                     result = qinfo('Input section updated')
             else:

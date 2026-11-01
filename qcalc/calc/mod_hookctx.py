@@ -2,7 +2,6 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 import json
-from types import MappingProxyType
 
 from qutil import user_name, is_loggedin
 
@@ -42,6 +41,9 @@ class HookContext:
         posted = {}
         if is_post:
             posted = {name: data.getlist(name) for name in data if name not in _TRANSPORT_KEYS}
+        # | the fields a 'reload' trigger resets take their default values, not the remembered ones
+        reset = extra.get('reset') or []
+        remembered = {k: v for k, v in (remembered or {}).items() if k not in reset}
         return cls(func_id=func_id, cid=cid, var_url_kwargs=var_url_kwargs, posted=posted,
                    remembered=remembered, cmd=cmd, extra=extra, is_post=is_post,
                    recall=getattr(request, 'recall', False),
@@ -61,21 +63,32 @@ class HookContext:
             return '', {}
         return str(extra.get('cmd', '')), extra
 
+    # | field values come from three sources. For each source, name(field, default) returns one value
+    # | and name_kwargs returns a new dict of all fields (a copy, so the context cannot be changed)
+
     @property
     def var_url_kwargs(self):
         """Values of a saved variant, example or shared input, overlaid by the values given in the url.
         Empty on a posted form. Values are not always text (e.g. DataFrame)."""
-        return MappingProxyType(self._var_url_kwargs)
+        return dict(self._var_url_kwargs)
+
+    def var_url(self, name, default=None):
+        """One value of var_url_kwargs."""
+        return self._var_url_kwargs.get(name, default)
 
     @property
-    def remembered(self):
+    def remembered_kwargs(self):
         """Input of the user's previous run of this calculator. Empty unless memory is being recalled."""
-        return MappingProxyType(self._remembered)
+        return dict(self._remembered)
+
+    def remembered(self, name, default=None):
+        """One value of remembered_kwargs, as it was stored (not always text)."""
+        return self._remembered.get(name, default)
 
     @property
-    def extra(self):
-        """Data sent by a callback button: {cmd, args, kwargs}. kwargs maps field name to action."""
-        return json.loads(json.dumps(self._extra))
+    def posted_kwargs(self):
+        """Posted values of all fields as received (text, never converted). The last one for a repeated field."""
+        return {name: values[-1] for name, values in self._posted.items() if values}
 
     def posted(self, name, default=None):
         """Posted value of a field as received (text, never converted). The last one for a repeated field."""
@@ -83,5 +96,10 @@ class HookContext:
         return values[-1] if values else default
 
     def posted_list(self, name):
-        """All posted values of a field as received, e.g. a multiple select."""
+        """All posted values of a field as received (text), e.g. a multiple select."""
         return list(self._posted.get(name, ()))
+
+    @property
+    def extra(self):
+        """Data sent by a callback button: {cmd, args, kwargs}. kwargs maps field name to action."""
+        return json.loads(json.dumps(self._extra))

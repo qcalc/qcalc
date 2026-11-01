@@ -135,6 +135,7 @@ _INFO_PROPERTY_SCHEMAS = {
             'type': 'object',
             'properties': {
                 'type': {'type': 'string'},
+                'reload': {'type': ['array', 'boolean'], 'items': {'type': 'string'}},
             },
             'additionalProperties': True,
         },

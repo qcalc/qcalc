@@ -87,7 +87,7 @@ def mycal2__modify(ctx, arg_name, arg_value, action):
 
 def mycal2__input(ctx):
     uc = UCals()
-    user_code = uc.get_code(ctx.var_url_kwargs.get('cal_name', ''))
+    user_code = uc.get_code(ctx.var_url('cal_name', ''))
     if user_code:
         return {
             'code': user_code

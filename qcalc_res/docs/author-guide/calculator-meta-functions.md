@@ -17,6 +17,8 @@
     * [4.2 `related`: Dependent selections](#42-related-dependent-selections)
     * [4.3 `showhide`: Reveal inputs only when needed](#43-showhide-reveal-inputs-only-when-needed)
     * [4.4 `anyof`: Alternative ways to provide one value](#44-anyof-alternative-ways-to-provide-one-value)
+    * [4.5 `reload`: Rebuild the form when a field changes](#45-reload-rebuild-the-form-when-a-field-changes)
+      * [Which hooks do I need with `reload`?](#which-hooks-do-i-need-with-reload)
   * [5. Layout Keys](#5-layout-keys)
         * [5.1 Preferred dynamic layout keys](#51-preferred-dynamic-layout-keys)
         * [5.2 Simple split layout keys](#52-simple-split-layout-keys)
@@ -109,6 +111,7 @@ various schema keys. Some examples are given below:
 | `type`    | string | Type of a parameter e.g. `choice`, `radio`, `checkbox`, etc. |
 | `choices` | string | list of choices if the parameter type is `choice`            |
 | `initial` | string | default or initial value                                     |
+| `reload`  | list | fields to reset when this field changes, see [4.5](#45-reload-rebuild-the-form-when-a-field-changes) |
 
 > For further details about the field types and schema keys please see 
 [qCalc field types](related-topics/qcalc-field-types.md)
@@ -398,6 +401,59 @@ Suppose you want to calculate the area of a circle by providing either the radiu
 * Use `anyof` when inputs are alternatives. When a user enters one value, qCalc clears the other fields in that group.
 * `circle_size` here is an arbitrary group name. You may define several groups of fields.
 
+### 4.5 `reload`: Rebuild the form when a field changes
+
+Some fields decide what other fields offer. For example, the quantity of a unit converter decides which units can be 
+selected. Add `reload` to the `schema` entry of that field, with the list of fields that depend on it:
+
+```python
+def conv2__info():
+    return {
+        'schema': {
+            'quantity': {
+                'type': 'choice', 'choices': _base_categ_mlist(), 'initial': 'L',
+                'reload': ['from_unit', 'to_units'],  # fields that depend on the quantity
+            },
+        },
+    }
+```
+
+When the user changes `quantity`, qCalc rebuilds the input section on the server and runs `__input()` and 
+`__schema()` again, so the new choices and default values can depend on the selected value 
+(see [`__schema(ctx)`](qcalc-author-guide.md#75-__schemactx)).
+
+* The listed fields are reset to their default values (the function defaults, or the values returned by `__input()`). 
+Remembered values are not used for them.
+* All other fields keep what the user has typed. This covers text, number, checkbox, choice, multiple select and 
+select2 fields. Tables and file fields are not covered yet.
+* A choice that is no longer offered by `__schema()` is dropped. If the current value of a `choice` or `radio` field 
+is no longer offered, the first offered choice is selected (for example a mode that does not apply to the new quantity).
+* Use `reload: True` to rebuild the form without resetting any field.
+* No url or `hx-*` attribute is needed, so it works for frontend calculators too.
+* Use it on a plain `choice` field. A `qsel2` (select2) field does not reliably report a change.
+* `reload` needs a round trip to the server. For a small, fixed cascade that must update instantly in the 
+browser use [`related`](#42-related-dependent-selections).
+
+#### Which hooks do I need with `reload`?
+
+None are required. `reload` only rebuilds the form and resets the listed fields. Add a hook only when the 
+dependent fields must become something other than their normal defaults:
+
+| Situation | Hook needed |
+|---|---|
+| The dependent fields only need their normal defaults again, or their static choices are fine for every value | None. They reset to the function defaults (and to the values of `__info()` or `qfunc_info.json`). |
+| The choices of the dependent fields depend on the trigger field (units that depend on a quantity) | [`__schema(ctx)`](qcalc-author-guide.md#75-__schemactx). Without it the choices stay as in `__info()`. |
+| The default selection of the dependent fields depends on the trigger field (a default unit that is valid for the quantity) | `__input(ctx)`. Without it they get the function defaults, which may not be among the new choices. |
+| Both of the above | Both hooks. |
+
+`__modify()` and `__command()` are never needed for `reload`.
+
+In the hooks, read the value of the trigger field from `ctx`:
+* After a change the form is rebuilt by a post, so `ctx.is_post` is true and the new value is in 
+`ctx.posted('quantity')`.
+* On a first load the value comes from `ctx.var_url('quantity')` (the calculator url) or `ctx.remembered('quantity')`.
+* Validate the value and fall back to a default. The `_conv2_lmt(ctx)` helper of the `conv2` calculator does all three.
+
 ## 5. Layout Keys
 
 qCalc normally displays inputs in one column. Use layout options to change this.
@@ -563,7 +619,7 @@ For an easier and more readable way to create the dictionary returned by `__info
 2. Add a plain-language `title` and a concise `desc` when the calculation needs context.
 3. Match every metadata field name to a parameter exactly.
 4. Use `schema` for meaningful choices, labels, help text, and widgets.
-5. Test every `autofill`, `related`, `showhide`, and `anyof` interaction in a browser.
+5. Test every `autofill`, `related`, `showhide`, `anyof`, and `reload` interaction in a browser.
 6. Return correctly named outputs.
 7. Use JavaScript and HTML hooks only for trusted, reviewed code.
 8. Use user-friendly tags and titles that make the calculator discoverable.

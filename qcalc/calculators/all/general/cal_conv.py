@@ -56,14 +56,12 @@ def conv2__info():
         'desc': '',
         'schema': {
             'quantity': {
-                # | 'type':'qsel2' doesn't trigger hx-get, because select2 change the element properties at runtime
+                # | 'type':'qsel2' wouldn't trigger the reload, because select2 changes the element properties at runtime
                 'type': 'choice', 'choices': _base_categ_mlist(),
                 'initial': lmt,
-                'attrs': {
-                    'hx-get': '/catalog/ulist/',
-                    'hx-target': 'closest .calc',
-                    'hx-swap': 'outerHTML', 'hx-indicator': '.htmx-indicator'
-                }
+                # | changing the quantity rebuilds the form, the lists and selections below follow it
+                # | (see conv2__schema() and conv2__input()), 'mode' and the typed values are kept
+                'reload': ['from_unit', 'to_units', 'from_qty', 'to_qty'],
             },
             'value': {'help_text': amount_help_text},
             'mode': {
@@ -113,7 +111,7 @@ def _conv2_lmt(ctx):
     if ctx.is_post:
         lmt = checked(ctx.posted('quantity'))
     else:
-        lmt = checked(ctx.var_url_kwargs.get('quantity')) or checked(ctx.remembered.get('quantity'))
+        lmt = checked(ctx.var_url('quantity')) or checked(ctx.remembered('quantity'))
     return lmt or 'L'
 
 

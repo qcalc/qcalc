@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
-from django.shortcuts import render, redirect
+from django.shortcuts import render
 from django.views.decorators.cache import cache_control
 from qutil import HtmxHttpRequest, q1139_request_init, not_found
 import qutil as ut
@@ -173,14 +173,6 @@ def qty_tree(request: HtmxHttpRequest):
     template = 'treeq.html'
     context = {"qty_data": QCals.qty_root.children}
     return ut.get_page(request, template, context, 'qty_tree')
-
-
-def qty_ulist(request: HtmxHttpRequest):
-    lmt = request.GET.get('quantity', 'L').upper()
-    mode = request.GET.get('mode', 'u2u').lower()
-    val = request.GET.get('value', 1)
-    url = f'/calc/add/?path=conv2/quantity/{lmt}/mode/{mode}/value/{val}/unit_cost/-/---/'
-    return redirect(url)
 
 
 def qty_navigation(title, parents):

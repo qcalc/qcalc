@@ -19,7 +19,6 @@ urlpatterns = [
     path('qty/', views.qty_tree, name='qty-tree'),
     path('qty/<str:category>/', views.qty_dir, name='qty-dir'),
 
-    path('ulist/', views.qty_ulist, name='qty-ulist'),
     path('help/', show_docs, name='show-docs'),
     path('search/', views.search_catalog, name='catalog-search'),  # ?q=body
     # Retired (kept for reference): unused legacy calculator-function search endpoints.

@@ -214,7 +214,8 @@ Use the following structural contract when generating `__info()` metadata:
                 "additionalProperties": {
                     "type": "object",
                     "properties": {
-                        "type": {"type": "string"}
+                        "type": {"type": "string"},
+                        "reload": {"type": ["array", "boolean"], "items": {"type": "string"}}
                     },
                     "additionalProperties": true
                 }
@@ -246,6 +247,7 @@ Use the following structural contract when generating `__info()` metadata:
 Notes:
 - `fields` in `anyof`, `autofill`, `showhide`, tab entries, and blocks uses the selector schema and can be a comma-separated string or an array of strings.
 - `related.fields` is a mapping object, not a selector list.
+- A field's `schema` entry may contain `reload`: an array of field names (or `true`). Changing the field rebuilds the form on the server and resets the listed fields to their defaults. Use `__schema(ctx)` for choices that depend on the field.
 - `input_columns` and `output_columns` are limited to `1` or `2`.
 
 
@@ -255,7 +257,7 @@ Notes:
 - Do not add schema labels only to prettify snake_case names; add `label` only when wording must intentionally differ.
 
 ### 5.4 Dynamic metadata
-- `__info(__info=None)` may be used for dynamic metadata generation in rare cases.
+- `__info()` takes no arguments. Use `__schema(ctx)` for schema properties, such as choices, that depend on the request.
 
 ### 5.5 Structural validation constraints
 - `fields` selectors in `anyof/autofill/showhide/tabs/blocks` may be comma-separated string or string array.
@@ -530,9 +532,10 @@ It defines calculator metadata and, where applicable, the calculator UI schema a
 
 `__input`, `__schema`, `__modify` and `__command` receive a read-only context as their first argument. It does not give access to the request or session. It provides:
 
-- `ctx.var_url_kwargs`: values of a saved variant, example or shared input, overlaid by the values given in the calculator url. Empty on a posted form.
-- `ctx.posted(name, default=None)` and `ctx.posted_list(name)`: values posted by the form, as text.
-- `ctx.remembered`: the user's previous input of this calculator, empty unless memory is recalled.
+- `ctx.var_url(name, default=None)` and `ctx.var_url_kwargs`: values of a saved variant, example or shared input, overlaid by the values given in the calculator url. Empty on a posted form.
+- `ctx.posted(name, default=None)`, `ctx.posted_list(name)` and `ctx.posted_kwargs`: values posted by the form, as text.
+- `ctx.remembered(name, default=None)` and `ctx.remembered_kwargs`: the user's previous input of this calculator, empty unless memory is recalled.
+- `name(...)` returns one value and `name_kwargs` returns a new dictionary of all fields of that source.
 - `ctx.recall`, `ctx.is_post`, `ctx.cmd`, `ctx.extra` (`{cmd, args, kwargs}` from a callback button).
 - `ctx.user`, `ctx.is_loggedin`, `ctx.cid`, `ctx.func_id`.
 

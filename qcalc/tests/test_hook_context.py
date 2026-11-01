@@ -60,12 +60,22 @@ def test_posted_list_returns_a_copy():
     assert ctx.posted_list('from_unit') == ['amu', 'ana']
 
 
+def test_posted_kwargs_holds_the_last_text_value_of_each_field():
+    ctx = _ctx(_request('post', {
+        'quantity': 'M', 'from_unit': ['amu', 'ana'], 'csrfmiddlewaretoken': 'x', 'extra': '{}',
+    }))
+
+    assert ctx.posted_kwargs == {'quantity': 'M', 'from_unit': 'ana'}
+    assert ctx.posted_kwargs.get('quantity') == ctx.posted('quantity')
+
+
 def test_get_request_has_no_posted_values():
     ctx = _ctx(_request('get', {'quantity': 'M'}), var_url_kwargs={'quantity': 'M'})
 
     assert not ctx.is_post
     assert ctx.posted('quantity') is None
-    assert ctx.var_url_kwargs['quantity'] == 'M'
+    assert ctx.posted_kwargs == {}
+    assert ctx.var_url('quantity') == 'M'
 
 
 def test_command_and_extra_come_from_the_posted_extra():
@@ -98,21 +108,38 @@ def test_empty_or_invalid_extra_means_no_command(extra):
     assert ctx.extra == {}
 
 
-def test_var_url_kwargs_and_remembered_are_read_only():
-    ctx = _ctx(_request(), var_url_kwargs={'quantity': 'M'}, remembered={'quantity': 'L'})
+def test_value_methods_and_kwargs_properties_agree_for_each_source():
+    ctx = _ctx(_request(), var_url_kwargs={'quantity': 'M'}, remembered={'quantity': 'L', 'from_unit': ['ft']})
 
-    with pytest.raises(TypeError):
-        ctx.var_url_kwargs['quantity'] = 'T'
-    with pytest.raises(TypeError):
-        ctx.remembered['quantity'] = 'T'
-    assert ctx.var_url_kwargs['quantity'] == 'M'
-    assert ctx.remembered['quantity'] == 'L'
+    assert ctx.var_url('quantity') == 'M'
+    assert ctx.var_url('missing') is None
+    assert ctx.var_url('missing', 'dflt') == 'dflt'
+    assert ctx.var_url_kwargs == {'quantity': 'M'}
+    assert ctx.remembered('quantity') == 'L'
+    assert ctx.remembered('from_unit') == ['ft']
+    assert ctx.remembered('missing', 'dflt') == 'dflt'
+    assert ctx.remembered_kwargs == {'quantity': 'L', 'from_unit': ['ft']}
+
+
+def test_kwargs_properties_return_copies():
+    ctx = _ctx(_request('post', {'quantity': 'M'}), var_url_kwargs={'quantity': 'M'}, remembered={'quantity': 'L'})
+
+    ctx.var_url_kwargs['quantity'] = 'T'
+    ctx.remembered_kwargs['quantity'] = 'T'
+    ctx.posted_kwargs['quantity'] = 'T'
+
+    assert ctx.var_url('quantity') == 'M'
+    assert ctx.remembered('quantity') == 'L'
+    assert ctx.posted('quantity') == 'M'
 
 
 def test_values_that_are_not_text_are_kept():
     marker = object()
+    ctx = _ctx(_request(), var_url_kwargs={'items': marker}, remembered={'items': marker})
 
-    assert _ctx(_request(), var_url_kwargs={'items': marker}).var_url_kwargs['items'] is marker
+    assert ctx.var_url('items') is marker
+    assert ctx.var_url_kwargs['items'] is marker
+    assert ctx.remembered('items') is marker
 
 
 def test_context_holds_no_request_and_cannot_be_extended():
@@ -141,7 +168,8 @@ def test_default_context_is_empty():
 
     assert not ctx.is_post and not ctx.recall
     assert ctx.cmd == '' and ctx.extra == {}
-    assert dict(ctx.var_url_kwargs) == {} and dict(ctx.remembered) == {}
+    assert ctx.var_url_kwargs == {} and ctx.remembered_kwargs == {} and ctx.posted_kwargs == {}
+    assert ctx.var_url('x') is None and ctx.remembered('x') is None
     assert ctx.posted('x') is None and ctx.posted_list('x') == []
 
 

@@ -3,8 +3,8 @@
 
 from qcore import _unit_tree, qx, qxi, to_ucur
 from qcore import read_unit, lmt2ulist, lmt2cat, _unit_info, _base_categ_mlist, lmt2qlist, dim_to_bname, _base_names, _conv_names
-from qutil import css2strs, list2table, find_matched_variables, cal_link, calurl, QThread
-from calc import QCals, QMem, QPref
+from qutil import css2strs, list2table, find_matched_variables, cal_link, calurl
+from calc import QCals
 import itertools
 from qcore.mod_anno import *
 from qconst import amount_help_text
@@ -101,28 +101,25 @@ def conv2__info():
     }
 
 
-def _conv2_lmt(request, kwargs):
+def _conv2_lmt(ctx):
     # | precedence is the same as in the form: posted value > url value > remembered value > 'L'
     # | '-', '--' and other invalid values are ignored
-    request = request or QThread.get_req()
     valid = dict(_base_categ_mlist())
 
     def checked(value):
         value = str(value or '').upper()
         return value if value in valid else ''
 
-    if request is not None and request.method == 'POST':
-        lmt = checked(request.POST.get('quantity'))
+    if ctx.is_post:
+        lmt = checked(ctx.posted('quantity'))
     else:
-        lmt = checked(kwargs.get('quantity'))
-        if not lmt and request is not None and getattr(request, 'recall', False) and QPref.getp1('memory') > 0:
-            lmt = checked((QMem.getf('conv2') or {}).get('quantity'))
+        lmt = checked(ctx.var_url_kwargs.get('quantity')) or checked(ctx.remembered.get('quantity'))
     return lmt or 'L'
 
 
-def conv2__schema(request, kwargs):
+def conv2__schema(ctx):
     # | unit and quantity choices depend on the selected quantity (dimension)
-    lmt = _conv2_lmt(request, kwargs)
+    lmt = _conv2_lmt(ctx)
     ulist = _conv2_ulist(lmt)
     qlist = lmt2qlist(lmt)
     return {
@@ -134,9 +131,9 @@ def conv2__schema(request, kwargs):
     }
 
 
-def conv2__input(kwargs):
+def conv2__input(ctx):
     # | default selections must be valid for the selected quantity
-    lmt = _conv2_lmt(None, kwargs)
+    lmt = _conv2_lmt(ctx)
     ulist = _conv2_ulist(lmt)
     qlist = lmt2qlist(lmt)
     inp = {'unit_cost': to_ucur('@UNC/ft')}

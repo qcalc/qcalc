@@ -10,7 +10,7 @@ from qutil import action_button, addcal_button, nzv, action_script
 from calculators.all.analytics.what_if import SHARED_SCENARIO_TYPE, SHARED_SCENARIO_KEY
 
 
-def scenario__modify(arg_name, arg_value, action):
+def scenario__modify(_ctx, arg_name, arg_value, action):
     if arg_name != 'scenarios':
         return arg_value
 

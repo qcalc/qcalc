@@ -44,7 +44,7 @@ def calculate_periodic_interest(df, initial_balance, debit_rate, credit_rate, da
     }
 
 
-def ipbal__input(_kwargs):
+def ipbal__input(_ctx):
     return {
         'csv_file--csv_url': demo_url('ipbal.csv'),
     }

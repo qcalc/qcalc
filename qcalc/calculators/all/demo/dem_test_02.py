@@ -94,7 +94,7 @@ def demo_label(text: qtexta):
     return qpage(text)
 
 
-def demo_darg__input(_kwargs):
+def demo_darg__input(_ctx):
     return {
         'x': random.randint(1, 100),
     }

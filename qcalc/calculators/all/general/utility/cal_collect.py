@@ -19,7 +19,7 @@ SHARED_RATES_TYPE = 'item_rates'
 SHARED_RATES_KEY = 'rates_master'
 
 
-def collect__input(_kwargs):  # | kwargs required
+def collect__input(_ctx):
     keeps = QKeep.getp({})
     keeps.pop('count', None)
     kept_vals = [] if len(keeps) == 0 else list(keeps.values())
@@ -85,9 +85,9 @@ def collect(output: qtable = pd.DataFrame({"SL": [1, 2], "Value": [
             }
 
 
-def cost__input(kwargs):
+def cost__input(ctx):
     # probably it is better to restrict invoking __input() during GET only
-    items = kwargs.get('items')  # kwargs data available only during GET
+    items = ctx.var_url_kwargs.get('items')  # var_url_kwargs data available only during GET
     if isinstance(items, pd.DataFrame):  # can't have if items, truth value of df is ambiguous
         items['Quantity'] = items['Quantity'].apply(qformat_q)  # format data
         return {
@@ -97,7 +97,7 @@ def cost__input(kwargs):
     return {}
 
 
-def cost__modify(arg_name, arg_value, _action):  # _action not used but required
+def cost__modify(_ctx, arg_name, arg_value, _action):  # _action not used but required
     if arg_name == 'items':
         items = arg_value
         action = _action if isinstance(_action, dict) else {}

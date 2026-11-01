@@ -8,6 +8,7 @@ qsett.init()
 
 import pytest
 
+from calc.mod_hookctx import HookContext
 from calculators.all.general.user import cal_myalias
 
 
@@ -56,7 +57,7 @@ def test_myalias_rejects_missing_target(monkeypatch):
 def test_myalias_input_reflects_saved_aliases(monkeypatch):
     monkeypatch.setattr(cal_myalias.QCalAlias, "getp", lambda _default=None: {"X1": "bmi", "abc": "bond"})
 
-    inputs = cal_myalias.myalias__input({})
+    inputs = cal_myalias.myalias__input(HookContext())
     assert inputs["aliases"]["columns"] == ["Alias", "Calculator"]
     assert inputs["aliases"]["data"] == [["abc", "bond"], ["x1", "bmi"]]
 

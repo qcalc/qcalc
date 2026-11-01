@@ -173,11 +173,10 @@ def pref__info():
     }
 
 
-def pref__input(_kwargs):  # alternative to func__info() 'schema':{}'
+def pref__input(ctx):  # alternative to func__info() 'schema':{}'
     # dynamic assignment of arg initials, every time before creation of form
     us = gs.copy()
-    req = QThread.get_req()
-    if req.recall:  # if refresh button is clicked, recall will False
+    if ctx.recall:  # if refresh button is clicked, recall will False
         us.update(QPref.getp())  # User's Session Defaults
     us['theme'] = _normalize_theme(us.get('theme', 'default'))
     return {  # pref-02
@@ -322,7 +321,7 @@ def api_keys__info():
     }
 
 
-def api_keys__input(_kwargs):
+def api_keys__input(_ctx):
     return {
         'api_key': '',
     }
@@ -510,11 +509,11 @@ sesn_objs = {'qd': QData, 'qmr': QMem, 'qt': QTemp, 'qk': QKeep, 'qs': QSave, 'q
              }
 
 
-def temp__command(fkwargs, extra):
+def temp__command(ctx, func_kwargs):
     result = ''
-    action = extra['args'][0]
+    action = ctx.extra['args'][0]
     if action == 'delete':
-        data = fkwargs['data']
+        data = func_kwargs['data']
         try:
             selected_keys = sesn_objs.keys() if data == 'all' else [data]
             if data == 'qmy+qm':  # delete calculators and directory together

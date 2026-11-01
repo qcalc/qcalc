@@ -11,7 +11,7 @@ from PIL import Image
 from qutil import demo_url
 
 
-def irg_landimg__input(_kwargs):
+def irg_landimg__input(_ctx):
     return {
         'land_image--image_url': demo_url('irg_land.jpg')
     }

@@ -23,7 +23,7 @@ def gpref__info():
     }
 
 
-def gpref__input(_kwargs):
+def gpref__input(_ctx):
     gs = qvars.qc_gpref
     return {
         # global settings

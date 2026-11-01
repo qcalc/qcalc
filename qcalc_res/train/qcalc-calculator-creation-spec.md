@@ -54,7 +54,7 @@ Rules:
 - Base name must match across main function and hooks.
 - Main function names should be snake_case.
 - Main calculator name should not contain `__` (reserved for hooks).
-- Recognized hooks: `__info`, `__input`, `__modify`, `__command`, `__help`.
+- Recognized hooks: `__info`, `__input`, `__schema`, `__modify`, `__command`, `__help`.
 - Invented hook names must not be used unless qCalc adds support.
 - qCalc calculator discovery/registration relies on the `__info()` pair relationship.
 
@@ -512,15 +512,29 @@ It defines calculator metadata and, where applicable, the calculator UI schema a
 
 ### `__input`
 
-`<calculator>__input(_kwargs)` MAY be implemented when calculator inputs require dynamic initialization or modification before form rendering.
+`<calculator>__input(ctx)` MAY be implemented when calculator inputs require dynamic initialization or modification before form rendering. It returns a dictionary of `{field: value}`.
+
+### `__schema`
+
+`<calculator>__schema(ctx)` MAY be implemented when schema properties, typically `choices`, depend on the request. It is called every time the form is built and returns `{field: {property: value}}`, which is merged over the `schema` of `__info()`.
 
 ### `__modify`
 
-`<calculator>__modify(arg_name, arg_value, action)` MAY be implemented for dynamic modification of calculator inputs in response to UI actions.
+`<calculator>__modify(ctx, arg_name, arg_value, action)` MAY be implemented for dynamic modification of calculator inputs in response to UI actions. It returns the new value, or a `qinfo`, `qwarn` or `qerror` message.
 
 ### `__command`
 
-`<calculator>__command(fkwargs, extra)` MAY be implemented for command-like operations associated with the calculator.
+`<calculator>__command(ctx, func_kwargs)` MAY be implemented for command-like operations associated with the calculator. `func_kwargs` holds the validated field values as the calculator function would receive them. The button data is in `ctx.extra`.
+
+### Hook context (`ctx`)
+
+`__input`, `__schema`, `__modify` and `__command` receive a read-only context as their first argument. It does not give access to the request or session. It provides:
+
+- `ctx.var_url_kwargs`: values of a saved variant, example or shared input, overlaid by the values given in the calculator url. Empty on a posted form.
+- `ctx.posted(name, default=None)` and `ctx.posted_list(name)`: values posted by the form, as text.
+- `ctx.remembered`: the user's previous input of this calculator, empty unless memory is recalled.
+- `ctx.recall`, `ctx.is_post`, `ctx.cmd`, `ctx.extra` (`{cmd, args, kwargs}` from a callback button).
+- `ctx.user`, `ctx.is_loggedin`, `ctx.cid`, `ctx.func_id`.
 
 ### `__help`
 

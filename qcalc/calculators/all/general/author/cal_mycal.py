@@ -19,19 +19,18 @@ def validate_calculator_code(user_code):
     return qinfo(message) if report['valid'] else qerror(message)
 
 
-def mycal__command(fkwargs, extra):
+def mycal__command(ctx, func_kwargs):
     result = ''
-    action = extra['args'][0]
+    action = ctx.extra['args'][0]
     if action == 'validate':
-        result = validate_calculator_code(fkwargs['code'])
+        result = validate_calculator_code(func_kwargs['code'])
     return result
 
 
-def mycal__modify(arg_name, arg_value, action):
-    request = QThread.get_req()  # | not allowd in user's calculators
+def mycal__modify(ctx, arg_name, arg_value, action):
     uc = UCals()
     if arg_name == 'code' and action == 'load':
-        cal_name = request.POST.get('cal_name', '').strip()
+        cal_name = ctx.posted('cal_name', '').strip()
         if cal_name:
             user_code = uc.get_code(cal_name)
             return user_code or qerror(f'{cal_name} not found')
@@ -43,7 +42,7 @@ def mycal__modify(arg_name, arg_value, action):
         return qinfo('Enter a calculator name')
         # | raise Exception(result)
     elif arg_name == 'code' and action == 'format':
-        cal_name = request.POST.get('cal_name', '').strip()
+        cal_name = ctx.posted('cal_name', '').strip()
         user_code = arg_value
         user_code, functions = ensure_calculator_info(user_code, cal_name)
         user_code = format_py_code(user_code)
@@ -51,9 +50,9 @@ def mycal__modify(arg_name, arg_value, action):
     return arg_value
 
 
-def mycal__input(kwargs):
+def mycal__input(ctx):
     uc = UCals()
-    user_code = uc.get_code(kwargs.get('cal_name', ''))
+    user_code = uc.get_code(ctx.var_url_kwargs.get('cal_name', ''))
     if user_code:
         return {
             'code': user_code

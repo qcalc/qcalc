@@ -15,8 +15,8 @@ from django.template.loader import get_template, render_to_string
 
 import qvars
 from calc import QPref
+from calc.mod_hookctx import HookContext
 from calculators.all.general.user import cal_ucache as cu
-from qutil import QThread
 
 
 def test_slider_script_does_not_touch_document_body_at_load():
@@ -39,10 +39,9 @@ def test_pref_calculator_exposes_slider_in_general_pane():
 
 
 def test_pref_calculator_input_and_signature_stay_in_sync(monkeypatch):
-    monkeypatch.setattr(QThread, 'get_req', classmethod(lambda cls: SimpleNamespace(recall=False)))
     monkeypatch.setattr(QPref, 'getp', lambda: {})
 
-    initials = cu.pref__input({})
+    initials = cu.pref__input(HookContext(recall=False))
     params = list(inspect.signature(cu.pref).parameters)
 
     assert set(params) == set(initials)

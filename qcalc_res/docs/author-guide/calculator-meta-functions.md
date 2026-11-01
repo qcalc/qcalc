@@ -350,7 +350,7 @@ def demo_related(country, province, city):
 
 * The current implementation supports up to four levels of dependency (e.g. country, state, city, zipcode). 
 * Do not put the same field in both `related` and `anyof` or `showhide`; these features can compete for control of it.
-* `related` data is fixed and updates in the browser. For choices that are computed on the server or depend on the request, see `__schema()` in [qCalc Author Guide](qcalc-author-guide.md#75-__schemarequest-kwargs).
+* `related` data is fixed and updates in the browser. For choices that are computed on the server or depend on the request, see `__schema()` in [qCalc Author Guide](qcalc-author-guide.md#75-__schemactx).
 
 ### 4.3 `showhide`: Reveal inputs only when needed
 

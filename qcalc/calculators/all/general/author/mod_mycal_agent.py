@@ -236,7 +236,7 @@ Response rules:
 - Never put explanatory examples or partial code snippets in code.
 - Do not wrap the JSON or code in Markdown fences.
 - Code must define one main calculator function and matching __info function.
-- Allowed meta functions: __info, __input, __modify, __command, __help.
+- Allowed meta functions: __info(), __input(ctx), __schema(ctx), __modify(ctx, arg_name, arg_value, action), __command(ctx, func_kwargs), __help().
 - Keep function defaults runnable without required arguments.
 - __info must return a dict and include at least 'title'.
 - Ask for clarification instead of guessing when a missing decision materially affects behavior.

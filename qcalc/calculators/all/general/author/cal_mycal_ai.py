@@ -46,24 +46,24 @@ def _render_agent_history():
     return qchat(md2html('\n\n'.join(sections), wrap=True))
 
 
-def mycal2__command(fkwargs, extra):
+def mycal2__command(ctx, func_kwargs):
     result = ''
     final_prompt = ''
-    action = extra['args'][0]
-    user_code = fkwargs.get('code', '')
+    action = ctx.extra['args'][0]
+    user_code = func_kwargs.get('code', '')
 
     if action == 'validate':
         result = validate_calculator_code(user_code)
     elif action == 'ai_send':
         try:
-            prompt = fkwargs.get('ai_prompt', '')
-            cal_name = fkwargs.get('cal_name', '')
+            prompt = func_kwargs.get('ai_prompt', '')
+            cal_name = func_kwargs.get('cal_name', '')
             response = MyCalAgent.send(
                 prompt,
                 user_code,
                 cal_name_hint=cal_name,
                 max_validation_repairs=1,
-                reference_cals=fkwargs.get('reference_cals', ''),
+                reference_cals=func_kwargs.get('reference_cals', ''),
             )
             final_prompt = response.prompt
             result = _render_agent_history()
@@ -81,13 +81,13 @@ def mycal2__command(fkwargs, extra):
     return result
 
 
-def mycal2__modify(arg_name, arg_value, action):
-    return mycal__modify(arg_name, arg_value, action)
+def mycal2__modify(ctx, arg_name, arg_value, action):
+    return mycal__modify(ctx, arg_name, arg_value, action)
 
 
-def mycal2__input(kwargs):
+def mycal2__input(ctx):
     uc = UCals()
-    user_code = uc.get_code(kwargs.get('cal_name', ''))
+    user_code = uc.get_code(ctx.var_url_kwargs.get('cal_name', ''))
     if user_code:
         return {
             'code': user_code

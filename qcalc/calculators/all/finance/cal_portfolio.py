@@ -9,7 +9,7 @@ from scipy.optimize import minimize
 from qutil import demo_url
 
 
-def portf__input(_kwargs):
+def portf__input(_ctx):
     return {
         'csv_file--csv_url': demo_url('closing.csv'),
     }

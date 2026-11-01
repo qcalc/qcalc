@@ -8,6 +8,7 @@ from qcore import qhidex, qtable, qtbl, QFile, qlist_types, QFieldHandler, QEnco
     qinfo, qerror, qwarn
 import json
 from .mod_mfunc import func_meta, COMBINE_FINF, qfunc, q0164_execute_qfunc
+from .mod_hookctx import HookContext
 import pandas as pd
 from qvars import qc_gpref as gs
 from .mod_prefs import apply_persistent_request_prefs, serialize_persistent_request_prefs
@@ -58,21 +59,24 @@ def q11429_func_to_form_schema(request: HtmxHttpRequest, func_addr, func_id, cid
         if 'upload_image' in fargs:
             assert fargs['upload_image'] is None
 
+    remembered = QMem.getf(func_id) if request.recall and QPref.getp1('memory') > 0 else None
+    # | one read-only context for all per-request hooks, built before q11421 blanks POST['extra']
+    request.hook_ctx = HookContext.from_request(request, func_id, cid, var_url_kwargs, remembered)
+
     # | start callback point __input (q11429, views_form_data.py, line 37)
-    # | func__input(request, func url parameters)
+    # | func__input(ctx)
     # | modify initial input values
     input_meta_func = func_id + '__input'
     if QCals.func_exists(input_meta_func):
-        input_meta_callback = QCals.addr(input_meta_func)  # (var_url_kwargs)
-        defa_input = input_meta_callback(var_url_kwargs)
+        input_meta_callback = QCals.addr(input_meta_func)  # (ctx)
+        defa_input = input_meta_callback(request.hook_ctx)
         if defa_input:  # | precedence: 1. __info < 2 .json (q1141_read_func_meta) < 3. __input
             fargs.update(defa_input)
     # | end exit point
 
-    if request.recall and QPref.getp1('memory') > 0:  # | recall and request is not None
-        prev_input = QMem.getf(func_id)  # | get from memory, user's previous input
-        if prev_input:  # | precedence: 1. __info < 2 .json < 3. __input < 4. memory
-            fargs.update(prev_input)
+    if remembered:  # | recall and request is not None
+        # | precedence: 1. __info < 2 .json < 3. __input < 4. memory
+        fargs.update(remembered)  # | user's previous input from memory
 
     for key in COMBINE_FINF:
         if key in finfs:
@@ -85,13 +89,13 @@ def q11429_func_to_form_schema(request: HtmxHttpRequest, func_addr, func_id, cid
                 request.json_doc['info'][key] = finfs[key]
 
     # | start callback point __schema (q11429, views_form_data.py)
-    # | func__schema(request, func url parameters)
+    # | func__schema(ctx)
     # | per-request override of schema properties e.g. choices, evaluated on every form build (not cached)
     schema_meta_func = func_id + '__schema'
     if QCals.func_exists(schema_meta_func):
-        schema_meta_callback = QCals.addr(schema_meta_func)(request, var_url_kwargs)  # (request, kwargs)
+        schema_meta_callback = QCals.addr(schema_meta_func)  # (ctx)
         info_schema = request.json_doc['info']['schema']
-        for name, meta in (schema_meta_callback or {}).items():
+        for name, meta in (schema_meta_callback(request.hook_ctx) or {}).items():
             # | new dict, so that the (cached) __info dicts are never mutated
             info_schema[name] = {**info_schema.get(name, {}), **meta}
     # | end exit point
@@ -260,15 +264,15 @@ def q11422_form_data_modify_after_post(request, func_id, sig_type, arg_name, arg
         elif request.cmd == '__modify' and (
             arg_name in request.extra.get('args', []) or arg_name in request.extra.get('kwargs', {})):
             # | start callback point __modify (q11422, views_form_data.py, line 197)
-            # | func__modify(argname, argvalue, action), request.POST[] available
+            # | func__modify(ctx, arg_name, arg_value, action)
             # | modify input value of a specific argument after posting
             modify_meta_func = func_id + '__modify'
             if QCals.func_exists(modify_meta_func):
-                modify_meta_callback = QCals.addr(modify_meta_func)  # (arg_name, new_arg_value, action)
+                modify_meta_callback = QCals.addr(modify_meta_func)  # (ctx, arg_name, new_arg_value, action)
                 new_arg_value = convert_to_type(request.POST.get(arg_name), sig_type)
                 action = request.extra.get('kwargs', {}).get(arg_name, '')
                 try:
-                    result = modify_meta_callback(arg_name, new_arg_value, action)
+                    result = modify_meta_callback(request.hook_ctx, arg_name, new_arg_value, action)
                     if isinstance(result, (qerror, qwarn, qinfo)):
                         request._modify_message = result
                         return new_arg_value
@@ -404,15 +408,15 @@ def q11449_form_data_postprocess_and_run(request, func_id):  # cid
                 result = qinfo('Input data is entered from example')
             elif request.cmd == '__command':
                 # | start callback point __command (q11449, views_form_data.py, line 279)
-                # | func__command(request, fkwargs, extra:dict), request.POST[] available
+                # | func__command(ctx, func_kwargs)
                 # | perform action or validate input values after posting
                 command_meta_func = func_id + '__command'
                 if QCals.func_exists(command_meta_func):
-                    command_meta_callback = QCals.addr(command_meta_func)  # (args, kwargs)
+                    command_meta_callback = QCals.addr(command_meta_func)  # (ctx, func_kwargs)
                     q11441_data_for_function(request)
                     arg_dict2run = request.json_d4f.copy()
-                    unflat_args = q0162_dictify_fargs(arg_dict2run)
-                    result = command_meta_callback(unflat_args, request.extra)
+                    func_kwargs = q0162_dictify_fargs(arg_dict2run)
+                    result = command_meta_callback(request.hook_ctx, func_kwargs)
                 else:
                     result = qerror(f'{command_meta_func}: not found')
                     request.success &= False

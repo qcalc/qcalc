@@ -8,7 +8,7 @@ from qvars import qc_gpref as gs
 from qutil import preprocess_expression, callback_button, format_py_code, validate_expression_security
 
 
-def eva__modify(arg_name, arg_value, action):
+def eva__modify(_ctx, arg_name, arg_value, action):
     if arg_name == 'code' and action == 'format':
         user_code = format_py_code(arg_value)
         return user_code

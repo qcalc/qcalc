@@ -14,6 +14,7 @@ from django.contrib.sessions.middleware import SessionMiddleware
 from django.test import RequestFactory
 
 from calc import QData
+from calc.mod_hookctx import HookContext
 from calc.mod_shared_data import publish_shared_dataset, get_shared_dataset
 from calculators.all.general.utility import (
     SHARED_RATES_KEY,
@@ -91,7 +92,7 @@ def test_cost_input_formats_items_for_display():
     QData.clear()
 
     items = pd.DataFrame({'Item': ['Brick'], 'Quantity': ['100 nos'], 'Unit Cost': ['0.10 UNC/nos']})
-    defaults = cost__input({'items': items})
+    defaults = cost__input(HookContext(var_url_kwargs={'items': items}))
 
     assert 'items' in defaults
     assert 'shared_item_rates_version' not in defaults
@@ -112,7 +113,7 @@ def test_cost_modify_applies_shared_rates():
     rates(schedule)
 
     items = pd.DataFrame({'Item': ['Brick'], 'Quantity': ['100 nos'], 'Unit Cost': ['0.10 UNC/nos']})
-    updated = cost__modify('items', items, _shared_action())
+    updated = cost__modify(HookContext(), 'items', items, _shared_action())
 
     assert isinstance(updated.loc[0, 'Unit Cost'], Qty)
 
@@ -140,7 +141,7 @@ def test_cost_modify_uses_latest_rates_after_reload():
     rates(schedule2)
 
     items = pd.DataFrame({'Item': ['Brick'], 'Quantity': ['100 nos'], 'Unit Cost': ['0.10 UNC/nos']})
-    updated = cost__modify('items', items, _shared_action())
+    updated = cost__modify(HookContext(), 'items', items, _shared_action())
 
     assert isinstance(updated.loc[0, 'Unit Cost'], Qty)
     assert abs(updated.loc[0, 'Unit Cost'].val - 15.0) < 1e-9
@@ -156,7 +157,7 @@ def test_cost_modify_falls_back_to_legacy_rates_and_backfills_shared_registry():
     QData.setp1('rates', legacy_rates)
 
     items = pd.DataFrame({'Item': ['Brick'], 'Quantity': ['100 nos'], 'Unit Cost': ['0.10 UNC/nos']})
-    updated = cost__modify('items', items, _shared_action())
+    updated = cost__modify(HookContext(), 'items', items, _shared_action())
 
     assert isinstance(updated.loc[0, 'Unit Cost'], Qty)
     shared = get_shared_dataset(dataset_type=SHARED_RATES_TYPE, dataset_key=SHARED_RATES_KEY)
@@ -201,6 +202,7 @@ def test_scenario_input_and_modify_can_consume_compare_shared_dataset():
     )
 
     updated = scenario__modify(
+        HookContext(),
         'scenarios',
         {'columns': ['Variation'], 'data': [['old']]},
         {

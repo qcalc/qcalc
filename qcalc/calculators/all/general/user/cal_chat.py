@@ -35,8 +35,8 @@ def _render_ai_chat(turns):
     return qchat(md2html('\n\n'.join(sections), wrap=True))
 
 
-def ai_chat__command(_fkwargs, extra):
-    if extra['args'][0] == 'new_chat':
+def ai_chat__command(ctx, _func_kwargs):
+    if ctx.extra['args'][0] == 'new_chat':
         QOpenAIChat.clear()
         return qinfo('AI conversation cleared')
     return ''

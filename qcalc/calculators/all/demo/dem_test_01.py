@@ -14,7 +14,7 @@ from calculators.all.general import conv2
 from qcore.mod_anno import *
 
 
-def demo_modify_number__modify(arg_name, arg_value, _action):
+def demo_modify_number__modify(_ctx, arg_name, arg_value, _action):
     if arg_name == 'y':
         return arg_value ** 2
     else:
@@ -36,7 +36,7 @@ def demo_modify_number(x=3, y=2):
     return x + y
 
 
-def demo_modify_text__modify(arg_name, arg_value, _action):
+def demo_modify_text__modify(_ctx, arg_name, arg_value, _action):
     if arg_name == 'x':
         return 'Hello'
     else:

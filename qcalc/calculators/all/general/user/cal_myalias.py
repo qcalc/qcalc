@@ -56,7 +56,7 @@ def _pairs_to_qtbl(pairs):
     return {'columns': ['Alias', 'Calculator'], 'data': [[alias, target] for alias, target in pairs]}
 
 
-def myalias__input(_kwargs):
+def myalias__input(_ctx):
     alias_map = QCalAlias.getp({})
     pairs = sorted(
         [

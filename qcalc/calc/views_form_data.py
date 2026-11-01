@@ -41,7 +41,7 @@ def _has_large_dataframe(data_dict, max_cells):
     return False
 
 
-def q11429_func_to_form_schema(request: HtmxHttpRequest, func_addr, func_id, cid, kwargs):  # req
+def q11429_func_to_form_schema(request: HtmxHttpRequest, func_addr, func_id, cid, var_url_kwargs):  # req
     cache_def = QCache.get_data(func_id) if gs['schema_cache'] else None
 
     if cache_def is None:
@@ -63,9 +63,8 @@ def q11429_func_to_form_schema(request: HtmxHttpRequest, func_addr, func_id, cid
     # | modify initial input values
     input_meta_func = func_id + '__input'
     if QCals.func_exists(input_meta_func):
-        input_meta_callback = QCals.addr(input_meta_func)  # (kwargs)
-        defa_input = input_meta_callback(kwargs)
-        # kwargs.update(defa_input) @ 10.09.24 commented
+        input_meta_callback = QCals.addr(input_meta_func)  # (var_url_kwargs)
+        defa_input = input_meta_callback(var_url_kwargs)
         if defa_input:  # | precedence: 1. __info < 2 .json (q1141_read_func_meta) < 3. __input
             fargs.update(defa_input)
     # | end exit point
@@ -90,7 +89,7 @@ def q11429_func_to_form_schema(request: HtmxHttpRequest, func_addr, func_id, cid
     # | per-request override of schema properties e.g. choices, evaluated on every form build (not cached)
     schema_meta_func = func_id + '__schema'
     if QCals.func_exists(schema_meta_func):
-        schema_meta_callback = QCals.addr(schema_meta_func)(request, kwargs)  # (request, kwargs)
+        schema_meta_callback = QCals.addr(schema_meta_func)(request, var_url_kwargs)  # (request, kwargs)
         info_schema = request.json_doc['info']['schema']
         for name, meta in (schema_meta_callback or {}).items():
             # | new dict, so that the (cached) __info dicts are never mutated
@@ -105,15 +104,15 @@ def q11429_func_to_form_schema(request: HtmxHttpRequest, func_addr, func_id, cid
     q11421_get_extra_form_data_posted(request)
 
     id_prefix = f'{TOK_ID_PREFIX}{cid}{TOK_FIELD_SEP}'
-    i = 0  # | field, can be greater than arguement
-    iarg = 0  # | arguement
+    i = 0  # | field, can be greater than argument
+    iarg = 0  # | argument
     for arg_name, arg_value in fargs.items():
         # | arg_name by default has the default value
         # | name = arg_name
         # | --------------------------------------------
         # | static initial value or initial empty value
-        if arg_name in kwargs:  # | precedence: 1. __info < 2 .json < 3. __input < 4. memory < 5. kwargs < 6. url args
-            v = kwargs[arg_name]
+        if arg_name in var_url_kwargs:  # | precedence: 1. __info < 2 .json < 3. __input < 4. memory < (5. var_kwargs < 6. url_kwargs) i.e. var_url_kwargs
+            v = var_url_kwargs[arg_name]
             if isinstance(v, str):
                 # | value is specified in url so assign it instead of default arg value
                 if v == '-':
@@ -126,13 +125,13 @@ def q11429_func_to_form_schema(request: HtmxHttpRequest, func_addr, func_id, cid
                     arg_value = v
             else:
                 arg_value = v
-        elif '---' in kwargs:
+        elif '---' in var_url_kwargs:
             # | if a key is --- in url, assign empty value instead of default arg value
             arg_value = ''
         # | --------------------------------------------
         # sig_type = params[iarg].annotation
         if arg_name.endswith('--@'):
-            sig_type = qfunc  # | qhide w/o s2f='x' dont ignore - has to run func()
+            sig_type = qfunc  # | qhide w/o s2f='x' don't ignore - has to run func()
         elif arg_name.endswith('--#'):
             sig_type = qhidex  # | qhide but s2f='x' ignore
         else:
@@ -143,7 +142,7 @@ def q11429_func_to_form_schema(request: HtmxHttpRequest, func_addr, func_id, cid
         # | assign type to determine the behavior
         inf_type, inf_initial, inf_class = schema_type_initial_class(request, arg_name)
         # | __info/initial gets less precedence
-        # | precedence: 1. __info < 2 .json < 3. __input < 4. memory < 5. kwargs < 6. url args < 7. posted value
+        # | precedence: 1. __info < 2 .json < 3. __input < 4. memory < (5. var_kwargs < 6. url_kwargs) i.e. var_url_kwargs < 7. posted value
         arg_type = sig_type if sig_type else inf_type
         arg_value = arg_value if arg_value is not None else inf_initial
         if arg_type in [qtable, 'qtable', qtbl, 'qtbl']:

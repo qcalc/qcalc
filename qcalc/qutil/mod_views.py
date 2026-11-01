@@ -44,7 +44,7 @@ class HtmxHttpRequest(HttpRequest):
     cid: str
     is_public: bool
     input_id: int
-    var_owner: int
+    var_owner: str
     var_title: str
     variant: int
     token: str

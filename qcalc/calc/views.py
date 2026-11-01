@@ -227,7 +227,7 @@ def q1199_func_to_form_common(request: HtmxHttpRequest, **dictf):  # main view
     request.token = token  # required to check authorization inside q1119_urlpath_to_func_args()
     if execute is not None: request.cmd = 'run'
 
-    sfunc, kwargs = q1119_urlpath_to_func_args(request, dictf)
+    sfunc, url_kwargs = q1119_urlpath_to_func_args(request, dictf)
 
     if token == '' and var_owner == '?':  # determine var_owner now
         if '-' in sfunc:
@@ -240,33 +240,34 @@ def q1199_func_to_form_common(request: HtmxHttpRequest, **dictf):  # main view
     if cid == '' or cid is None: cid = sfunc + '__' + ut.makeid()
     request.cid = cid
 
+    var_url_kwargs = url_kwargs
     if request.method == 'GET':
-        # | get kwargs from variant/token
-        inp_data = None
+        # | get kwargs from variant/shared token
+        var_data = None
         if token:  # shared by token
-            inp_data = QInput.get_variant_from_token(sfunc, token)
-            if inp_data:
-                variant = inp_data.variant_id
+            var_data = QInput.get_variant_from_token(sfunc, token)
+            if var_data:
+                variant = var_data.variant_id
                 request.variant = variant
-                var_owner = inp_data.user.username
+                var_owner = var_data.user.username
                 request.var_owner = var_owner
 
                 checked = QInput.save_shared_cal(sfunc, token, check_only=True)
                 request.token_state = (checked != "0")
         elif variant > 0:  # user variant
-            inp_data = QInput.get_variant(sfunc, variant, var_owner)
+            var_data = QInput.get_variant(sfunc, variant, var_owner)
         elif variant == 0:
             cal_id, cal_name, cal_owner = fid2owner(sfunc)
             cur_user_name = user_name(request)
             if cal_owner and cal_owner != cur_user_name:
                 request.token_state = QInput.is_shared_cal(sfunc)
 
-        if inp_data:  # shared input
-            inp_kwargs = inp_data.item.get('input', {})
-            inp_kwargs.update(kwargs)  # inp_kwargs can be overwritten by kwargs
-            kwargs = inp_kwargs
-            request.var_title = inp_data.description
-            input_id = inp_data.id
+        if var_data:  # variant/shared token
+            var_kwargs = var_data.item.get('input', {})
+            var_kwargs.update(url_kwargs)  # var_kwargs overwritten by url_kwargs
+            var_url_kwargs = var_kwargs
+            request.var_title = var_data.description
+            input_id = var_data.id
         elif token:
             request.success &= False
             raise Exception(f"Error (FTFC) Incorrect Access Token for {sfunc}")
@@ -279,7 +280,7 @@ def q1199_func_to_form_common(request: HtmxHttpRequest, **dictf):  # main view
     request.times['common starts'] = time.time()
 
     try:
-        q1149_func_to_form_context(request, sfunc, cid, kwargs)
+        q1149_func_to_form_context(request, sfunc, cid, var_url_kwargs)
         # propagate print mode into context and json_doc.info for templates
         request.context['print_mode'] = getattr(request, 'print_mode', '')
         try:
@@ -509,7 +510,7 @@ def q1_run_func(request: HtmxHttpRequest, **dictf):
     return JsonResponse(result, encoder=QEncoderBase)
 
 
-def q1149_func_to_form_context(request: HtmxHttpRequest, func_id, cid, kwargs):
+def q1149_func_to_form_context(request: HtmxHttpRequest, func_id, cid, var_url_kwargs):
     func_addr = QCals.addr(func_id)
     request.json_doc = q1141_read_func_meta(func_id)
     request.json_doc['info']['help'] = get_fhelp(func_id)
@@ -521,7 +522,7 @@ def q1149_func_to_form_context(request: HtmxHttpRequest, func_id, cid, kwargs):
     if not has_dynamic_layout(request.json_doc['info']):
         resolve_static_side(
             request.json_doc['info'], 'input', ut.specified_args(func_addr, '*', empty_spec=''))
-    q11429_func_to_form_schema(request, func_addr, func_id, cid, kwargs)
+    q11429_func_to_form_schema(request, func_addr, func_id, cid, var_url_kwargs)
     apply_effective_prefs(request)
     request.context['input'] = q11469_form_data_create_dynaform_and_fill(
         request, request.json_schema, request.json_data, request.json_s2f,

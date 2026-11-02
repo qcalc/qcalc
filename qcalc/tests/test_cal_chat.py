@@ -21,7 +21,7 @@ def test_q2cal_uses_ai_prompt_field_for_query():
     assert query_schema['label'] == 'Query'
     assert query_schema['attrs']['rows'] == 4
     assert 'include known values, units, and constraints' in (
-        query_schema['help_text']
+        query_schema['help_inline']
     )
 
 

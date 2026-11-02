@@ -27,6 +27,7 @@ Normative terms:
 
 - Author Guide: <https://github.com/qcalc/qcalc/blob/main/qcalc_res/docs/author-guide/qcalc-author-guide.md>
 - Calculator Meta Functions: <https://github.com/qcalc/qcalc/blob/main/qcalc_res/docs/author-guide/calculator-meta-functions.md>
+- Calculator Hooks: <https://github.com/qcalc/qcalc/blob/main/qcalc_res/docs/author-guide/calculator-hooks.md>
 - Author Quick Start: <https://github.com/qcalc/qcalc/blob/main/qcalc_res/docs/author-guide/author-quick-start.md>
 - Create Calculator Examples: <https://github.com/qcalc/qcalc/blob/main/qcalc_res/docs/author-guide/create-calculators-examples.md>
 - Field Types: <https://github.com/qcalc/qcalc/blob/main/qcalc_res/docs/author-guide/related-topics/qcalc-field-types.md>
@@ -532,10 +533,13 @@ It defines calculator metadata and, where applicable, the calculator UI schema a
 
 `__input`, `__schema`, `__modify` and `__command` receive a read-only context as their first argument. It does not give access to the request or session. It provides:
 
-- `ctx.var_url(name, default=None)` and `ctx.var_url_kwargs`: values of a saved variant, example or shared input, overlaid by the values given in the calculator url. Empty on a posted form.
 - `ctx.posted(name, default=None)`, `ctx.posted_list(name)` and `ctx.posted_kwargs`: values posted by the form, as text.
-- `ctx.remembered(name, default=None)` and `ctx.remembered_kwargs`: the user's previous input of this calculator, empty unless memory is recalled.
+- `ctx.posted_as(name, type, default=None)`: the posted value converted to a type of the calculator function (`float`, `int`, `str`, `bool`, `qt`), or the default when the field was not posted or the value cannot be converted. A quantity (`qt`, `qt2`, `qtx`) is joined from its value and unit inputs.
+- `ctx.resolved(name, default=None)` and `ctx.resolved_kwargs`: the value each field starts with in this request (function defaults, `__info()` values, `__input()` values, remembered input, then variant or url values, merged in that order; posted values are not included). In `__input()` it does not yet contain the values `__input()` returns. Values keep their own type.
+- `ctx.var_url(name, default=None)` and `ctx.var_url_kwargs`: only the values of a saved variant, example or shared input, overlaid by the values given in the calculator url. Empty on a post, except when a saved input file is opened.
+- `ctx.value(name, type, default=None)`: the value a field has in this request converted to the type: the posted value when it converts, else the resolved value, else the default. A resolved value that is not text is returned as it is.
 - `name(...)` returns one value and `name_kwargs` returns a new dictionary of all fields of that source.
+- To get the value a field has in this request use `ctx.value(...)`, or the posted value if there is one, else the resolved value.
 - `ctx.recall`, `ctx.is_post`, `ctx.cmd`, `ctx.extra` (`{cmd, args, kwargs}` from a callback button).
 - `ctx.user`, `ctx.is_loggedin`, `ctx.cid`, `ctx.func_id`.
 

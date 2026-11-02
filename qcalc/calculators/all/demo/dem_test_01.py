@@ -67,10 +67,11 @@ def demo_anno2__info():
 def demo_anno2(u: quom = 'kg', u2: quom2 = 'g', q: qt = '1 ft', q2: qt2 = '1 ft'):
     return u, u2, q, q2
 
-
+    
 def demo_anno__info():
     return {
-        'title': 'Test Annotation (implicit)'
+        'title': 'Test Annotation (implicit)',
+        'desc': 'Demonstrates implicit annotation handling'
     }
 
 
@@ -145,12 +146,11 @@ def demo_date(future: qdate = '2025-12-31', past='1924-01-01'):
 def demo_uom__info():
     return {
         'title': 'Testing lone uom',
-        # 'beside': ['x', 'y', 'z']
     }
 
 
-def demo_uom(x_uom='ft'):
-    return {'Length Uom': x_uom}
+def demo_uom(xuom='ft'):
+    return {'Length Uom': xuom}
 
 
 def demo_dict__info():
@@ -441,102 +441,3 @@ def demo_xtable(csv1: qfile, csv2: qfile):
         'x': x
     }
 
-
-def demo_bmi1__info():
-    return {}
-
-
-def demo_bmi1(weight='59.0 kg, 500.0 g', body_height='5.0 ft, 6 inch'):
-    weight_kg = Qty(weight, 'kg')
-    height_m = Qty(body_height, 'm')
-    # print(weight_kg, height_m)
-    bmi_kgpm2 = weight_kg / height_m ** 2
-    return {'BMI': bmi_kgpm2}
-
-
-def demo_bmi0__info():
-    return {}
-
-
-def demo_bmi0(weight=60, weight_uom='kg', height=5.5, height_uom='ft'):
-    """Calculate Body Mass Index."""
-    weight_kg = Qty(weight, weight_uom, 'kg')
-    # weight_kg.to('kg')
-    height_m = Qty(height, height_uom, 'm')
-    # height_m.to('m')
-    bmi_kgpm2 = weight_kg / height_m ** 2
-    return {'BMI': bmi_kgpm2}
-
-
-def demo_circle0__info():
-    return {}
-
-
-def circle0(radius='10ft', dia='@ft', circumference='@ft', area='@ft**2'):
-    """
-    Calculate Area, Circumference, Diameter and Radius of a Circle.
-    Enter any one parameter.
-    """
-    c = Circle(radius=radius, dia=dia, circumference=circumference, area=area)
-    return {'Radius': c.radius, 'Dia': c.dia, 'Circumference': c.circumference, 'Area': c.area}
-
-
-class Circle:
-    def __init__(self, **kwargs):
-        # print(kwargs)
-        if kwargs['radius'] is not None:
-            # print(kwargs['radius'])
-            qradius = Qty(kwargs['radius'])
-            if qradius.val is not None:
-                self.r2c(qradius)
-                return
-        if kwargs['dia'] is not None:
-            # print(kwargs['dia'])
-            qdia = Qty(kwargs['dia'])
-            # print(qdia)
-            if qdia.val is not None:
-                self.d2c(qdia)
-                return
-        if kwargs['circumference'] is not None:
-            qcircumference = Qty(kwargs['circumference'])
-            if qcircumference.val is not None:
-                self.p2c(qcircumference)
-                return
-        if kwargs['area'] is not None:
-            qarea = Qty(kwargs['area'])
-            if qarea.val is not None:
-                self.a2c(qarea)
-                return
-
-    def r2c(self, qradius):
-        self.attrs(qradius)
-
-    def d2c(self, qdia):
-        qradius = qdia / 2
-        self.attrs(qradius)
-
-    def p2c(self, qcircumference):
-        qradius = qcircumference / (2 * pi)
-        self.attrs(qradius)
-
-    def a2c(self, qarea):
-        qradius = (qarea / pi) ** 0.5
-        self.attrs(qradius)
-
-    def attrs(self, qradius):
-        self.radius = qradius
-        self.dia = qradius * 2
-        self.area = pi * qradius ** 2
-        self.circumference = 2 * pi * qradius
-
-
-from calculators.all.general.utility import vrange
-
-
-def demo_xouts__info():
-    return {}
-
-
-def demo_xouts(x=5, y=10):
-    z = x + y
-    return {'result': {'x': x, 'y': y, 'result': z}, **vrange()}  # , 'chart': test__chart()

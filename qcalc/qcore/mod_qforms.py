@@ -78,9 +78,7 @@ class QFieldHandler:
                     type_key = field_meta['type'].lower()
                     f = self._get_field_builder(type_key, field_meta['name'])(field_meta, options)
 
-            spec_attrs = field_meta.get('attrs', None) or {}
-            for attr, value in spec_attrs.items():
-                f.widget.attrs[attr] = value
+            self._apply_spec_attrs(f, field_meta)
 
             self.formfields[field_meta['name']] = f
 
@@ -133,6 +131,12 @@ class QFieldHandler:
             'url': self.create_url_field,
             'uuid': self.create_uuid_field,
         }
+    
+    @staticmethod
+    def _apply_spec_attrs(field, meta):
+        for attr, value in (meta.get('attrs') or {}).items():
+            field.widget.attrs[attr] = value
+        field.help_inline = meta.get('help_inline', '')
 
     def _get_field_builder(self, type_key, field_name):
         builder = self._field_builders().get(type_key)
@@ -202,9 +206,7 @@ class QFieldHandler:
             type_key = fld_meta['type'].lower()
             f = self._get_field_builder(type_key, fld_meta['name'])(fld_meta, opts)
 
-            spec_attrs = fld_meta.get('attrs', None) or {}
-            for attr, value in spec_attrs.items():
-                f.widget.attrs[attr] = value
+            self._apply_spec_attrs(f, fld_meta)
 
             fields.append(f)
             fnames.append(key)

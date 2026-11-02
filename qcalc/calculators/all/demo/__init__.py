@@ -3,6 +3,8 @@ from .dem_authoring import *
 from .dependency.dem_autofill_tabbed import *
 from .dependency.dem_autofill2_tabbed import *
 from .dem_inc_exc import *
+from .hook_functions.dem_hooks import *
+from .hook_functions.dem_hooks_basic import *
 from .input_fields.dem_input import *
 from .dem_locals import *
 from .dependency.dem_anyof_tabbed import *
@@ -13,7 +15,7 @@ from .dependency.dem_showhide import *
 from .dependency.dem_showhide_tabbed import *
 from .dem_slider import *
 from .dem_test_01 import *
-from .dem_test_02 import *
+from .dem_test_qty import *
 from .dem_test_date import *
 from .layout.dem_test_layout import *
 from .dem_validate import *

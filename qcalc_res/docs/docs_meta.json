@@ -52,6 +52,11 @@
     "desc": "Meta function specification for qCalc calculators.",
     "order": "2.25"
   },
+  "author-guide/calculator-hooks.md": {
+    "title": "Calculator hooks",
+    "desc": "Optional hook functions of qCalc calculators (__input, __schema, __modify, __command, __help) and the hook context.",
+    "order": "2.26"
+  },
   "author-guide/create-calculators-examples.md": {
     "title": "Create calculators - learn by examples",
     "desc": "Worked examples for learning and building qCalc calculators.",

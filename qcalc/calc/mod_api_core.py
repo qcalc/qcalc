@@ -114,6 +114,8 @@ def _field_schema(name, default, annotation, parameter, info_schema):
         for key in ('label', 'help_text'):
             if spec.get(key):
                 field[key] = spec[key]
+        if 'help_text' not in field and spec.get('help_inline'):
+            field['help_text'] = spec['help_inline']
         choices = spec.get('choices')
         if choices and not callable(choices):
             field['choices'] = api_pack_value(choices)

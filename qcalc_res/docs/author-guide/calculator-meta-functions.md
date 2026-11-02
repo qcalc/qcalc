@@ -353,7 +353,7 @@ def demo_related(country, province, city):
 
 * The current implementation supports up to four levels of dependency (e.g. country, state, city, zipcode). 
 * Do not put the same field in both `related` and `anyof` or `showhide`; these features can compete for control of it.
-* `related` data is fixed and updates in the browser. For choices that are computed on the server or depend on the request, see `__schema()` in [qCalc Author Guide](qcalc-author-guide.md#75-__schemactx).
+* `related` data is fixed and updates in the browser. For choices that are computed on the server or depend on the request, see `__schema()` in [Calculator hooks](calculator-hooks.md#5-__schemactx).
 
 ### 4.3 `showhide`: Reveal inputs only when needed
 
@@ -420,7 +420,7 @@ def conv2__info():
 
 When the user changes `quantity`, qCalc rebuilds the input section on the server and runs `__input()` and 
 `__schema()` again, so the new choices and default values can depend on the selected value 
-(see [`__schema(ctx)`](qcalc-author-guide.md#75-__schemactx)).
+(see [`__schema(ctx)`](calculator-hooks.md#5-__schemactx)).
 
 * The listed fields are reset to their default values (the function defaults, or the values returned by `__input()`). 
 Remembered values are not used for them.
@@ -431,6 +431,9 @@ is no longer offered, the first offered choice is selected (for example a mode t
 * Use `reload: True` to rebuild the form without resetting any field.
 * No url or `hx-*` attribute is needed, so it works for frontend calculators too.
 * Use it on a plain `choice` field. A `qsel2` (select2) field does not reliably report a change.
+* On a quantity field (`qt`), the trigger is put on the value and the unit input, so changing either rebuilds the form. 
+List the value and unit of a dependent quantity (`'total', 'total_uom'`) to reset both. To show a computed, read-only 
+quantity use `'attrs': {'readonly': True}`, see `demo_formula_qty` in `dem_hooks_basic.py`.
 * `reload` needs a round trip to the server. For a small, fixed cascade that must update instantly in the 
 browser use [`related`](#42-related-dependent-selections).
 
@@ -442,17 +445,19 @@ dependent fields must become something other than their normal defaults:
 | Situation | Hook needed |
 |---|---|
 | The dependent fields only need their normal defaults again, or their static choices are fine for every value | None. They reset to the function defaults (and to the values of `__info()` or `qfunc_info.json`). |
-| The choices of the dependent fields depend on the trigger field (units that depend on a quantity) | [`__schema(ctx)`](qcalc-author-guide.md#75-__schemactx). Without it the choices stay as in `__info()`. |
+| The choices of the dependent fields depend on the trigger field (units that depend on a quantity) | [`__schema(ctx)`](calculator-hooks.md#5-__schemactx). Without it the choices stay as in `__info()`. |
 | The default selection of the dependent fields depends on the trigger field (a default unit that is valid for the quantity) | `__input(ctx)`. Without it they get the function defaults, which may not be among the new choices. |
 | Both of the above | Both hooks. |
 
 `__modify()` and `__command()` are never needed for `reload`.
 
 In the hooks, read the value of the trigger field from `ctx`:
-* After a change the form is rebuilt by a post, so `ctx.is_post` is true and the new value is in 
-`ctx.posted('quantity')`.
-* On a first load the value comes from `ctx.var_url('quantity')` (the calculator url) or `ctx.remembered('quantity')`.
-* Validate the value and fall back to a default. The `_conv2_lmt(ctx)` helper of the `conv2` calculator does all three.
+* The value the user has just selected is in `ctx.posted('quantity')`, because the form is rebuilt by a post.
+* On a first load it is the value the form starts with, `ctx.resolved('quantity')`: the function default, the 
+remembered value or the value in the calculator url.
+* Use the posted value when there is one, else the resolved value, validate it and fall back to a default. 
+`ctx.value(name, type, default)` does this for a typed value. The `_conv2_lmt(ctx)` helper of the `conv2` calculator 
+does it for a text field in one line.
 
 ## 5. Layout Keys
 

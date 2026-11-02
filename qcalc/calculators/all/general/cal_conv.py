@@ -2,7 +2,8 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 from qcore import _unit_tree, qx, qxi, to_ucur
-from qcore import read_unit, lmt2ulist, lmt2cat, _unit_info, _base_categ_mlist, lmt2qlist, dim_to_bname, _base_names, _conv_names
+from qcore import read_unit, lmt2ulist, lmt2cat, _unit_info, _base_categ_mlist, lmt2qlist, dim_to_bname, _base_names, \
+    _conv_names
 from qutil import css2strs, list2table, find_matched_variables, cal_link, calurl
 from calc import QCals
 import itertools
@@ -45,6 +46,13 @@ def _conv2_mode_list(qlist):
     return {'u2u': 'Unit -> Unit'}
 
 
+def _conv2_categ_list(catalog):
+    # | the short catalog keeps only the quantities which have more than 2 units
+    if catalog == 'short':
+        return [(k, v) for k, v in _base_categ_mlist() if len(lmt2ulist(k)) > 2]
+    return _base_categ_mlist()
+
+
 def conv2__info():
     lmt = 'L'
     ulist = lmt2ulist(lmt)
@@ -55,6 +63,12 @@ def conv2__info():
         'title': f'Unit Converter',
         'desc': '',
         'schema': {
+            'catalog': {
+                'type': 'choice', 'choices': {'short': 'Short', 'full': 'Full'},
+                # | changing the catalog rebuilds the form, the quantity list follows it (see conv2__schema()),
+                # | the listed fields are reset, 'mode' goes back to 'u2u' i.e. the only mode of the short catalog
+                'reload': ['quantity', 'mode', 'from_unit', 'to_units', 'from_qty', 'to_qty', 'unit_cost'],
+            },
             'quantity': {
                 # | 'type':'qsel2' wouldn't trigger the reload, because select2 changes the element properties at runtime
                 'type': 'choice', 'choices': _base_categ_mlist(),
@@ -79,12 +93,19 @@ def conv2__info():
             'to_qty': {'type': 'qsel2', 'choices': qlist},
         },
         'showhide': {
+            # | no entry for 'catalog': it has a 'reload' trigger on 'change', the synthetic change event of the
+            # | showhide init would rebuild the form again and again. In the short catalog 'mode' is a hidden field
+            # | (see conv2__schema()), the visibility then depends on the catalog only
             'mode': {'fields': ['from_unit', 'from_qty', 'to_units', 'to_qty', 'unit_cost'], 'callback': 'conv2_sh'}
         },
         'calculate': 'Convert',
         'kins': 'conv',
         'script': '''
         function conv2_sh(v){
+          const catalog = document.querySelector("[id$='_catalog']");
+          if(catalog && catalog.value=='short'){
+            return [true, false, true, false, false]  // unit -> unit without the cost
+          }
           if(v=='u2u'){
             return [true, false, true, false, true]
           } else if (v=='u2q') {
@@ -99,29 +120,38 @@ def conv2__info():
     }
 
 
+def _conv2_catalog(ctx):
+    # | what the user posted, else what the form starts with (defaults, memory, variant or url)
+    def checked(value):
+        value = str(value or '').lower()
+        return value if value in ('short', 'full') else ''
+
+    return checked(ctx.posted('catalog')) or checked(ctx.resolved('catalog')) or 'full'
+
+
 def _conv2_lmt(ctx):
-    # | precedence is the same as in the form: posted value > url value > remembered value > 'L'
-    # | '-', '--' and other invalid values are ignored
-    valid = dict(_base_categ_mlist())
+    # | the quantities which are not in the catalog are ignored, so are invalid values
+    valid = dict(_conv2_categ_list(_conv2_catalog(ctx)))
 
     def checked(value):
         value = str(value or '').upper()
         return value if value in valid else ''
 
-    if ctx.is_post:
-        lmt = checked(ctx.posted('quantity'))
-    else:
-        lmt = checked(ctx.var_url('quantity')) or checked(ctx.remembered('quantity'))
-    return lmt or 'L'
+    return checked(ctx.posted('quantity')) or checked(ctx.resolved('quantity')) or 'L'
 
 
 def conv2__schema(ctx):
-    # | unit and quantity choices depend on the selected quantity (dimension)
+    # | quantity, unit and quantity choices depend on the selected catalog and quantity (dimension)
+    catalog = _conv2_catalog(ctx)
     lmt = _conv2_lmt(ctx)
     ulist = _conv2_ulist(lmt)
     qlist = lmt2qlist(lmt)
+    # | the short catalog has no mode to choose, a hidden 'mode' keeps the value 'u2u' and the showhide init
+    mode = {'type': 'qhide', 'choices': {'u2u': 'Unit -> Unit'}} if catalog == 'short' else \
+        {'type': 'choice', 'choices': _conv2_mode_list(qlist)}
     return {
-        'mode': {'choices': _conv2_mode_list(qlist)},
+        'quantity': {'choices': _conv2_categ_list(catalog)},
+        'mode': mode,
         'from_unit': {'choices': ulist},
         'to_units': {'choices': ulist},
         'from_qty': {'choices': qlist},
@@ -147,7 +177,10 @@ def conv2__input(ctx):
 
 
 def conv2(quantity='L', mode='u2u', value: qtexta = '1.0', from_unit=['ft'], from_qty='l_earth_moon',
-          to_units=['m'], to_qty='', unit_cost: qtx = '@UNC/ft'):
+          to_units=['m'], to_qty='', unit_cost: qtx = '@UNC/ft', catalog='short'):
+    if catalog == 'short':  # | no unit cost either, whatever has been posted
+        mode = 'u2u'
+        unit_cost = '@UNC/ft'
     qfrom = None
     from_unit_ = ''
     to_units_ = to_units
@@ -186,7 +219,7 @@ def conv2(quantity='L', mode='u2u', value: qtexta = '1.0', from_unit=['ft'], fro
     # | Cost calculation
     unit_cost = Qty(unit_cost)
     if unit_cost.val is None:
-        total_cost = Qty('@UNC')
+        total_cost = None
     else:
         qvalue = Qty(value, from_unit[0])
         cur_used = find_matched_variables(unit_cost.uom.lower(), _unit_tree['C'])[0]
@@ -219,7 +252,7 @@ def conv_output(value, from_unit, inunits: list, xinunits: list, converted_value
     else:
         rut_out = f'{qxi(to_qty)['description']} ({to_qty})'
 
-    return {
+    result = {
         'Conversion of': qhtml(f'{category}'),
         'Converting from': qhtml(ruf_out),
         'Converting to': qhtml(rut_out),
@@ -227,65 +260,9 @@ def conv_output(value, from_unit, inunits: list, xinunits: list, converted_value
         'Total Cost': total_cost,
         'Expressed Value': qhtml(expressed_value)
     }
-
-
-def conv1__info():
-    return {
-        'title': 'Simple Unit Converter (old version)',
-        'images': {'top': ['calculators/all/measuring-tools.png']},
-        'kins': 'conv2'
-    }
-
-
-def conv1(value: qtexta = '5.5', from_unit: quomx = 'ft',
-          convert_to_units: str = 'm', express_in_units: str = 'yd,ft,inch',
-          unit_cost: qtx = '@UNC/ft'):
-    """Simple Unit Converter
-
-    Args:
-        value: Value to be converted, you can enter simple expression as well (e.g. 92/3+15)
-        from_unit: Unit to be converted from
-        convert_to_units: Unit to be converted to. If you want to convert to multiple units, separate those units using comma (e,g, ft, m, yd)
-        express_in_units: Unit to be expressed in. If you want to express in multiple units, separate those units using comma (e,g, ft, m, yd)
-
-    Return:
-        returns converted unit(s) and expressed in unit(s)
-    """
-    # qvalue = Qty(float(value), from_unit)  # , convert_to_unit)
-    # keep arguement convert_to_units: str = ''
-    value = QCals.safe_eval(value)
-    qvalue = Qty(value, from_unit)
-    converted_value = qvalue
-    category = qvalue.category()
-    expressed_value = 'n/a'
-    # breakpoint()
-    inunits = []
-    if convert_to_units != '':
-        # labels = []
-        if convert_to_units == 'all':
-            lmt = category.split(':')[0]
-            if lmt in _unit_tree:
-                # print(_unit_tree[lmt])
-                inunits = [name for name in _unit_tree[lmt]]
-                # labels = [long_name for long_name in _unit_tree[lmt]]
-        else:
-            inunits = css2strs(convert_to_units)
-        converted_value = qvalue.to_units(inunits)
-
-    xinunits = []
-    if express_in_units != '':
-        xinunits = css2strs(express_in_units)
-        expressed_value = qvalue.as_units(express_in_units)
-
-    # | Cost calculation
-    unit_cost = Qty(unit_cost)
-    if unit_cost.val is None:
-        total_cost = Qty('@UNC')
-    else:
-        cur_used = find_matched_variables(unit_cost.uom.lower(), _unit_tree['C'])[0]
-        total_cost = Qty(unit_cost * qvalue).to(cur_used)
-    return conv_output(value, from_unit, inunits, xinunits,
-                       converted_value, expressed_value, category, total_cost)
+    if total_cost is None:  # | no unit cost, nothing to report
+        del result['Total Cost']
+    return result
 
 
 def conv__info():
@@ -378,7 +355,7 @@ def conv(value: qtexta = '1.0',
     # | Cost calculation
     unit_cost = Qty(unit_cost)
     if unit_cost.val is None:
-        total_cost = Qty('@UNC')
+        total_cost = None
     else:
         cur_used = find_matched_variables(unit_cost.uom.lower(), _unit_tree['C'])[0]
         total_cost = Qty(unit_cost * qvalue).to(cur_used)

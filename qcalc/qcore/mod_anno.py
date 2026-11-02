@@ -323,7 +323,8 @@ class QScreen:
         return contents
 
 
-def convert_to_type(value, target_type):
+def convert_to_type(value, target_type, strict=False):
+    # | strict=True raises when the value cannot be converted, instead of returning the value unchanged
     try:
         if target_type is None:
             return float(value)
@@ -358,6 +359,8 @@ def convert_to_type(value, target_type):
         else:
             return value
     except (ValueError, TypeError) as e:
+        if strict:
+            raise
         logger.warning(
             "convert_to_type fallback: value=%r target_type=%r error=%s",
             value, target_type, e

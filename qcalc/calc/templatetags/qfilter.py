@@ -352,32 +352,27 @@ def deslash(uname_xpr, conv=0):
 def render_help_text(field):
     from django.templatetags.static import static
 
-    if hasattr(field, 'help_text'):
-        widget_attrs = getattr(getattr(getattr(field, 'field', None), 'widget', None), 'attrs', {}) or {}
-        inline_help = str(widget_attrs.get('data-help-inline', '')).lower() in {'1', 'true', 'yes'}
+    tooltip_text = getattr(field, 'help_text', '') or ''
+    # help_inline is set on the form field (BoundField.field), not on the BoundField
+    inline_text = getattr(getattr(field, 'field', None), 'help_inline', '') or ''
 
-        if inline_help:
-            return format_html(
-                (
-                    "<a class='qcalc-help-tip' tabindex='0' data-toggle='tooltip' "
-                    "data-trigger='hover focus' data-placement='top' title='{}'>"
-                    "<img src='{}' class='info' alt='Help'></a>"
-                    "<small class='text-muted d-block qcalc-help-inline'>{}</small>"
-                ),
-                field.help_text,
-                static('calc/images/info.png'),
-                field.help_text,
-            )
-        return format_html(
+    parts = []
+    if tooltip_text:
+        parts.append(format_html(
             (
                 "<a class='qcalc-help-tip' tabindex='0' data-toggle='tooltip' "
                 "data-trigger='hover focus' data-placement='top' title='{}'>"
                 "<img src='{}' class='info' alt='Help'></a>"
             ),
-            field.help_text,
+            tooltip_text,
             static('calc/images/info.png'),
-        )
-    return ''
+        ))
+    if inline_text:
+        parts.append(format_html(
+            "<small class='text-muted d-block qcalc-help-inline'>{}</small>",
+            inline_text,
+        ))
+    return mark_safe(''.join(parts))
 
 
 @register.simple_tag

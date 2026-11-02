@@ -12,6 +12,14 @@ available, reference quantities that can be used for that category.
 
 ## Inputs
 
+### Catalog
+
+Choose **Full** (default) to see every quantity category and all four modes.
+Choose **Short** to see only the categories that have more than two units; the
+**Mode** field is then hidden and the conversion is always **Unit -> Unit**
+without a unit cost.
+Changing the catalog resets the quantity and the unit selections.
+
 ### Quantity
 
 Choose the type of measurement to convert, such as length or mass. Changing
@@ -72,8 +80,7 @@ returns a result for each selected unit.
 ### Total Cost
 
 For a unit-to-unit conversion with a unit cost, this shows the cost of the
-entered amount. When no unit cost is supplied, there is no total-cost value to
-use.
+entered amount. It is not shown when no unit cost is supplied.
 
 ## Examples
 

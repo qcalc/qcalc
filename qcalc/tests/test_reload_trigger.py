@@ -73,6 +73,20 @@ def test_reload_true_resets_nothing_and_reload_false_or_missing_adds_no_trigger(
     assert 'hx-post' not in _trigger_attrs(None)[0]
 
 
+def test_the_unit_input_of_a_quantity_gets_the_same_trigger_as_its_value_input():
+    value = _fld('mass', 'float', 2.0, reload=['total'])
+    unit = _fld('mass_uom', 'uom2-q', 'kg')
+    other_unit = _fld('weight_uom', 'uom2-q', 'kg')
+    other = _fld('massive', 'float', 1.0)
+    request = SimpleNamespace(json_schema=[value, unit, other_unit, other])
+
+    q11424_form_data_add_reload_triggers(request, 'conv2')
+
+    assert unit['attrs']['hx-vals'] == value['attrs']['hx-vals']
+    assert unit['attrs']['hx-trigger'] == 'change'
+    assert 'hx-post' not in other_unit['attrs'] and 'hx-post' not in other['attrs']
+
+
 # what the server does with the posted command ----------------------------------------------------------------------
 
 def _request(fields, extra):
@@ -99,16 +113,16 @@ def test_a_post_without_a_reset_list_keeps_all_posted_values():
     assert request.POST['from_unit'] == 'ft'
 
 
-def test_remembered_values_of_the_reset_fields_are_not_recalled():
+def test_posted_values_of_the_reset_fields_are_not_seen_by_the_hooks():
     request = SimpleNamespace(
-        method='POST', GET=QueryDict(), cmd='', recall=True, user=SimpleNamespace(is_authenticated=False),
+        method='POST', GET=QueryDict(), cmd='', recall=False, user=SimpleNamespace(is_authenticated=False),
         session={'hash': 'h'},
-        POST=_post({'extra': json.dumps({'cmd': '__modify', 'reload': True, 'reset': ['from_unit']})}))
+        POST=_post({'quantity': 'M', 'value': '7',
+                    'extra': json.dumps({'cmd': '__modify', 'reload': True, 'reset': ['quantity']})}))
 
-    ctx = HookContext.from_request(request, 'conv2', 'c1', {}, {'from_unit': ['ft'], 'value': '7'})
+    ctx = HookContext.from_request(request, 'conv2', 'c1', {})
 
-    assert ctx.remembered_kwargs == {'value': '7'}
-    assert ctx.remembered('from_unit') is None
+    assert ctx.posted_kwargs == {'value': '7'}
 
 
 def test_the_fields_to_reset_are_not_replaced_by_their_posted_value():

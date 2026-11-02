@@ -11,17 +11,10 @@
   * [4. Understanding function arguments and UI generation](#4-understanding-function-arguments-and-ui-generation)
     * [4.1 Defaults define initial values](#41-defaults-define-initial-values)
     * [4.2 Type annotations influence field type](#42-type-annotations-influence-field-type)
-  * [5. The `__info()` meta dictionary](#5-the-__info-meta-dictionary)
-    * [5.2 Dynamic choices](#52-dynamic-choices)
+  * [5. The `__info()` function](#5-the-__info-function)
   * [6. Input value precedence (important)](#6-input-value-precedence-important)
+    * [6.1 First load and post](#61-first-load-and-post)
   * [7. Optional hooks](#7-optional-hooks)
-  * [7.1 `__input(ctx)`](#71-__inputctx)
-  * [7.2 `__modify(ctx, arg_name, arg_value, action)`](#72-__modifyctx-arg_name-arg_value-action)
-  * [7.3 `__command(ctx, func_kwargs)`](#73-__commandctx-func_kwargs)
-  * [7.4 `__help()`](#74-__help)
-  * [7.5 `__schema(ctx)`](#75-__schemactx)
-  * [7.6 Hooks at a glance](#76-hooks-at-a-glance)
-  * [7.7 The hook context `ctx`](#77-the-hook-context-ctx)
   * [8. Working with quantities and units using `Qty()`](#8-working-with-quantities-and-units-using-qty)
   * [9. Form behavior patterns you can reuse](#9-form-behavior-patterns-you-can-reuse)
   * [10. Full template (copy/paste)](#10-full-template-copypaste)
@@ -47,8 +40,7 @@ Developing calculators involves coding with the Python programming language. For
 The `all` folder contains the `standard` set of calculators that are included with qCalc. 
 You can use the `ext` folders to extend the standard package or create any other sub-folder of `calculators` to house your calculators.
 
-When qCalc starts up, it scans these folders recursively and registers the functions having an associated `__info()` function as calculator entries.
-More on `__info()` function will be discussed in the next section.
+When qCalc starts up, it scans these folders recursively and registers the functions having an associated `__info()` function as calculator entries. More on `__info()` function will be discussed in the next section.
 
 ### 1.2 Frontend calculators
 `Frontend calculators` are stored in the database, where the username serves as the package name. 
@@ -110,12 +102,12 @@ typically the `choices` of a field, every time the form is built. Because `__inf
 - **__help()**: The `__help()` function supplies help content or contextual guidance for the calculator.
 This allows dynamic help content possible. This is different from static help file that can be associated with a calculator.
 
-For a calculator function named, `wall_paint`, metadata and hooks must use the same prefix, 
-meta function declarations may also need some parameters as mentioned below (will be explained later):
+For a calculator function named, `wall_paint`, metadata and hooks must use the same prefix. 
+The optional hooks are explained in the [Calculator hooks guide](calculator-hooks.md):
 
 - Main calculator: `wall_paint(...)`
 - Meta definition: `wall_paint__info()` (mandatory)
-- Optional hooks (`ctx` is the read-only request context, see [7.7](#77-the-hook-context-ctx)):
+- Optional hooks (`ctx` is the read-only request context, see [the hooks guide](calculator-hooks.md#7-the-hook-context-ctx)):
   - `wall_paint__input(ctx)`
   - `wall_paint__schema(ctx)`
   - `wall_paint__modify(ctx, arg_name, arg_value, action)`
@@ -183,7 +175,7 @@ def sample_calc(value: qtexta = "42/7", unit: quomx = "ft", rows: qtable = pd.Da
     ...
 ```
 
-## 5. The `__info()` meta dictionary
+## 5. The `__info()` function
 
 `__info()` returns a dictionary used to build form behavior and rendering.
 
@@ -199,189 +191,58 @@ For layout details, see:
 - `related-topics/info-dynamic-layout.md` for preferred dynamic block/tab layout.
 - `related-topics/info-specify-layout.md` for simple split layout (`inp1`/`out1`).
 
-
-### 5.2 Dynamic choices
-
 `__info()` takes no arguments and may be cached, so it is the place for static metadata only.
 When choices, labels or mode-specific UI must be generated from the request, use `__schema(ctx)`
-(see [7.5](#75-__schemactx)).
+(see [`__schema(ctx)`](calculator-hooks.md#5-__schemactx)).
 
 ## 6. Input value precedence (important)
 
-Effective input values are layered roughly as:
+Effective input values are layered as follows:
 
 1. Function defaults and `__info` initial
-2. `qfunc_info.json` overlays
+2. Internal: `qfunc_info.json` overlays
 3. `__input()` overrides
-4. Recalled memory values (if enabled)
-5. Saved variant, example or shared input, with the values given in the calculator url over it (`ctx.var_url()`, `ctx.var_url_kwargs`).
-   A url value of `-` keeps the lower layers and `--` forces an empty value.
+4. Recalled/remembered values (if memory is enabled)
+5. Saved variant, example or shared input, with the values given in the calculator url over it. A url value of `-` keeps the lower layers and `--` forces an empty value.
 6. Posted form values
 
-This is why `__input()` is best for dynamic defaulting, while posted values still win during form submission.
+This is why `__input()` is best for dynamic defaulting, while posted values still win during form submission. 
+Layers 1 to 5 only decide the values the form starts with. Layer 6 is applied last: a submitted form is bound to the 
+posted values, so they replace whatever the lower layers produced. After a button post, only the fields the button 
+modifies show the value returned by `__modify()`; the other fields keep their posted values.
+
+Hooks can read the two kinds of values through the hook context (see [the hooks guide](calculator-hooks.md#7-the-hook-context-ctx)): 
+`ctx.posted()` is layer 6 and `ctx.resolved()` is layers 1 to 5 merged, i.e. what the form starts with in this request.
+
+### 6.1 First load and post
+
+Not every request has every layer:
+
+| Request | Remembered values (4) | Variant or url values (5) | Posted values (6) |
+|---|---|---|---|
+| First load from a catalog or `/calc/<name>/`, or add by name | yes | no | no |
+| Add with values in the url (`path=name/field/value/`) | no | yes | no |
+| Open from a variant, example or shared link | no | yes | no |
+| Calculate, or a button post | yes | no | yes, the form is bound to them |
+| Open a saved input file | no | yes, the values of the file | no |
+
+* Memory is used when the calculator is opened by its name and not when it is opened with values in the url.
+* On a post the url layer is empty (a post carries its values in the form), so `ctx.resolved()` of a post holds 
+layers 1 to 4. The exception is opening a saved input file, which provides the values of the file as layer 5.
+* A field that is not posted, such as a disabled field, takes its value from layers 1 to 4 on a post, not from the url 
+value it showed on the first load.
 
 ## 7. Optional hooks
 
-The hooks that run for a request (`__input`, `__schema`, `__modify`, `__command`) receive a read-only context `ctx` 
-as their first argument, see [7.7 The hook context `ctx`](#77-the-hook-context-ctx). 
-For a side-by-side comparison of all the metadata functions, see [7.6 Hooks at a glance](#76-hooks-at-a-glance).
+The optional hooks are described in the separate [Calculator hooks guide](calculator-hooks.md):
 
-## 7.1 `__input(ctx)`
-
-Use to set or override initial values before render.
-
-```python
-def beam_load__input(ctx):
-    return {"density": "2500 kg/m^3"}
-```
-
-## 7.2 `__modify(ctx, arg_name, arg_value, action)`
-
-Use to alter a specific field value when a custom `__modify` command is triggered from the UI.
-
-```python
-def beam_load__modify(ctx, arg_name, arg_value, action):
-    if arg_name == "span" and action == "normalize":
-        return str(Qty(arg_value).to("m"))
-    return arg_value
-```
-
-`arg_value` is the posted value of that field converted to the field's type. To read another field as posted, 
-use `ctx.posted("other_field")`.
-
-After a `__modify` post the form is rebuilt. The fields named in the button's `args` or `kwargs` show the value 
-returned by `__modify`. The other fields show what the user had typed (text, numbers, checkboxes, choices, 
-multiple selects and select2 fields). A choice value that is no longer offered is dropped, and a `choice` or `radio` 
-field whose value is no longer offered shows its first choice. Tables and file fields are 
-not covered yet and show their default or remembered values.
-
-## 7.3 `__command(ctx, func_kwargs)`
-
-Use for command-like operations after post, without running the normal calculation path.
-`func_kwargs` holds the validated field values as the calculator function would receive them.
-The data of the button that sent the command is in `ctx.extra`.
-
-```python
-def beam_load__command(ctx, func_kwargs):
-    if ctx.extra.get("args", [""])[0] == "syntax":
-        return "OK"
-    return "Unknown command"
-```
-
-## 7.4 `__help()`
-
-Use to provide custom help HTML for the calculator.
-
-## 7.5 `__schema(ctx)`
-
-`__info()` is evaluated once and may be cached, so it cannot produce choices that depend on what the user selected. 
-Use `__schema()` for that. It is called every time the form is built, and the dictionary it returns is merged over 
-the matching `schema` entries of `__info()`.
-
-```python
-def conv2__info():
-    return {
-        'schema': {
-            'quantity': {  # changing it rebuilds the form, the fields in reload follow the new quantity
-                'type': 'choice', 'choices': _base_categ_mlist(), 'initial': 'L',
-                'reload': ['from_unit', 'to_units'],
-            },
-            'from_unit': {'type': 'multiplechoice', 'choices': lmt2ulist('L')},  # fallback
-        },
-    }
-
-
-def conv2__schema(ctx):
-    # posted value when submitting, url value when loading
-    lmt = ctx.posted('quantity') if ctx.is_post else ctx.var_url('quantity', 'L')
-    return {'from_unit': {'choices': lmt2ulist(lmt)}}
-```
-
-- `ctx.var_url('quantity')` returns a value given in the calculator url, 
-e.g. `quantity` for `/calc/add/?path=conv2/quantity/M/`. Remembered input values are available with `ctx.remembered()`.
-- Return `{field_name: {property: value}}`. Only the returned properties replace those from `__info()`, 
-so return only what changes (typically `choices`).
-- When a submitted form is rebuilt for validation, `ctx.is_post` is true and the selected value is available from 
-`ctx.posted()`. Read it from there, otherwise a `choice` or `multiplechoice` field rejects the posted value.
-- Pair it with `__input(ctx)` to return default values that are valid for the new choices, because the 
-function defaults or `__info()` initial values may not be among them.
-- The `ctx.var_url()` values may be placeholders such as `-` or `--`, so validate the value and fall back to a default.
-
-> **Rebuilding the form when a field changes.** `__schema()` runs whenever the form is built, but changing a field 
-does not build it again by itself. Add `reload` to the `schema` entry of the field that decides the choices 
-(see [`reload`](calculator-meta-functions.md#45-reload-rebuild-the-form-when-a-field-changes)). The form is then 
-rebuilt on the server, `__input()` and `__schema()` run again, and the listed dependent fields take the new 
-defaults. This needs no url or `hx-*` attribute, so it works for frontend calculators too. 
-See [which hooks are needed with `reload`](calculator-meta-functions.md#which-hooks-do-i-need-with-reload).
-
-> **`related` or `__schema()`?** `related` runs in the browser and updates instantly, so use it for small fixed 
-cascades (see [Calculator meta functions](calculator-meta-functions.md#42-related-dependent-selections)). 
-`__schema()` runs on the server, supports large or computed choices and any widget type, and keeps the field's 
-validation, but it needs the form to be rebuilt.
-
-## 7.6 Hooks at a glance
-
-Check this section before adding custom logic. It compares what each metadata function receives, when it runs, 
-and what happens to what it returns. `__info()` is included for comparison.
-
-**When it runs and what it receives**
-
-| Hook | When it runs | Arguments | Data available | Extra data or command sent to it |
-|---|---|---|---|---|
-| `__info()` | Whenever calculator metadata is read: building the form, the catalog (title, description, tags) and the API. The form-related keys (`schema`, `autofill`, `related`, `showhide`, `anyof`, `fargs`, `script`) may be cached. | none | module-level code only | nothing |
-| `__input(ctx)` | Every time the form is built (first load and after a post), before remembered values are applied | `ctx` | `ctx.var_url()` (empty on a post), `ctx.remembered()`, `ctx.recall`, `ctx.posted()` on a post | url `path/key/value/...` |
-| `__schema(ctx)` | Every time the form is built, after `__info()` and before the fields are created | `ctx` | the same as `__input`; `ctx.posted()` holds the posted values when a form is submitted | url values, posted values |
-| `__modify(ctx, arg_name, arg_value, action)` | Only when a `callback_button(..., '__modify', ...)` is posted, once per field named in its `args` or `kwargs` | `ctx`, `arg_name`, `arg_value` (the posted value of that field, converted to the field's type), `action` (the value given for that field in `kwargs`, text or dictionary) | that one field as a typed value, other fields as posted text through `ctx.posted()` | `ctx.extra = {cmd, args, kwargs}` from the button |
-| `__command(ctx, func_kwargs)` | Only when a `callback_button(..., '__command', ...)` is posted and the form is valid | `ctx`, `func_kwargs`: all fields, validated, as the calculator function would receive them | all validated fields | `ctx.extra = {cmd, args, kwargs}` from the button |
-| `__help()` | When the calculator's help is displayed | none | module-level code only | nothing |
-
-**What it returns and how the return is used**
-
-| Hook | Returns | What happens to the return | If it raises an error | Typical use |
-|---|---|---|---|---|
-| `__info()` | dictionary of info keys | Overrides the defaults of the form. `qfunc_info.json` overrides it in turn. Form-related keys are merged into the calculator's info. | metadata errors are mostly ignored when building the form; other readers may report them | titles, field types, static choices, layout |
-| `__input()` | `{field: value}` | Replaces the default values of those fields. Remembered values, url values and posted values can still override them. | the form fails to build | defaults computed at run time |
-| `__schema()` | `{field: {property: value}}` | Merged over that field's `schema` entry of `__info()` | the form fails to build | `choices` that depend on the request |
-| `__modify()` | a new value, or `qinfo`, `qwarn` or `qerror` | A value replaces that field's value in the re-rendered form. A message object is shown and the posted value is kept. The form is not validated. | the error is logged and the posted value is kept | format or load a value |
-| `__command()` | any output: text, dictionary, or `qinfo`, `qwarn`, `qerror` | Shown as the calculator's output. A message object, or text starting with `Error (` or `Warning (`, is shown as a message only. | shown as `Error (POSTP): ...` | validate, save, delete, other actions |
-| `__help()` | HTML text | shown in the calculator's help area | not handled | dynamic help |
-
-**What the hooks cannot do today**
-
-- Only `__schema()` can change a field's `choices` (or other schema properties) for a request. `__info()` is static and the other hooks only change values.
-- Only `__modify()` can set a field's value after a post, and only one field per call, and only for the fields listed on the button. It cannot set or reset other fields, or their choices.
-- `__command()` returns output only. It cannot change the form, and it does not run if the form is not valid.
-- Hooks do not receive the request or the session. `ctx` gives a read-only view of the data they need (see [7.7](#77-the-hook-context-ctx)). Backend calculators can still reach the request with `QThread.get_req()`, which is not allowed in frontend calculators.
-- A schema `reload` list makes a field rebuild the form when it changes and resets the listed fields. No hook receives "field X changed" together with all current field values and returns new values for several fields at once, but `__input()` and `__schema()` run again on every rebuild and can compute them from `ctx`.
-
-## 7.7 The hook context `ctx`
-
-`ctx` is the first argument of `__input`, `__schema`, `__modify` and `__command`. It is read-only and holds only 
-request level data, so it is safe for frontend calculators. Data that belongs to one hook call 
-(`arg_name`, `arg_value`, `action`, `func_kwargs`) is passed as separate arguments.
-
-Field values come from three sources: the calculator url (with a saved variant, example or shared input), 
-the posted form, and the user's remembered input. Each source has the same two forms: 
-`name(field, default=None)` returns one value, and `name_kwargs` returns a new dictionary of all its fields 
-(changing the dictionary does not change `ctx`).
-
-| Member | What it gives |
-|---|---|
-| `ctx.var_url(name, default=None)`, `ctx.var_url_kwargs` | Values of a saved variant, example or shared input, with the values given in the calculator url over them. Empty on a posted form. Values are not always text (for example a table). |
-| `ctx.posted(name, default=None)`, `ctx.posted_kwargs` | The posted value of a field as received (text, never converted). The last one if the field was posted several times. Empty unless a form is submitted. |
-| `ctx.posted_list(name)` | All posted values of a field as text, for example a multiple select. |
-| `ctx.remembered(name, default=None)`, `ctx.remembered_kwargs` | The user's previous input of this calculator, as it was stored (not always text). Empty unless memory is being recalled. |
-| `ctx.recall` | True when remembered input is being recalled, false for example after the Refresh button. |
-| `ctx.is_post` | True when a form is being submitted. |
-| `ctx.cmd` | The command of the request, for example `__modify`, `__command` or `run`. Empty for a normal submit. |
-| `ctx.extra` | The data sent by a callback button: `{cmd, args, kwargs}`. `kwargs` maps a field name to its action. |
-| `ctx.user`, `ctx.is_loggedin` | The user name (a session identifier for anonymous users) and whether the user is logged in. |
-| `ctx.cid`, `ctx.func_id` | The id of this calculator card and the calculator name. |
-
-- `ctx.posted()` and `ctx.posted_kwargs` return the text exactly as posted. The converted value of the field being 
-modified is the `arg_value` argument of `__modify`, and `__command` receives validated, converted values in 
-`func_kwargs`.
-- Posted values are available only when a form is submitted, so check `ctx.is_post` where it matters.
+- [`__input(ctx)`](calculator-hooks.md#1-__inputctx): starting values of the fields, computed at run time
+- [`__modify(ctx, arg_name, arg_value, action)`](calculator-hooks.md#2-__modifyctx-arg_name-arg_value-action): change a field value when a button asks for it
+- [`__command(ctx, func_kwargs)`](calculator-hooks.md#3-__commandctx-func_kwargs): command like actions without the normal calculation
+- [`__help()`](calculator-hooks.md#4-__help): help displayed in the calculator card
+- [`__schema(ctx)`](calculator-hooks.md#5-__schemactx): choices and other field properties that depend on the request
+- [Hooks at a glance](calculator-hooks.md#6-hooks-at-a-glance): when each hook runs, what it receives and what it returns
+- [The hook context `ctx`](calculator-hooks.md#7-the-hook-context-ctx): the read-only request data passed to the hooks
 
 ## 8. Working with quantities and units using `Qty()`
 

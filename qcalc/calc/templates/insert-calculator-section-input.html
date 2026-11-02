@@ -1,7 +1,7 @@
 {% load qfilter %}
     {% if field|showlabel %}
       <div class="mt-1">{{ field.label_tag }}
-      {% if field.help_text %}
+      {% if field.help_text or field.field.help_inline %}
         {% render_help_text field %}
       {% endif %}
       </div>

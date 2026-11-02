@@ -11,7 +11,10 @@ qsett.init()
 import pytest
 from django.http import QueryDict
 
-from calc.views_form_data import q11423_form_data_apply_posted
+import calc.views_form_data as vfd
+from calc.mod_hookctx import HookContext
+from calc.views_form_data import q11422_form_data_modify_after_post, q11423_form_data_apply_posted
+from qcore import Qty, qt
 
 
 def _fld(name, ftype, initial=None, **extra):
@@ -33,6 +36,58 @@ def _initial(request, name):
     fld = next(f for f in request.json_schema if f['name'] == name)
     assert request.json_data[name] == fld['initial']
     return fld['initial']
+
+
+# the value that __modify() receives ------------------------------------------------------------------------------
+
+def _modify(monkeypatch, post, arg_name, sig_type):
+    # | runs q11422 for a '__modify' button that lists arg_name, returns what the hook was given
+    seen = []
+
+    def hook(ctx, name, value, action):
+        seen.append(value)
+        return value
+
+    monkeypatch.setattr(vfd.QCals, 'func_exists', lambda name: name == 'f__modify')
+    monkeypatch.setattr(vfd.QCals, 'addr', lambda name: hook)
+    data = QueryDict(mutable=True)
+    for key, value in post.items():
+        data.setlist(key, [value])
+    ctx = HookContext(func_id='f', posted={key: [value] for key, value in post.items()})
+    request = SimpleNamespace(method='POST', cmd='__modify', POST=data, hook_ctx=ctx,
+                              extra={'cmd': '__modify', 'args': [arg_name], 'kwargs': {}})
+
+    q11422_form_data_modify_after_post(request, 'f', sig_type, arg_name, None)
+
+    assert len(seen) == 1
+    return seen[0]
+
+
+def test_modify_gets_a_quantity_joined_from_its_value_and_unit(monkeypatch):
+    value = _modify(monkeypatch, {'mass': '3', 'mass_uom': 'kg'}, 'mass', qt)
+
+    assert value == Qty('3 kg')
+
+
+def test_modify_gets_a_multi_part_quantity(monkeypatch):
+    post = {'t': '1', 't_part_uom': 'hr', 't__2_part': '30', 't__2_part_uom': 'min'}
+
+    assert _modify(monkeypatch, post, 't', qt) == Qty('1 hr, 30 min')
+
+
+def test_modify_gets_the_posted_text_for_a_quantity_without_a_unit_instead_of_failing(monkeypatch):
+    assert _modify(monkeypatch, {'mass': '3'}, 'mass', qt) == '3'
+    assert _modify(monkeypatch, {'mass': '', 'mass_uom': 'kg'}, 'mass', qt) == ''
+
+
+def test_modify_gets_numbers_converted_and_invalid_numbers_as_text(monkeypatch):
+    assert _modify(monkeypatch, {'n': '5'}, 'n', int) == 5
+    assert _modify(monkeypatch, {'x': '2.5'}, 'x', float) == 2.5
+    assert _modify(monkeypatch, {'x': 'abc'}, 'x', float) == 'abc'
+
+
+def test_modify_gets_false_for_a_checkbox_that_was_not_posted(monkeypatch):
+    assert _modify(monkeypatch, {'other': 'x'}, 'flag', bool) is False
 
 
 def test_posted_text_and_number_values_replace_the_defaults():

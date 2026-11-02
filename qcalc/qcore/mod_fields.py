@@ -9,34 +9,33 @@ def ai_prompt_field(
     max_chars=12000,
     monospace=True,
     token_hint=True,
-    help_text=None,
+    help_inline=None,
 ):
     classes = ['texta', 'w-100']
     if monospace:
         classes.append('text-monospace')
 
-    if help_text is None:
-        help_text = (
+    if help_inline is None:
+        help_inline = (
             'Use clear steps, constraints, and examples. '
             'AI-generated responses may contain errors; review them with '
             'appropriate caution.'
         )
     if token_hint:
         approx_tokens = max_chars // 4
-        help_text = f'Max {max_chars} chars (~{approx_tokens} tokens). {help_text}'
+        help_inline = f'Max {max_chars} chars (~{approx_tokens} tokens). {help_inline}'
 
     return {
         'type': 'qtexta',
         'label': label,
         'max_length': max_chars,
-        'help_text': help_text,
+        'help_inline': help_inline,
         'attrs': {
             'class': ' '.join(classes),
             'rows': rows,
             'placeholder': placeholder,
             'maxlength': str(max_chars),
             'data-token-estimate': 'chars_div_4',
-            'data-help-inline': '1',
         },
     }
 

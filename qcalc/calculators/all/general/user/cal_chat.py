@@ -172,7 +172,7 @@ def q2cal__info():
                 max_chars=4000,
                 monospace=False,
                 token_hint=True,
-                help_text=(
+                help_inline=(
                     'Describe the calculation and include known values, units, '
                     'and constraints so qCalc can find relevant calculators.'
                 ),

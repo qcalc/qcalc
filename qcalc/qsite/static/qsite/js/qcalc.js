@@ -164,6 +164,14 @@ function toggleLoadButton()
     loadButton.disabled = !fileInput.files.length; // Enable button if a file is selected
 }
 
+// select2 reports a selection to jQuery handlers only, while htmx waits for a native change event.
+// A select with a schema 'reload' trigger (hx-trigger="change", data-interactive-ignore), such as the unit of a
+// quantity, gets the native event from here.
+$(document).on('select2:select select2:clear',
+    'select[data-interactive-ignore][hx-trigger="change"]', function() {
+        this.dispatchEvent(new Event('change', {bubbles: true}));
+    });
+
 function qcalc_EnableTableUpdateAfterSwap(cid) {
     const swapSync = function(evt) {
         const target = evt && evt.detail ? evt.detail.target : null;

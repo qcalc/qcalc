@@ -53,6 +53,9 @@
     "all-demo-dependency": {
         "desc": "Dependency-focused demo calculators illustrating related-field behavior and chained calculation logic."
     },
+    "all-demo-hook_functions": {
+        "desc": "Demo calculators showing how the optional hook functions (__input, __schema, __modify, __command, __help) work."
+    },
     "all-demo-input_fields": {
         "desc": "Input-field demo calculators showing advanced field configuration, validation, and UI interaction patterns."
     },

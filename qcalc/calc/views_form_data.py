@@ -59,25 +59,35 @@ def q11429_func_to_form_schema(request: HtmxHttpRequest, func_addr, func_id, cid
         if 'upload_image' in fargs:
             assert fargs['upload_image'] is None
 
-    remembered = QMem.getf(func_id) if request.recall and QPref.getp1('memory') > 0 else None
     # | one read-only context for all per-request hooks, built before q11421 blanks POST['extra']
-    request.hook_ctx = HookContext.from_request(request, func_id, cid, var_url_kwargs, remembered)
+    ctx = HookContext.from_request(request, func_id, cid, var_url_kwargs)
+    remembered = {}
+    if request.recall and QPref.getp1('memory') > 0:  # | recall and request is not None
+        # | the fields a 'reload' trigger resets take their default values, not the remembered ones
+        reset = ctx.extra.get('reset') or []
+        remembered = {k: v for k, v in (QMem.getf(func_id) or {}).items() if k not in reset}
 
     # | start callback point __input (q11429, views_form_data.py, line 37)
     # | func__input(ctx)
     # | modify initial input values
+    # | ctx.resolved() does not contain the values __input() returns, they are the layer 3 below
     input_meta_func = func_id + '__input'
     if QCals.func_exists(input_meta_func):
         input_meta_callback = QCals.addr(input_meta_func)  # (ctx)
-        defa_input = input_meta_callback(request.hook_ctx)
+        defa_input = input_meta_callback(ctx.with_resolved(q11425_form_data_resolve_layers(fargs, remembered, var_url_kwargs)))
         if defa_input:  # | precedence: 1. __info < 2 .json (q1141_read_func_meta) < 3. __input
             fargs.update(defa_input)
     # | end exit point
 
-    remembered = request.hook_ctx.remembered_kwargs  # | without the fields reset by a 'reload' trigger
-    if remembered:  # | recall and request is not None
+    if remembered:
         # | precedence: 1. __info < 2 .json < 3. __input < 4. memory
         fargs.update(remembered)  # | user's previous input from memory
+
+    # | precedence: ... < 4. memory < (5. var_kwargs < 6. url_kwargs) i.e. var_url_kwargs, the other hooks see it all
+    # | resolved again, not reused from the __input call above: fargs now holds the values __input() returned (layer 3),
+    # | which __input() itself must not see, so the two results differ whenever __input() returns something
+    resolved = q11425_form_data_resolve_layers(fargs, {}, var_url_kwargs)
+    request.hook_ctx = ctx.with_resolved(resolved)
 
     for key in COMBINE_FINF:
         if key in finfs:
@@ -115,24 +125,8 @@ def q11429_func_to_form_schema(request: HtmxHttpRequest, func_addr, func_id, cid
         # | arg_name by default has the default value
         # | name = arg_name
         # | --------------------------------------------
-        # | static initial value or initial empty value
-        if arg_name in var_url_kwargs:  # | precedence: 1. __info < 2 .json < 3. __input < 4. memory < (5. var_kwargs < 6. url_kwargs) i.e. var_url_kwargs
-            v = var_url_kwargs[arg_name]
-            if isinstance(v, str):
-                # | value is specified in url so assign it instead of default arg value
-                if v == '-':
-                    # | value is - so keep the default arg value
-                    pass
-                elif v == '--':
-                    # | value is -- so assign empty value
-                    arg_value = ''
-                else:  # | specified value
-                    arg_value = v
-            else:
-                arg_value = v
-        elif '---' in var_url_kwargs:
-            # | if a key is --- in url, assign empty value instead of default arg value
-            arg_value = ''
+        # | static initial value or initial empty value, precedence: see above
+        arg_value = resolved[arg_name]
         # | --------------------------------------------
         # sig_type = params[iarg].annotation
         if arg_name.endswith('--@'):
@@ -272,7 +266,11 @@ def q11422_form_data_modify_after_post(request, func_id, sig_type, arg_name, arg
             modify_meta_func = func_id + '__modify'
             if QCals.func_exists(modify_meta_func):
                 modify_meta_callback = QCals.addr(modify_meta_func)  # (ctx, arg_name, new_arg_value, action)
-                new_arg_value = convert_to_type(request.POST.get(arg_name), sig_type)
+                raw = request.POST.get(arg_name)
+                if raw is None:  # | not posted, e.g. an unchecked box: keep the plain conversion
+                    new_arg_value = convert_to_type(raw, sig_type)
+                else:  # | a quantity is joined from its value and unit inputs, a bad value stays the posted text
+                    new_arg_value = request.hook_ctx.posted_as(arg_name, sig_type, raw)
                 action = request.extra.get('kwargs', {}).get(arg_name, '')
                 try:
                     result = modify_meta_callback(request.hook_ctx, arg_name, new_arg_value, action)
@@ -334,24 +332,59 @@ def q11423_form_data_apply_posted(request):
         request.json_data[name] = value
 
 
+def q11425_form_data_resolve_layers(fargs, remembered, var_url_kwargs):
+    # | the starting value of each field: the function arguments (which already hold the layers below), then the
+    # | remembered input, then the saved variant or url values. A new dict, the arguments are not changed.
+    resolved = {**fargs, **remembered}
+    for name in list(resolved):
+        if name in var_url_kwargs:
+            v = var_url_kwargs[name]
+            if isinstance(v, str) and v == '-':
+                pass  # | value is - so keep the value of the lower layers
+            elif isinstance(v, str) and v == '--':
+                resolved[name] = ''  # | value is -- so assign empty value
+            else:
+                resolved[name] = v  # | value is specified in url (or in a saved variant)
+        elif '---' in var_url_kwargs:
+            resolved[name] = ''  # | if a key is --- in url, assign empty value instead of the value of the lower layers
+    return resolved
+
+
 def q11424_form_data_add_reload_triggers(request, func_id):
     # | a field with a 'reload' list in its schema rebuilds the input section when its value changes.
     # | The listed fields are reset to their default values, the other fields keep what the user has typed.
     # | The post is the same as the one of a callback_button(), see q11423 and q11421 for what the server does.
+    # | A quantity is posted as a value and a unit input, so the unit input gets the same trigger.
     for fld in request.json_schema:
         dependents = fld.get('reload')
         if dependents is None or dependents is False:
             continue
         extra = {'cmd': '__modify', 'args': [], 'kwargs': {}, 'reload': True,
                  'reset': [] if dependents is True else list(dependents)}
-        fld.setdefault('attrs', {}).update({
+        trigger = {
             'hx-post': f'/calc/{func_id}/?part=2',
             'hx-trigger': 'change',
             'hx-target': 'closest form',
             'hx-swap': 'innerHTML',  # | must be explicit, the form itself has hx-swap="outerHTML"
             'hx-vals': json.dumps({'extra': extra, 'qcalc_structural_cmd': '1'}),
             'data-interactive-ignore': 'true',  # | no automatic calculation while the form is rebuilt
-        })
+        }
+        for target in [fld, *q11426_form_data_qty_unit_fields(request, fld)]:
+            target.setdefault('attrs', {}).update(trigger)
+
+
+def q11426_form_data_qty_unit_fields(request, parent):
+    # | the unit inputs generated for a quantity field: name_uom, name_part_uom, name__2_part_uom
+    name = parent.get('name', '')
+    units = []
+    for fld in request.json_schema:
+        child = fld.get('name', '')
+        if fld is parent or not str(fld.get('type', '')).startswith('uom') or not child.startswith(name):
+            continue
+        rest = child[len(name):]
+        if rest in (TOK_UOM, TOK_PART_UOM) or (rest.startswith(TOK_INDEX_SEP) and rest.endswith((TOK_UOM, TOK_PART_UOM))):
+            units.append(fld)
+    return units
 
 
 def q11421_get_extra_form_data_posted(request):

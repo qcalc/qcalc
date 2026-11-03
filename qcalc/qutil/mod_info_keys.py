@@ -50,6 +50,7 @@ INFO_KEYS = {
     'output_blocks': _key('public'),
     'showhide': _key('public'),
     'anyof': _key('public'),
+    'reload': _key('public'),
     'autofill': _key('public'),
     'related': _key('public'),
     'images': _key('public', override=False),
@@ -66,6 +67,7 @@ INFO_KEYS = {
     'tags': _key('public'),
     'proper': _key('public'),
     'remember': _key('public'),
+    'recall': _key('public'),
     'table_out_all': _key('public'),
     'api': _key('public', override=False),  # read by qapi (mod_api_core)
     'fargs': _key('public', override=False),  # read by mod_mfunc (COMBINE_FINF)

@@ -25,17 +25,17 @@ from qutil.mod_info_keys import (
 GENERATED_KEYS = (
     'title', 'desc', 'calculate', 'layout', 'interactive',
     'input_columns', 'output_columns', 'input_blocks', 'output_blocks',
-    'showhide', 'anyof', 'autofill', 'related', 'images', 'onsubmit', 'script', 'inserts',
+    'showhide', 'anyof', 'reload', 'autofill', 'related', 'images', 'onsubmit', 'script', 'inserts',
     'step2', 'single_instance', 'single_instance_key', 'provides_data', 'consumes_data',
-    'schema', 'kins', 'tags', 'proper', 'remember', 'table_out_all', 'fargs',
+    'schema', 'kins', 'tags', 'proper', 'remember', 'recall', 'table_out_all', 'fargs',
 )
 INTERNAL = {'name', 'help', 'clean', 'template', 'qsel2', 'qlist', 'table_in', 'table_out', 'xpr', 'url', 'loop', 'cost'}
 LEGACY = {'inp1', 'out1'}
 OVERRIDABLE = {
-    'title', 'desc', 'calculate', 'schema', 'interactive', 'autofill', 'related', 'showhide', 'anyof',
+    'title', 'desc', 'calculate', 'schema', 'interactive', 'autofill', 'related', 'showhide', 'anyof', 'reload',
     'layout', 'inp1', 'out1', 'input_columns', 'output_columns', 'input_blocks', 'output_blocks', 'onsubmit',
     'script', 'kins', 'tags', 'xpr', 'url', 'loop', 'step2', 'cost', 'single_instance', 'single_instance_key',
-    'provides_data', 'consumes_data', 'inserts', 'table_out_all', 'proper', 'remember',
+    'provides_data', 'consumes_data', 'inserts',     'table_out_all', 'proper', 'remember', 'recall',
 }
 PUBLIC = {key for key, spec in INFO_KEYS.items() if spec.kind == 'public'}
 # key found in a library calculator but used by nothing
@@ -66,6 +66,7 @@ def test_mycal_validation_accepts_the_formerly_missing_keys():
         'provides_data': {'dataset_type': 't', 'dataset_key': 'k'},
         'consumes_data': {'dataset_type': 't', 'dataset_key': 'k'},
         'remember': False,
+        'recall': False,
         'table_out_all': True,
         'api': True,
         'fargs': {'t': 300},
@@ -76,6 +77,7 @@ def test_mycal_validation_accepts_the_formerly_missing_keys():
 
 @pytest.mark.parametrize('bad', [
     {'remember': 'no'},
+    {'recall': 'no'},
     {'table_out_all': 1},
     {'step2': [{'caption': 'x'}]},
     {'single_instance_key': 5},

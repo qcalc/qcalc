@@ -101,10 +101,10 @@ def conv2__info():
         'schema': {
             'quantity': {  # changing it rebuilds the form, the fields in reload follow the new quantity
                 'type': 'choice', 'choices': _base_categ_mlist(), 'initial': 'L',
-                'reload': ['from_unit', 'to_units'],
             },
             'from_unit': {'type': 'multiplechoice', 'choices': lmt2ulist('L')},  # fallback
         },
+        'reload': {'quantity': {'fields': ['from_unit', 'to_units']}},
     }
 
 
@@ -169,7 +169,7 @@ and what it returns. `__info()` is included for comparison.
 - Only `__modify()` can set a field's value after a post, and only one field per call, and only for the fields listed on the button. It cannot set or reset other fields, or their choices.
 - `__command()` returns output only. It cannot change the form, and it does not run if the form is not valid.
 - Hooks do not receive the request or the session. `ctx` gives a read-only view of the data they need (see [7](#7-the-hook-context-ctx)). Backend calculators can still reach the request with `QThread.get_req()`, which is not allowed in frontend calculators.
-- A schema `reload` list makes a field rebuild the form when it changes and resets the listed fields. No hook receives "field X changed" together with all current field values and returns new values for several fields at once, but `__input()` and `__schema()` run again on every rebuild and can compute them from `ctx`.
+- A `reload` entry makes a field rebuild the form when it changes and resets the listed fields. No hook receives "field X changed" together with all current field values and returns new values for several fields at once, but `__input()` and `__schema()` run again on every rebuild and can compute them from `ctx`.
 
 ## 7. The hook context `ctx`
 
@@ -191,7 +191,7 @@ which is layer 5 only). Each source has the same two forms:
 | `ctx.value(name, type, default=None)` | The value the field has in this request, converted to `type`: the posted value when it converts, else the resolved value, else the default. A resolved value that is not text (a number, a quantity, a table) is returned as it is. Use it for formula fields, as the `demo_formula_field` and `demo_formula_qty` demos do. |
 | `ctx.resolved(name, default=None)`, `ctx.resolved_kwargs` | The value each field starts with in this request: function defaults, `__info()` values, `__input()` values, remembered input and the variant or url values, merged in that order (a url `-` keeps the lower layers, `--` empties the field). Keyed by the argument names of the calculator function. Values keep their own type (a list, a table, `"5 ft"`), they are not always text. In `__input()` it does not yet contain the values `__input()` returns. A post has no url layer, see [first load and post](qcalc-author-guide.md#61-first-load-and-post). The default is used only when the calculator has no such field. |
 | `ctx.var_url(name, default=None)`, `ctx.var_url_kwargs` | Only the values of a saved variant, example or shared input, with the values given in the calculator url over them. Empty on a post, except when a saved input file is opened. Use it to know that a value was asked for by the link, not remembered or defaulted. Values are not always text (for example a table). |
-| `ctx.recall` | True when remembered input is being recalled, false for example after the Refresh button. |
+| `ctx.recall` | True when remembered input is being recalled, false for example after the Refresh button or when `__info()` sets `'recall': False`. |
 | `ctx.is_post` | True when a form is being submitted. |
 | `ctx.cmd` | The command of the request, for example `__modify`, `__command` or `run`. Empty for a normal submit. |
 | `ctx.extra` | The data sent by a callback button: `{cmd, args, kwargs}`. `kwargs` maps a field name to its action. |

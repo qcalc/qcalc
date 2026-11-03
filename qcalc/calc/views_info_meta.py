@@ -118,6 +118,7 @@ def q1141_read_func_meta(func_id, scope='qpots'):
         'showhide': {},
         # v4.21 {"arg1":{"fields":['shf1','shf2',...], "callback":'fname' or '@ condn' or not mentioned/'' },...}
         'anyof': {},  # v4.21 {"1":{"fields":['aof1','aof2',...]},...}
+        'reload': {},  # {"arg1":{"fields":['rf1','rf2',...]},...} rebuild the form when arg1 changes, reset the fields
         # visual aids
         'images': {},  # {'top':['img1',...],'bottom':['img1',...],left and right not supported}
         # layout
@@ -154,6 +155,7 @@ def q1141_read_func_meta(func_id, scope='qpots'):
         # during title case conversion for this calculator function
         'proper': '',
         'remember': True,
+        'recall': True,  # False: do not recall the remembered input
     }
 
     # run func_info() and then supersede by qfunc_info.json

@@ -4,7 +4,7 @@
 import re
 
 # COMBINE_FINF = {dict,   dict,       dict,      dict,       dict,    list,      dict,    value}
-COMBINE_FINF = {'schema', 'autofill', 'related', 'showhide', 'anyof', 'fargs', 'script'}
+COMBINE_FINF = {'schema', 'autofill', 'related', 'showhide', 'anyof', 'reload', 'fargs', 'script'}
 KNOWN_METAS = ['__info', '__input', '__modify', '__command', '__help', '__schema']
 QCALC_LAYOUTS = ['lr', 'tb']
 CODE_TAB = 4

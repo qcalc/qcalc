@@ -77,6 +77,7 @@ Following table lists down the optional elements or info keys of a metadata func
 | `related` | dict | Build dependent selection lists, such as country -> state -> city. |
 | `showhide` | dict | Show or hide inputs when another input changes. |
 | `anyof` | dict | Keep only one value in each group of alternative inputs. |
+| `reload` | dict | Rebuild the form when an input changes and reset the listed inputs, see [4.5](#45-reload-rebuild-the-form-when-a-field-changes). |
 | `images` | dict | Place images around the calculator. |
 | `layout` | string | Overall page direction: lr or tb. |
 | `inp1` | list or string | Simple split-input selector for section 1. |
@@ -97,6 +98,8 @@ Following table lists down the optional elements or info keys of a metadata func
 | `script` | string | Trusted JavaScript used by client-side metadata features. |
 | `onsubmit` | string | Trusted JavaScript run when the form is submitted. |
 | `inserts` | dict | Trusted HTML placed at named points in the calculator template. |
+| `remember` | bool | Set `False` to not save the last input values of this calculator. Defaults to `True`. |
+| `recall` | bool | Set `False` to not recall the remembered input values when the calculator opens, the function defaults are used. Defaults to `True`. |
 | `template` | string | Advanced template override. |
 
 Key names are case-sensitive.
@@ -111,7 +114,6 @@ various schema keys. Some examples are given below:
 | `type`    | string | Type of a parameter e.g. `choice`, `radio`, `checkbox`, etc. |
 | `choices` | string | list of choices if the parameter type is `choice`            |
 | `initial` | string | default or initial value                                     |
-| `reload`  | list | fields to reset when this field changes, see [4.5](#45-reload-rebuild-the-form-when-a-field-changes) |
 
 > For further details about the field types and schema keys please see 
 [qCalc field types](related-topics/qcalc-field-types.md)
@@ -404,16 +406,17 @@ Suppose you want to calculate the area of a circle by providing either the radiu
 ### 4.5 `reload`: Rebuild the form when a field changes
 
 Some fields decide what other fields offer. For example, the quantity of a unit converter decides which units can be 
-selected. Add `reload` to the `schema` entry of that field, with the list of fields that depend on it:
+selected. Add a `reload` entry for that field, with the list of fields that depend on it. Like `showhide`, `autofill` 
+and `anyof`, `reload` is a key of the `__info()` dictionary, not of the `schema` entry:
 
 ```python
 def conv2__info():
     return {
         'schema': {
-            'quantity': {
-                'type': 'choice', 'choices': _base_categ_mlist(), 'initial': 'L',
-                'reload': ['from_unit', 'to_units'],  # fields that depend on the quantity
-            },
+            'quantity': {'type': 'choice', 'choices': _base_categ_mlist(), 'initial': 'L'},
+        },
+        'reload': {
+            'quantity': {'fields': ['from_unit', 'to_units']},  # fields that depend on the quantity
         },
     }
 ```
@@ -428,12 +431,17 @@ Remembered values are not used for them.
 select2 fields. Tables and file fields are not covered yet.
 * A choice that is no longer offered by `__schema()` is dropped. If the current value of a `choice` or `radio` field 
 is no longer offered, the first offered choice is selected (for example a mode that does not apply to the new quantity).
-* Use `reload: True` to rebuild the form without resetting any field.
+* Use an empty list, `{'fields': []}`, to rebuild the form without resetting any field.
 * No url or `hx-*` attribute is needed, so it works for frontend calculators too.
 * Use it on a plain `choice` field. A `qsel2` (select2) field does not reliably report a change.
+* Do not put a field with a `reload` entry in `showhide` as well: the show/hide initialization fires a change event 
+that would rebuild the form again and again.
+* Inside a nested calculator (`qfunc`) write the field names as you do in the calculator itself, qCalc adds the 
+prefix, as for `showhide`, `autofill` and `anyof`.
 * On a quantity field (`qt`), the trigger is put on the value and the unit input, so changing either rebuilds the form. 
-List the value and unit of a dependent quantity (`'total', 'total_uom'`) to reset both. To show a computed, read-only 
-quantity use `'attrs': {'readonly': True}`, see `demo_formula_qty` in `dem_hooks_basic.py`.
+A quantity in the `fields` list stands for all its inputs, so list `'total'` to reset both the value and the unit of 
+`total`. To show a computed, read-only quantity use `'attrs': {'readonly': True}`, see `demo_formula_qty` in 
+`dem_hooks_basic.py`.
 * `reload` needs a round trip to the server. For a small, fixed cascade that must update instantly in the 
 browser use [`related`](#42-related-dependent-selections).
 

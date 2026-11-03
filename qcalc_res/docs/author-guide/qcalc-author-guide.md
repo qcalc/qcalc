@@ -186,6 +186,7 @@ Important keys include:
 - Layout keys: `layout`, `inp1`, `out1`, `input_columns`, `output_columns`, `input_blocks`, `output_blocks`
 - Frontend keys: `script`, `onsubmit`, `inserts`
 - Flow keys: `step2`, `xpr`, `url`, `loop`, `cost`
+- Memory keys: `remember` (save the last input), `recall` (recall the saved input), both default to `True`
 
 For layout details, see:
 - `related-topics/info-dynamic-layout.md` for preferred dynamic block/tab layout.

@@ -187,7 +187,6 @@ def demo_hooks_material__info():
         'schema': {
             'material_type': {
                 'type': 'choice', 'choices': {name: name.title() for name in MATERIALS},
-                'reload': ['material'],  # changing the type rebuilds the form and resets the material
                 'help_inline': 'Changing it reloads the form (reload in __info) and resets the material.',
             },
             # | static choices are only the fallback, __schema() replaces them every time the form is built
@@ -198,6 +197,8 @@ def demo_hooks_material__info():
             'volume_l': {
                 'help_inline': 'Litres. It is not in the reload list, so it keeps your value when the type changes.'},
         },
+        # | changing the type rebuilds the form and resets the material
+        'reload': {'material_type': {'fields': ['material']}},
     }
 
 

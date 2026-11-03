@@ -65,17 +65,11 @@ def conv2__info():
         'schema': {
             'catalog': {
                 'type': 'choice', 'choices': {'short': 'Short', 'full': 'Full'},
-                # | changing the catalog rebuilds the form, the quantity list follows it (see conv2__schema()),
-                # | the listed fields are reset, 'mode' goes back to 'u2u' i.e. the only mode of the short catalog
-                'reload': ['quantity', 'mode', 'from_unit', 'to_units', 'from_qty', 'to_qty', 'unit_cost'],
             },
             'quantity': {
                 # | 'type':'qsel2' wouldn't trigger the reload, because select2 changes the element properties at runtime
                 'type': 'choice', 'choices': _base_categ_mlist(),
                 'initial': lmt,
-                # | changing the quantity rebuilds the form, the lists and selections below follow it
-                # | (see conv2__schema() and conv2__input()), 'mode' and the typed values are kept
-                'reload': ['from_unit', 'to_units', 'from_qty', 'to_qty'],
             },
             'value': {'help_text': amount_help_text},
             'mode': {
@@ -91,6 +85,14 @@ def conv2__info():
             },
             'from_qty': {'type': 'qsel2', 'choices': qlist},
             'to_qty': {'type': 'qsel2', 'choices': qlist},
+        },
+        'reload': {
+            # | changing the catalog rebuilds the form, the quantity list follows it (see conv2__schema()),
+            # | the listed fields are reset, 'mode' goes back to 'u2u' i.e. the only mode of the short catalog
+            'catalog': {'fields': ['quantity', 'mode', 'from_unit', 'to_units', 'from_qty', 'to_qty', 'unit_cost']},
+            # | changing the quantity rebuilds the form, the lists and selections below follow it
+            # | (see conv2__schema() and conv2__input()), 'mode' and the typed values are kept
+            'quantity': {'fields': ['from_unit', 'to_units', 'from_qty', 'to_qty']},
         },
         'showhide': {
             # | no entry for 'catalog': it has a 'reload' trigger on 'change', the synthetic change event of the

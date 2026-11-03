@@ -201,10 +201,11 @@ def demo_formula_field__info():
         'title': 'Formula field demo: reload + __input',
         'desc': 'The read-only Area is width x height. It is recalculated on the server when width or height changes.',
         'schema': {
-            'width': {'reload': ['area'], 'help_inline': 'Change it, then click outside the field.'},
-            'height': {'reload': ['area'], 'help_inline': 'Area follows after the field loses focus.'},
+            'width': {'help_inline': 'Change it, then click outside the field.'},
+            'height': {'help_inline': 'Area follows after the field loses focus.'},
             'area': {'disabled': True, 'help_inline': 'Read-only, computed by __input().'},
         },
+        'reload': {'width': {'fields': ['area']}, 'height': {'fields': ['area']}},
     }
 
 
@@ -245,18 +246,19 @@ def demo_formula_field__help():
 # ----------------------------------------------------------------------------------------------------------
 
 def demo_formula_qty__info():
-    # A quantity field is posted as two inputs: the value (mass1) and the unit (mass1_uom). 'reload' on mass1 is
-    # put on both of them, but the unit of total is a field of its own, so total_uom must be reset with it.
+    # A quantity is posted as two inputs: the value (mass1) and the unit (mass1_uom). 'reload' on mass1 is put on
+    # both of them, and total in the list stands for both of its inputs (the value and the unit of total).
     # 'disabled' does not reach the inputs of a quantity, use attrs readonly, which qCalc passes on to both the
     # value and the unit. A readonly input is still posted, so the user could edit it with the browser tools.
     return {
         'title': 'Formula field demo: quantities',
         'desc': 'The read-only Total is mass 1 + mass 2, shown in the unit of mass 1.',
         'schema': {
-            'mass1': {'reload': ['total', 'total_uom'], 'help_inline': 'Change the value or the unit.'},
-            'mass2': {'reload': ['total', 'total_uom'], 'help_inline': 'Any mass unit, for example g or lb.'},
+            'mass1': {'help_inline': 'Change the value or the unit.'},
+            'mass2': {'help_inline': 'Any mass unit, for example g or lb.'},
             'total': {'attrs': {'readonly': True}, 'help_inline': 'Read-only, computed by __input().'},
         },
+        'reload': {'mass1': {'fields': ['total']}, 'mass2': {'fields': ['total']}},
     }
 
 

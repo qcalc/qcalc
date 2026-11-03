@@ -92,6 +92,20 @@ SHOWHIDE_SCHEMA = {
     },
 }
 
+# `reload.<field>.fields` are the fields to reset when <field> changes. A quantity stands for all its inputs.
+# it doesn't use FIELD_SELECTOR_SCHEMA like the other sections.
+RELOAD_SCHEMA = {
+    'type': 'object',
+    'additionalProperties': {
+        'type': 'object',
+        'properties': {
+            'fields': {'type': 'array', 'items': {'type': 'string'}},
+        },
+        'required': ['fields'],
+        'additionalProperties': True,
+    },
+}
+
 SHARED_DATA_SCHEMA = {
     'type': 'object',
     'properties': {
@@ -135,13 +149,15 @@ _INFO_PROPERTY_SCHEMAS = {
             'type': 'object',
             'properties': {
                 'type': {'type': 'string'},
-                'reload': {'type': ['array', 'boolean'], 'items': {'type': 'string'}},
             },
+            # | reload is a section of its own, see RELOAD_SCHEMA
+            'not': {'required': ['reload']},
             'additionalProperties': True,
         },
     },
     'interactive': {'type': 'boolean'},
     'anyof': ANYOF_SCHEMA,
+    'reload': RELOAD_SCHEMA,
     'autofill': AUTOFILL_SCHEMA,
     'related': RELATED_SCHEMA,
     'showhide': SHOWHIDE_SCHEMA,
@@ -187,6 +203,7 @@ _INFO_PROPERTY_SCHEMAS = {
     'provides_data': SHARED_DATA_SCHEMA,
     'consumes_data': SHARED_DATA_SCHEMA,
     'remember': {'type': 'boolean'},
+    'recall': {'type': 'boolean'},
     'table_out_all': {'type': 'boolean'},
     'api': {'type': 'boolean'},
     'fargs': {'type': 'object'},

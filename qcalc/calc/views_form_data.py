@@ -59,6 +59,8 @@ def q11429_func_to_form_schema(request: HtmxHttpRequest, func_addr, func_id, cid
         if 'upload_image' in fargs:
             assert fargs['upload_image'] is None
 
+    # | __info() 'recall': False turns the recall off, before the context is built so that ctx.recall agrees
+    request.recall = bool(request.recall and request.json_doc['info'].get('recall', True))
     # | one read-only context for all per-request hooks, built before q11421 blanks POST['extra']
     ctx = HookContext.from_request(request, func_id, cid, var_url_kwargs)
     remembered = {}
@@ -351,16 +353,22 @@ def q11425_form_data_resolve_layers(fargs, remembered, var_url_kwargs):
 
 
 def q11424_form_data_add_reload_triggers(request, func_id):
-    # | a field with a 'reload' list in its schema rebuilds the input section when its value changes.
-    # | The listed fields are reset to their default values, the other fields keep what the user has typed.
+    # | a field named in the 'reload' section of __info rebuilds the input section when its value changes.
+    # | {'field': {'fields': [...]}}: the listed fields are reset to their default values, the other fields keep
+    # | what the user has typed. A quantity in the list stands for all its inputs (value and unit parts).
     # | The post is the same as the one of a callback_button(), see q11423 and q11421 for what the server does.
     # | A quantity is posted as a value and a unit input, so the unit input gets the same trigger.
+    reload = request.json_doc['info'].get('reload') or {}
     for fld in request.json_schema:
-        dependents = fld.get('reload')
-        if dependents is None or dependents is False:
+        rdata = reload.get(fld.get('name'))
+        if rdata is None:
             continue
-        extra = {'cmd': '__modify', 'args': [], 'kwargs': {}, 'reload': True,
-                 'reset': [] if dependents is True else list(dependents)}
+        reset = []
+        for name in rdata.get('fields', []):
+            for item in [name, *(u.get('name') for u in q11426_form_data_qty_unit_fields(request, name))]:
+                if item not in reset:
+                    reset.append(item)
+        extra = {'cmd': '__modify', 'args': [], 'kwargs': {}, 'reload': True, 'reset': reset}
         trigger = {
             'hx-post': f'/calc/{func_id}/?part=2',
             'hx-trigger': 'change',
@@ -369,17 +377,16 @@ def q11424_form_data_add_reload_triggers(request, func_id):
             'hx-vals': json.dumps({'extra': extra, 'qcalc_structural_cmd': '1'}),
             'data-interactive-ignore': 'true',  # | no automatic calculation while the form is rebuilt
         }
-        for target in [fld, *q11426_form_data_qty_unit_fields(request, fld)]:
+        for target in [fld, *q11426_form_data_qty_unit_fields(request, fld.get('name', ''))]:
             target.setdefault('attrs', {}).update(trigger)
 
 
-def q11426_form_data_qty_unit_fields(request, parent):
+def q11426_form_data_qty_unit_fields(request, name):
     # | the unit inputs generated for a quantity field: name_uom, name_part_uom, name__2_part_uom
-    name = parent.get('name', '')
     units = []
     for fld in request.json_schema:
         child = fld.get('name', '')
-        if fld is parent or not str(fld.get('type', '')).startswith('uom') or not child.startswith(name):
+        if child == name or not str(fld.get('type', '')).startswith('uom') or not child.startswith(name):
             continue
         rest = child[len(name):]
         if rest in (TOK_UOM, TOK_PART_UOM) or (rest.startswith(TOK_INDEX_SEP) and rest.endswith((TOK_UOM, TOK_PART_UOM))):

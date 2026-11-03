@@ -117,9 +117,9 @@ e.g. you do not ever require "from qcore import Qty" statement for frontend calc
 ### 5.2 Current top-level metadata keys
 
 ```text
-title, desc, calculate, schema, autofill, related, showhide, anyof, images,
+title, desc, calculate, schema, autofill, related, showhide, anyof, reload, images,
 step2, kins, tags, script, onsubmit, inserts, template,
-layout, input_columns, output_columns, input_blocks, output_blocks, inp1, out1, interactive, proper
+layout, input_columns, output_columns, input_blocks, output_blocks, inp1, out1, interactive, proper, remember, recall
 ```
 
 `__info()` validation schema:
@@ -184,6 +184,17 @@ Use the following structural contract when generating `__info()` metadata:
             "additionalProperties": true
         }
     },
+    "RELOAD_SCHEMA": {
+        "type": "object",
+        "additionalProperties": {
+            "type": "object",
+            "properties": {
+                "fields": {"type": "array", "items": {"type": "string"}}
+            },
+            "required": ["fields"],
+            "additionalProperties": true
+        }
+    },
     "TAB_SCHEMA": {
         "type": "object",
         "additionalProperties": false,
@@ -215,14 +226,15 @@ Use the following structural contract when generating `__info()` metadata:
                 "additionalProperties": {
                     "type": "object",
                     "properties": {
-                        "type": {"type": "string"},
-                        "reload": {"type": ["array", "boolean"], "items": {"type": "string"}}
+                        "type": {"type": "string"}
                     },
+                    "not": {"required": ["reload"]},
                     "additionalProperties": true
                 }
             },
             "interactive": {"type": "boolean"},
             "anyof": {"$ref": "#/$defs/ANYOF_SCHEMA"},
+            "reload": {"$ref": "#/$defs/RELOAD_SCHEMA"},
             "autofill": {"$ref": "#/$defs/AUTOFILL_SCHEMA"},
             "related": {"$ref": "#/$defs/RELATED_SCHEMA"},
             "showhide": {"$ref": "#/$defs/SHOWHIDE_SCHEMA"},
@@ -239,6 +251,8 @@ Use the following structural contract when generating `__info()` metadata:
             "kins": {"type": "string"},
             "tags": {"type": "string"},
             "proper": {"type": "string"},
+            "remember": {"type": "boolean"},
+            "recall": {"type": "boolean"},
             "inserts": {"type": "object"}
         }
     }
@@ -248,7 +262,7 @@ Use the following structural contract when generating `__info()` metadata:
 Notes:
 - `fields` in `anyof`, `autofill`, `showhide`, tab entries, and blocks uses the selector schema and can be a comma-separated string or an array of strings.
 - `related.fields` is a mapping object, not a selector list.
-- A field's `schema` entry may contain `reload`: an array of field names (or `true`). Changing the field rebuilds the form on the server and resets the listed fields to their defaults. Use `__schema(ctx)` for choices that depend on the field.
+- `reload` is a top-level `__info()` key like `showhide`: `{"field": {"fields": [names]}}` (an array of strings, no selector). Changing `field` rebuilds the form on the server and resets the listed fields to their defaults; a quantity in the list stands for its value and unit inputs. It is not allowed inside a `schema` entry. Use `__schema(ctx)` for choices that depend on the field.
 - `input_columns` and `output_columns` are limited to `1` or `2`.
 
 

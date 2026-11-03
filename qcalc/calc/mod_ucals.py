@@ -207,19 +207,21 @@ class UCals:
         try:
             uc_list.remove(cal_id)
             del uc_dict[cal_id]
-            cur_node = utree.get_node_by_id(cal_id)
-            cur_node.delete_tree()
+            cur_node = utree.get_node_by_id(cal_id) if utree else None
+            if cur_node:
+                cur_node.delete_tree()
             QMyCal.delp1(cal_id)
             QMeta.setp1('uc_list', uc_list)
             QMeta.setp1('uc_dict', uc_dict)
-            uc_tree = utree.tree_to_dict()
-            QMeta.setp1('uc_tree', uc_tree)
+            if utree:
+                QMeta.setp1('uc_tree', utree.tree_to_dict())
             result = qinfo(f'{cal_name} deleted')
         except Exception as e:
             result = qerror(f'{cal_name} could not be deleted because {str(e)}')
             pass
 
-        utree.delete_tree()
+        if utree:
+            utree.delete_tree()
         del utree
         return result
 
@@ -371,11 +373,17 @@ def register_shared_cal(func_id, token):
 
     try:
         title, desc, tags = QCals.func_title_desc_tags(cal_id)
-        func_node = TreeNode(
-            nid=cal_id, name=cal_id, title=title, desc=desc,
-            tags=tags, is_leaf=True, node_type='c')
-        func_node.uname = uname
-        ctg_node.add_child(func_node)
+        func_node = ctg_node.get_node_by_id(cal_id)
+        if func_node is None:  # | registering again must not add a duplicate node
+            func_node = TreeNode(
+                nid=cal_id, name=cal_id, title=title, desc=desc,
+                tags=tags, is_leaf=True, node_type='c')
+            func_node.uname = uname
+            ctg_node.add_child(func_node)
+        else:
+            func_node.title = title
+            func_node.desc = desc
+            func_node.tags = tags
     except Exception as e:
         logger.error(f">>> RSC: {e}")
 
@@ -399,17 +407,18 @@ def unregister_shared_cal(func_id):  # review tree delete
     try:
         sc_list.remove(cal_id)
         del sc_dict[cal_id]
-        node = stree.get_node_by_id(cal_id)
+        node = stree.get_node_by_id(cal_id) if stree else None
         if node:
             node.delete_tree()
         QMeta.setp1('sc_list', sc_list)
         QMeta.setp1('sc_dict', sc_dict)
-        uc_tree = stree.tree_to_dict()
-        QMeta.setp1('sc_tree', uc_tree)
+        if stree:
+            QMeta.setp1('sc_tree', stree.tree_to_dict())
         result = qinfo(f'{cal_name} deleted')
     except Exception as e:
         result = qerror(f'{cal_name} could not be deleted because {str(e)}')
 
-    stree.delete_tree()
+    if stree:
+        stree.delete_tree()
     del stree
     return result

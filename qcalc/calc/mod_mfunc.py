@@ -159,7 +159,7 @@ def flatten_finfo(func_args: dict, prefix='') -> dict:
                                 fields = flat_dict[arg][key]['fields']
                                 fields = {prefix + DICT_KEY_SEP + field: val for field, val in fields.items()}
                                 flat_dict[arg][key]['fields'] = fields
-                        elif arg in ['showhide', 'autofill', 'anyof']:  # val is dict of fields
+                        elif arg in ['showhide', 'autofill', 'anyof', 'reload']:  # val is dict of fields
                             for key in flat_dict[arg]:
                                 fields = flat_dict[arg][key]['fields']
                                 fields = [prefix + DICT_KEY_SEP + field for field in fields]

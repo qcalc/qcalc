@@ -15,7 +15,10 @@ from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
 from calc.views_tabulator import get_fav_data
-from collections import Counter
+from catalog.tag_index import get_tag_view, normalize_tag_list
+from catalog.fragment_cache import cached_fragment, apply_favorites
+from calc import cur_loader
+from calc.mod_ucals import get_personal_tree
 
 
 def show_page(request: HtmxHttpRequest, **kwargs):
@@ -37,142 +40,127 @@ hx-target="closest .calc" hx-swap="outerHTML">{ptitle}</a>''')
     return ' > '.join(paths)
 
 
-def calc_dir(request: HtmxHttpRequest, **kwargs):
-    template = 'gen-catalog-calc.html'
+def _shared_calc_dir(request: HtmxHttpRequest, scat, root, cat, title):
     ut.q1139_request_init(request)
-    scat = kwargs['category'].lower()
-    node = QCals.calc_root.get_node_by_id(scat)
+    node = root.get_node_by_id(scat)
     if not node:
         return not_found(request)
 
-    parents = node.get_ancestor_ids_titles()
-    cat = 'calc'
-    navigation = calc_navigation(node.title, parents, cat)
-    fav_dict = QFav.getp({})
+    def fragment_context():
+        return {
+            "calc_navigation": mark_safe(calc_navigation(node.title, node.get_ancestor_ids_titles(), cat)),
+            "calc_data": node.children,
+            "category": node,
+            "request": request,
+            "favorite_dict": {},  # per-user stars are applied after caching
+            "cat": cat,
+            "show_fav_variants": False,
+            "fav_var_data": None,
+        }
+
+    html = cached_fragment(request, root, (cat, 'dir', node.id), 'catalog-calc-categories.html', fragment_context)
     context = {
-        "calc_navigation": mark_safe(navigation),
-        "calc_data": node.children,
+        "content_html": mark_safe(apply_favorites(html, QFav.getp({}))),
         "category": node,
         "request": request,
-        "favorite_dict": fav_dict,
         "cat": cat,
-        "title": "Standard Calculator Catalog",
-        "show_fav_variants": False,
-        "fav_var_data": None  # get_fav_data(fav_dict, jresp=False)
+        "title": title,
     }
-    return ut.get_page(request, template, context, scat)
+    return ut.get_page(request, 'gen-catalog-calc.html', context, scat)
+
+
+def calc_dir(request: HtmxHttpRequest, **kwargs):
+    return _shared_calc_dir(request, kwargs['category'].lower(), QCals.calc_root, 'calc',
+                            "Standard Calculator Catalog")
 
 
 def pcalc_dir(request: HtmxHttpRequest, **kwargs):
-    template = 'gen-catalog-calc.html'
-    ut.q1139_request_init(request)
-    scat = kwargs['category'].lower()
-    node = QCals.pcalc_root.get_node_by_id(scat)
-    if not node:
-        return not_found(request)
+    return _shared_calc_dir(request, kwargs['category'].lower(), QCals.pcalc_root, 'pcalc',
+                            "Public Calculator Catalog")
 
-    parents = node.get_ancestor_ids_titles()
-    cat = 'pcalc'
-    navigation = calc_navigation(node.title, parents, cat)
-    fav_dict = QFav.getp({})
-    context = {
-        "calc_navigation": mark_safe(navigation),
-        "calc_data": node.children,
-        "category": node,
+
+def _personal_context(request, fav_dict, **extra):
+    return {
         "request": request,
         "favorite_dict": fav_dict,
-        "cat": cat,
-        "title": "Public Calculator Catalog",
-        "show_fav_variants": False,
-        "fav_var_data": None
+        "cat": 'user',
+        "title": "Personal Calculator Catalog",
+        "show_fav_variants": True,
+        "fav_var_data": get_fav_data(fav_dict),
+        **extra,
     }
-    return ut.get_page(request, template, context, scat)
 
 
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def ucalc_dir(request: HtmxHttpRequest, **kwargs):
     scat = kwargs['category'].lower()
     ut.q1139_request_init(request)
-    uc = UCals()
-    uc.get_tree()
-    node = uc.calc_root.get_node_by_id(scat)
+    node = get_personal_tree().get_node_by_id(scat)
     if not node:
         return not_found(request)
 
-    template = 'gen-catalog-calc.html'
-    parents = node.get_ancestor_ids_titles()
-    cat = 'user'
-    navigation = calc_navigation(node.title, parents, cat)
-    fav_dict = QFav.getp({})
+    context = _personal_context(
+        request, QFav.getp({}),
+        calc_navigation=mark_safe(calc_navigation(node.title, node.get_ancestor_ids_titles(), 'user')),
+        calc_data=node.children,
+        category=node,
+    )
+    return ut.get_page(request, 'gen-catalog-calc.html', context, scat)
+
+
+def _shared_calc_tree(request: HtmxHttpRequest, root, cat, title, page):
+    ut.q1139_request_init(request)
+
+    def fragment_context():
+        return {
+            "calc_data": root.children,
+            "request": request,
+            "favorite_dict": {},  # per-user stars are applied after caching
+            "cat": cat,
+            "show_fav_variants": False,
+            "fav_var_data": None,
+        }
+
+    html = cached_fragment(request, root, (cat, 'tree'), 'include-tree-node-calc.html', fragment_context)
     context = {
-        "calc_navigation": mark_safe(navigation),
-        "calc_data": node.children,
-        "category": node,
+        "tree_html": mark_safe(apply_favorites(html, QFav.getp({}))),
         "request": request,
-        "favorite_dict": fav_dict,
         "cat": cat,
-        "title": "Personal Calculator Catalog",
-        "show_fav_variants": True,
-        "fav_var_data": get_fav_data(fav_dict)  # , jresp=False
+        "title": title,
     }
-    return ut.get_page(request, template, context, scat)
+    return ut.get_page(request, 'tree.html', context, page)
 
 
 def calc_tree(request: HtmxHttpRequest):
-    template = 'tree.html'
-    ut.q1139_request_init(request)
-    fav_dict = QFav.getp({})
-    context = {
-        "calc_data": QCals.calc_root.children,
-        "request": request,
-        "favorite_dict": fav_dict,
-        "cat": "calc",
-        "title": "Standrad Calculator Catalog",
-        "show_fav_variants": False,
-        "fav_var_data": None  # get_fav_data(fav_dict, jresp=False)
-    }
-    return ut.get_page(request, template, context, 'calc_tree')
+    return _shared_calc_tree(request, QCals.calc_root, 'calc', "Standrad Calculator Catalog", 'calc_tree')
 
 
 def pcalc_tree(request: HtmxHttpRequest):
-    template = 'tree.html'
-    ut.q1139_request_init(request)
-    fav_dict = QFav.getp({})
-    context = {
-        "calc_data": QCals.pcalc_root.children,
-        "request": request,
-        "favorite_dict": fav_dict,
-        "cat": "pcalc",
-        "title": "Public Calculator Catalog",
-        "show_fav_variants": False,
-        "fav_var_data": None
-    }
-    return ut.get_page(request, template, context, 'pcalc_tree')
+    return _shared_calc_tree(request, QCals.pcalc_root, 'pcalc', "Public Calculator Catalog", 'pcalc_tree')
 
 
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def ucalc_tree(request: HtmxHttpRequest):
-    template = 'tree.html'
     ut.q1139_request_init(request)
-    uc = UCals()
-    uc.get_tree()
-    fav_dict = QFav.getp({})
-    context = {
-        "calc_data": uc.calc_root.children,
-        "request": request,
-        "favorite_dict": fav_dict,
-        "cat": "user",
-        "title": "Personal Calculator Catalog",
-        "show_fav_variants": True,
-        "fav_var_data": get_fav_data(fav_dict)  # , jresp=False
-    }
-    return ut.get_page(request, template, context, 'ucalc_tree')
+    context = _personal_context(request, QFav.getp({}), calc_data=get_personal_tree().children)
+    return ut.get_page(request, 'tree.html', context, 'ucalc_tree')
+
+
+def _currency_stamp():
+    # the quantity tree prints the currency rate date, so a rate refresh must produce a new fragment
+    try:
+        return cur_loader.timestamp()
+    except Exception:
+        return None
 
 
 def qty_tree(request: HtmxHttpRequest):
-    template = 'treeq.html'
-    context = {"qty_data": QCals.qty_root.children}
-    return ut.get_page(request, template, context, 'qty_tree')
+    def fragment_context():
+        return {"qty_data": QCals.qty_root.children}
+
+    html = cached_fragment(request, QCals.qty_root, ('qty', 'tree', _currency_stamp()),
+                           'include-tree-node-qty.html', fragment_context)
+    return ut.get_page(request, 'treeq.html', {"tree_html": mark_safe(html)}, 'qty_tree')
 
 
 def qty_navigation(title, parents):
@@ -185,22 +173,25 @@ hx-target="closest .calc" hx-swap="outerHTML">{parent[1]}</a>''')
 
 
 def qty_dir(request: HtmxHttpRequest, **kwargs):
-    template = 'gen-catalog-qty.html'
     scat = kwargs['category'].lower()
     node = QCals.qty_root.get_node_by_id(scat)
     if not node:
         return not_found(request)
-    parents = node.get_ancestor_ids_titles()
-    navigation = qty_navigation(node.title, parents)
-    context = {
-        "qty_navigation": mark_safe(navigation),
-        "qty_data": node.children,
-        "category": node,
-        "request": request,
-    }
-    help_path = get_help_path(scat, qty=True)
-    context['help_html'] = help_path.as_posix() if help_path.exists() else "nohelp_qty.html"
-    return ut.get_page(request, template, context, scat)
+
+    def fragment_context():
+        help_path = get_help_path(scat, qty=True)
+        return {
+            "qty_navigation": mark_safe(qty_navigation(node.title, node.get_ancestor_ids_titles())),
+            "qty_data": node.children,
+            "category": node,
+            "request": request,
+            "help_html": help_path.as_posix() if help_path.exists() else "nohelp_qty.html",
+        }
+
+    html = cached_fragment(request, QCals.qty_root, ('qty', 'dir', node.id),
+                           'catalog-qty-categories.html', fragment_context)
+    context = {"content_html": mark_safe(html), "category": node, "request": request}
+    return ut.get_page(request, 'gen-catalog-qty.html', context, scat)
 
 
 def search_catalog(request: HtmxHttpRequest, scope='cx', idonly=False):
@@ -222,72 +213,20 @@ def search_catalog(request: HtmxHttpRequest, scope='cx', idonly=False):
     return ut.get_page(request, template, context, 'search')
 
 
-def _visible_calc_leaf_nodes(request: HtmxHttpRequest):
-    return [
-        node for node in QCals.calc_root.depth_first()
-        if node.is_leaf and node.is_active and node.is_visible(request)
-    ]
-
-
-def _normalized_tag_list(values):
-    tags = []
-    seen = set()
-    for value in values:
-        tag = value.strip().lower()
-        if not tag or tag in seen:
-            continue
-        tags.append(tag)
-        seen.add(tag)
-    return tags
-
-
-def _tag_index(nodes):
-    counter = Counter()
-    for node in nodes:
-        for tag in node.tag_list:
-            ntag = tag.strip().lower()
-            if ntag:
-                counter[ntag] += 1
-
-    return [
-        {'name': tag, 'count': count}
-        for tag, count in sorted(counter.items(), key=lambda item: (-item[1], item[0]))
-    ]
-
-
-def _nodes_by_tags(nodes, selected_tags, mode='or'):
-    if not selected_tags:
-        return []
-
-    selected = set(selected_tags)
-    result = []
-    for node in nodes:
-        node_tags = {tag.strip().lower() for tag in node.tag_list if tag.strip()}
-        if mode == 'or':
-            matched = bool(node_tags.intersection(selected))
-        else:  # mode == 'and'
-            matched = selected.issubset(node_tags)
-        if matched:
-            result.append(node)
-
-    result.sort(key=lambda nd: (nd.title.lower(), nd.name.lower()))
-    return result
-
-
 def tag_browser(request: HtmxHttpRequest):
     q1139_request_init(request)
     mode = request.GET.get('mode', 'or').strip().lower()
     mode = 'or' if mode == 'or' else 'and'
 
     filter_text = request.GET.get('q', '').strip().lower()
-    selected_tags = _normalized_tag_list(request.GET.getlist('qt'))
-    visible_nodes = _visible_calc_leaf_nodes(request)
-    tag_items = _tag_index(visible_nodes)
+    selected_tags = normalize_tag_list(request.GET.getlist('qt'))
+    tag_view = get_tag_view(request)
+    tag_items = tag_view.tag_items
 
     if filter_text:
         tag_items = [item for item in tag_items if filter_text in item['name']]
 
-    calc_nodes = _nodes_by_tags(visible_nodes, selected_tags, mode)
+    calc_nodes = tag_view.nodes_by_tags(selected_tags, mode)
 
     defa_page_size = 25
     try:
@@ -336,8 +275,8 @@ def tag_browser(request: HtmxHttpRequest):
 
 
 def search_tag(request: HtmxHttpRequest):
-    sterm = request.GET.get('qt').strip()
-    nodes = QCals.calc_root.search_nodes_by_tag(sterm)
+    tags = normalize_tag_list([request.GET.get('qt') or ''])
+    nodes = get_tag_view(request).nodes_by_tags(tags)
     context = {"calc_data": nodes}
     template = 'search-tag.html'
     return render(request, template, context)

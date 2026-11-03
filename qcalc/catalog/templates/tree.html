@@ -13,7 +13,7 @@
 <br><br>
 <div id="toc_tree" class="hidden">
   <ul>
-      {% include 'include-tree-node-calc.html'%}
+      {% if tree_html is not None %}{{ tree_html }}{% else %}{% include 'include-tree-node-calc.html'%}{% endif %}
   </ul>
 </div>
 <br>

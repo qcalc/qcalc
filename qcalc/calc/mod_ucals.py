@@ -7,9 +7,11 @@ from qcore import qinfo, qerror
 from qutil.mod_tree import dict_to_tree
 from qutil import TreeNode, create_category_node, user_name, get_functions, \
     extract_calculator_name, names2fid, fid2owner
-import copy
 import logging
+import json
+import threading
 import traceback
+from collections import OrderedDict
 from django.conf import settings
 
 logger = logging.getLogger(__name__)
@@ -67,8 +69,7 @@ class UCals:
                     child = self.calc_root.get_node_by_id(func_id)  # | owncal
 
             if child:
-                child = copy.deepcopy(child)
-                child.id = f'{id_prefix}{func_id}'
+                child = child.clone_detached(f'{id_prefix}{func_id}')
                 child.uname = parent.uname
                 parent.add_child(child)
 
@@ -465,3 +466,41 @@ def unregister_shared_cal(func_id):  # review tree delete
         stree.delete_tree()
     del stree
     return result
+
+
+_PERSONAL_TREES_MAX = 256
+_personal_lock = threading.Lock()
+_personal_trees = OrderedDict()  # (user, catalog version, stored-data fingerprint) -> read-only root
+
+
+def _personal_fingerprint():
+    # the personal tree is built from these stored values (favorites are cloned from the shared catalogs)
+    try:
+        return hash(json.dumps([QMeta.getp1('uc_tree', {}), QMeta.getp1('sc_tree', {}), QFav.getp({})],
+                               sort_keys=True, default=str))
+    except TypeError:
+        return None
+
+
+def get_personal_tree():
+    """
+    The current user's catalog tree, shared across requests while its inputs are unchanged.
+    The tree is read-only: callers must not modify it, use UCals().get_tree() for a private copy.
+    """
+    fingerprint = _personal_fingerprint()
+    if fingerprint is None:
+        return UCals().get_tree()
+
+    key = (user_name(), QCals.catalog_version, fingerprint)
+    with _personal_lock:
+        root = _personal_trees.get(key)
+        if root is not None:
+            _personal_trees.move_to_end(key)
+            return root
+
+    root = UCals().get_tree()
+    with _personal_lock:
+        _personal_trees[key] = root
+        while len(_personal_trees) > _PERSONAL_TREES_MAX:
+            _personal_trees.popitem(last=False)
+    return root

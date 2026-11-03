@@ -444,3 +444,106 @@ def test_the_shared_catalog_lists_the_shared_calculators(env):
     assert {'shared', 'her-amy'} <= ids
     assert request.token == ''
     assert request.ufunc_dict == {}
+
+
+# shared personal tree --------------------------------------------------------------------------------------------
+
+@pytest.fixture
+def personal(env, monkeypatch):
+    env.qcals.catalog_version = 1
+    monkeypatch.setattr(mu, '_personal_trees', mu.OrderedDict())
+    return env
+
+
+def test_the_personal_tree_is_reused_while_its_inputs_are_unchanged(personal):
+    UCals().edit_cal('mycal', CODE)
+
+    first = mu.get_personal_tree()
+
+    assert mu.get_personal_tree() is first
+    assert first.get_node_by_id('mycal-bob') is not None
+
+
+def test_the_personal_tree_is_rebuilt_when_the_stored_data_changes(personal):
+    UCals().edit_cal('mycal', CODE)
+    first = mu.get_personal_tree()
+
+    register_shared_cal('other-amy', 'tok')
+    second = mu.get_personal_tree()
+    personal.fav.setp1('mycal-bob', [0])
+    third = mu.get_personal_tree()
+
+    assert second is not first and second.get_node_by_id('other-amy') is not None
+    assert third is not second and third.get_node_by_id('favorites') is not None
+
+
+def test_the_personal_tree_is_rebuilt_when_the_catalog_changes(personal):
+    first = mu.get_personal_tree()
+
+    personal.qcals.catalog_version += 1
+
+    assert mu.get_personal_tree() is not first
+
+
+def test_personal_trees_are_kept_per_user(personal):
+    UCals().edit_cal('mycal', CODE)
+    bobs = mu.get_personal_tree()
+
+    personal.owner = 'amy'
+
+    assert mu.get_personal_tree() is not bobs
+    personal.owner = OWNER
+    assert mu.get_personal_tree() is bobs
+
+
+def test_the_personal_tree_cache_is_bounded(personal, monkeypatch):
+    monkeypatch.setattr(mu, '_PERSONAL_TREES_MAX', 2)
+    for user in ('a', 'b', 'c'):
+        personal.owner = user
+        mu.get_personal_tree()
+
+    assert len(mu._personal_trees) == 2
+
+
+def test_leaf_counts_are_set_on_every_branch(env):
+    root = create_category_node('r', 'r', 'R')
+    sub = create_category_node('r-s', 's', 'S')
+    root.add_child(sub)
+    sub.add_child(_leaf('l1'))
+    sub.add_child(_leaf('l2'))
+    root.add_child(_leaf('l3'))
+
+    root.update_all_descendant_leafs_count()
+
+    assert (root.leafcount, sub.leafcount) == (3, 2)
+
+
+# favorite data ---------------------------------------------------------------------------------------------------
+
+def test_favorite_data_is_fetched_with_a_single_query(monkeypatch):
+    from calc import views_tabulator as vt
+
+    rows = [
+        {'id': 5, 'user__username': 'amy', 'object_id': 'input', 'item_id': 'mycal-amy', 'variant_id': 'v1',
+         'description': 'd', 'is_shared': True, 'access_token': 't'},
+        {'id': 7, 'user__username': 'bob', 'object_id': 'input', 'item_id': 'x', 'variant_id': 'v2',
+         'description': '', 'is_shared': False, 'access_token': ''},
+    ]
+    calls = []
+
+    class _Manager:
+        def filter(self, **kw):
+            calls.append(kw)
+            ids = kw['id__in']
+            return SimpleNamespace(values=lambda *fields: [r for r in rows if r['id'] in ids])
+
+    monkeypatch.setattr(vt.apps, 'get_model', lambda app, model: SimpleNamespace(objects=_Manager()))
+
+    data = vt.get_fav_data({'mycal-amy': [0, 5], 'x': [7, 5], 'none': [0]})
+
+    assert len(calls) == 1
+    assert [d['id'] for d in data['mycal-amy']] == [5]
+    assert data['mycal-amy'][0]['owner'] == 'amy'
+    assert [d['id'] for d in data['x']] == [5, 7]
+    assert data['none'] == []
+    assert vt.get_fav_data({}) == {}

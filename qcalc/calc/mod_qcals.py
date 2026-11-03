@@ -50,6 +50,11 @@ class QCals:
     pcalc_root: TreeNode = create_category_node('pcals', 'pcals', 'Public Cals')
 
     _registry_lock = threading.RLock()
+    catalog_version: int = 0  # bumped whenever a catalog tree changes, invalidates rendered catalog fragments
+
+    @classmethod
+    def bump_catalog_version(cls):
+        cls.catalog_version += 1
 
     @classmethod
     def func_exists(cls, func_id, scope='qpots'):
@@ -407,11 +412,13 @@ class QCals:
         # cls.calc_root = TreeNode(nid='calculators', name='calculators', title='Cals', is_leaf=False, node_type='c')
         # cls.calc_root._index_node()
         cls.calc_root = create_category_node('calculators', 'calculators', 'Cals')
+        func_ids_by_pkg = {}
+        for func_id, categ in cls.qc_dict.items():
+            func_ids_by_pkg.setdefault(categ, []).append(func_id)
         for pkg, ctg in cls.qctg_dict.items():
             cur_node = cls.add_catagories_to_node(cls.calc_root, ctg)
 
-            func_ids = [func_id for func_id, categ in cls.qc_dict.items() if categ == pkg]
-            for func_id in func_ids:
+            for func_id in func_ids_by_pkg.get(pkg, ()):
                 try:
                     title, desc, tags = cls.func_title_desc_tags(func_id, scope='q')
                     func_node = TreeNode(nid=func_id, name=func_id, title=title, desc=desc, tags=tags,
@@ -432,6 +439,7 @@ class QCals:
         cls.qc_user_list.sort()
         cls.calc_root.update_all_descendant_leafs_count()
         cls.calc_root.sort_by()
+        cls.bump_catalog_version()
         # calc_root.save_tree_to_json("all.json")
 
         # | start creating qcalc symbol list (qsymbols)
@@ -448,7 +456,8 @@ class QCals:
         assert len(set(cls.qfunc_dict).intersection(_unit_table)) == 0
         qsyms = cls.qfunc_dict.copy()
         # deb@05.09.24 - exclude admin and test calculators from symbol list
-        qsyms = {key: qsyms[key] for key in qsyms if key not in cls.qc_admin_list + cls.qc_demo_list}
+        excluded_syms = set(cls.qc_admin_list).union(cls.qc_demo_list)
+        qsyms = {key: qsyms[key] for key in qsyms if key not in excluded_syms}
         qsyms.update({k: Qty(1, v) for k, v in _unit_table.items()})
         qsyms.update({k: _qty_info[k]['qty'] for k in _qty_info})
         qsyms.update({name: getattr(qapi, name) for name in qapi.__evacon__})
@@ -549,6 +558,7 @@ class QCals:
 
         cls.qty_root.update_all_descendant_leafs_count()
         cls.qty_root.sort_by()
+        cls.bump_catalog_version()
 
     @classmethod
     def safe_eval(cls, qxpr, gdict=None, ldict=None):
@@ -682,6 +692,7 @@ class QCals:
             except Exception as e:
                 logger.error(f'>>> AFP: {calc_id} could not be added, {str(e)}')
                 toret = False
+            cls.bump_catalog_version()
             return toret
 
     @classmethod
@@ -700,6 +711,7 @@ class QCals:
                         owner_node.count_descendant_leafs()
             except:
                 pass
+            cls.bump_catalog_version()
             return toret
 
     @classmethod
@@ -725,11 +737,13 @@ class QCals:
     def create_catalog_calc_public(cls):
         TreeNode.setup(qconst.admin_name, qconst.demo_name, qconst.personal_name)
         # cls.pcalc_root = create_category_node('pcals', 'pcals', 'Public Cals')
+        func_ids_by_pkg = {}
+        for func_id, categ in cls.pc_dict.items():
+            func_ids_by_pkg.setdefault(categ, []).append(func_id)
         for pkg, ctg in cls.pctg_dict.items():
             cur_node = cls.add_catagories_to_node(cls.pcalc_root, ctg)
 
-            func_ids = [func_id for func_id, categ in cls.pc_dict.items() if categ == pkg]
-            for func_id in func_ids:
+            for func_id in func_ids_by_pkg.get(pkg, ()):
                 try:
                     title, desc, tags = cls.func_title_desc_tags(func_id, scope='p')
                     func_node = TreeNode(nid=func_id, name=func_id, title=title, desc=desc, tags=tags,
@@ -740,6 +754,7 @@ class QCals:
 
         cls.pcalc_root.update_all_descendant_leafs_count()
         cls.pcalc_root.sort_by()
+        cls.bump_catalog_version()
 
 
 if __name__ == "__main__":

@@ -12,7 +12,7 @@
 <br><br>
 <div id="tocq_tree" class="hidden">
   <ul>
-      {% include 'include-tree-node-qty.html'%}
+      {% if tree_html is not None %}{{ tree_html }}{% else %}{% include 'include-tree-node-qty.html'%}{% endif %}
   </ul>
 </div>
 <br>

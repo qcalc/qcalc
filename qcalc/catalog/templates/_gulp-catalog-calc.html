@@ -7,5 +7,7 @@
 {% endblock %}
 {% block _cardtitle %}{{ title }} - {{ category.data.path }}{% endblock %}
 {% block _content %}
+{% if content_html %}{{ content_html }}{% else %}
 @@include('catalog-calc-categories.html')
+{% endif %}
 {% endblock %}

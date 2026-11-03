@@ -7,6 +7,7 @@
 {% endblock %}
 {% block _cardtitle %}Quantity Catalog - {{ category.title }}{% endblock %}
 {% block _content %}
+{% if content_html %}{{ content_html }}{% else %}
 {% load qfilter %}
 {% if not search %}{% include "catalog-qty-links.html" %}<hr>{% endif %}
 {% if help_html %}{% include help_html %}{% endif %}
@@ -44,4 +45,5 @@
 </table>
 {% if not search %}<hr>{% include "catalog-qty-links.html" %}{% endif %}
 
+{% endif %}
 {% endblock %}

@@ -7,5 +7,7 @@
 {% endblock %}
 {% block _cardtitle %}Quantity Catalog - {{ category.title }}{% endblock %}
 {% block _content %}
+{% if content_html %}{{ content_html }}{% else %}
 @@include('catalog-qty-categories.html')
+{% endif %}
 {% endblock %}

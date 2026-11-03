@@ -41,7 +41,8 @@ class TreeNode:
 
         self.update_flags()
         self.tag_list = css2strs(self.tags) if self.tags else []
-
+        self._search_sig = None
+        self._search_text = ''
         # if not hasattr(self.__class__, "_nodes_index"):
         #     self.__class__._nodes_index = {}
 
@@ -192,6 +193,17 @@ class TreeNode:
         # noinspection PyProtectedMember
         child._index_node(allowdups)  # | Index the child node upon adding
 
+    def clone_detached(self, new_id=None) -> 'TreeNode':
+        """
+        Copy this node's own attributes into a new unattached node (no parent, children or shared index).
+        Unlike copy.deepcopy, it does not drag the whole tree along via parent/children/_nodes_index.
+        """
+        clone = TreeNode(self.id if new_id is None else new_id, self.name, self.title, self.desc, self.tags,
+                         self.is_leaf, self.node_type, self.is_active, dict(self.data), self.sub_type)
+        clone.uname = self.uname
+        clone.tag_list = list(self.tag_list)
+        return clone
+
     def add_tree(self, subtree, allowdups=False):
         # Step 1: Set the parent of the subtree to self
         subtree.parent = self
@@ -295,8 +307,16 @@ class TreeNode:
         return results
 
     def update_all_descendant_leafs_count(self):
-        for node in self.depth_first():
-            node.count_descendant_leafs()
+        # | count_descendant_leafs() sets the counts of every descendant while it recurses
+        self.count_descendant_leafs()
+
+    def search_text(self) -> str:
+        # | lowercased searchable text; title, desc and tags are reassigned after creation, so recompute on change
+        sig = (self.name, self.title, self.tags, self.desc)
+        if self._search_sig != sig:
+            self._search_text = ' '.join(sig).lower()
+            self._search_sig = sig
+        return self._search_text
 
     def filter(self, terms, request, is_leaf=None, is_active=None, fuzzy=False, semantic=False) -> list:
         nodes = []
@@ -312,9 +332,7 @@ class TreeNode:
             check_this = check_this and child.is_visible(request)
 
             if check_this:
-                text_to_search = child.name + ' ' + child.title + ' ' + child.tags + ' ' + child.desc
-                text_to_search = text_to_search.lower()
-                if match_any(terms, text_to_search, fuzzy=fuzzy, semantic=semantic):
+                if match_any(terms, child.search_text(), fuzzy=fuzzy, semantic=semantic):
                     nodes.append(child)
             if not child.is_leaf:
                 nodes += child.filter(terms, request, is_leaf, is_active, fuzzy=fuzzy, semantic=semantic)

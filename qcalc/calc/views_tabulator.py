@@ -121,26 +121,31 @@ def get_stuff_data(request, scope, item_id, jresp=True):  # used in stuff_tabula
 def get_fav_data(fav_dict: dict) -> dict:  # , jresp=True
     # | get 'input' records of all favorites in fav_dict from MyInput
     myinputs = apps.get_model('calc', 'MyInput').objects
-    item_data = {}
-    for item_id in fav_dict:
-        # items=model.objects.filter(object_id='input', item_id=item_id) # item_id's are unique within 'input'
-        input_id_list = fav_dict[item_id]
-        items = myinputs.filter(object_id='input', id__in=input_id_list)  # id's are unique
-        input_data_list = []
-        for item in items:
-            i_data = {
-                'id': item.id,
-                'owner': item.user.username,
-                'object_id': item.object_id,
-                'item_id': item.item_id,
-                'variant_id': item.variant_id,
-                'description': item.description,
-                'is_shared': item.is_shared,
-                'access_token': item.access_token,
-            }
-            input_data_list.append(i_data)
+    funcs_by_input = {}  # input id -> favorite func ids that list it
+    for func_id, input_ids in fav_dict.items():
+        for input_id in input_ids:
+            funcs_by_input.setdefault(input_id, []).append(func_id)
 
-        item_data[item_id] = input_data_list
+    item_data = {func_id: [] for func_id in fav_dict}
+    if not funcs_by_input:
+        return item_data
+
+    # | one query for all favorites; values() joins the user so no per-row query is needed
+    rows = myinputs.filter(object_id='input', id__in=list(funcs_by_input)).values(
+        'id', 'user__username', 'object_id', 'item_id', 'variant_id', 'description', 'is_shared', 'access_token')
+    for row in rows:  # id's are unique
+        i_data = {
+            'id': row['id'],
+            'owner': row['user__username'],
+            'object_id': row['object_id'],
+            'item_id': row['item_id'],
+            'variant_id': row['variant_id'],
+            'description': row['description'],
+            'is_shared': row['is_shared'],
+            'access_token': row['access_token'],
+        }
+        for func_id in funcs_by_input[row['id']]:
+            item_data[func_id].append(i_data)
 
     # if jresp: return JsonResponse(item_data)
     return item_data

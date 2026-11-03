@@ -348,7 +348,15 @@ def validate_calculator_stages(user_code):
         raise CalculatorValidationError('structure', error) from error
 
     try:
-        local_dict = QCals.safe_exec(user_code)
+        safe_exec_fn = getattr(QCals, 'safe_exec_with_context', None)
+        if callable(safe_exec_fn):
+            local_dict = safe_exec_fn(
+                user_code,
+                scope='validate-mycal',
+                item_id=calculator_name,
+            )
+        else:
+            local_dict = QCals.safe_exec(user_code)
     except (ImportError, UnsafeCodeError) as error:
         raise CalculatorValidationError('security', error) from error
     except Exception as error:

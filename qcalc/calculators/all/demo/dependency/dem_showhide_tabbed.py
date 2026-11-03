@@ -24,7 +24,6 @@ def demo_showhide_tabbed__info():
                         'title': 'Main',
                         'fields': [
                             'mode',
-                            'show_details',
                             'base_value',
                         ],
                     },
@@ -63,49 +62,17 @@ def demo_showhide_tabbed__info():
                     },
                 ],
             },
-            {
-                'column': 2,
-                'fields': [
-                    'hide_all_tabs',
-                ],
-            },
         ],
         'showhide': {
             'hide_group1_tabs': {
-                'fields': ['mode', 'show_details', 'base_value', 'detail_a', 'detail_b', 'detail_note'],
-                'callback': 'toggle_group2_tabs',
+                'fields': ['mode', 'base_value', 'detail_a', 'detail_b', 'detail_note'],
+                'callback': '!@',
             },
             'hide_group2_tabs': {
                 'fields': ['multiplier', 'summary_label', 'summary_text', 'internal_note'],
-                'callback': 'toggle_group1_tabs',
-            },
-            'hide_all_tabs': {
-                'fields': [
-                    'mode',
-                    'show_details',
-                    'base_value',
-                    'detail_a',
-                    'detail_b',
-                    'detail_note',
-                    'multiplier',
-                    'summary_label',
-                    'summary_text',
-                    'internal_note',
-                ],
-                'callback': 'toggle_all_tabs',
+                'callback': '!@',
             },
         },
-        'script': """
-        function toggle_group1_tabs(v){
-            return !v;
-        }
-        function toggle_group2_tabs(v){
-            return !v;
-        }
-        function toggle_all_tabs(v){
-            return !v;
-        }
-        """,
         'schema': {
             'hide_group1_tabs': {
                 'type': 'checkbox',
@@ -115,18 +82,10 @@ def demo_showhide_tabbed__info():
                 'type': 'checkbox',
                 'help_text': 'Hide the second group when checked.',
             },
-            'hide_all_tabs': {
-                'type': 'checkbox',
-                'help_text': 'Hide both tab blocks when checked.',
-            },
             'mode': {
                 'type': 'choice',
                 'choices': ['compact', 'expanded'],
                 'help_text': 'Switch between a compact or expanded view.',
-            },
-            'show_details': {
-                'type': 'checkbox',
-                'help_text': 'Show or hide the detail fields across tabs.',
             },
             'base_value': {
                 'type': 'float',
@@ -166,7 +125,6 @@ def demo_showhide_tabbed__info():
 
 def demo_showhide_tabbed(
     mode='expanded',
-    show_details=True,
     base_value: float = 10.0,
     detail_a='Alpha',
     detail_b: int = 2,
@@ -177,13 +135,10 @@ def demo_showhide_tabbed(
     internal_note='Tabbed layout with cross-tab visibility controls',
     hide_group1_tabs=False,
     hide_group2_tabs=False,
-    hide_all_tabs=False,
 ):
     total = base_value * multiplier
-    details_state = 'shown' if show_details else 'hidden'
     return {
         'current_mode': mode,
-        'details_state': details_state,
         'summary_label_out': summary_label,
         'summary': f'{summary_label}: {total}',
         'summary_text_out': summary_text,

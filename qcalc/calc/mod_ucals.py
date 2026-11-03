@@ -9,6 +9,8 @@ from qutil import TreeNode, create_category_node, user_name, get_functions, \
     extract_calculator_name, names2fid, fid2owner
 import copy
 import logging
+import traceback
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -129,7 +131,16 @@ class UCals:
 
         cal_id = names2fid(catalog_name, cal_name)
         update = cal_id in uc_list
-        _ = QCals.safe_exec(code)  # | validate and returns exception if invalid code
+        safe_exec_fn = getattr(QCals, 'safe_exec_with_context', None)
+        if callable(safe_exec_fn):
+            _ = safe_exec_fn(
+                code,
+                scope='edit-mycal',
+                username=self.cal_owner,
+                item_id=cal_id,
+            )
+        else:
+            _ = QCals.safe_exec(code)  # | compatibility for tests/mocks
 
         for ufname in functions:
             # | ufaddr = locals.get(ufname, None)
@@ -244,7 +255,23 @@ class UCals:
             if package_name not in self.uctg_dict:
                 self.uctg_dict[package_name] = catalog_name
             code = record.item
-            local_dict = QCals.safe_exec(code)
+            try:
+                local_dict = QCals.safe_exec_with_context(
+                    code,
+                    scope='private-mycal',
+                    username=record.user.username,
+                    item_id=record.item_id,
+                )
+            except Exception as e:
+                logger.error(
+                    "Private calculator scan skipped | user=%s item_id=%s error=%s",
+                    record.user.username,
+                    record.item_id,
+                    str(e),
+                )
+                if getattr(settings, 'DEBUG', False):
+                    traceback.print_exc()
+                continue
             QCals.build_func_dict(local_dict.items(), catalog_name, package_name, self.ufunc_dict, self.uc_dict)
 
         self.uc_list[:] = self.uc_dict.keys()
@@ -307,7 +334,23 @@ class UCals:
                 continue
 
             code = oth_record.item
-            local_dict = QCals.safe_exec(code)
+            try:
+                local_dict = QCals.safe_exec_with_context(
+                    code,
+                    scope='shared-mycal',
+                    username=oth_record.user.username,
+                    item_id=oth_record.item_id,
+                )
+            except Exception as e:
+                logger.error(
+                    "Shared calculator scan skipped | user=%s item_id=%s error=%s",
+                    oth_record.user.username,
+                    oth_record.item_id,
+                    str(e),
+                )
+                if getattr(settings, 'DEBUG', False):
+                    traceback.print_exc()
+                continue
             QCals.build_func_dict(local_dict.items(), catalog_name, package_name, self.sfunc_dict, self.sc_dict)
 
         self.sc_list[:] = self.sc_dict.keys()

@@ -2,8 +2,10 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 import random
+import json
 from django_htmx.middleware import HtmxDetails
 from django.http import HttpRequest
+from django.http import HttpResponse
 from django.shortcuts import render
 
 import qvars
@@ -148,12 +150,39 @@ def request_dump(request: HtmxHttpRequest):
     }
 
 
-def show_modal(request: HtmxHttpRequest, title, body, part='1'):
+def _hx_trigger_response(event_name: str, payload: dict, status: int = 204) -> HttpResponse:
+    response = HttpResponse('', status=status)
+    response['HX-Trigger'] = json.dumps({event_name: payload})
+    return response
+
+
+def show_toast(request: HtmxHttpRequest, title, body, level='warning', delay=2000):
+    payload = {
+        "title": nzs(title) or "Notice",
+        "body": nzs(body),
+        "level": nzs(level).lower() or "warning",
+        "delay": delay,
+    }
+
+    if getattr(request, 'htmx', None):
+        return _hx_trigger_response('qcalc:toast', payload)
+
+    if not isinstance(request, HttpRequest):
+        return HttpResponse(payload["body"])
+
     context = get_page_context('dialog')
-    context['data'] = {"title": title, "body": body}
-    template = iif(part == '0', "modal-full.html", "modal-part.html", )
-    res = render(request, template, context)  #
-    return res
+    context['data'] = {"title": payload["title"], "body": payload["body"]}
+    return render(request, "modal-full.html", context)
+
+
+def show_modal(request: HtmxHttpRequest, title, body, part='1'):
+    # Previous modal-card rendering retained for reference:
+    # context = get_page_context('dialog')
+    # context['data'] = {"title": title, "body": body}
+    # template = iif(part == '0', "modal-full.html", "modal-part.html", )
+    # res = render(request, template, context)
+    # return res
+    return show_toast(request, title, body)
 
 
 def makeid():

@@ -7,6 +7,8 @@ from pathlib import Path
 import os
 import inspect
 import threading
+import traceback
+import warnings
 from qutil import variable_to_title, TreeNode, \
     preprocess_expression, QThread, create_category_node, \
     joinx, names2fid, user_name, fid2owner, safe_execute
@@ -19,6 +21,7 @@ from asteval import make_symbol_table
 from .mod_cache import QMeta, QMyCal
 import qapi
 import qconst
+from django.conf import settings
 
 import logging
 
@@ -191,7 +194,12 @@ class QCals:
                 return False
             else:
                 raise Exception(f'Error (LUC): Calculator {cal_id} not found')
-        local_dict = cls.safe_exec(code)
+        local_dict = cls.safe_exec_with_context(
+            code,
+            scope='load-user-cal',
+            username=user_name(request),
+            item_id=cal_id,
+        )
         catalog = user_name(request)
         package_name = 'created'
         cls.build_func_dict(local_dict.items(), catalog, package_name, request.ufunc_dict, None)
@@ -206,7 +214,12 @@ class QCals:
                 return False
             else:
                 raise Exception(f'Error (LUC): Calculator {cal_id} not found')
-        local_dict = cls.safe_exec(code)
+        local_dict = cls.safe_exec_with_context(
+            code,
+            scope='load-token-cal',
+            username=owner,
+            item_id=cal_id,
+        )
         catalog = owner
         package_name = 'shared'
         cls.build_func_dict(local_dict.items(), catalog, package_name, request.ufunc_dict, None)
@@ -221,7 +234,12 @@ class QCals:
                 return False
             else:
                 raise Exception(f'Error (LUC): Calculator {cal_id} not found')
-        local_dict = cls.safe_exec(code)
+        local_dict = cls.safe_exec_with_context(
+            code,
+            scope='load-other-cal',
+            username=owner,
+            item_id=cal_id,
+        )
         catalog = owner
         package_name = 'shared'
         cls.build_func_dict(local_dict.items(), catalog, package_name, request.ufunc_dict, None)
@@ -229,7 +247,12 @@ class QCals:
 
     @classmethod
     def update_public_cal(cls, cal_id, cal_owner, code) -> bool:
-        local_dict = cls.safe_exec(code)
+        local_dict = cls.safe_exec_with_context(
+            code,
+            scope='update-public-cal',
+            username=cal_owner,
+            item_id=cal_id,
+        )
         package_name = f"pcals.{cal_owner}"
         catalog_name = f"{cal_owner}"
         catalog = cal_owner
@@ -543,6 +566,24 @@ class QCals:
         return safe_execute(code, cls.qsymbol_dict.copy() if gdict is None else gdict, ldict)
 
     @classmethod
+    def safe_exec_with_context(cls, code, scope, username='', item_id=''):
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always", SyntaxWarning)
+            local_dict = cls.safe_exec(code)
+
+        for warning_item in caught:
+            if issubclass(warning_item.category, SyntaxWarning):
+                logger.warning(
+                    "SyntaxWarning in calculator code | scope=%s user=%s item_id=%s line=%s msg=%s",
+                    scope,
+                    username or '',
+                    item_id or '',
+                    getattr(warning_item, 'lineno', '?'),
+                    str(warning_item.message),
+                )
+        return local_dict
+
+    @classmethod
     def func_title_desc_tags(cls, sfunc, scope='qpots'):
         func_info = cls.run_func_info(sfunc, scope)
         if 'title' in func_info:
@@ -596,7 +637,23 @@ class QCals:
             if package_name not in pctg_dict:
                 pctg_dict[package_name] = catalog_name
             code = record.item
-            local_dict = cls.safe_exec(code)
+            try:
+                local_dict = cls.safe_exec_with_context(
+                    code,
+                    scope='public-mycal',
+                    username=record.user.username,
+                    item_id=record.item_id,
+                )
+            except Exception as e:
+                logger.error(
+                    "Public calculator scan skipped | user=%s item_id=%s error=%s",
+                    record.user.username,
+                    record.item_id,
+                    str(e),
+                )
+                if getattr(settings, 'DEBUG', False):
+                    traceback.print_exc()
+                continue
             cls.build_func_dict(local_dict.items(), catalog_name, package_name, pfunc_dict, pc_dict)
 
         pc_list[:] = pc_dict.keys()

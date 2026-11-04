@@ -80,8 +80,8 @@ def mycal__info():
 
 def mycal(cal_name='',
           _cal_buttons=qhtml(br(
-              callback_button('mycal2', 'Load Code', '__modify', kwargs={'code': 'load'}) +
-              callback_button('mycal2', 'Delete Code', '__modify', kwargs={'cal_name': 'delete'}))),
+              callback_button('mycal', 'Load Code', '__modify', kwargs={'code': 'load'}) +
+              callback_button('mycal', 'Delete Code', '__modify', kwargs={'cal_name': 'delete'}))),
           code: qcode = """
 def addlen(x='7 ft',y='8 m'):
     z=Qty(x)+Qty(y)
@@ -108,18 +108,3 @@ def addlen__info():
     except Exception as e:
         return f'Error (MC): {e}'
 
-
-# def mytree__info():
-#     return {'title': 'Read My Calculator cache'}
-#
-#
-# def mytree():
-#     uc = UCals()
-#     node = uc.get_tree()
-#     if node:
-#         utree_node = node.tree_to_dict()
-#     else:
-#         utree_node = {}
-#     return {
-#         'data_from_tree': pretty_json(utree_node)  # | simple json dumps
-#     }

@@ -4,7 +4,7 @@
 import re
 import json
 from functools import lru_cache
-from qutil import css2strs, preprocess_expression
+from qutil import css2strs, to_python_expr, to_user_expr
 from qcore.qc_mbase import _fps_names, _cgs_names, _base_categories, powers_to_bname_lmt, _unit_operators
 from qcore.qc_munit import isMeasureUnit
 from qcore.qc_units import _unit_table, _unit_info, _base_names, _unit_tree, unit_desc, safe_eval_unit
@@ -217,11 +217,11 @@ def is_str_qty(snum_unit: str) -> bool:
 
 
 def calc_unit(sunit):
-    return preprocess_expression(sunit, disp=False)
+    return to_python_expr(sunit)
 
 
 def disp_unit(sunit):
-    return preprocess_expression(sunit, disp=True)
+    return to_user_expr(sunit)
 
 
 def read_unit(sunit):

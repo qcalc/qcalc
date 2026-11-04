@@ -309,6 +309,17 @@ def test_human_validation_report_summarizes_success():
     )
 
 
+def test_validation_accepts_not_equal_operator():
+    report = get_calculator_validation_report(
+        "def neq(x=1, y=2):\n"
+        "    return x != y\n\n"
+        "def neq__info():\n"
+        "    return {'title': 'Not Equal'}\n"
+    )
+
+    assert report['valid'], report
+
+
 def test_syntax_report_does_not_repeat_line_number():
     report = get_calculator_validation_report(
         "def broken(value='unterminated):\n"

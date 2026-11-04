@@ -5,7 +5,7 @@ import ast
 from qcore import QScreen
 from calc import QCals, QRam, QPref
 from asteval import Interpreter
-from qutil import HtmxHttpRequest, q1139_request_init, preprocess_expression, is_debug, \
+from qutil import HtmxHttpRequest, q1139_request_init, to_python_expr, is_debug, \
     validate_expression_security
 
 _AUGASSIGN_OPS = {
@@ -151,7 +151,7 @@ def qeval(request: HtmxHttpRequest, xpr: str):
         err_writer=out.out,
     )
 
-    xpr = preprocess_expression(xpr).strip()
+    xpr = to_python_expr(xpr).strip()
 
     # command: strict
     if xpr in {"strict on", "strict off"}:

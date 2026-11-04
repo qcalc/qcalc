@@ -25,7 +25,7 @@ from .views_info_meta import (
 )
 from .views_result import q1145_result_to_form_schema, q1146_result_transfer
 from .views_step2 import cache_step2_io
-from qutil import HtmxHttpRequest, preprocess_expression, fid2owner
+from qutil import HtmxHttpRequest, url_to_user_expr, fid2owner
 import qutil as ut
 import json
 from django.conf import settings
@@ -98,7 +98,7 @@ def q1119_urlpath_to_func_args(request, dictf):
         return sfunc, kwargs
 
     for key in kwargs:
-        kwargs[key] = preprocess_expression(kwargs[key].strip(), disp=True)
+        kwargs[key] = url_to_user_expr(kwargs[key].strip())
     return sfunc, kwargs
 
 

@@ -131,7 +131,7 @@ def pref__info():
                 'help_text': 'Choose one of the available chart color schemes.',
             },
             'strict_assign': {
-                'help_text': 'Reject console assignments that do not match known symbol names.',
+                'help_text': 'Reject console assignments that match known symbol names.',
             },
             'strict_table_input': {
                 'help_text': 'Reject input table columns that are not required by the calculator.',

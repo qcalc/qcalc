@@ -10,7 +10,7 @@ import threading
 import traceback
 import warnings
 from qutil import variable_to_title, TreeNode, \
-    preprocess_expression, QThread, create_category_node, \
+    to_python_expr, QThread, create_category_node, \
     joinx, names2fid, user_name, fid2owner, safe_execute
 from qvars import qc_gpref as gs, qfunc_info, qty_categ_info, unit_info, qfunc_categ_info
 import bisect
@@ -562,7 +562,7 @@ class QCals:
 
     @classmethod
     def safe_eval(cls, qxpr, gdict=None, ldict=None):
-        xpr = preprocess_expression(qxpr)
+        xpr = to_python_expr(qxpr)
         if ldict is None:
             ldict = {}
         # | merge dictionaries doesn't involve copying overhead.
@@ -570,7 +570,7 @@ class QCals:
 
     @classmethod
     def safe_exec(cls, code, gdict=None, ldict=None):
-        code = preprocess_expression(code)
+        code = to_python_expr(code)
         if ldict is None:
             ldict = {}
         return safe_execute(code, cls.qsymbol_dict.copy() if gdict is None else gdict, ldict)

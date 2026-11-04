@@ -110,23 +110,34 @@ def fid2help_file(func_id, qty=False):
     return help_file, help_file_opt
 
 
-def preprocess_expression(qexpr, disp=False):  # deb@13.08.23, @25.11.23
-    """Normalize calculator expressions for compute/display pipelines.
+def to_python_expr(qexpr):  # deb@13.08.23, @25.11.23
+    """Convert user expression syntax to evaluable Python (before calculation).
 
-    - compute mode: ``^`` -> ``**`` and inserts implicit multiplication.
-    - display mode: restores exponent notation for user-facing output.
+    ``^`` -> ``**`` (power), ``^^`` -> ``^`` (xor), and implicit multiplication is inserted.
     """
-    expr_unit = qexpr
-    if not disp:  # Before Calculation
-        expr_unit = expr_unit.replace('^', '**')  # exponent
-        expr_unit = expr_unit.replace('****', '^')  # xor
-        expr_unit = insert_implicit_multiply(expr_unit)  # 5kg -> 5*kg
-    else:  # Before Displaying
-        expr_unit = expr_unit.replace('****', '^^')  # xor
-        expr_unit = expr_unit.replace('**', '^')  # exponent
-    expr_unit = expr_unit.replace('!', '/')  # browser friendly, can't use | as it is a binary operator
-    # | expr_unit = expr_unit.replace('.', '*')  # can't replace (.)  e.g. m*ft^1.5, 1.5*7
-    return expr_unit
+    expr = qexpr.replace('^', '**')  # exponent
+    expr = expr.replace('****', '^')  # xor
+    return insert_implicit_multiply(expr)  # 5kg -> 5*kg
+
+
+def to_user_expr(qexpr):
+    """Convert Python expression syntax back to user syntax (before displaying)."""
+    expr = qexpr.replace('****', '^^')  # xor
+    return expr.replace('**', '^')  # exponent
+
+
+def url_to_user_expr(qexpr):
+    """Convert a value received from a URL path to user syntax.
+
+    ``/`` is written as ``!`` in URL paths (can't use | as it is a binary operator).
+    ``!=`` is kept intact. This is the only place where ``!`` is decoded.
+    """
+    return to_user_expr(re.sub(r'!(?!=)', '/', qexpr))
+
+
+def preprocess_expression(qexpr, disp=False):
+    """Backward-compatible wrapper, prefer to_python_expr() / to_user_expr() / url_to_user_expr()."""
+    return to_user_expr(qexpr) if disp else to_python_expr(qexpr)
 
 
 def title_to_variable(title, data_type=''):

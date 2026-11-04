@@ -3,7 +3,7 @@
 
 from qcore.qc_mbase import _base_names, _conv_names, lmt_desc, dim_to_bname, _prefix_list,_prefixes
 from qcore.qc_munit import MeasureUnit, isMeasureUnit
-from qutil import iif, preprocess_expression
+from qutil import iif, to_python_expr
 import ast
 import operator
 import numpy as np
@@ -916,7 +916,7 @@ def unit_short_desc(sname):  # deb@29.06.24
 def find_unit(unit) -> MeasureUnit:
     if isinstance(unit, str):
         unit = unit.lower()  # lowercase
-        name = preprocess_expression(unit.strip())
+        name = to_python_expr(unit.strip())
         unit = _find_unit_cached(name)
         if isMeasureUnit(unit):
             unit = _clone_unit(unit)

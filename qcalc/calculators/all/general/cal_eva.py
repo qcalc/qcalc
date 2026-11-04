@@ -5,7 +5,7 @@ from qcore import QScreen, qcode
 from calc import QCals
 from asteval import Interpreter
 from qvars import qc_gpref as gs
-from qutil import preprocess_expression, callback_button, format_py_code, validate_expression_security
+from qutil import to_python_expr, callback_button, format_py_code, validate_expression_security
 
 
 def eva__modify(_ctx, arg_name, arg_value, action):
@@ -68,7 +68,7 @@ show(y)
         # builtins_readonly=True,
     )
 
-    expr = preprocess_expression(code)
+    expr = to_python_expr(code)
     try:
         validate_expression_security(expr, syms)
     except Exception as e:

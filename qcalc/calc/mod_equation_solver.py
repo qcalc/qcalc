@@ -11,7 +11,7 @@ from sympy import Eq, log as sympy_log, symbols, solve, sympify
 from sympy.abc import _clash1
 
 from qcore import Qty, isMeasureQuantity, is_str_uom, str_type
-from qutil import preprocess_expression
+from qutil import to_python_expr
 from calc.mod_qcals import QCals
 
 
@@ -61,7 +61,7 @@ _SYMPY_LOCALS.update({
 
 
 def _normalize_equation_text(left: str, right: str):
-    return preprocess_expression(left), preprocess_expression(right)
+    return to_python_expr(left), to_python_expr(right)
 
 
 def _to_equation(left_expr: str, right_expr: str):

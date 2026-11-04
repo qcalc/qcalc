@@ -8,7 +8,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from qutil import insert_implicit_multiply, preprocess_expression
+from qutil import insert_implicit_multiply, preprocess_expression, to_python_expr, to_user_expr, url_to_user_expr
 
 
 class TestInsertImplicitMultiply(unittest.TestCase):
@@ -79,18 +79,40 @@ class TestInsertImplicitMultiply(unittest.TestCase):
         self.assertIsInstance(result, str)
 
 
-class TestPreprocessExpressionIntegration(unittest.TestCase):
+class TestExpressionConversion(unittest.TestCase):
     def test_implicit_multiply_applied_before_calculation(self):
-        self.assertEqual(preprocess_expression("5kg"), "5*kg")
-        self.assertEqual(preprocess_expression("3.5m/s to ft/s"), "3.5*m/s to ft/s")
+        self.assertEqual(to_python_expr("5kg"), "5*kg")
+        self.assertEqual(to_python_expr("3.5m/s to ft/s"), "3.5*m/s to ft/s")
 
     def test_exponent_and_implicit_multiply_combined(self):
-        self.assertEqual(preprocess_expression("2ft^2"), "2*ft**2")
-        self.assertEqual(preprocess_expression("2*ft^2"), "2*ft**2")
+        self.assertEqual(to_python_expr("2ft^2"), "2*ft**2")
+        self.assertEqual(to_python_expr("2*ft^2"), "2*ft**2")
 
-    def test_not_applied_before_displaying(self):
-        # disp=True path must not run implicit-multiply insertion
-        self.assertEqual(preprocess_expression("5kg", disp=True), "5kg")
+    def test_xor_round_trip(self):
+        self.assertEqual(to_python_expr("a^^b"), "a^b")
+        self.assertEqual(to_user_expr("a**2"), "a^2")
+
+    def test_to_user_expr_does_not_insert_implicit_multiply(self):
+        self.assertEqual(to_user_expr("5kg"), "5kg")
+
+    def test_bang_is_decoded_to_division_only_for_url_values(self):
+        self.assertEqual(url_to_user_expr("m!s"), "m/s")
+        self.assertEqual(to_python_expr("m!s"), "m!s")
+        self.assertEqual(to_user_expr("m!s"), "m!s")
+
+    def test_url_value_also_gets_user_exponent_syntax(self):
+        self.assertEqual(url_to_user_expr("m**2!s"), "m^2/s")
+
+    def test_not_equal_operator_is_preserved(self):
+        code = "if a != b:\n    x = 2 != 3"
+        self.assertEqual(to_python_expr(code), code)
+        self.assertEqual(to_user_expr(code), code)
+        self.assertEqual(url_to_user_expr(code), code)
+        self.assertEqual(url_to_user_expr("a!=b!c"), "a!=b/c")
+
+    def test_preprocess_expression_wrapper_delegates(self):
+        self.assertEqual(preprocess_expression("2ft^2"), "2*ft**2")
+        self.assertEqual(preprocess_expression("2ft**2", disp=True), "2ft^2")
 
 
 if __name__ == "__main__":

@@ -564,8 +564,22 @@ function themeChanger(themeSelectorElemId){
 
         // Replace the current theme name (e.g., "default") with the new theme name
         var newHref = currentHref.replace(/(.*-)\w+(\.css)/, `$1${selectedTheme}$2`);
-        // Update the href with the new theme
-        link.setAttribute('href', newHref);
+        if (newHref === currentHref) {
+          return;
+        }
+
+        // Load the new stylesheet beside the old one and drop the old one only
+        // after it is applied, so the page is never unstyled (no flash of
+        // oversized icons).
+        var newLink = link.cloneNode(false);
+        newLink.setAttribute('href', newHref);
+        newLink.addEventListener('load', function() {
+          link.remove();
+        });
+        newLink.addEventListener('error', function() {
+          newLink.remove();
+        });
+        link.after(newLink);
       });
     });
 }

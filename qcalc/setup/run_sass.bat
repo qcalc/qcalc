@@ -8,13 +8,11 @@ set "css_folder=%QCALC_DOCK_PATH%\qcalc\qsite\static\css\"
 
 for %%f in (qcalc-default ^
              qcalc-elegance ^
-             qcalc-lumen ^
              qcalc-serenity ^
              qcalc-tranquil ^
              qcalc-vibe ^
              tree-default ^
              tree-elegance ^
-             tree-lumen ^
              tree-serenity ^
              tree-tranquil ^
              tree-vibe ^

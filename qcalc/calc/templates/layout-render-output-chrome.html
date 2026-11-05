@@ -5,7 +5,7 @@
 </div>
 {% endif %}
 {% include 'layout-render-side.html' with side_plan=side_plan field_include='insert-calculator-section-output.html' form=output.form %}
-{% include 'insert-calculator-section-outbtns.html' %}
+{% if not input.doc.info.print_mode %}{% include 'insert-calculator-section-outbtns.html' %}{% endif %}
 <div id="status-{{ input.cid }}" class="status"></div>
 {% if output.doc.table_out or input.doc.info.table_out %}
 <script src="{% static_ver 'calc/js/tabulator-out.js' %}"></script>

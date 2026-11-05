@@ -120,7 +120,8 @@
 {% else %}
   {% include "gen-calculator-content-lr.html" with input=input output=output%}
 {% endif %}
-{% include "insert-calculator-section-social.html" %}
+{% if not input.doc.info.print_mode %}{% include "insert-calculator-section-social.html" %}{% endif %}
+{% include "insert-calculator-section-footer.html" %}
 
 </form>
 {% endblock %}

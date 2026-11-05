@@ -60,6 +60,20 @@ MARKDOWN_CONFIGS = {
         'enable_dollar_delimiter': True,
     }
 }
+
+
+def _github_slugger():
+    """GitHub/IDE-style heading slugs, so generated TOC links resolve: 'A — B' -> 'a--b',
+    duplicates -> 'x', 'x-1', 'x-2' (Python-Markdown's default gives 'a-b' and 'x_1')."""
+    seen = {}
+
+    def slugify(value, separator='-'):
+        slug = re.sub(r'[^\w\- ]', '', value.strip().lower()).replace(' ', separator)
+        count = seen.get(slug, 0)
+        seen[slug] = count + 1
+        return slug if not count else f'{slug}{separator}{count}'
+
+    return slugify
 """
 extra:  footnotes, abbreviations, and definition lists
 fenced_code: multiline code blocks by wrapping them in three backticks (```) instead of forcing a four-space indentation.
@@ -75,7 +89,7 @@ def md2html(md_text: str, wrap=False):
     html = markdown.markdown(
         md_text,
         extensions=MARKDOWN_EXTENSIONS,
-        extension_configs=MARKDOWN_CONFIGS,
+        extension_configs={**MARKDOWN_CONFIGS, 'toc': {'slugify': _github_slugger()}},
         output_format='html',
     )
     return html if not wrap else f'<div class="md-content">{html}</div>'

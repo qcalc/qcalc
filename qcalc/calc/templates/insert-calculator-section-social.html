@@ -1,7 +1,7 @@
 {% load qfilter %}
 {% cal_var_url input.doc.info.name input_id True True True request.is_public as url %}
 <p></p>
-<div class="social-share-buttons">
+<div class="social-share-buttons d-print-none">
   {% if url %}
     <!-- Facebook -->
     <a href="https://www.facebook.com/sharer/sharer.php?u={{ url }}"
@@ -27,9 +27,3 @@
     {% include 'favorite_icon_social.html' %}
     {% include 'share_icon_social.html' %}
 </div>
-<hr>
-{% cal_var_desc input.doc.info.name input_id as desc %}
-{% cal_var_url input.doc.info.name input_id False True False request.is_public as url_noencode %}
-{% cal_var_url input.doc.info.name input_id False False False request.is_public True as url_core %}
-<p style="font-size: 0.8rem;"><i>{{desc|safe}}<a href="{{url_noencode}}" target="_blank">Link</a>,&nbsp;
-<a href="{{url_core}}" target="_blank">Core</a></i></p>

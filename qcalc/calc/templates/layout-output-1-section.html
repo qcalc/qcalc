@@ -22,11 +22,11 @@
 
 <div class="w-100"></div>
 <div class="col-12">
-  {% include 'insert-calculator-section-outbtns.html' %}
+  {% if not input.doc.info.print_mode %}{% include 'insert-calculator-section-outbtns.html' %}{% endif %}
   <div id="status-{{ input.cid }}" class="status"></div>
   {% isdebug as dbg %}
   {% if user.is_staff or dbg %}
-  {% include 'insert-calculator-section-ioinfo.html' %}
+  {% if not input.doc.info.print_mode %}{% include 'insert-calculator-section-ioinfo.html' %}{% endif %}
   {% endif %}
 </div>
 

@@ -1,7 +1,7 @@
 <a id="qcalc-dev-system-setup-guide"></a>
 # qCalc — Dev System Setup Guide
 <!-- TOC -->
-* [qCalc — Dev System Setup Guide](#qcalc-dev-system-setup-guide)
+* [qCalc — Dev System Setup Guide](#qcalc--dev-system-setup-guide)
   * [Windows Setup](#windows-setup)
     * [1. Prerequisites](#1-prerequisites)
     * [2. Clone the qCalc Repository from Git](#2-clone-the-qcalc-repository-from-git)
@@ -352,6 +352,8 @@ QCALC_ENV_FILE=".setup/dev_mysql.env"
 ### 10. Optional: Rebuild Templates, Themes, and Static Files
 
 Follow this section if you want to change templates and themes. The repository currently provides the Gulp and Sass runner files as Windows batch scripts (`setup/run_gulp.bat` and `setup/run_sass.bat`). Run those scripts in a Windows environment, or use the equivalent Node and Sass commands configured by your project on Linux.
+
+Themes are one shared stylesheet (`css/qcalc.css`, `css/tree.css`). There are two palettes, Light (id `default`) and Dark, plus Auto (id `auto`, the default), which follows the device's light or dark setting through a `prefers-color-scheme` media query in the stylesheet. Each palette is a set of `--q-*` colour tokens in `variables-<theme>.scss`, emitted under `:root[data-theme="<theme>"]` (`:root` for `default`) and switched through `<html data-theme>`. To add a colour, define a Sass variable in `variables-common.scss`, emit it in the `q-tokens` mixin, use `var(--q-...)` in the stylesheets and run `setup/run_sass.bat`. The per-theme files (`qcalc-<theme>.css`) no longer exist; there is nothing to switch back to.
 
 Then refresh the collected static output:
 

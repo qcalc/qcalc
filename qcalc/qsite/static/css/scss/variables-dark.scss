@@ -1,0 +1,186 @@
+/* qCalc Dark Theme */
+@import 'variables-common';
+/* Page and section surfaces */
+$background-fullscreen: #14171b;
+$background-fullscreen-square: #232930;
+$background-section-input: #1c2733; /* slightly blue so input areas stay distinguishable */
+$background-section-output1: #1f2429;
+$background-section-output2: #1b1f24;
+
+/* Borders */
+$border-default: #3a424c;
+$border-fullscreen-square: #3a424c;
+$border-hover-fullscreen-square: #56616d;
+$border-card-collapse: #3a424c;
+$border-table: #4b5560;
+$border-table-rows: #2a313a;
+$border-qhtml: #4a5460;
+$border-spinner: #8aa4c0;
+$control-border-color: #444d58;
+
+/* Text and icon colours */
+$icon-checkmark: '✓';
+$card-title-font-color: #f0f4f8;
+$color-mark-text: #ffe8a1;
+
+/* Buttons and links */
+$background-button-cmd: #3a4a5e;
+$link-color: #6cb0ff;
+$link-color-hover: #9ccaff;
+$link-color-active: #cfe4ff;
+$link-color-visited: #b39ddb;
+$adopt-link-states: true;
+
+/* Emphasis */
+$background-card-header: #2b4a6f;
+$background-mark2: #5b4a17;
+$background-spinner-border: rgba(138, 164, 192, 0.15);
+
+/* Semantic palette (read by vendor-bridge.scss and the layout files) */
+$color-scheme: dark;
+$text: #d7dce1;
+$text-muted: #8b949e;
+$text-soft: #c3cad2;
+$text-field: #c3cad2;
+$text-strong: #fff;
+$primary: #1976d2; // white text on it reaches 4.6:1
+$warning: #e0a526; // amber toast, so warning is not confused with the red error toast
+// same accessible action colours as Light (white text on each reaches at least 4.5:1)
+$info: #23808b;
+$success: #37845a;
+$danger: #c04a35;
+$secondary: #6f6f6f;
+
+// In-page messages: dark tinted panels with light text instead of Bootstrap's pastel boxes
+$alert-info-fg: #9fd3e6;
+$alert-info-bg: #17323f;
+$alert-info-border: #2f6a85;
+$alert-info-link: #cdeaf5;
+$alert-warning-fg: #f2d27a;
+$alert-warning-bg: #3a3010;
+$alert-warning-border: #8a6d1a;
+$alert-warning-link: #ffe9a8;
+$alert-danger-fg: #ffb4a8;
+$alert-danger-bg: #3a1d1a;
+$alert-danger-border: #8a3a2f;
+$alert-danger-link: #ffd3cb;
+$alert-success-fg: #9fd8b3;
+$alert-success-bg: #16301f;
+$alert-success-border: #2f6b45;
+$alert-success-link: #cdeedb;
+$native-border: #4b5560;
+$body-bg: #14171b;
+$surface: #1c2026;
+$surface-disabled: #171a1f;
+$hover-bg: #262c34;
+$border-soft: #3a424c;
+$border-focus: #56616d;
+$border-strong: #4b5560;
+$line: rgba(255, 255, 255, 0.1);
+$dropdown-border: rgba(255, 255, 255, 0.12);
+$modal-border: rgba(255, 255, 255, 0.14);
+$shadow-overlay: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.6);
+$shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.5);
+$code-fg: #ff8fb3;
+$code-frame: $border-strong;
+$img-frame: $border-strong;
+$img-filter: brightness(0.88);
+$mark-soft-bg: #4a3d14;
+$required: #ff6b6b;
+$tour-shadow: 0 3px 30px rgba(0, 0, 0, 0.7);
+$calc-bg: #1a1f25;
+$calc-key-bg: #2b323b;
+$calc-key-border: #3a424c;
+$calc-key-hover-fg: #ffffff;
+$calc-key-hover-bg: #36404d;
+$calc-key-active-bg: #222830;
+// a soft shadow under the key and a faint top highlight; the Light inset bevel reads as a second border on dark keys
+$calc-key-shadow: 0 2px 0 rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+// invert the light chart (hue-rotate keeps colours recognisable) and let its black background take the panel colour
+$chart-filter: invert(1) hue-rotate(180deg);
+$chart-blend: screen;
+$info-icon-filter: invert(1);
+$chart-border: #c8c8c8; // becomes a subtle light-grey line after the inversion
+$note-bg: #212a35;
+$note-border: #4a7bb7;
+$mark1-fg: #ffb3b3;
+// highlight overlays turn into a dark tint, shade overlays stay black
+$hi-rgb: 40, 46, 54;
+$lo-rgb: 0, 0, 0;
+
+/* Layout tabs */
+$tabs-line: #3a424c;
+$tabs-edge: #4b5560;
+$tabs-edge-strong: #56616d;
+$tabs-edge-hover: #5f6b78;
+
+/* Tabulator */
+$tab-frame-bg: #3a424c;
+$tab-border: #4b5560;
+$tab-head-bg: #262c34;
+// the input/output tables get their own frame and a sunken body, so neighbouring tables stay distinguishable
+$table-frame: $border-strong;
+$table-body-bg: $surface;
+$table-head-bg: $tab-head-bg;
+$tab-head-fg: #aab3bd;
+$tab-row-even: #20252b;
+$tab-active-fg: #ff8fb3;
+$tab-page-bg: rgba(255, 255, 255, 0.06);
+$tab-accent: #2f6fbd;
+$tab-menu-hover: #2d343c;
+$tab-row-hover: #2f3741;
+$tab-selected-bg: #2a4a73;
+$tab-selected-hover: #335a8c;
+$tab-group-bg: #2b3340;
+$tab-calcs-bg: #232930;
+$tab-calcs-bg-2: #20252b;
+$tab-placeholder: #6b7480;
+$tab-moving-bg: #36404d;
+$tab-highlight-bg: #323b46;
+$tab-range: #4a9bff;
+$tab-range-head: #2b5ea8;
+$tab-sorter: #56616d;
+$tab-arrow: #8b949e;
+$tab-arrow-hover: #d7dce1;
+$tab-danger: #ff6b6b;
+$tab-danger-fg: #ffb4b4;
+
+/* select2 */
+$select-arrow: #8b949e;
+$select-disabled-bg: #171a1f;
+$select-hl: #2f6fbd;
+$select-selected-bg: #2b3340;
+$select-multi-bg: mix($primary, $surface, 32%);
+$chip-bg: #2b3340;
+$chip-hover-bg: #36404d;
+
+/* Shell: darker than the page so the navbar and sidebar frame it */
+$shell-dark-bg: #0f1216;
+$shell-dark-fg: rgba(230, 235, 240, 0.92);
+$shell-dark-fg-strong: #fff;
+$shell-dark-nav-fg: rgba(230, 235, 240, 0.72);
+$shell-dark-hover-bg: rgba(108, 176, 255, 0.18);
+$shell-dark-nav-hover-bg: rgba(108, 176, 255, 0.12);
+$shell-dark-divider: rgba(255, 255, 255, 0.08);
+$navbar-link-hover: #9ccaff;
+$shell-light-bg: #181c21;
+$shell-light-border: #2c333b;
+$shell-light-fg: #d7dce1;
+$shell-light-nav-fg: #aab3bd;
+$shell-light-hover-bg: rgba(108, 176, 255, 0.12);
+$shell-light-divider: rgba(255, 255, 255, 0.08);
+$navbar-light-fg: rgba(215, 220, 225, 0.85);
+$page-header-light-bg: #181c21;
+$btn-light-fg: #d7dce1;
+$btn-light-bg: #232930;
+$btn-light-border: #3a424c;
+$btn-light-hover-bg: #2d343c;
+$focus-ring: rgba(108, 176, 255, 0.4);
+
+/* Surface polish */
+$border-radius: 8px;
+$card-shadow: 0 1px 3px rgba(0, 0, 0, 0.5), 0 1px 2px rgba(0, 0, 0, 0.4);
+$card-border: rgba(255, 255, 255, 0.08);
+$card-header-gradient: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(0, 0, 0, 0.18));
+$card-header-border: rgba(0, 0, 0, 0.4);
+$dropdown-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.6);

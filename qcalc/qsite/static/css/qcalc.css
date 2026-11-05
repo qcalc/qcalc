@@ -1,0 +1,2861 @@
+@charset "UTF-8";
+/* qCalc Light Theme (id: light). Colours target WCAG AA contrast. */
+/* qCalc Variables Common */
+/* 0.82rem, 0.906 */
+/* 700 */
+/* select and select2 1.879rem */
+/* Mobile input focus-zoom guard:
+   iOS/Android browsers may zoom focused text inputs below 16px. */
+/* whitespace */
+/* right-margin between val and uom/part */
+/* right-margin for lone field, reserved for a button */
+/* 12rem; */
+/* -1rem */
+/* important */
+/* colors */
+/* rgb(0,53,102) rgb(0,8,54), #1a9f8b; */
+/* qCalc Dark Theme */
+/* qCalc Variables Common */
+/* 0.82rem, 0.906 */
+/* 700 */
+/* select and select2 1.879rem */
+/* Mobile input focus-zoom guard:
+   iOS/Android browsers may zoom focused text inputs below 16px. */
+/* whitespace */
+/* right-margin between val and uom/part */
+/* right-margin for lone field, reserved for a button */
+/* 12rem; */
+/* -1rem */
+/* important */
+/* Page and section surfaces */
+/* slightly blue so input areas stay distinguishable */
+/* Borders */
+/* Text and icon colours */
+/* Buttons and links */
+/* Emphasis */
+/* Semantic palette (read by vendor-bridge.scss and the layout files) */
+/* Layout tabs */
+/* Tabulator */
+/* select2 */
+/* Shell: darker than the page so the navbar and sidebar frame it */
+/* Surface polish */
+:root {
+  --q-radius: 6px;
+  --q-bg-page: white;
+  --q-bg-fullscreen-square: transparent;
+  --q-border-fullscreen-square: #eee;
+  --q-border-fullscreen-square-hover: #ddd;
+  --q-border: #ddd;
+  --q-border-control: #ced4da;
+  --q-border-table: rgb(170, 170, 170);
+  --q-border-table-rows: rgb(221, 221, 221);
+  --q-border-qhtml: #ccc;
+  --q-border-spinner: #fff;
+  --q-bg-input: #fbf6ea;
+  --q-bg-output-1: white;
+  --q-bg-output-2: white;
+  --q-bg-button-cmd: #d3e5ee;
+  --q-bg-card-header: #276f95;
+  --q-card-title-fg: #fff;
+  --q-bg-mark: papayawhip;
+  --q-mark-fg: #1b1c1e;
+  --q-link: #369;
+  --q-link-hover: #c40000;
+  --q-link-visited: #5b4b8a;
+  --q-link-active: #b00000;
+  --q-focus-ring: rgba(58, 150, 191, 0.35);
+  --q-card-shadow: 0 1px 3px rgba(16, 24, 40, 0.1), 0 1px 2px rgba(16, 24, 40, 0.06);
+  --q-card-border: rgba(31, 43, 60, 0.12);
+  --q-card-header-gradient: linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(0, 0, 0, 0.06));
+  --q-card-header-border: rgba(0, 0, 0, 0.16);
+  --q-dropdown-shadow: 0 6px 16px rgba(16, 24, 40, 0.14);
+  --q-navbar-bg: #1f2b3c;
+  --q-navbar-link: rgba(255, 255, 255, 0.92);
+  --q-navbar-link-hover: #fff;
+  --q-sidebar-dark-bg: #1f2b3c;
+  --q-page-header-dark-bg: #1f2b3c;
+  --q-shell-dark-fg: rgba(255, 255, 255, 0.92);
+  --q-shell-dark-fg-strong: #fff;
+  --q-shell-dark-hover-bg: rgba(58, 150, 191, 0.24);
+  --q-shell-dark-nav-fg: rgba(255, 255, 255, 0.72);
+  --q-shell-dark-nav-hover-bg: rgba(58, 150, 191, 0.18);
+  --q-shell-dark-divider: rgba(255, 255, 255, 0.08);
+  --q-shell-light-bg: #f7f9fc;
+  --q-shell-light-border: #dde4ec;
+  --q-shell-light-fg: #2b3645;
+  --q-shell-light-nav-fg: #4a5a6e;
+  --q-shell-light-hover-bg: #fbf6ea;
+  --q-shell-light-divider: rgba(31, 43, 60, 0.1);
+  --q-navbar-light-fg: rgba(43, 54, 69, 0.85);
+  --q-page-header-light-bg: #fff;
+  --q-btn-light-fg: #2b3645;
+  --q-btn-light-bg: #f7f9fc;
+  --q-btn-light-border: #dde4ec;
+  --q-btn-light-hover-bg: #edf2f8;
+  --q-color-scheme: light;
+  --q-text: #333;
+  --q-text-muted: #5f6872;
+  --q-text-soft: #444;
+  --q-text-field: #444;
+  --q-text-strong: black;
+  --q-native-border: #767676;
+  --q-body-bg: #f5f5f5;
+  --q-surface: #fff;
+  --q-surface-disabled: #fafafa;
+  --q-hover-bg: #f5f5f5;
+  --q-border-soft: #ddd;
+  --q-border-focus: #ccc;
+  --q-border-strong: #aaa;
+  --q-line: rgba(0, 0, 0, 0.125);
+  --q-dropdown-border: rgba(0, 0, 0, 0.15);
+  --q-modal-border: rgba(0, 0, 0, 0.2);
+  --q-shadow-overlay: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+  --q-shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  --q-primary: #2b7aa3;
+  --q-secondary: #6f6f6f;
+  --q-success: #37845a;
+  --q-info: #23808b;
+  --q-danger: #c04a35;
+  --q-warning: #e0a526;
+  --q-alert-info-fg: #1b4b66;
+  --q-alert-info-bg: #e3eff5;
+  --q-alert-info-border: #a9c9da;
+  --q-alert-info-link: #0f3347;
+  --q-alert-warning-fg: #6b4a00;
+  --q-alert-warning-bg: #fff4d6;
+  --q-alert-warning-border: #e3b94e;
+  --q-alert-warning-link: #4a3200;
+  --q-alert-danger-fg: #7a2a1c;
+  --q-alert-danger-bg: #fbe5e0;
+  --q-alert-danger-border: #d98574;
+  --q-alert-danger-link: #561b11;
+  --q-alert-success-fg: #1f5a3a;
+  --q-alert-success-bg: #e3f1e8;
+  --q-alert-success-border: #8cc2a3;
+  --q-alert-success-link: #123d27;
+  --q-on-accent: #fff;
+  --q-code-fg: #d81b60;
+  --q-code-frame: transparent;
+  --q-img-frame: transparent;
+  --q-img-filter: none;
+  --q-mark-soft-bg: #fcf8e3;
+  --q-required: #c62828;
+  --q-tour-shadow: 0 3px 30px rgba(33, 33, 33, 0.3);
+  --q-calc-bg: #f0f0f0;
+  --q-calc-key-bg: #f2f2f2;
+  --q-calc-key-border: #ccc;
+  --q-calc-key-hover-fg: #595959;
+  --q-calc-key-hover-bg: #e0e0e0;
+  --q-calc-key-active-bg: #d0d0d0;
+  --q-calc-key-shadow: inset 0 -2px 1px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.5), inset 0 8px 8px rgba(255, 255, 255, 0.5);
+  --q-button-cmd-fg: #1b4b66;
+  --q-button-cmd-border: #a9c9da;
+  --q-chart-filter: none;
+  --q-chart-blend: normal;
+  --q-info-icon-filter: none;
+  --q-chart-border: #ccc;
+  --q-note-bg: #f5f5f5;
+  --q-note-border: #666;
+  --q-mark1-fg: firebrick;
+  --q-hi-rgb: 255, 255, 255;
+  --q-lo-rgb: 0, 0, 0;
+  --q-tabs-line: #d7dde5;
+  --q-tabs-edge: #b8c7d8;
+  --q-tabs-edge-strong: #aebfd1;
+  --q-tabs-edge-hover: #b2c2d4;
+  --q-tab-frame-bg: #888;
+  --q-tab-border: #999;
+  --q-tab-head-bg: #e6e6e6;
+  --q-table-frame: rgba(0, 0, 0, 0.18);
+  --q-table-body-bg: initial;
+  --q-table-head-bg: initial;
+  --q-tab-head-fg: #555;
+  --q-tab-row-even: #efefef;
+  --q-tab-active-fg: #c00000;
+  --q-tab-page-bg: hsla(0, 0%, 100%, 0.2);
+  --q-tab-accent: #1d68cd;
+  --q-tab-accent-ring: hsla(0, 0%, 100%, 0.5);
+  --q-tab-menu-hover: #efefef;
+  --q-tab-row-hover: #bbb;
+  --q-tab-selected-bg: #9abcea;
+  --q-tab-selected-hover: #769bcc;
+  --q-tab-group-bg: #ccc;
+  --q-tab-calcs-bg: #f3f3f3;
+  --q-tab-calcs-bg-2: #e2e2e2;
+  --q-tab-placeholder: #ccc;
+  --q-tab-moving-bg: #cdcdcd;
+  --q-tab-highlight-bg: #d6d6d6;
+  --q-tab-range: #2975dd;
+  --q-tab-range-head: #3876ca;
+  --q-tab-sorter: #bbb;
+  --q-tab-arrow: #666;
+  --q-tab-arrow-hover: #555;
+  --q-tab-danger: #d00;
+  --q-tab-danger-fg: #590000;
+  --q-select-arrow: #888;
+  --q-select-disabled-bg: #eee;
+  --q-select-hl: #2f6fbd;
+  --q-select-selected-bg: #ddd;
+  --q-select-multi-bg: rgb(204.12, 223.08, 232.92);
+  --q-chip-bg: #e4e4e4;
+  --q-chip-hover-bg: #f1f1f1;
+}
+
+:root {
+  --qmd-pre-bg: #f6f8fa;
+  --qmd-pre-border: #d0d7de;
+  --qmd-pre-text: #1f2328;
+  --qmd-inline-bg: #f1f3f5;
+  --qmd-inline-border: #e2e6ea;
+  --qmd-table-border: #d9dee3;
+  --qmd-quote-bg: #f8fafc;
+  --qmd-quote-border: #c7d2e0;
+  --qmd-quote-text: #495057;
+  --qmd-copy-bg: #ffffff;
+  --qmd-copy-bg-hover: #f6f8fa;
+  --qmd-copy-border: #c8d0d8;
+  --qmd-copy-color: #1f2328;
+  --qmd-copy-ok-border: #22a06b;
+  --qmd-copy-ok-color: #15803d;
+  --qmd-copy-fail-border: #d32f2f;
+  --qmd-copy-fail-color: #b3261e;
+}
+
+:root[data-theme=dark] {
+  --q-radius: 8px;
+  --q-bg-page: #14171b;
+  --q-bg-fullscreen-square: #232930;
+  --q-border-fullscreen-square: #3a424c;
+  --q-border-fullscreen-square-hover: #56616d;
+  --q-border: #3a424c;
+  --q-border-control: #444d58;
+  --q-border-table: #4b5560;
+  --q-border-table-rows: #2a313a;
+  --q-border-qhtml: #4a5460;
+  --q-border-spinner: #8aa4c0;
+  --q-bg-input: #1c2733;
+  --q-bg-output-1: #1f2429;
+  --q-bg-output-2: #1b1f24;
+  --q-bg-button-cmd: #3a4a5e;
+  --q-bg-card-header: #2b4a6f;
+  --q-card-title-fg: #f0f4f8;
+  --q-bg-mark: #5b4a17;
+  --q-mark-fg: #ffe8a1;
+  --q-link: #6cb0ff;
+  --q-link-hover: #9ccaff;
+  --q-link-visited: #b39ddb;
+  --q-link-active: #cfe4ff;
+  --q-focus-ring: rgba(108, 176, 255, 0.4);
+  --q-card-shadow: 0 1px 3px rgba(0, 0, 0, 0.5), 0 1px 2px rgba(0, 0, 0, 0.4);
+  --q-card-border: rgba(255, 255, 255, 0.08);
+  --q-card-header-gradient: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(0, 0, 0, 0.18));
+  --q-card-header-border: rgba(0, 0, 0, 0.4);
+  --q-dropdown-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.6);
+  --q-navbar-bg: #0f1216;
+  --q-navbar-link: rgba(230, 235, 240, 0.92);
+  --q-navbar-link-hover: #9ccaff;
+  --q-sidebar-dark-bg: #0f1216;
+  --q-page-header-dark-bg: #0f1216;
+  --q-shell-dark-fg: rgba(230, 235, 240, 0.92);
+  --q-shell-dark-fg-strong: #fff;
+  --q-shell-dark-hover-bg: rgba(108, 176, 255, 0.18);
+  --q-shell-dark-nav-fg: rgba(230, 235, 240, 0.72);
+  --q-shell-dark-nav-hover-bg: rgba(108, 176, 255, 0.12);
+  --q-shell-dark-divider: rgba(255, 255, 255, 0.08);
+  --q-shell-light-bg: #181c21;
+  --q-shell-light-border: #2c333b;
+  --q-shell-light-fg: #d7dce1;
+  --q-shell-light-nav-fg: #aab3bd;
+  --q-shell-light-hover-bg: rgba(108, 176, 255, 0.12);
+  --q-shell-light-divider: rgba(255, 255, 255, 0.08);
+  --q-navbar-light-fg: rgba(215, 220, 225, 0.85);
+  --q-page-header-light-bg: #181c21;
+  --q-btn-light-fg: #d7dce1;
+  --q-btn-light-bg: #232930;
+  --q-btn-light-border: #3a424c;
+  --q-btn-light-hover-bg: #2d343c;
+  --q-color-scheme: dark;
+  --q-text: #d7dce1;
+  --q-text-muted: #8b949e;
+  --q-text-soft: #c3cad2;
+  --q-text-field: #c3cad2;
+  --q-text-strong: #fff;
+  --q-native-border: #4b5560;
+  --q-body-bg: #14171b;
+  --q-surface: #1c2026;
+  --q-surface-disabled: #171a1f;
+  --q-hover-bg: #262c34;
+  --q-border-soft: #3a424c;
+  --q-border-focus: #56616d;
+  --q-border-strong: #4b5560;
+  --q-line: rgba(255, 255, 255, 0.1);
+  --q-dropdown-border: rgba(255, 255, 255, 0.12);
+  --q-modal-border: rgba(255, 255, 255, 0.14);
+  --q-shadow-overlay: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.6);
+  --q-shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.5);
+  --q-primary: #1976d2;
+  --q-secondary: #6f6f6f;
+  --q-success: #37845a;
+  --q-info: #23808b;
+  --q-danger: #c04a35;
+  --q-warning: #e0a526;
+  --q-alert-info-fg: #9fd3e6;
+  --q-alert-info-bg: #17323f;
+  --q-alert-info-border: #2f6a85;
+  --q-alert-info-link: #cdeaf5;
+  --q-alert-warning-fg: #f2d27a;
+  --q-alert-warning-bg: #3a3010;
+  --q-alert-warning-border: #8a6d1a;
+  --q-alert-warning-link: #ffe9a8;
+  --q-alert-danger-fg: #ffb4a8;
+  --q-alert-danger-bg: #3a1d1a;
+  --q-alert-danger-border: #8a3a2f;
+  --q-alert-danger-link: #ffd3cb;
+  --q-alert-success-fg: #9fd8b3;
+  --q-alert-success-bg: #16301f;
+  --q-alert-success-border: #2f6b45;
+  --q-alert-success-link: #cdeedb;
+  --q-on-accent: #fff;
+  --q-code-fg: #ff8fb3;
+  --q-code-frame: #4b5560;
+  --q-img-frame: #4b5560;
+  --q-img-filter: brightness(0.88);
+  --q-mark-soft-bg: #4a3d14;
+  --q-required: #ff6b6b;
+  --q-tour-shadow: 0 3px 30px rgba(0, 0, 0, 0.7);
+  --q-calc-bg: #1a1f25;
+  --q-calc-key-bg: #2b323b;
+  --q-calc-key-border: #3a424c;
+  --q-calc-key-hover-fg: #ffffff;
+  --q-calc-key-hover-bg: #36404d;
+  --q-calc-key-active-bg: #222830;
+  --q-calc-key-shadow: 0 2px 0 rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  --q-button-cmd-fg: #fff;
+  --q-button-cmd-border: currentColor;
+  --q-chart-filter: invert(1) hue-rotate(180deg);
+  --q-chart-blend: screen;
+  --q-info-icon-filter: invert(1);
+  --q-chart-border: #c8c8c8;
+  --q-note-bg: #212a35;
+  --q-note-border: #4a7bb7;
+  --q-mark1-fg: #ffb3b3;
+  --q-hi-rgb: 40, 46, 54;
+  --q-lo-rgb: 0, 0, 0;
+  --q-tabs-line: #3a424c;
+  --q-tabs-edge: #4b5560;
+  --q-tabs-edge-strong: #56616d;
+  --q-tabs-edge-hover: #5f6b78;
+  --q-tab-frame-bg: #3a424c;
+  --q-tab-border: #4b5560;
+  --q-tab-head-bg: #262c34;
+  --q-table-frame: #4b5560;
+  --q-table-body-bg: #1c2026;
+  --q-table-head-bg: #262c34;
+  --q-tab-head-fg: #aab3bd;
+  --q-tab-row-even: #20252b;
+  --q-tab-active-fg: #ff8fb3;
+  --q-tab-page-bg: rgba(255, 255, 255, 0.06);
+  --q-tab-accent: #2f6fbd;
+  --q-tab-accent-ring: hsla(0, 0%, 100%, 0.5);
+  --q-tab-menu-hover: #2d343c;
+  --q-tab-row-hover: #2f3741;
+  --q-tab-selected-bg: #2a4a73;
+  --q-tab-selected-hover: #335a8c;
+  --q-tab-group-bg: #2b3340;
+  --q-tab-calcs-bg: #232930;
+  --q-tab-calcs-bg-2: #20252b;
+  --q-tab-placeholder: #6b7480;
+  --q-tab-moving-bg: #36404d;
+  --q-tab-highlight-bg: #323b46;
+  --q-tab-range: #4a9bff;
+  --q-tab-range-head: #2b5ea8;
+  --q-tab-sorter: #56616d;
+  --q-tab-arrow: #8b949e;
+  --q-tab-arrow-hover: #d7dce1;
+  --q-tab-danger: #ff6b6b;
+  --q-tab-danger-fg: #ffb4b4;
+  --q-select-arrow: #8b949e;
+  --q-select-disabled-bg: #171a1f;
+  --q-select-hl: #2f6fbd;
+  --q-select-selected-bg: #2b3340;
+  --q-select-multi-bg: rgb(27.04, 59.52, 93.04);
+  --q-chip-bg: #2b3340;
+  --q-chip-hover-bg: #36404d;
+}
+
+:root[data-theme=dark] {
+  --qmd-pre-bg: #161b22;
+  --qmd-pre-border: #30363d;
+  --qmd-pre-text: #e6edf3;
+  --qmd-inline-bg: #262c34;
+  --qmd-inline-border: #3a424c;
+  --qmd-table-border: #30363d;
+  --qmd-quote-bg: #1a2029;
+  --qmd-quote-border: #4a7bb7;
+  --qmd-quote-text: #aab3bd;
+  --qmd-copy-bg: #21262d;
+  --qmd-copy-bg-hover: #30363d;
+  --qmd-copy-border: #3a424c;
+  --qmd-copy-color: #d7dce1;
+  --qmd-copy-ok-border: #3fb27f;
+  --qmd-copy-ok-color: #7ee2a8;
+  --qmd-copy-fail-border: #f0645a;
+  --qmd-copy-fail-color: #ff9d94;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-theme=auto] {
+    --q-radius: 8px;
+    --q-bg-page: #14171b;
+    --q-bg-fullscreen-square: #232930;
+    --q-border-fullscreen-square: #3a424c;
+    --q-border-fullscreen-square-hover: #56616d;
+    --q-border: #3a424c;
+    --q-border-control: #444d58;
+    --q-border-table: #4b5560;
+    --q-border-table-rows: #2a313a;
+    --q-border-qhtml: #4a5460;
+    --q-border-spinner: #8aa4c0;
+    --q-bg-input: #1c2733;
+    --q-bg-output-1: #1f2429;
+    --q-bg-output-2: #1b1f24;
+    --q-bg-button-cmd: #3a4a5e;
+    --q-bg-card-header: #2b4a6f;
+    --q-card-title-fg: #f0f4f8;
+    --q-bg-mark: #5b4a17;
+    --q-mark-fg: #ffe8a1;
+    --q-link: #6cb0ff;
+    --q-link-hover: #9ccaff;
+    --q-link-visited: #b39ddb;
+    --q-link-active: #cfe4ff;
+    --q-focus-ring: rgba(108, 176, 255, 0.4);
+    --q-card-shadow: 0 1px 3px rgba(0, 0, 0, 0.5), 0 1px 2px rgba(0, 0, 0, 0.4);
+    --q-card-border: rgba(255, 255, 255, 0.08);
+    --q-card-header-gradient: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(0, 0, 0, 0.18));
+    --q-card-header-border: rgba(0, 0, 0, 0.4);
+    --q-dropdown-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.6);
+    --q-navbar-bg: #0f1216;
+    --q-navbar-link: rgba(230, 235, 240, 0.92);
+    --q-navbar-link-hover: #9ccaff;
+    --q-sidebar-dark-bg: #0f1216;
+    --q-page-header-dark-bg: #0f1216;
+    --q-shell-dark-fg: rgba(230, 235, 240, 0.92);
+    --q-shell-dark-fg-strong: #fff;
+    --q-shell-dark-hover-bg: rgba(108, 176, 255, 0.18);
+    --q-shell-dark-nav-fg: rgba(230, 235, 240, 0.72);
+    --q-shell-dark-nav-hover-bg: rgba(108, 176, 255, 0.12);
+    --q-shell-dark-divider: rgba(255, 255, 255, 0.08);
+    --q-shell-light-bg: #181c21;
+    --q-shell-light-border: #2c333b;
+    --q-shell-light-fg: #d7dce1;
+    --q-shell-light-nav-fg: #aab3bd;
+    --q-shell-light-hover-bg: rgba(108, 176, 255, 0.12);
+    --q-shell-light-divider: rgba(255, 255, 255, 0.08);
+    --q-navbar-light-fg: rgba(215, 220, 225, 0.85);
+    --q-page-header-light-bg: #181c21;
+    --q-btn-light-fg: #d7dce1;
+    --q-btn-light-bg: #232930;
+    --q-btn-light-border: #3a424c;
+    --q-btn-light-hover-bg: #2d343c;
+    --q-color-scheme: dark;
+    --q-text: #d7dce1;
+    --q-text-muted: #8b949e;
+    --q-text-soft: #c3cad2;
+    --q-text-field: #c3cad2;
+    --q-text-strong: #fff;
+    --q-native-border: #4b5560;
+    --q-body-bg: #14171b;
+    --q-surface: #1c2026;
+    --q-surface-disabled: #171a1f;
+    --q-hover-bg: #262c34;
+    --q-border-soft: #3a424c;
+    --q-border-focus: #56616d;
+    --q-border-strong: #4b5560;
+    --q-line: rgba(255, 255, 255, 0.1);
+    --q-dropdown-border: rgba(255, 255, 255, 0.12);
+    --q-modal-border: rgba(255, 255, 255, 0.14);
+    --q-shadow-overlay: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.6);
+    --q-shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.5);
+    --q-primary: #1976d2;
+    --q-secondary: #6f6f6f;
+    --q-success: #37845a;
+    --q-info: #23808b;
+    --q-danger: #c04a35;
+    --q-warning: #e0a526;
+    --q-alert-info-fg: #9fd3e6;
+    --q-alert-info-bg: #17323f;
+    --q-alert-info-border: #2f6a85;
+    --q-alert-info-link: #cdeaf5;
+    --q-alert-warning-fg: #f2d27a;
+    --q-alert-warning-bg: #3a3010;
+    --q-alert-warning-border: #8a6d1a;
+    --q-alert-warning-link: #ffe9a8;
+    --q-alert-danger-fg: #ffb4a8;
+    --q-alert-danger-bg: #3a1d1a;
+    --q-alert-danger-border: #8a3a2f;
+    --q-alert-danger-link: #ffd3cb;
+    --q-alert-success-fg: #9fd8b3;
+    --q-alert-success-bg: #16301f;
+    --q-alert-success-border: #2f6b45;
+    --q-alert-success-link: #cdeedb;
+    --q-on-accent: #fff;
+    --q-code-fg: #ff8fb3;
+    --q-code-frame: #4b5560;
+    --q-img-frame: #4b5560;
+    --q-img-filter: brightness(0.88);
+    --q-mark-soft-bg: #4a3d14;
+    --q-required: #ff6b6b;
+    --q-tour-shadow: 0 3px 30px rgba(0, 0, 0, 0.7);
+    --q-calc-bg: #1a1f25;
+    --q-calc-key-bg: #2b323b;
+    --q-calc-key-border: #3a424c;
+    --q-calc-key-hover-fg: #ffffff;
+    --q-calc-key-hover-bg: #36404d;
+    --q-calc-key-active-bg: #222830;
+    --q-calc-key-shadow: 0 2px 0 rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+    --q-button-cmd-fg: #fff;
+    --q-button-cmd-border: currentColor;
+    --q-chart-filter: invert(1) hue-rotate(180deg);
+    --q-chart-blend: screen;
+    --q-info-icon-filter: invert(1);
+    --q-chart-border: #c8c8c8;
+    --q-note-bg: #212a35;
+    --q-note-border: #4a7bb7;
+    --q-mark1-fg: #ffb3b3;
+    --q-hi-rgb: 40, 46, 54;
+    --q-lo-rgb: 0, 0, 0;
+    --q-tabs-line: #3a424c;
+    --q-tabs-edge: #4b5560;
+    --q-tabs-edge-strong: #56616d;
+    --q-tabs-edge-hover: #5f6b78;
+    --q-tab-frame-bg: #3a424c;
+    --q-tab-border: #4b5560;
+    --q-tab-head-bg: #262c34;
+    --q-table-frame: #4b5560;
+    --q-table-body-bg: #1c2026;
+    --q-table-head-bg: #262c34;
+    --q-tab-head-fg: #aab3bd;
+    --q-tab-row-even: #20252b;
+    --q-tab-active-fg: #ff8fb3;
+    --q-tab-page-bg: rgba(255, 255, 255, 0.06);
+    --q-tab-accent: #2f6fbd;
+    --q-tab-accent-ring: hsla(0, 0%, 100%, 0.5);
+    --q-tab-menu-hover: #2d343c;
+    --q-tab-row-hover: #2f3741;
+    --q-tab-selected-bg: #2a4a73;
+    --q-tab-selected-hover: #335a8c;
+    --q-tab-group-bg: #2b3340;
+    --q-tab-calcs-bg: #232930;
+    --q-tab-calcs-bg-2: #20252b;
+    --q-tab-placeholder: #6b7480;
+    --q-tab-moving-bg: #36404d;
+    --q-tab-highlight-bg: #323b46;
+    --q-tab-range: #4a9bff;
+    --q-tab-range-head: #2b5ea8;
+    --q-tab-sorter: #56616d;
+    --q-tab-arrow: #8b949e;
+    --q-tab-arrow-hover: #d7dce1;
+    --q-tab-danger: #ff6b6b;
+    --q-tab-danger-fg: #ffb4b4;
+    --q-select-arrow: #8b949e;
+    --q-select-disabled-bg: #171a1f;
+    --q-select-hl: #2f6fbd;
+    --q-select-selected-bg: #2b3340;
+    --q-select-multi-bg: rgb(27.04, 59.52, 93.04);
+    --q-chip-bg: #2b3340;
+    --q-chip-hover-bg: #36404d;
+  }
+  :root[data-theme=auto] {
+    --qmd-pre-bg: #161b22;
+    --qmd-pre-border: #30363d;
+    --qmd-pre-text: #e6edf3;
+    --qmd-inline-bg: #262c34;
+    --qmd-inline-border: #3a424c;
+    --qmd-table-border: #30363d;
+    --qmd-quote-bg: #1a2029;
+    --qmd-quote-border: #4a7bb7;
+    --qmd-quote-text: #aab3bd;
+    --qmd-copy-bg: #21262d;
+    --qmd-copy-bg-hover: #30363d;
+    --qmd-copy-border: #3a424c;
+    --qmd-copy-color: #d7dce1;
+    --qmd-copy-ok-border: #3fb27f;
+    --qmd-copy-ok-color: #7ee2a8;
+    --qmd-copy-fail-border: #f0645a;
+    --qmd-copy-fail-color: #ff9d94;
+  }
+}
+@media print {
+  :root[data-theme] {
+    --q-radius: 6px;
+    --q-bg-page: white;
+    --q-bg-fullscreen-square: transparent;
+    --q-border-fullscreen-square: #eee;
+    --q-border-fullscreen-square-hover: #ddd;
+    --q-border: #ddd;
+    --q-border-control: #ced4da;
+    --q-border-table: rgb(170, 170, 170);
+    --q-border-table-rows: rgb(221, 221, 221);
+    --q-border-qhtml: #ccc;
+    --q-border-spinner: #fff;
+    --q-bg-input: #fbf6ea;
+    --q-bg-output-1: white;
+    --q-bg-output-2: white;
+    --q-bg-button-cmd: #d3e5ee;
+    --q-bg-card-header: #276f95;
+    --q-card-title-fg: #fff;
+    --q-bg-mark: papayawhip;
+    --q-mark-fg: #1b1c1e;
+    --q-link: #369;
+    --q-link-hover: #c40000;
+    --q-link-visited: #5b4b8a;
+    --q-link-active: #b00000;
+    --q-focus-ring: rgba(58, 150, 191, 0.35);
+    --q-card-shadow: 0 1px 3px rgba(16, 24, 40, 0.1), 0 1px 2px rgba(16, 24, 40, 0.06);
+    --q-card-border: rgba(31, 43, 60, 0.12);
+    --q-card-header-gradient: linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(0, 0, 0, 0.06));
+    --q-card-header-border: rgba(0, 0, 0, 0.16);
+    --q-dropdown-shadow: 0 6px 16px rgba(16, 24, 40, 0.14);
+    --q-navbar-bg: #1f2b3c;
+    --q-navbar-link: rgba(255, 255, 255, 0.92);
+    --q-navbar-link-hover: #fff;
+    --q-sidebar-dark-bg: #1f2b3c;
+    --q-page-header-dark-bg: #1f2b3c;
+    --q-shell-dark-fg: rgba(255, 255, 255, 0.92);
+    --q-shell-dark-fg-strong: #fff;
+    --q-shell-dark-hover-bg: rgba(58, 150, 191, 0.24);
+    --q-shell-dark-nav-fg: rgba(255, 255, 255, 0.72);
+    --q-shell-dark-nav-hover-bg: rgba(58, 150, 191, 0.18);
+    --q-shell-dark-divider: rgba(255, 255, 255, 0.08);
+    --q-shell-light-bg: #f7f9fc;
+    --q-shell-light-border: #dde4ec;
+    --q-shell-light-fg: #2b3645;
+    --q-shell-light-nav-fg: #4a5a6e;
+    --q-shell-light-hover-bg: #fbf6ea;
+    --q-shell-light-divider: rgba(31, 43, 60, 0.1);
+    --q-navbar-light-fg: rgba(43, 54, 69, 0.85);
+    --q-page-header-light-bg: #fff;
+    --q-btn-light-fg: #2b3645;
+    --q-btn-light-bg: #f7f9fc;
+    --q-btn-light-border: #dde4ec;
+    --q-btn-light-hover-bg: #edf2f8;
+    --q-color-scheme: light;
+    --q-text: #333;
+    --q-text-muted: #5f6872;
+    --q-text-soft: #444;
+    --q-text-field: #444;
+    --q-text-strong: black;
+    --q-native-border: #767676;
+    --q-body-bg: #f5f5f5;
+    --q-surface: #fff;
+    --q-surface-disabled: #fafafa;
+    --q-hover-bg: #f5f5f5;
+    --q-border-soft: #ddd;
+    --q-border-focus: #ccc;
+    --q-border-strong: #aaa;
+    --q-line: rgba(0, 0, 0, 0.125);
+    --q-dropdown-border: rgba(0, 0, 0, 0.15);
+    --q-modal-border: rgba(0, 0, 0, 0.2);
+    --q-shadow-overlay: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+    --q-shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    --q-primary: #2b7aa3;
+    --q-secondary: #6f6f6f;
+    --q-success: #37845a;
+    --q-info: #23808b;
+    --q-danger: #c04a35;
+    --q-warning: #e0a526;
+    --q-alert-info-fg: #1b4b66;
+    --q-alert-info-bg: #e3eff5;
+    --q-alert-info-border: #a9c9da;
+    --q-alert-info-link: #0f3347;
+    --q-alert-warning-fg: #6b4a00;
+    --q-alert-warning-bg: #fff4d6;
+    --q-alert-warning-border: #e3b94e;
+    --q-alert-warning-link: #4a3200;
+    --q-alert-danger-fg: #7a2a1c;
+    --q-alert-danger-bg: #fbe5e0;
+    --q-alert-danger-border: #d98574;
+    --q-alert-danger-link: #561b11;
+    --q-alert-success-fg: #1f5a3a;
+    --q-alert-success-bg: #e3f1e8;
+    --q-alert-success-border: #8cc2a3;
+    --q-alert-success-link: #123d27;
+    --q-on-accent: #fff;
+    --q-code-fg: #d81b60;
+    --q-code-frame: transparent;
+    --q-img-frame: transparent;
+    --q-img-filter: none;
+    --q-mark-soft-bg: #fcf8e3;
+    --q-required: #c62828;
+    --q-tour-shadow: 0 3px 30px rgba(33, 33, 33, 0.3);
+    --q-calc-bg: #f0f0f0;
+    --q-calc-key-bg: #f2f2f2;
+    --q-calc-key-border: #ccc;
+    --q-calc-key-hover-fg: #595959;
+    --q-calc-key-hover-bg: #e0e0e0;
+    --q-calc-key-active-bg: #d0d0d0;
+    --q-calc-key-shadow: inset 0 -2px 1px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.5), inset 0 8px 8px rgba(255, 255, 255, 0.5);
+    --q-button-cmd-fg: #1b4b66;
+    --q-button-cmd-border: #a9c9da;
+    --q-chart-filter: none;
+    --q-chart-blend: normal;
+    --q-info-icon-filter: none;
+    --q-chart-border: #ccc;
+    --q-note-bg: #f5f5f5;
+    --q-note-border: #666;
+    --q-mark1-fg: firebrick;
+    --q-hi-rgb: 255, 255, 255;
+    --q-lo-rgb: 0, 0, 0;
+    --q-tabs-line: #d7dde5;
+    --q-tabs-edge: #b8c7d8;
+    --q-tabs-edge-strong: #aebfd1;
+    --q-tabs-edge-hover: #b2c2d4;
+    --q-tab-frame-bg: #888;
+    --q-tab-border: #999;
+    --q-tab-head-bg: #e6e6e6;
+    --q-table-frame: rgba(0, 0, 0, 0.18);
+    --q-table-body-bg: initial;
+    --q-table-head-bg: initial;
+    --q-tab-head-fg: #555;
+    --q-tab-row-even: #efefef;
+    --q-tab-active-fg: #c00000;
+    --q-tab-page-bg: hsla(0, 0%, 100%, 0.2);
+    --q-tab-accent: #1d68cd;
+    --q-tab-accent-ring: hsla(0, 0%, 100%, 0.5);
+    --q-tab-menu-hover: #efefef;
+    --q-tab-row-hover: #bbb;
+    --q-tab-selected-bg: #9abcea;
+    --q-tab-selected-hover: #769bcc;
+    --q-tab-group-bg: #ccc;
+    --q-tab-calcs-bg: #f3f3f3;
+    --q-tab-calcs-bg-2: #e2e2e2;
+    --q-tab-placeholder: #ccc;
+    --q-tab-moving-bg: #cdcdcd;
+    --q-tab-highlight-bg: #d6d6d6;
+    --q-tab-range: #2975dd;
+    --q-tab-range-head: #3876ca;
+    --q-tab-sorter: #bbb;
+    --q-tab-arrow: #666;
+    --q-tab-arrow-hover: #555;
+    --q-tab-danger: #d00;
+    --q-tab-danger-fg: #590000;
+    --q-select-arrow: #888;
+    --q-select-disabled-bg: #eee;
+    --q-select-hl: #2f6fbd;
+    --q-select-selected-bg: #ddd;
+    --q-select-multi-bg: rgb(204.12, 223.08, 232.92);
+    --q-chip-bg: #e4e4e4;
+    --q-chip-hover-bg: #f1f1f1;
+  }
+  :root[data-theme] {
+    --qmd-pre-bg: #f6f8fa;
+    --qmd-pre-border: #d0d7de;
+    --qmd-pre-text: #1f2328;
+    --qmd-inline-bg: #f1f3f5;
+    --qmd-inline-border: #e2e6ea;
+    --qmd-table-border: #d9dee3;
+    --qmd-quote-bg: #f8fafc;
+    --qmd-quote-border: #c7d2e0;
+    --qmd-quote-text: #495057;
+    --qmd-copy-bg: #ffffff;
+    --qmd-copy-bg-hover: #f6f8fa;
+    --qmd-copy-border: #c8d0d8;
+    --qmd-copy-color: #1f2328;
+    --qmd-copy-ok-border: #22a06b;
+    --qmd-copy-ok-color: #15803d;
+    --qmd-copy-fail-border: #d32f2f;
+    --qmd-copy-fail-color: #b3261e;
+  }
+}
+/* bootstrap */
+body {
+  color: var(--q-text, #333);
+  background-color: var(--q-body-bg, #f5f5f5);
+}
+
+caption {
+  color: var(--q-text-muted, #999);
+}
+
+hr {
+  border-top: 1px solid var(--q-border-soft, #ddd);
+}
+
+.mark, mark {
+  background-color: var(--q-mark-soft-bg, #fcf8e3);
+}
+
+code {
+  color: var(--q-code-fg, #d81b60);
+}
+
+kbd {
+  color: var(--q-on-accent, #fff);
+  background-color: var(--q-text, #333);
+}
+
+pre {
+  color: var(--q-text, #333);
+}
+
+.table {
+  color: var(--q-text, #333);
+}
+
+.table td, .table th {
+  border-top: 1px solid var(--q-border-soft, #ddd);
+}
+
+.table thead th {
+  border-bottom: 2px solid var(--q-border-soft, #ddd);
+}
+
+.table tbody + tbody {
+  border-top: 2px solid var(--q-border-soft, #ddd);
+}
+
+.form-control {
+  color: var(--q-text-field, #444);
+  background-color: var(--q-surface, #fff);
+  border: 1px solid var(--q-border-soft, #ddd);
+}
+
+.form-control:not(.border-1):not(.border-2):not(.border-3):focus {
+  border-color: var(--q-border-focus, #ccc);
+}
+
+.form-control::-webkit-input-placeholder {
+  color: var(--q-text-muted, #999);
+}
+
+.form-control::-moz-placeholder {
+  color: var(--q-text-muted, #999);
+}
+
+.form-control::placeholder {
+  color: var(--q-text-muted, #999);
+}
+
+.form-control:disabled, .form-control[readonly] {
+  background-color: var(--q-surface-disabled, #fafafa);
+}
+
+.btn {
+  color: var(--q-text, #333);
+}
+
+.btn-primary {
+  color: var(--q-on-accent, #fff);
+  background-color: var(--q-primary, #2196f3);
+}
+
+.btn-primary:hover {
+  color: var(--q-on-accent, #fff);
+  background-color: var(--q-primary, #2196f3);
+}
+
+.btn-secondary {
+  color: var(--q-on-accent, #fff);
+  background-color: var(--q-secondary, #777);
+}
+
+.btn-secondary:hover {
+  color: var(--q-on-accent, #fff);
+  background-color: var(--q-secondary, #777);
+}
+
+.btn-success {
+  color: var(--q-on-accent, #fff);
+  background-color: var(--q-success, #4caf50);
+}
+
+.btn-success:hover {
+  color: var(--q-on-accent, #fff);
+  background-color: var(--q-success, #4caf50);
+}
+
+.btn-info {
+  color: var(--q-on-accent, #fff);
+  background-color: var(--q-info, #00bcd4);
+}
+
+.btn-info:hover {
+  color: var(--q-on-accent, #fff);
+  background-color: var(--q-info, #00bcd4);
+}
+
+.btn-danger {
+  color: var(--q-on-accent, #fff);
+  background-color: var(--q-danger, #f44336);
+}
+
+.btn-danger:hover {
+  color: var(--q-on-accent, #fff);
+  background-color: var(--q-danger, #f44336);
+}
+
+.dropdown-menu {
+  color: var(--q-text, #333);
+  background-color: var(--q-surface, #fff);
+  border: 1px solid var(--q-dropdown-border, rgba(0, 0, 0, 0.15));
+}
+
+.dropdown-divider {
+  border-top: 1px solid var(--q-border-soft, #ddd);
+}
+
+.dropdown-item {
+  color: var(--q-text, #333);
+}
+
+.dropdown-item:focus, .dropdown-item:hover {
+  color: var(--q-text, #333);
+  background-color: var(--q-hover-bg, #f5f5f5);
+}
+
+.dropdown-item.active, .dropdown-item:active {
+  color: var(--q-on-accent, #fff);
+  background-color: var(--q-primary, #2196f3);
+}
+
+.dropdown-item.disabled, .dropdown-item:disabled {
+  color: var(--q-text-muted, #999);
+}
+
+.nav-tabs {
+  border-bottom: 1px solid var(--q-border-soft, #ddd);
+}
+
+.nav-tabs .nav-item.show .nav-link, .nav-tabs .nav-link.active {
+  color: var(--q-text, #333);
+  background-color: var(--q-surface, #fff);
+  border-color: var(--q-border-soft, #ddd) var(--q-border-soft, #ddd) var(--q-surface, #fff);
+}
+
+.modal-content {
+  background-color: var(--q-surface, #fff);
+  border: 1px solid var(--q-modal-border, rgba(0, 0, 0, 0.2));
+  box-shadow: var(--q-shadow-overlay, 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1));
+}
+
+.modal-header {
+  border-bottom: 1px solid var(--q-line, rgba(0, 0, 0, 0.125));
+}
+
+.modal-footer {
+  border-top: 1px solid var(--q-line, rgba(0, 0, 0, 0.125));
+}
+
+.bg-primary {
+  background-color: var(--q-primary, #2196f3) !important;
+}
+
+.bg-info {
+  background-color: var(--q-info, #00bcd4) !important;
+}
+
+.bg-success {
+  background-color: var(--q-success, #4caf50) !important;
+}
+
+.bg-warning {
+  background-color: var(--q-warning, #ff7043) !important;
+}
+
+.bg-danger {
+  background-color: var(--q-danger, #f44336) !important;
+}
+
+.alert-info {
+  color: var(--q-alert-info-fg, #00626e);
+  background-color: var(--q-alert-info-bg, #d6f4f8);
+  border-color: var(--q-alert-info-border, #14c1d7);
+}
+
+.alert-info .alert-link {
+  color: var(--q-alert-info-link, #00353b);
+}
+
+.alert-warning {
+  color: var(--q-alert-warning-fg, #853a23);
+  background-color: var(--q-alert-warning-bg, #ffe8e1);
+  border-color: var(--q-alert-warning-border, #ff7b52);
+}
+
+.alert-warning .alert-link {
+  color: var(--q-alert-warning-link, #5d2818);
+}
+
+.alert-danger {
+  color: var(--q-alert-danger-fg, #7f231c);
+  background-color: var(--q-alert-danger-bg, #fde1df);
+  border-color: var(--q-alert-danger-border, #f55246);
+}
+
+.alert-danger .alert-link {
+  color: var(--q-alert-danger-link, #551713);
+}
+
+.alert-success {
+  color: var(--q-alert-success-fg, #285b2a);
+  background-color: var(--q-alert-success-bg, #e2f2e3);
+  border-color: var(--q-alert-success-border, #5ab55e);
+}
+
+.alert-success .alert-link {
+  color: var(--q-alert-success-link, #18381a);
+}
+
+.border {
+  border: 1px solid var(--q-border-soft, #ddd) !important;
+}
+
+.shadow-sm {
+  box-shadow: var(--q-shadow-sm, 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075)) !important;
+}
+
+.text-muted {
+  color: var(--q-text-muted, #999) !important;
+}
+
+/* select2 */
+.select2-dropdown {
+  background-color: var(--q-surface, white);
+  border: 1px solid var(--q-border-strong, #aaa);
+}
+
+.select2-container--default .select2-selection--single {
+  background-color: var(--q-surface, #fff);
+  border: 1px solid var(--q-border-strong, #aaa);
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+  color: var(--q-text-field, #444);
+}
+
+.select2-container--default .select2-selection--single .select2-selection__placeholder {
+  color: var(--q-text-muted, #999);
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow b {
+  border-color: var(--q-select-arrow, #888) transparent transparent transparent;
+}
+
+.select2-container--default.select2-container--disabled .select2-selection--single {
+  background-color: var(--q-select-disabled-bg, #eee);
+}
+
+.select2-container--default.select2-container--open .select2-selection--single .select2-selection__arrow b {
+  border-color: transparent transparent var(--q-select-arrow, #888) transparent;
+}
+
+.select2-container--default .select2-selection--multiple {
+  background-color: var(--q-surface, white);
+  border: 1px solid var(--q-border-strong, #aaa);
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice {
+  background-color: var(--q-chip-bg, #e4e4e4);
+  color: var(--q-text-field, #444);
+  border: 1px solid var(--q-border-strong, #aaa);
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+  border-right: 1px solid var(--q-border-strong, #aaa);
+  color: var(--q-text-muted, #999);
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice__remove:hover, .select2-container--default .select2-selection--multiple .select2-selection__choice__remove:focus {
+  background-color: var(--q-chip-hover-bg, #f1f1f1);
+  color: var(--q-text, #333);
+}
+
+.select2-container--default.select2-container--focus .select2-selection--multiple {
+  border: solid var(--q-text-strong, black) 1px;
+}
+
+.select2-container--default.select2-container--disabled .select2-selection--multiple {
+  background-color: var(--q-select-disabled-bg, #eee);
+}
+
+.select2-container--default .select2-search--dropdown .select2-search__field {
+  border: 1px solid var(--q-border-strong, #aaa);
+}
+
+.select2-container--default .select2-results__option--disabled {
+  color: var(--q-text-muted, #999);
+}
+
+.select2-container--default .select2-results__option--selected {
+  background-color: var(--q-select-selected-bg, #ddd);
+}
+
+.select2-container--default .select2-results__option--highlighted.select2-results__option--selectable {
+  background-color: var(--q-select-hl, #5897fb);
+  color: var(--q-on-accent, white);
+}
+
+.tabulator {
+  background-color: var(--q-tab-frame-bg, #888);
+  border: 1px solid var(--q-tab-border, #999);
+}
+
+.tabulator .tabulator-header {
+  background-color: var(--q-tab-head-bg, #e6e6e6);
+  border-bottom: 1px solid var(--q-tab-border, #999);
+  color: var(--q-tab-head-fg, #555);
+}
+
+.tabulator .tabulator-header .tabulator-col {
+  background: var(--q-tab-head-bg, #e6e6e6);
+  border-right: 1px solid var(--q-border-strong, #aaa);
+}
+
+.tabulator .tabulator-header .tabulator-col.tabulator-moving {
+  background: var(--q-tab-moving-bg, #cdcdcd);
+  border: 1px solid var(--q-tab-border, #999);
+}
+
+.tabulator .tabulator-header .tabulator-col.tabulator-range-highlight {
+  background-color: var(--q-tab-highlight-bg, #d6d6d6);
+  color: var(--q-text-strong, #000);
+}
+
+.tabulator .tabulator-header .tabulator-col.tabulator-range-selected {
+  background-color: var(--q-tab-range-head, #3876ca);
+  color: var(--q-on-accent, #fff);
+}
+
+.tabulator .tabulator-header .tabulator-col .tabulator-col-content .tabulator-col-title .tabulator-title-editor {
+  background: var(--q-surface, #fff);
+  color: var(--q-text-field, #444);
+  border: 1px solid var(--q-tab-border, #999);
+}
+
+.tabulator .tabulator-header .tabulator-col .tabulator-col-content .tabulator-col-sorter .tabulator-arrow {
+  border-bottom: 6px solid var(--q-tab-sorter, #bbb);
+}
+
+.tabulator .tabulator-header .tabulator-col.tabulator-col-group .tabulator-col-group-cols {
+  border-top: 1px solid var(--q-border-strong, #aaa);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .tabulator .tabulator-header .tabulator-col.tabulator-sortable.tabulator-col-sorter-element:hover {
+    background-color: var(--q-tab-moving-bg, #cdcdcd);
+  }
+}
+.tabulator .tabulator-header .tabulator-col.tabulator-sortable[aria-sort=none] .tabulator-col-content .tabulator-col-sorter {
+  color: var(--q-tab-sorter, #bbb);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .tabulator .tabulator-header .tabulator-col.tabulator-sortable[aria-sort=none] .tabulator-col-content .tabulator-col-sorter.tabulator-col-sorter-element .tabulator-arrow:hover {
+    border-bottom: 6px solid var(--q-tab-arrow-hover, #555);
+  }
+}
+.tabulator .tabulator-header .tabulator-col.tabulator-sortable[aria-sort=none] .tabulator-col-content .tabulator-col-sorter .tabulator-arrow {
+  border-bottom: 6px solid var(--q-tab-sorter, #bbb);
+}
+
+.tabulator .tabulator-header .tabulator-col.tabulator-sortable[aria-sort=ascending] .tabulator-col-content .tabulator-col-sorter {
+  color: var(--q-tab-arrow, #666);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .tabulator .tabulator-header .tabulator-col.tabulator-sortable[aria-sort=ascending] .tabulator-col-content .tabulator-col-sorter.tabulator-col-sorter-element .tabulator-arrow:hover {
+    border-bottom: 6px solid var(--q-tab-arrow-hover, #555);
+  }
+}
+.tabulator .tabulator-header .tabulator-col.tabulator-sortable[aria-sort=ascending] .tabulator-col-content .tabulator-col-sorter .tabulator-arrow {
+  border-bottom: 6px solid var(--q-tab-arrow, #666);
+}
+
+.tabulator .tabulator-header .tabulator-col.tabulator-sortable[aria-sort=descending] .tabulator-col-content .tabulator-col-sorter {
+  color: var(--q-tab-arrow, #666);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .tabulator .tabulator-header .tabulator-col.tabulator-sortable[aria-sort=descending] .tabulator-col-content .tabulator-col-sorter.tabulator-col-sorter-element .tabulator-arrow:hover {
+    border-top: 6px solid var(--q-tab-arrow-hover, #555);
+  }
+}
+.tabulator .tabulator-header .tabulator-col.tabulator-sortable[aria-sort=descending] .tabulator-col-content .tabulator-col-sorter .tabulator-arrow {
+  border-top: 6px solid var(--q-tab-arrow, #666);
+  color: var(--q-tab-arrow, #666);
+}
+
+.tabulator .tabulator-header .tabulator-frozen.tabulator-frozen-left {
+  border-right: 2px solid var(--q-border-strong, #aaa);
+}
+
+.tabulator .tabulator-header .tabulator-frozen.tabulator-frozen-right {
+  border-left: 2px solid var(--q-border-strong, #aaa);
+}
+
+.tabulator .tabulator-header .tabulator-calcs-holder {
+  background: var(--q-tab-calcs-bg, #f3f3f3) !important;
+  border-bottom: 1px solid var(--q-border-strong, #aaa);
+  border-top: 1px solid var(--q-border-strong, #aaa);
+}
+
+.tabulator .tabulator-header .tabulator-calcs-holder .tabulator-row {
+  background: var(--q-tab-calcs-bg, #f3f3f3) !important;
+}
+
+.tabulator .tabulator-tableholder .tabulator-placeholder .tabulator-placeholder-contents {
+  color: var(--q-tab-placeholder, #ccc);
+}
+
+.tabulator .tabulator-tableholder .tabulator-table {
+  background-color: var(--q-surface, #fff);
+  color: var(--q-text, #333);
+}
+
+.tabulator .tabulator-tableholder .tabulator-table .tabulator-row.tabulator-calcs {
+  background: var(--q-tab-calcs-bg-2, #e2e2e2) !important;
+}
+
+.tabulator .tabulator-tableholder .tabulator-table .tabulator-row.tabulator-calcs.tabulator-calcs-top {
+  border-bottom: 2px solid var(--q-border-strong, #aaa);
+}
+
+.tabulator .tabulator-tableholder .tabulator-table .tabulator-row.tabulator-calcs.tabulator-calcs-bottom {
+  border-top: 2px solid var(--q-border-strong, #aaa);
+}
+
+.tabulator .tabulator-tableholder .tabulator-range-overlay .tabulator-range {
+  border: 1px solid var(--q-tab-range, #2975dd);
+}
+
+.tabulator .tabulator-tableholder .tabulator-range-overlay .tabulator-range.tabulator-range-active:after {
+  background-color: var(--q-tab-range, #2975dd);
+}
+
+.tabulator .tabulator-tableholder .tabulator-range-overlay .tabulator-range-cell-active {
+  border: 2px solid var(--q-tab-range, #2975dd);
+}
+
+.tabulator .tabulator-footer {
+  background-color: var(--q-tab-head-bg, #e6e6e6);
+  border-top: 1px solid var(--q-tab-border, #999);
+  color: var(--q-tab-head-fg, #555);
+}
+
+.tabulator .tabulator-footer .tabulator-spreadsheet-tabs .tabulator-spreadsheet-tab {
+  border: 1px solid var(--q-tab-border, #999);
+}
+
+.tabulator .tabulator-footer .tabulator-spreadsheet-tabs .tabulator-spreadsheet-tab.tabulator-spreadsheet-tab-active {
+  background: var(--q-surface, #fff);
+}
+
+.tabulator .tabulator-footer .tabulator-calcs-holder {
+  background: var(--q-tab-calcs-bg, #f3f3f3) !important;
+  border-bottom: 1px solid var(--q-border-strong, #aaa);
+  border-top: 1px solid var(--q-border-strong, #aaa);
+}
+
+.tabulator .tabulator-footer .tabulator-calcs-holder .tabulator-row {
+  background: var(--q-tab-calcs-bg, #f3f3f3) !important;
+}
+
+.tabulator .tabulator-footer .tabulator-paginator {
+  color: var(--q-tab-head-fg, #555);
+}
+
+.tabulator .tabulator-footer .tabulator-page-size {
+  border: 1px solid var(--q-border-strong, #aaa);
+}
+
+.tabulator .tabulator-footer .tabulator-page {
+  background: var(--q-tab-page-bg, hsla(0, 0%, 100%, 0.2));
+  border: 1px solid var(--q-border-strong, #aaa);
+}
+
+.tabulator .tabulator-footer .tabulator-page.active {
+  color: var(--q-tab-active-fg, #d00);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .tabulator .tabulator-footer .tabulator-page:not(disabled):hover {
+    background: rgba(var(--q-lo-rgb, 0, 0, 0), 0.2);
+    color: var(--q-on-accent, #fff);
+  }
+}
+.tabulator .tabulator-col-resize-guide {
+  background-color: var(--q-tab-border, #999);
+}
+
+.tabulator .tabulator-row-resize-guide {
+  background-color: var(--q-tab-border, #999);
+}
+
+.tabulator .tabulator-alert .tabulator-alert-msg {
+  background: var(--q-surface, #fff);
+}
+
+.tabulator .tabulator-alert .tabulator-alert-msg.tabulator-alert-state-msg {
+  border: 4px solid var(--q-text, #333);
+  color: var(--q-text-strong, #000);
+}
+
+.tabulator .tabulator-alert .tabulator-alert-msg.tabulator-alert-state-error {
+  border: 4px solid var(--q-tab-danger, #d00);
+  color: var(--q-tab-danger-fg, #590000);
+}
+
+.tabulator-row {
+  background-color: var(--q-surface, #fff);
+}
+
+.tabulator-row.tabulator-row-even {
+  background-color: var(--q-tab-row-even, #efefef);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .tabulator-row.tabulator-selectable:hover {
+    background-color: var(--q-tab-row-hover, #bbb);
+  }
+}
+.tabulator-row.tabulator-selected {
+  background-color: var(--q-tab-selected-bg, #9abcea);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .tabulator-row.tabulator-selected:hover {
+    background-color: var(--q-tab-selected-hover, #769bcc);
+  }
+}
+.tabulator-row.tabulator-row-moving {
+  background: var(--q-surface, #fff);
+  border: 1px solid var(--q-text-strong, #000);
+}
+
+.tabulator-row.tabulator-moving {
+  border-bottom: 1px solid var(--q-border-strong, #aaa);
+  border-top: 1px solid var(--q-border-strong, #aaa);
+}
+
+.tabulator-row.tabulator-range-highlight .tabulator-cell.tabulator-range-row-header {
+  background-color: var(--q-tab-highlight-bg, #d6d6d6);
+  color: var(--q-text-strong, #000);
+}
+
+.tabulator-row.tabulator-range-highlight.tabulator-range-selected .tabulator-cell.tabulator-range-row-header, .tabulator-row.tabulator-range-selected .tabulator-cell.tabulator-range-row-header {
+  background-color: var(--q-tab-range-head, #3876ca);
+  color: var(--q-on-accent, #fff);
+}
+
+.tabulator-row .tabulator-responsive-collapse {
+  border-bottom: 1px solid var(--q-border-strong, #aaa);
+  border-top: 1px solid var(--q-border-strong, #aaa);
+}
+
+.tabulator-row .tabulator-cell {
+  border-right: 1px solid var(--q-border-strong, #aaa);
+}
+
+.tabulator-row .tabulator-cell.tabulator-row-header {
+  background: var(--q-tab-head-bg, #e6e6e6);
+  border-bottom: 1px solid var(--q-border-strong, #aaa);
+  border-right: 1px solid var(--q-tab-border, #999);
+}
+
+.tabulator-row .tabulator-cell.tabulator-frozen.tabulator-frozen-left {
+  border-right: 2px solid var(--q-border-strong, #aaa);
+}
+
+.tabulator-row .tabulator-cell.tabulator-frozen.tabulator-frozen-right {
+  border-left: 2px solid var(--q-border-strong, #aaa);
+}
+
+.tabulator-row .tabulator-cell.tabulator-editing {
+  border: 1px solid var(--q-tab-accent, #1d68cd);
+}
+
+.tabulator-row .tabulator-cell.tabulator-validation-fail {
+  border: 1px solid var(--q-tab-danger, #d00);
+}
+
+.tabulator-row .tabulator-cell.tabulator-validation-fail input, .tabulator-row .tabulator-cell.tabulator-validation-fail select {
+  color: var(--q-tab-danger, #d00);
+}
+
+.tabulator-row .tabulator-cell.tabulator-row-handle .tabulator-row-handle-box .tabulator-row-handle-bar {
+  background: var(--q-tab-arrow, #666);
+}
+
+.tabulator-row .tabulator-cell.tabulator-range-selected:not(.tabulator-range-only-cell-selected):not(.tabulator-range-row-header) {
+  background-color: var(--q-tab-selected-bg, #9abcea);
+}
+
+.tabulator-row .tabulator-cell .tabulator-data-tree-branch {
+  border-bottom: 2px solid var(--q-border-strong, #aaa);
+  border-left: 2px solid var(--q-border-strong, #aaa);
+}
+
+.tabulator-row .tabulator-cell .tabulator-data-tree-control {
+  background: rgba(var(--q-lo-rgb, 0, 0, 0), 0.1);
+  border: 1px solid var(--q-text, #333);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .tabulator-row .tabulator-cell .tabulator-data-tree-control:hover {
+    background: rgba(var(--q-lo-rgb, 0, 0, 0), 0.2);
+  }
+}
+.tabulator-row .tabulator-cell .tabulator-data-tree-control .tabulator-data-tree-control-collapse:after {
+  background: var(--q-text, #333);
+}
+
+.tabulator-row .tabulator-cell .tabulator-data-tree-control .tabulator-data-tree-control-expand {
+  background: var(--q-text, #333);
+}
+
+.tabulator-row .tabulator-cell .tabulator-data-tree-control .tabulator-data-tree-control-expand:after {
+  background: var(--q-text, #333);
+}
+
+.tabulator-row .tabulator-cell .tabulator-responsive-collapse-toggle {
+  background: var(--q-tab-arrow, #666);
+  color: var(--q-on-accent, #fff);
+}
+
+.tabulator-row .tabulator-cell .tabulator-responsive-collapse-toggle svg {
+  stroke: var(--q-surface, #fff);
+}
+
+.tabulator-row.tabulator-group {
+  background: var(--q-tab-group-bg, #ccc);
+  border-bottom: 1px solid var(--q-tab-border, #999);
+  border-right: 1px solid var(--q-border-strong, #aaa);
+  border-top: 1px solid var(--q-tab-border, #999);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .tabulator-row.tabulator-group:hover {
+    background-color: rgba(var(--q-lo-rgb, 0, 0, 0), 0.1);
+  }
+}
+.tabulator-row.tabulator-group.tabulator-group-visible .tabulator-arrow {
+  border-top: 6px solid var(--q-tab-arrow, #666);
+}
+
+.tabulator-row.tabulator-group .tabulator-arrow {
+  border-left: 6px solid var(--q-tab-arrow, #666);
+}
+
+.tabulator-row.tabulator-group span {
+  color: var(--q-tab-danger, #d00);
+}
+
+.tabulator-popup-container {
+  background: var(--q-surface, #fff);
+  border: 1px solid var(--q-border-strong, #aaa);
+  box-shadow: 0 0 5px 0 rgba(var(--q-lo-rgb, 0, 0, 0), 0.2);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .tabulator-menu .tabulator-menu-item:not(.tabulator-menu-item-disabled):hover {
+    background: var(--q-tab-menu-hover, #efefef);
+  }
+}
+.tabulator-menu .tabulator-menu-item.tabulator-menu-item-submenu:after {
+  border-color: var(--q-border-strong, #aaa);
+}
+
+.tabulator-menu .tabulator-menu-separator {
+  border-top: 1px solid var(--q-border-strong, #aaa);
+}
+
+.tabulator-edit-list .tabulator-edit-list-item {
+  color: var(--q-text, #333);
+}
+
+.tabulator-edit-list .tabulator-edit-list-item.active {
+  background: var(--q-tab-accent, #1d68cd);
+  color: var(--q-on-accent, #fff);
+}
+
+.tabulator-edit-list .tabulator-edit-list-item.active.focused {
+  outline: 1px solid var(--q-tab-accent-ring, hsla(0, 0%, 100%, 0.5));
+}
+
+.tabulator-edit-list .tabulator-edit-list-item.focused {
+  outline: 1px solid var(--q-tab-accent, #1d68cd);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .tabulator-edit-list .tabulator-edit-list-item:hover {
+    background: var(--q-tab-accent, #1d68cd);
+    color: var(--q-on-accent, #fff);
+  }
+}
+.tabulator-edit-list .tabulator-edit-list-placeholder {
+  color: var(--q-text, #333);
+}
+
+.tabulator-edit-list .tabulator-edit-list-group {
+  border-bottom: 1px solid var(--q-border-strong, #aaa);
+  color: var(--q-text, #333);
+}
+
+:root {
+  color-scheme: var(--q-color-scheme, light);
+}
+
+/* Page Grid */
+.page-grid .row {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.page-grid .col {
+  flex: 1; /* Allow columns to grow equally */
+  min-width: 150px;
+}
+
+/**/
+/* Scrollable region */
+.scrollable {
+  width: 20.25rem; /* Width of the scrollable area */
+  max-height: 200px; /* Maximum height for the scrollable area */
+  border: 1px solid var(--q-border); /* Optional: Add a border */
+  padding: 10px;
+  overflow-y: auto; /* Enable vertical scrolling when needed */
+}
+
+.scrollable a {
+  display: block;
+  padding: 5px;
+  text-align: left;
+}
+
+/**/
+.inputfile + label {
+  width: 225px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+  display: inline-block;
+  overflow: hidden;
+  padding: 10px 10px;
+  border: 1px solid var(--q-border);
+}
+
+/* Full Screen: CSS overlay shared by all maximizable controls (no browser Fullscreen API) */
+.elem-wrapper.fullscreen-local {
+  background: var(--q-bg-page);
+  padding: 7px;
+  z-index: 9999;
+  overflow: auto; /* Enables scrolling when content overflows */
+}
+
+.elem-wrapper {
+  --fs-offset: calc(7px + 4px); /* corner offset of .wrap-actions */
+  --fs-size: 20px; /* maximize square and sibling action buttons */
+  position: relative;
+  display: inline-block;
+}
+
+/* Full-width controls (qcode, console); tables and chat define their own block rules */
+.elem-wrapper.block-wrap {
+  display: block;
+  width: 100%;
+}
+
+/* Corner toolbar shared by all maximizable controls; the maximize square is always its last item */
+.wrap-actions {
+  position: absolute;
+  top: var(--fs-offset);
+  right: var(--fs-offset);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  z-index: 20; /* keep above table header and editor content */
+}
+
+.fullscreen-square,
+.wrap-actions-btn {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--fs-size);
+  height: var(--fs-size);
+  margin: 0;
+  padding: 0;
+  border: 2px solid var(--fs-border, var(--q-border-fullscreen-square));
+  background-color: var(--fs-bg, var(--q-bg-fullscreen-square));
+  color: var(--fs-fg, inherit);
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 4px;
+  box-sizing: border-box; /* Ensures padding and border don't affect size */
+}
+
+.fullscreen-square:hover,
+.wrap-actions-btn:hover {
+  border-color: var(--fs-border-hover, var(--q-border-fullscreen-square-hover));
+}
+
+/* Override Bootstrap's dotted button:focus outline; keyboard focus gets a soft ring like .btn:focus */
+.fullscreen-square:focus,
+.wrap-actions-btn:focus {
+  outline: 0;
+}
+
+.fullscreen-square:focus-visible,
+.wrap-actions-btn:focus-visible {
+  box-shadow: 0 0 0 0.2rem var(--q-focus-ring);
+}
+
+/* Always-dark controls (qcode/Dracula, console): light-on-dark toolbar buttons */
+.elem-wrapper.dark-surface {
+  --fs-border: rgba(255, 255, 255, 0.35);
+  --fs-border-hover: rgba(255, 255, 255, 0.65);
+  --fs-bg: transparent;
+  --fs-fg: #f8f8f2;
+}
+
+/* Overlay geometry for fullscreen-local (no browser Fullscreen API) */
+.elem-wrapper.fullscreen-local {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh; /* excludes mobile browser UI */
+  box-sizing: border-box;
+}
+
+body.qcalc-fs-lock {
+  overflow: hidden;
+}
+
+@media (pointer: coarse) {
+  .elem-wrapper {
+    --fs-size: 28px;
+  }
+}
+/* Trial: fullscreen behavior for table-in and table-out wrappers. */
+/* Keep table surfaces aligned with each themed section while preserving control contrast. */
+.elem-wrapper.table-wrap .tabulator .tabulator-tableholder .tabulator-table {
+  background-color: var(--q-table-body-bg, var(--table-control-bg, var(--layout-tab-panel-bg, var(--q-surface, #fff)))) !important;
+  background-image: linear-gradient(180deg, rgba(var(--q-hi-rgb), 0.22), rgba(var(--q-hi-rgb), 0));
+}
+
+.elem-wrapper.table-wrap .tabulator .tabulator-tableholder {
+  background-color: var(--q-table-body-bg, var(--table-control-bg, var(--layout-tab-panel-bg, var(--q-surface, #fff)))) !important;
+}
+
+.elem-wrapper.table-wrap {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.elem-wrapper.table-wrap .table-responsive.table-in,
+.elem-wrapper.table-wrap .table-responsive.table-out {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  overflow: auto;
+  background-color: var(--q-table-body-bg, var(--table-control-bg, var(--layout-tab-panel-bg, var(--q-surface, #fff))));
+  border: 1px solid var(--q-table-frame);
+  border-radius: 4px;
+  box-shadow: inset 0 1px 0 rgba(var(--q-hi-rgb), 0.6);
+}
+
+/* Trial: keep Tabulator width within wrapper and allow inner horizontal scroll. */
+.elem-wrapper.table-wrap .tabulator {
+  width: 100% !important;
+  max-width: 100%;
+  background: transparent;
+  border-radius: 4px;
+}
+
+.elem-wrapper.table-wrap .tabulator .tabulator-header {
+  background-color: var(--q-table-head-bg, var(--table-head-bg, var(--table-control-bg, var(--layout-tab-panel-bg, var(--q-surface, #fff)))));
+  background-image: linear-gradient(180deg, rgba(var(--q-hi-rgb), 0.5), rgba(var(--q-hi-rgb), 0.16));
+  border-bottom: 1px solid rgba(var(--q-lo-rgb), 0.2);
+  font-weight: 600;
+}
+
+.elem-wrapper.table-wrap .tabulator-tableholder {
+  overflow: auto;
+  padding-bottom: 12px; /* keep last row clear of horizontal scrollbar */
+  box-sizing: border-box;
+}
+
+/* Keep editable header title visually consistent with themed table header. */
+.elem-wrapper.table-wrap .tabulator .tabulator-title-editor {
+  background: transparent !important;
+  color: inherit;
+  border: 0 !important;
+  box-shadow: none;
+  font-weight: 600;
+  padding: 0;
+  margin: 3px;
+  line-height: inherit;
+}
+
+/* Header editor focus styling for editable Tabulator column titles. */
+.elem-wrapper.table-wrap .tabulator .tabulator-title-editor:focus {
+  outline: none;
+  background: transparent !important;
+  border: 0;
+  box-shadow: none;
+}
+
+/* Input/output table headers: keep a unified column-header height. */
+.elem-wrapper.table-wrap .table-responsive:is(.table-in, .table-out).tabulator > .tabulator-header {
+  height: 34.8px !important;
+}
+
+/* Reduce default Tabulator spacing so input controls sit closer to the input table. */
+.elem-wrapper.table-wrap .table-responsive.table-in.tabulator {
+  margin-bottom: 8px !important;
+}
+
+/* Keep the table-in controls container in normal block flow (avoids inline baseline gap). */
+.elem-wrapper.table-wrap .table-responsive.table-in.tabulator + span {
+  display: block !important;
+}
+
+.elem-wrapper.table-wrap .table-responsive:is(.table-in, .table-out) .tabulator-header .tabulator-col .tabulator-col-content {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.elem-wrapper.table-wrap .table-responsive:is(.table-in, .table-out) .tabulator-header .tabulator-col .tabulator-col-content .tabulator-col-title {
+  line-height: 1.2;
+  margin: 3px 0 0 3px;
+  min-height: calc(1.2em + 6px); /* match edit-mode title editor vertical space */
+}
+
+/* Output headers are static text, so lock their vertical box to input-header editor height. */
+.elem-wrapper.table-wrap .table-responsive.table-out .tabulator-header .tabulator-col .tabulator-col-content {
+  min-height: 35px;
+}
+
+.elem-wrapper.table-wrap .table-responsive.table-out .tabulator-header .tabulator-col .tabulator-col-content .tabulator-col-title {
+  display: flex;
+  align-items: center;
+  margin: 0 0 0 3px;
+  min-height: 35px;
+}
+
+/* Compact tabulator footer so it tracks header height more closely. */
+.elem-wrapper.table-wrap .table-responsive.tabulator > .tabulator-footer .tabulator-footer-contents {
+  padding-top: 3px;
+  padding-bottom: 3px;
+}
+
+.elem-wrapper.table-wrap .table-responsive.tabulator > .tabulator-footer .tabulator-paginator .tabulator-page-size {
+  height: 28px;
+  min-height: 28px;
+  padding-top: 1px;
+  padding-bottom: 1px;
+}
+
+.elem-wrapper.table-wrap .table-responsive.tabulator > .tabulator-footer .tabulator-paginator .tabulator-page {
+  padding-top: 1px;
+  padding-bottom: 1px;
+}
+
+.elem-wrapper.table-wrap .table-responsive.tabulator > .tabulator-footer .tabulator-paginator label,
+.elem-wrapper.table-wrap .table-responsive.tabulator > .tabulator-footer .tabulator-paginator .tabulator-page-size {
+  font-weight: 400;
+}
+
+/* In table-in/out, use title container margin for both modes; avoid double inset in Edit mode. */
+.elem-wrapper.table-wrap .table-responsive:is(.table-in, .table-out) .tabulator-header .tabulator-col .tabulator-col-content .tabulator-col-title .tabulator-title-editor {
+  margin: 0;
+}
+
+/* Let table region fill the overlay in fullscreen mode. */
+.elem-wrapper.table-wrap.fullscreen-local .table-responsive.table-in,
+.elem-wrapper.table-wrap.fullscreen-local .table-responsive.table-out,
+.elem-wrapper.table-wrap.fullscreen-local .tabulator {
+  min-height: 0;
+  height: auto;
+  max-height: none;
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Trial: keep tabulator context menu visible above fullscreen content. */
+.elem-wrapper.table-wrap.fullscreen-local .tabulator-menu {
+  z-index: 10050;
+}
+
+/* Menus mounted to document body must stay above fullscreen overlays. */
+.tabulator-menu {
+  z-index: 10050;
+}
+
+/**/
+/* CSS to remove '/' from all breadcrumb items */
+.breadcrumb .breadcrumb-item + .breadcrumb-item::before {
+  content: "";
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+.navbar-brand img {
+  height: 1.5rem;
+}
+
+.navbar-brand {
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}
+
+#navbar-footer {
+  font-size: 0.82rem;
+}
+
+body {
+  font-family: "IBM Plex Sans", sans-serif;
+  font-weight: 400;
+  font-size: 0.94rem;
+  line-height: 1.6;
+  /* !important: Reset line-height for Tabulator table later */
+}
+
+.dropdown-menu {
+  font-size: 0.94rem;
+}
+
+.content-wrapper {
+  overflow: hidden; /* Hide overflow to prevent double scrollbar */
+}
+
+.info {
+  width: 12px;
+  padding-bottom: 0.2rem;
+  filter: var(--q-info-icon-filter);
+}
+
+label.required::after {
+  content: " *";
+  color: var(--q-required);
+}
+
+.dropdown-item {
+  padding-top: 0.2rem;
+  padding-left: 1.4rem;
+}
+
+.cal-menu .dropdown-item {
+  line-height: 1.5;
+  padding-bottom: 0.125rem;
+  padding-top: 0.125rem;
+}
+
+.dropdown-item-checked::before {
+  position: absolute;
+  left: 0.4rem;
+  content: "✓";
+  font-weight: 600;
+}
+
+.hidden {
+  display: none;
+}
+
+/* Dynamic layout tabs: slightly reduce tab label height. */
+.layout-tabs {
+  border-bottom: 1px solid var(--q-tabs-line, #d7dde5);
+  margin-top: 5px;
+  margin-bottom: 0;
+}
+
+.layout-tabs .nav-item {
+  margin-bottom: -1px;
+  margin-right: 0;
+}
+
+.layout-tabs .nav-link {
+  padding-top: 6px;
+  padding-bottom: 6px;
+  font-weight: 600;
+  line-height: 1.2;
+  border: 1px solid rgba(var(--q-lo-rgb), 0.24);
+  margin-bottom: 0;
+  background-color: rgba(var(--q-hi-rgb), 0.82);
+  box-shadow: inset 0 1px 0 rgba(var(--q-hi-rgb), 0.78), 0 1px 1px rgba(var(--q-lo-rgb), 0.05);
+}
+
+.layout-tabs .nav-link:hover,
+.layout-tabs .nav-link:focus {
+  border-color: rgba(var(--q-lo-rgb), 0.42) rgba(var(--q-lo-rgb), 0.42) var(--q-tabs-edge-hover, #b2c2d4);
+  background-color: rgba(var(--q-hi-rgb), 0.96);
+  box-shadow: inset 0 1px 0 rgba(var(--q-hi-rgb), 0.86), 0 1px 2px rgba(var(--q-lo-rgb), 0.08);
+}
+
+.layout-tabs .nav-link.active,
+.layout-tabs .nav-item.show .nav-link {
+  border-color: var(--q-tabs-edge-strong, #aebfd1) var(--q-tabs-edge-strong, #aebfd1) var(--layout-tab-panel-bg, var(--q-surface, #fff));
+  background-color: var(--layout-tab-panel-bg, var(--q-surface, #fff));
+  background-image: linear-gradient(180deg, rgba(var(--q-hi-rgb), 0.58), rgba(var(--q-hi-rgb), 0.18));
+  box-shadow: inset 0 1px 0 rgba(var(--q-hi-rgb), 0.72);
+}
+
+.layout-tab-content {
+  border: 1px solid var(--q-tabs-edge, #b8c7d8);
+  border-top: 0;
+  background-color: var(--layout-tab-panel-bg, var(--q-surface, #fff));
+  background-image: linear-gradient(180deg, rgba(var(--q-hi-rgb), 0.34), rgba(var(--q-hi-rgb), 0));
+  box-shadow: inset 0 1px 0 rgba(var(--q-hi-rgb), 0.62);
+  border-radius: 0 0 3px 3px;
+  margin-top: -1px;
+  padding: 0.45rem 0.7rem;
+}
+
+/* Output tabs: keep a visible top edge around the panel. */
+div.io.section-output1 .layout-tabs,
+div.io.section-output2 .layout-tabs {
+  border-bottom: 0;
+}
+
+div.io.section-output1 .layout-tab-content,
+div.io.section-output2 .layout-tab-content {
+  border-top: 1px solid var(--q-tabs-line, #d7dde5);
+  border-radius: 3px;
+  margin-top: 0;
+}
+
+div.io.section-input1 {
+  background-color: var(--q-bg-input);
+  --layout-tab-panel-bg: var(--q-bg-input);
+  --table-control-bg: var(--q-bg-input);
+  --table-head-bg: var(--q-bg-input);
+}
+
+div.io.section-input2 {
+  background-color: var(--q-bg-input);
+  --layout-tab-panel-bg: var(--q-bg-input);
+  --table-control-bg: var(--q-bg-input);
+  --table-head-bg: var(--q-bg-input);
+  min-width: 320px;
+}
+
+div.io.section-output1 {
+  background-color: var(--q-bg-output-1);
+  --layout-tab-panel-bg: var(--q-bg-output-1);
+  --table-control-bg: var(--q-bg-output-1);
+  --table-head-bg: var(--q-bg-output-1);
+  min-width: 320px;
+  padding-right: 0.625rem;
+  padding-left: 0.625rem;
+}
+
+div.io.section-output2 {
+  min-width: 320px;
+  background-color: var(--q-bg-output-2);
+  --layout-tab-panel-bg: var(--q-bg-output-2);
+  --table-control-bg: var(--q-bg-output-2);
+  --table-head-bg: var(--q-bg-output-2);
+  padding-right: 0.625rem;
+  padding-left: 0.625rem;
+}
+
+.btncmd {
+  border: 1px solid;
+  border-color: var(--q-button-cmd-border);
+  background: var(--q-bg-button-cmd);
+  color: var(--q-button-cmd-fg);
+  margin-top: 2px; /* looks best below a input table e.g. umatrix() */
+  margin-right: 8px;
+  padding: 3px 8px 3px 8px;
+  height: 32px;
+  min-width: 24px;
+  border-radius: 4px;
+}
+
+/* Reduce gap between top helper buttons (Help/Related/...) and calculator body. */
+.card-body > button.card-collapse.btncmd {
+  margin-bottom: 0.25rem !important;
+}
+
+.card-body > hr {
+  margin-top: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+.wrap {
+  white-space: normal;
+}
+
+a:link {
+  color: var(--q-link);
+}
+
+a:visited {
+  color: var(--q-link-visited);
+}
+
+a:hover {
+  color: var(--q-link-hover);
+}
+
+a:active {
+  color: var(--q-link-active);
+}
+
+/* Links inside the coloured card header (menu, help, close icons) take the header text colour; the items of the
+   dropdown menus that open from it keep the normal dropdown colours */
+.bg-card-header a:not(.dropdown-item):link,
+.bg-card-header a:not(.dropdown-item):visited,
+.bg-card-header a:not(.dropdown-item):hover,
+.bg-card-header a:not(.dropdown-item):active {
+  color: var(--q-card-title-fg);
+}
+
+/* nav-sidebar */
+.sidebar-secondary {
+  font-size: 0.82rem !important;
+}
+
+.nav-sidebar > .nav-item > .nav-link {
+  font-weight: 400;
+}
+
+button, input, optgroup, select, textarea {
+  margin-bottom: 0.25rem;
+  /* border-radius: 4px; */
+}
+
+/* Keep Add Calculator input and plus button vertically aligned. */
+#nav-add-calc .input-group .form-control,
+#nav-add-calc .input-group .btn,
+#card-space .input-group .form-control,
+#card-space .input-group .btn {
+  margin-bottom: 0;
+  height: 2rem;
+}
+
+#nav-add-calc .input-group .btn,
+#card-space .input-group .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+#btn_fname_sb,
+#btn_fname_cs {
+  height: 2rem !important;
+  min-height: 2rem;
+  margin-bottom: 0 !important;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+/* Controls without a themed background rely on the browser's default field colour, which is white in a
+   light colour scheme (no change) and an off-palette grey in a dark one. */
+textarea,
+select[multiple],
+select[size] {
+  background-color: var(--q-surface);
+}
+
+/* Plain text inputs without any border rule (e.g. read-only result fields) use the browser's border, whose
+   colour depends on the colour scheme; :where() keeps specificity at zero so every other rule still wins. */
+input:where(:not([type]), [type=text], [type=number], [type=search], [type=email], [type=url], [type=tel],
+[type=password], [type=date], [type=datetime-local], [type=month], [type=time], [type=week]) {
+  border-color: var(--q-native-border);
+}
+
+/* One value colour for every native control (the browser default is pure black or white); :where() keeps
+   specificity at zero so rules that intentionally colour a control still win. */
+:where(input:not([type=checkbox], [type=radio], [type=range], [type=file], [type=image], [type=submit],
+[type=reset], [type=button], [type=color], [type=hidden]),
+textarea, select) {
+  color: var(--q-text-field);
+}
+
+:where(input, textarea, select):disabled {
+  color: var(--q-text-muted);
+}
+
+::placeholder {
+  color: var(--q-text-muted);
+}
+
+/* Checked checkboxes, radios, range sliders and progress bars follow the theme's primary colour. */
+:root {
+  accent-color: var(--q-primary);
+}
+
+/* Selected rows of a multiple-choice list are drawn by the browser (bright cyan in Firefox dark mode);
+   the gradient is how Chrome accepts a background here, and -webkit-text-fill-color overrides its text colour. */
+select[multiple] option:checked {
+  background: var(--q-select-multi-bg) linear-gradient(var(--q-select-multi-bg), var(--q-select-multi-bg));
+  color: var(--q-text-field);
+  -webkit-text-fill-color: var(--q-text-field);
+}
+
+/* Keep native single-line inputs/selects visually consistent with Select2 controls. */
+input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=image]):not([type=submit]):not([type=reset]):not([type=button]):not([type=hidden]),
+select:not([multiple]):not([size]),
+.form-control:not(textarea):not([multiple]):not([size]) {
+  height: 2rem;
+  line-height: 1.6rem;
+  border: 1px solid var(--q-border-control);
+  border-radius: 4px;
+  background-color: var(--q-surface);
+}
+
+/* Keep native single-select controls visually aligned with neighboring inputs. */
+select:not([multiple]):not([size]):not(.tabulator-page-size) {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath fill='%236b7785' d='M0 0h10L5 6z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.65rem center;
+  background-size: 0.56rem 0.35rem;
+  padding-right: 1.8rem;
+}
+
+select:not([multiple]):not([size]):not(.tabulator-page-size)::-ms-expand {
+  display: none;
+}
+
+/* Keep Tabulator pager size control on native browser arrow styling. */
+.tabulator .tabulator-footer .tabulator-paginator .tabulator-page-size {
+  -webkit-appearance: auto;
+  -moz-appearance: auto;
+  appearance: auto;
+  background-image: none;
+}
+
+textarea {
+  border: 1px solid var(--q-border-control);
+  border-radius: 4px;
+  resize: both;
+  max-width: 100%;
+  overflow: auto;
+}
+
+/* The editor's dark body blends into a dark panel; an inset outline frames it without changing its size. */
+.CodeMirror {
+  border-radius: 4px;
+  outline: 1px solid var(--q-code-frame);
+  outline-offset: -1px;
+}
+
+/* Console-like code areas. */
+.qconsole,
+.qconsole .command,
+.qconsole .response {
+  font-family: "IBM Plex Mono", Consolas, monospace;
+}
+
+.texte {
+  width: auto;
+  height: auto;
+}
+
+/* select2 */
+.select2-results__option {
+  padding: 2px;
+}
+
+.select2-results {
+  font-size: 0.82rem !important;
+}
+
+.select2-container--default .select2-selection--single {
+  border-radius: 4px;
+  margin-bottom: 0.25rem;
+  margin-top: 0rem;
+  height: 2rem;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+  line-height: 1.6rem;
+}
+
+/* spinner */
+.spinner {
+  border: 4px solid rgba(var(--q-hi-rgb), 0.1);
+  border-left: 4px solid var(--q-border-spinner);
+  border-radius: 50%;
+  width: 15px;
+  height: 15px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+/* tabulator */
+/* Reset line-height for Tabulator table */
+/* Tabulator tables rely on precise layout and alignment to ensure that rows and cells display correctly */
+.tabulator {
+  line-height: normal;
+}
+
+.tabulator .tabulator-header,
+.tabulator .tabulator-cell {
+  line-height: normal;
+}
+
+/* table */
+.table {
+  border-color: var(--q-border-table);
+}
+
+.table thead, .table th, .table td, .table tr {
+  border-color: var(--q-border-table-rows);
+}
+
+/* search-container */
+.categ {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--q-link);
+}
+
+.desc {
+  margin-top: 0.4rem;
+  margin-bottom: 0rem;
+}
+
+.tdesc {
+  margin-top: 0rem;
+  margin-bottom: 0.2rem;
+}
+
+#search-container ul {
+  padding-left: 1rem;
+  list-style-type: none;
+}
+
+#search-container li {
+  padding-left: 0rem;
+  margin-bottom: 0.2rem;
+}
+
+#search-container i {
+  margin-right: 0.75rem;
+}
+
+li:not(.nav-item) {
+  /* !otherwise this will shift nav-item icons to the right */
+  padding-left: 0.75rem;
+  margin-bottom: 0.2rem;
+}
+
+div.radio, div.mcheck {
+  padding-left: 1rem;
+  padding-top: 0.3rem;
+}
+
+label {
+  margin-bottom: 0.1rem;
+  font-weight: 600;
+  margin-right: 0.4rem;
+}
+
+.content {
+  padding: 1rem;
+}
+
+.container-fluid {
+  padding-left: 0rem;
+  padding-right: 0rem;
+}
+
+.outpart .alert[role=alert] {
+  overflow-wrap: anywhere;
+}
+
+.qhtml {
+  border: 1px solid var(--q-border-qhtml);
+  padding: 2px;
+  display: inline-block;
+}
+
+/* Chart images are rendered light by matplotlib. A theme may recolour them (the dark theme inverts them and blends
+   the black background into the panel); the image data itself stays light for download and copy. */
+.img-chart {
+  filter: var(--q-chart-filter);
+  mix-blend-mode: var(--q-chart-blend);
+  border-color: var(--q-chart-border);
+}
+
+.qchat {
+  border: 1px solid var(--q-border-qhtml);
+  display: block;
+  width: 100%;
+  min-height: 18rem;
+  max-height: 65vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 1rem;
+  scroll-behavior: smooth;
+}
+
+.qchat pre {
+  max-height: 28rem;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.qchat > :last-child {
+  margin-bottom: 0;
+}
+
+.elem-wrapper.chat-wrap {
+  display: block;
+  width: 100%;
+}
+
+.elem-wrapper.chat-wrap.fullscreen-local {
+  display: flex;
+  overflow: hidden;
+}
+
+.elem-wrapper.chat-wrap.fullscreen-local .qchat {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+  max-height: none;
+  box-sizing: border-box;
+}
+
+.list-icons {
+  font-size: 1rem;
+}
+
+.qty-s {
+  font-size: 0.75rem;
+  margin-left: 2px;
+}
+
+/* Card */
+.card {
+  background-color: var(--q-surface);
+  border-radius: var(--q-radius);
+}
+
+.card-header:first-child {
+  border-radius: var(--q-radius) var(--q-radius) 0 0;
+}
+
+.bg-card-header {
+  background-color: var(--q-bg-card-header) !important; /* logo blue */
+  color: var(--q-card-title-fg); /* header icons (menu, help, close) inherit it */
+  background-image: var(--q-card-header-gradient);
+  border-bottom: 1px solid var(--q-card-header-border);
+  /* background-color: #17a2b8 !important; */
+}
+
+.card-title {
+  color: var(--q-card-title-fg);
+}
+
+.card-collapse {
+  margin-right: 8px;
+}
+
+.card-collapse:after {
+  font-family: "icomoon";
+  float: right;
+  content: "\ede4"; /*icon-circle-up2*/
+}
+
+.card-collapse.collapsed:after {
+  font-family: "icomoon";
+  content: "\ede6"; /*icon-circle-down2*/
+}
+
+.card-close:after {
+  font-family: "icomoon";
+  content: "\ed63"; /*icon-cancel-circle2*/
+}
+
+.card-help:after {
+  font-family: "icomoon";
+  content: "\ed53"; /*icon-question4*/
+}
+
+.card-menu:after {
+  font-family: "icomoon";
+  content: "\e9f3"; /*icon-list-unordered*/
+}
+
+.image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+  outline: 1px solid var(--q-img-frame);
+  outline-offset: -1px;
+  margin-top: 8px;
+  filter: var(--q-img-filter);
+}
+
+/* Black-on-white line art (file name contains ".line.") is inverted in the dark theme like the charts. */
+.image[src*=".line."] {
+  filter: var(--q-chart-filter);
+  mix-blend-mode: var(--q-chart-blend);
+  outline-color: transparent;
+}
+
+.img-plot {
+  max-width: 100%;
+  min-width: 320px !important;
+  height: auto;
+}
+
+.btn {
+  font-weight: 400;
+}
+
+.btnimg {
+  height: 36px;
+  width: 36px;
+  padding-left: 8px;
+}
+
+/* The Limitless .dropdown-toggle chevron overflows the fixed-width icon button. It is drawn in the button's text
+   colour, so it was white on a white page (unseen) and showed up on dark pages: keep it hidden, and keep its space so
+   the icon does not move. */
+.btnimg.dropdown-toggle::after {
+  visibility: hidden;
+}
+
+.btnimg:disabled,
+.btnimg.disabled,
+.btn[data-interactive-ignore=true]:disabled,
+.btn[data-interactive-ignore=true].disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: grayscale(0.7);
+}
+
+/* sizes - large */
+.select2-container {
+  width: auto;
+  margin-right: 0.125rem;
+}
+
+.chr {
+  width: 10rem;
+  margin-right: 0.125rem;
+} /* short char */
+.uom {
+  width: 10rem;
+  margin-right: 0.125rem;
+} /* lone uom */
+.val {
+  width: 10rem;
+  margin-right: 0.125rem;
+} /* lone val */
+.val-p {
+  width: 10rem;
+  margin-right: 0.125rem;
+} /* val with part - qchar, qfl, qin */
+.val-pp {
+  width: 10rem;
+  margin-right: 0.125rem;
+} /* ->val parts - qchar, qfl, qin _part */
+.val-q {
+  width: 10rem;
+  margin-right: 0.125rem;
+} /* qty val with uom */
+.uom-q {
+  width: 10rem;
+  margin-right: 0.125rem;
+} /* ->qty uom */
+.val-pq {
+  width: 9rem;
+  margin-right: 0.125rem;
+} /* qty val with part */
+.uom-pq {
+  width: 9rem;
+  margin-right: 0.125rem;
+} /* ->qty uom part */
+.oval-q {
+  width: 10rem;
+  margin-right: 0.125rem;
+} /* output qty val with uom */
+.ouom-q {
+  width: 8rem;
+  margin-right: 0.125rem;
+} /* ->output qty uom */
+.inp {
+  width: 20.25rem;
+  margin-right: 0.125rem;
+} /* text, str input */
+.texta {
+  width: 20.25rem;
+  height: 5rem;
+  margin-right: 0.125rem;
+}
+
+.vt {
+  width: 3rem;
+}
+
+.htmx-indicator {
+  display: none;
+}
+
+.htmx-request .htmx-indicator {
+  display: inline;
+}
+
+.btncal {
+  position: relative;
+}
+
+.btncal .calculate-content {
+  visibility: visible;
+}
+
+.btncal .calculate-spinner {
+  position: absolute;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.htmx-request .btncal .calculate-content {
+  visibility: hidden;
+}
+
+.htmx-request .btncal .calculate-spinner {
+  display: flex;
+}
+
+/* callback_button()/action_button() with spinner=True reuse the calculate spinner markup */
+.btn-spin {
+  position: relative;
+}
+
+.btn-spin .calculate-spinner {
+  position: absolute;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+/* htmx-request is on the button itself (callback_button); is-busy is set by action_script */
+.btn-spin.htmx-request .calculate-content,
+.btn-spin.is-busy .calculate-content {
+  visibility: hidden;
+}
+
+.btn-spin.htmx-request .calculate-spinner,
+.btn-spin.is-busy .calculate-spinner {
+  display: flex;
+}
+
+/* auto-runs triggered by interactive mode (see interactive.js) show the Calculate spinner only after 500ms */
+form.qcalc-auto-calc.htmx-request .btncal .calculate-spinner {
+  opacity: 0;
+  animation: qcalc-spinner-in 0s linear 500ms forwards;
+}
+
+form.qcalc-auto-calc.htmx-request .btncal .calculate-content {
+  visibility: visible;
+  animation: qcalc-content-out 0s linear 500ms forwards;
+}
+
+@keyframes qcalc-spinner-in {
+  to {
+    opacity: 1;
+  }
+}
+@keyframes qcalc-content-out {
+  to {
+    visibility: hidden;
+  }
+}
+.outbtn {
+  padding: 6px !important;
+  font-size: 0.82rem;
+  display: inline-flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+}
+
+/* =========================================================
+   Container queries
+   ========================================================= */
+div.calc {
+  min-width: 368px;
+  /*** enables container queries on card width ***/
+  container-type: inline-size;
+  container-name: calc;
+}
+
+/* user cap on calculators per row (--calc-cols); min-width above still wraps earlier on narrow screens */
+#content-holder > .calc {
+  flex-basis: calc(100% / var(--calc-cols, 100) - 1px);
+}
+
+/* col-sm only grows from 576px up; let calculators fill the row on small screens too */
+@media (max-width: 767.98px) {
+  #content-holder > .calc {
+    flex-grow: 1;
+    max-width: 100%;
+  }
+}
+div.inpart {
+  min-width: 320px;
+  /*** enables container queries on inpart width ***/
+  container-type: inline-size;
+  container-name: inpart;
+}
+
+div.outpart {
+  min-width: 320px;
+  /*** enables container queries on outpart width ***/
+  container-type: inline-size;
+  container-name: outpart;
+}
+
+div.io {
+  min-width: 320px;
+  max-width: 100%;
+  padding-top: 0.25rem;
+  padding-bottom: 1rem;
+  /*** enables container queries on io width ***/
+  container-type: inline-size;
+  container-name: io;
+}
+
+/* Mobile input zoom fix (safe to revert as one block):
+   Keep form control text at >=16px to avoid browser auto-zoom on focus.
+   Includes small-screen breakpoint plus touch/coarse-pointer devices so phone landscape is covered.
+   Note: no container min-width/width override here, so existing small-screen column stacking stays unchanged. */
+@media (max-width: 767.98px), (hover: none) and (pointer: coarse) {
+  input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=image]):not([type=submit]):not([type=reset]):not([type=button]):not([type=hidden]),
+  select:not([multiple]):not([size]),
+  textarea,
+  .form-control,
+  .select2-container--default .select2-selection--single .select2-selection__rendered {
+    font-size: 16px !important;
+  }
+}
+/* On wide screen, enough width for calculator use. */
+@media screen and (min-width: 1568px) {
+  div.calc {
+    min-width: 500px;
+  }
+}
+/* Table overflow guard: keep tabulator wrappers shrinkable in narrow content areas
+   (mobile, and landscape when sidebars reduce usable width). */
+.elem-wrapper.table-wrap,
+.elem-wrapper.table-wrap .table-responsive.table-in,
+.elem-wrapper.table-wrap .table-responsive.table-out,
+.elem-wrapper.table-wrap .tabulator {
+  min-width: 0;
+}
+
+/* Input part: 350px and wider; display calculate caption */
+@container inpart (min-width: 350px) {
+  .calimg {
+    display: none;
+  }
+  .caltxt {
+    display: inline-block;
+  }
+}
+/*
+@container ? (max-width: 300px) {
+  .btncal {
+    height: 28px;
+    width: 28px;
+    padding-left: 5px;
+    padding-top: 3px;
+  }
+}
+*/
+/* Input part: below 350px; hide calculate caption */
+/* inpart contains 1 or 2 io sections */
+@container inpart (max-width: 349px) {
+  .calimg {
+    display: inline-block;
+  }
+  .caltxt {
+    display: none;
+  }
+  .btnimg.dropdown-toggle {
+    display: none;
+  }
+}
+/* Output part: below 375px; hide text from outbtns */
+/* outpart contains 1 or 2 io sections */
+@container outpart (max-width: 374px) {
+  /*
+    .btnimg {
+      height: 28px;
+      width: 28px;
+      padding-left: 5px;
+      padding-top: 3px;
+    }
+  */
+  .notxt {
+    /* hide caption on small screen */
+    display: none;
+  }
+  .outbtn {
+    display: inline-block !important;
+    padding: 0.4375rem 0.875rem !important;
+  }
+}
+/* IO section: 375px-420px; Medium width  */
+@container io (min-width: 375px) and (max-width: 420px) {
+  /* sizes - medium */
+  .chr {
+    width: 9rem;
+  }
+  .uom {
+    width: 9rem;
+  }
+  .uom + .select2-container {
+    width: 9rem !important;
+  }
+  .val {
+    width: 9rem;
+  }
+  .val-p {
+    width: 9rem;
+  }
+  .val-pp {
+    width: 9rem;
+  }
+  .val-q {
+    width: 9rem;
+  }
+  .uom-q {
+    width: 9rem;
+  }
+  .uom-q + .select2-container {
+    width: 9rem !important;
+  }
+  .val-pq {
+    width: 9rem;
+  }
+  .uom-pq {
+    width: 9rem;
+  }
+  .uom-pq + .select2-container {
+    width: 9rem !important;
+  }
+  .oval-q {
+    width: 9rem;
+  }
+  .ouom-q {
+    width: 7rem;
+  }
+  .ouom-q + .select2-container {
+    width: 7rem !important;
+  }
+  .inp {
+    width: 18.25rem;
+  }
+  .texta {
+    width: 18.25rem;
+    height: 5rem;
+  }
+  .img-plot {
+    min-width: 200px !important;
+  }
+}
+/* IO section: below 375px; Very narrow */
+@container io (max-width: 374px) {
+  /* sizes small */
+  .chr {
+    width: 8rem;
+  }
+  .uom {
+    width: 8rem;
+  }
+  .uom + .select2-container {
+    width: 8rem !important;
+  }
+  .val {
+    width: 8rem;
+  }
+  .val-p {
+    width: 8rem;
+  }
+  .val-pp {
+    width: 8rem;
+  }
+  .val-q {
+    width: 8rem;
+  }
+  .uom-q {
+    width: 8rem;
+  }
+  .uom-q + .select2-container {
+    width: 8rem !important;
+  }
+  .val-pq {
+    width: 8rem;
+  }
+  .uom-pq {
+    width: 8rem;
+  }
+  .uom-pq + .select2-container {
+    width: 8rem !important;
+  }
+  .oval-q {
+    width: 8rem;
+  }
+  .ouom-q {
+    width: 6rem;
+  }
+  .ouom-q + .select2-container {
+    width: 6rem !important;
+  }
+  .inp {
+    width: 16.25rem;
+  }
+  .texta {
+    width: 16.25rem;
+    height: 5rem;
+  }
+}
+/* Container queries end */
+span.mark2 {
+  display: inline-block;
+  background: var(--q-bg-mark); /* #ffb82e; */
+  color: var(--q-mark-fg);
+  padding: 0 3px;
+  height: 16px;
+  border-radius: 2px;
+  line-height: 16px;
+  font-size: 0.82rem;
+  overflow: hidden;
+  position: relative;
+  bottom: -2px;
+  left: 6px;
+}
+
+/*# sourceMappingURL=qcalc.css.map */

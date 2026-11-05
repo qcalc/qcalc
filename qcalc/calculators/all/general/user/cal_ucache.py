@@ -32,7 +32,7 @@ MAX_EXECUTION_TIMEOUT = 900
 logger = logging.getLogger(__name__)
 
 
-def _normalize_theme(theme_name, fallback='default'):
+def _normalize_theme(theme_name, fallback='auto'):
     choices = StdList.theme_list.get('choices', []) if isinstance(StdList.theme_list, dict) else []
     if choices and theme_name not in choices:
         return fallback
@@ -61,8 +61,8 @@ def pref__info():
         'schema': {
             # 'request': {'attrs': {'readonly': True}},
             'theme': {
-                **dict2options(StdList.theme_list, initial="default"),  # {'type': 'choice', 'choices': theme_list},
-                'help_text': 'Select qCalc look and feel from the available theme list.',
+                **dict2options(StdList.theme_list, initial="auto"),  # {'type': 'choice', 'choices': theme_list},
+                'help_text': 'Select qCalc look and feel. Auto follows the light or dark setting of your device.',
             },
             'interactive': {
                 'help_text': 'Enable or disable interactive mode when a calculator supports. When enabled, calculations are triggered automatically whenever an input changes.',
@@ -178,7 +178,7 @@ def pref__input(ctx):  # alternative to func__info() 'schema':{}'
     us = gs.copy()
     if ctx.recall:  # if refresh button is clicked, recall will False
         us.update(QPref.getp())  # User's Session Defaults
-    us['theme'] = _normalize_theme(us.get('theme', 'default'))
+    us['theme'] = _normalize_theme(us.get('theme', 'auto'))
     return {  # pref-02
         # 'request': '__req__',
         'theme': us['theme'],

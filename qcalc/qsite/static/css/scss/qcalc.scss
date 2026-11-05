@@ -1,0 +1,12 @@
+// Single stylesheet for all themes: structure once, tokens per [data-theme] (see themes.scss).
+// The dimension variables are identical in every theme, so the light module supplies them.
+@use 'themes';
+@use 'vendor-bridge';
+@use 'vendor-bridge-tabulator';
+@use 'variables-light' as v;
+
+:root {
+  color-scheme: var(--q-color-scheme, light);
+}
+
+@import 'qcalc-common';

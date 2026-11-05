@@ -2,7 +2,7 @@
 def demo_circle__info():
     return {
         'title': 'Area of a Circle',
-        'images': {'top':['calculators/ext/circle.jpg']}
+        'images': {'top':['calculators/ext/circle.line.jpg']}
     }
 
 def demo_circle(radius=5.0):

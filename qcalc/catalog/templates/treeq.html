@@ -6,7 +6,7 @@
 {% endblock %}
 {% block _cardtitle %}Quantity Catalog{% endblock %}
 {% block _content %}
-<link href="{% static_ver_theme request 'tree' %}" rel="stylesheet" type="text/css" class="theme-stylesheet">
+<link href="{% static_ver 'css/tree.css' %}" rel="stylesheet" type="text/css">
 <script src="{% static_ver 'qsite/js/qtree.js' %}" onload="initTreed()" defer></script>
 {% include 'treeq-links.html'%}
 <br><br>

@@ -555,34 +555,16 @@ document.addEventListener('keydown', function(event) {
 
 function themeChanger(themeSelectorElemId){
     document.getElementById(themeSelectorElemId).addEventListener('change', function() {
-      var selectedTheme = this.value;
-      var themeStylesheets = document.querySelectorAll('.theme-stylesheet');
-
-      themeStylesheets.forEach(function(link) {
-        // Get the current href of the stylesheet
-        var currentHref = link.getAttribute('href');
-
-        // Replace the current theme name (e.g., "default") with the new theme name
-        var newHref = currentHref.replace(/(.*-)\w+(\.css)/, `$1${selectedTheme}$2`);
-        if (newHref === currentHref) {
-          return;
-        }
-
-        // Load the new stylesheet beside the old one and drop the old one only
-        // after it is applied, so the page is never unstyled (no flash of
-        // oversized icons).
-        var newLink = link.cloneNode(false);
-        newLink.setAttribute('href', newHref);
-        newLink.addEventListener('load', function() {
-          link.remove();
-        });
-        newLink.addEventListener('error', function() {
-          newLink.remove();
-        });
-        link.after(newLink);
-      });
+      // Colours are CSS variables keyed by <html data-theme> in css/qcalc.css, so switching is instant.
+      document.documentElement.setAttribute('data-theme', this.value);
     });
 }
+
+document.addEventListener('qcalc:theme-changed', function(event) {
+    if (event && event.detail && event.detail.theme) {
+        document.documentElement.setAttribute('data-theme', event.detail.theme);
+    }
+});
 
 function getCookie(name) {
   var cookieValue = null;

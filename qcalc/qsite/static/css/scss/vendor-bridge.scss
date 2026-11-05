@@ -1,0 +1,262 @@
+// Colour bridge for the bundled vendor stylesheets (bootstrap.min.css, select2.min.css); Tabulator is in
+// vendor-bridge-tabulator.scss. Re-declares the colour properties of the vendor rules this app renders, each colour
+// read from a --q-* token whose fallback is the original vendor value, so the look is unchanged until a theme
+// overrides a token. Derived once from the vendor files and maintained by hand; re-derive when upgrading them.
+// Rules that layout.css / components.css already theme (.card border, .dropdown-menu shadow) are left out on purpose.
+
+/* bootstrap */
+body {
+  color: var(--q-text, #333);
+  background-color: var(--q-body-bg, #f5f5f5);
+}
+caption {
+  color: var(--q-text-muted, #999);
+}
+hr {
+  border-top: 1px solid var(--q-border-soft, #ddd);
+}
+.mark,mark {
+  background-color: var(--q-mark-soft-bg, #fcf8e3);
+}
+code {
+  color: var(--q-code-fg, #d81b60);
+}
+kbd {
+  color: var(--q-on-accent, #fff);
+  background-color: var(--q-text, #333);
+}
+pre {
+  color: var(--q-text, #333);
+}
+.table {
+  color: var(--q-text, #333);
+}
+.table td,.table th {
+  border-top: 1px solid var(--q-border-soft, #ddd);
+}
+.table thead th {
+  border-bottom: 2px solid var(--q-border-soft, #ddd);
+}
+.table tbody+tbody {
+  border-top: 2px solid var(--q-border-soft, #ddd);
+}
+.form-control {
+  color: var(--q-text-field, #444);
+  background-color: var(--q-surface, #fff);
+  border: 1px solid var(--q-border-soft, #ddd);
+}
+.form-control:not(.border-1):not(.border-2):not(.border-3):focus {
+  border-color: var(--q-border-focus, #ccc);
+}
+.form-control::-webkit-input-placeholder {
+  color: var(--q-text-muted, #999);
+}
+.form-control::-moz-placeholder {
+  color: var(--q-text-muted, #999);
+}
+.form-control::placeholder {
+  color: var(--q-text-muted, #999);
+}
+.form-control:disabled,.form-control[readonly] {
+  background-color: var(--q-surface-disabled, #fafafa);
+}
+.btn {
+  color: var(--q-text, #333);
+}
+.btn-primary {
+  color: var(--q-on-accent, #fff);
+  background-color: var(--q-primary, #2196f3);
+}
+.btn-primary:hover {
+  color: var(--q-on-accent, #fff);
+  background-color: var(--q-primary, #2196f3);
+}
+.btn-secondary {
+  color: var(--q-on-accent, #fff);
+  background-color: var(--q-secondary, #777);
+}
+.btn-secondary:hover {
+  color: var(--q-on-accent, #fff);
+  background-color: var(--q-secondary, #777);
+}
+.btn-success {
+  color: var(--q-on-accent, #fff);
+  background-color: var(--q-success, #4caf50);
+}
+.btn-success:hover {
+  color: var(--q-on-accent, #fff);
+  background-color: var(--q-success, #4caf50);
+}
+.btn-info {
+  color: var(--q-on-accent, #fff);
+  background-color: var(--q-info, #00bcd4);
+}
+.btn-info:hover {
+  color: var(--q-on-accent, #fff);
+  background-color: var(--q-info, #00bcd4);
+}
+.btn-danger {
+  color: var(--q-on-accent, #fff);
+  background-color: var(--q-danger, #f44336);
+}
+.btn-danger:hover {
+  color: var(--q-on-accent, #fff);
+  background-color: var(--q-danger, #f44336);
+}
+.dropdown-menu {
+  color: var(--q-text, #333);
+  background-color: var(--q-surface, #fff);
+  border: 1px solid var(--q-dropdown-border, rgba(0,0,0,.15));
+}
+.dropdown-divider {
+  border-top: 1px solid var(--q-border-soft, #ddd);
+}
+.dropdown-item {
+  color: var(--q-text, #333);
+}
+.dropdown-item:focus,.dropdown-item:hover {
+  color: var(--q-text, #333);
+  background-color: var(--q-hover-bg, #f5f5f5);
+}
+.dropdown-item.active,.dropdown-item:active {
+  color: var(--q-on-accent, #fff);
+  background-color: var(--q-primary, #2196f3);
+}
+.dropdown-item.disabled,.dropdown-item:disabled {
+  color: var(--q-text-muted, #999);
+}
+.nav-tabs {
+  border-bottom: 1px solid var(--q-border-soft, #ddd);
+}
+.nav-tabs .nav-item.show .nav-link,.nav-tabs .nav-link.active {
+  color: var(--q-text, #333);
+  background-color: var(--q-surface, #fff);
+  border-color: var(--q-border-soft, #ddd) var(--q-border-soft, #ddd) var(--q-surface, #fff);
+}
+.modal-content {
+  background-color: var(--q-surface, #fff);
+  border: 1px solid var(--q-modal-border, rgba(0,0,0,.2));
+  box-shadow: var(--q-shadow-overlay, 0 .25rem .5rem rgba(0,0,0,.1));
+}
+.modal-header {
+  border-bottom: 1px solid var(--q-line, rgba(0,0,0,.125));
+}
+.modal-footer {
+  border-top: 1px solid var(--q-line, rgba(0,0,0,.125));
+}
+.bg-primary {
+  background-color: var(--q-primary, #2196f3) !important;
+}
+.bg-info {
+  background-color: var(--q-info, #00bcd4) !important;
+}
+.bg-success {
+  background-color: var(--q-success, #4caf50) !important;
+}
+.bg-warning {
+  background-color: var(--q-warning, #ff7043) !important;
+}
+.bg-danger {
+  background-color: var(--q-danger, #f44336) !important;
+}
+.alert-info {
+  color: var(--q-alert-info-fg, #00626e);
+  background-color: var(--q-alert-info-bg, #d6f4f8);
+  border-color: var(--q-alert-info-border, #14c1d7);
+}
+.alert-info .alert-link {
+  color: var(--q-alert-info-link, #00353b);
+}
+.alert-warning {
+  color: var(--q-alert-warning-fg, #853a23);
+  background-color: var(--q-alert-warning-bg, #ffe8e1);
+  border-color: var(--q-alert-warning-border, #ff7b52);
+}
+.alert-warning .alert-link {
+  color: var(--q-alert-warning-link, #5d2818);
+}
+.alert-danger {
+  color: var(--q-alert-danger-fg, #7f231c);
+  background-color: var(--q-alert-danger-bg, #fde1df);
+  border-color: var(--q-alert-danger-border, #f55246);
+}
+.alert-danger .alert-link {
+  color: var(--q-alert-danger-link, #551713);
+}
+.alert-success {
+  color: var(--q-alert-success-fg, #285b2a);
+  background-color: var(--q-alert-success-bg, #e2f2e3);
+  border-color: var(--q-alert-success-border, #5ab55e);
+}
+.alert-success .alert-link {
+  color: var(--q-alert-success-link, #18381a);
+}
+.border {
+  border: 1px solid var(--q-border-soft, #ddd) !important;
+}
+.shadow-sm {
+  box-shadow: var(--q-shadow-sm, 0 .125rem .25rem rgba(0,0,0,.075)) !important;
+}
+.text-muted {
+  color: var(--q-text-muted, #999) !important;
+}
+/* select2 */
+.select2-dropdown {
+  background-color: var(--q-surface, white);
+  border: 1px solid var(--q-border-strong, #aaa);
+}
+.select2-container--default .select2-selection--single {
+  background-color: var(--q-surface, #fff);
+  border: 1px solid var(--q-border-strong, #aaa);
+}
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+  color: var(--q-text-field, #444);
+}
+.select2-container--default .select2-selection--single .select2-selection__placeholder {
+  color: var(--q-text-muted, #999);
+}
+.select2-container--default .select2-selection--single .select2-selection__arrow b {
+  border-color: var(--q-select-arrow, #888) transparent transparent transparent;
+}
+.select2-container--default.select2-container--disabled .select2-selection--single {
+  background-color: var(--q-select-disabled-bg, #eee);
+}
+.select2-container--default.select2-container--open .select2-selection--single .select2-selection__arrow b {
+  border-color: transparent transparent var(--q-select-arrow, #888) transparent;
+}
+.select2-container--default .select2-selection--multiple {
+  background-color: var(--q-surface, white);
+  border: 1px solid var(--q-border-strong, #aaa);
+}
+.select2-container--default .select2-selection--multiple .select2-selection__choice {
+  background-color: var(--q-chip-bg, #e4e4e4);
+  color: var(--q-text-field, #444);
+  border: 1px solid var(--q-border-strong, #aaa);
+}
+.select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+  border-right: 1px solid var(--q-border-strong, #aaa);
+  color: var(--q-text-muted, #999);
+}
+.select2-container--default .select2-selection--multiple .select2-selection__choice__remove:hover,.select2-container--default .select2-selection--multiple .select2-selection__choice__remove:focus {
+  background-color: var(--q-chip-hover-bg, #f1f1f1);
+  color: var(--q-text, #333);
+}
+.select2-container--default.select2-container--focus .select2-selection--multiple {
+  border: solid var(--q-text-strong, black) 1px;
+}
+.select2-container--default.select2-container--disabled .select2-selection--multiple {
+  background-color: var(--q-select-disabled-bg, #eee);
+}
+.select2-container--default .select2-search--dropdown .select2-search__field {
+  border: 1px solid var(--q-border-strong, #aaa);
+}
+.select2-container--default .select2-results__option--disabled {
+  color: var(--q-text-muted, #999);
+}
+.select2-container--default .select2-results__option--selected {
+  background-color: var(--q-select-selected-bg, #ddd);
+}
+.select2-container--default .select2-results__option--highlighted.select2-results__option--selectable {
+  background-color: var(--q-select-hl, #5897fb);
+  color: var(--q-on-accent, white);
+}

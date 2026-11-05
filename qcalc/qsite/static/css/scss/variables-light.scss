@@ -1,0 +1,92 @@
+/* qCalc Light Theme (id: light). Colours target WCAG AA contrast. */
+@import 'variables-common';
+/* colors */
+$background-fullscreen: white;//
+$border-default: #ddd;//
+$background-fullscreen-square: transparent;//
+$border-fullscreen-square: #eee;//
+$border-hover-fullscreen-square: #ddd;//
+$border-card-collapse: #17a2b8;
+$border-table: rgb(170,170,170);//
+$border-table-rows: rgb(221,221,221);//
+$icon-checkmark: '✓';
+$background-section-input: #fbf6ea; // warm ivory: "fill in here", set off against the cool blue header and the white output
+$background-section-output1: white;//WhiteSmoke
+$background-section-output2: white;//WhiteSmoke
+$background-button-cmd: #d3e5ee; // pale teal tint; dark teal text, see $button-cmd-fg
+$background-spinner-border: rgba(255, 255, 255, 0.1);
+$border-spinner: #fff;//
+$background-card-header: #276f95; // white title text reaches 5.5:1 (the previous #3a96bf gave 3.3:1)
+$card-title-font-color: #fff;
+$border-qhtml: #ccc;//
+$background-mark2: papayawhip;//
+$color-mark-text: #1b1c1e;//
+$link-color: #369; /* rgb(0,53,102) rgb(0,8,54), #1a9f8b; */
+$link-color-hover: #c40000; // was red (4.0:1); darker red keeps the hover cue and reaches 6.3:1
+
+// Shell: deeper slate navbar/sidebar; hover and focus follow the card-header blue family
+$shell-dark-bg: #1f2b3c;
+$shell-dark-fg: rgba(255, 255, 255, 0.92);
+$shell-dark-nav-fg: rgba(255, 255, 255, 0.72);
+$shell-dark-hover-bg: rgba(58, 150, 191, 0.24);
+$shell-dark-nav-hover-bg: rgba(58, 150, 191, 0.18);
+$shell-dark-divider: rgba(255, 255, 255, 0.08);
+$shell-light-bg: #f7f9fc;
+$shell-light-border: #dde4ec;
+$shell-light-fg: #2b3645;
+$shell-light-nav-fg: #4a5a6e;
+$shell-light-hover-bg: #fbf6ea; // hover/focus row highlight in the light sidebar and navbar; same ivory as the input panel
+$shell-light-divider: rgba(31, 43, 60, 0.1);
+$navbar-light-fg: rgba(43, 54, 69, 0.85);
+$btn-light-fg: #2b3645;
+$btn-light-bg: #f7f9fc;
+$btn-light-border: #dde4ec;
+$btn-light-hover-bg: #edf2f8;
+$focus-ring: rgba(58, 150, 191, 0.35);
+
+// Surface polish
+$card-shadow: 0 1px 3px rgba(16, 24, 40, 0.1), 0 1px 2px rgba(16, 24, 40, 0.06);
+$card-border: rgba(31, 43, 60, 0.12);
+$card-header-gradient: linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(0, 0, 0, 0.06));
+$card-header-border: rgba(0, 0, 0, 0.16);
+$dropdown-shadow: 0 6px 16px rgba(16, 24, 40, 0.14);
+
+// Link states: muted violet once visited, deep red while pressed
+$adopt-link-states: true;
+$link-color-visited: #5b4b8a;
+$link-color-active: #b00000;
+
+// Accessible accents (WCAG AA): darker brand blue for white button text, darker active-page red on the pager grey,
+// and dark text on the light-steel-blue command buttons (Help, Related, Format Code ...) with the white outline kept
+$primary: #2b7aa3; // header-blue family; white text reaches 4.9:1
+$secondary: #6f6f6f; // white text reaches 5.0:1 (Bootstrap's #777 gives 4.48:1)
+$text-muted: #5f6872; // placeholders, captions, .text-muted: 5.7:1 on white (Bootstrap's #999 gives 2.85:1)
+$select-hl: #2f6fbd; // highlighted select2 option with white text, 5.1:1
+$select-multi-bg: mix($primary, $surface, 24%);
+$required: #c62828; // required-field asterisk, 5.6:1
+$success: #37845a;
+$danger: #c04a35;
+$warning: #e0a526; // toast background; its text is dark (text-dark), 4.8:1
+
+// In-page messages, tinted like the buttons: info shares the secondary-button teal family, warning is amber (so it is no
+// longer confused with the red error), all text reaches at least 7:1 on its background
+$alert-info-fg: #1b4b66;
+$alert-info-bg: #e3eff5;
+$alert-info-border: #a9c9da;
+$alert-info-link: #0f3347;
+$alert-warning-fg: #6b4a00;
+$alert-warning-bg: #fff4d6;
+$alert-warning-border: #e3b94e;
+$alert-warning-link: #4a3200;
+$alert-danger-fg: #7a2a1c;
+$alert-danger-bg: #fbe5e0;
+$alert-danger-border: #d98574;
+$alert-danger-link: #561b11;
+$alert-success-fg: #1f5a3a;
+$alert-success-bg: #e3f1e8;
+$alert-success-border: #8cc2a3;
+$alert-success-link: #123d27;
+$info: #23808b;
+$tab-active-fg: #c00000;
+$button-cmd-fg: #1b4b66;
+$button-cmd-border: #a9c9da;

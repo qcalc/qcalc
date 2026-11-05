@@ -14,7 +14,7 @@
 .scrollable {
     width: v.$inp;   /* Width of the scrollable area */
     max-height: 200px; /* Maximum height for the scrollable area */
-    border: 1px solid v.$border-default; /* Optional: Add a border */
+    border: 1px solid var(--q-border); /* Optional: Add a border */
     padding: 10px;
     overflow-y: auto; /* Enable vertical scrolling when needed */
     }
@@ -34,12 +34,12 @@
     display: inline-block;
     overflow: hidden;
     padding: 10px 10px;
-	  border: 1px solid v.$border-default;
+	  border: 1px solid var(--q-border);
 	  }
 
 /* Full Screen: CSS overlay shared by all maximizable controls (no browser Fullscreen API) */
 .elem-wrapper.fullscreen-local {
-    background: v.$background-fullscreen;
+    background: var(--q-bg-page);
     padding: v.$fullscreen-padding;
     z-index: 9999;
     overflow: auto; /* Enables scrolling when content overflows */
@@ -79,8 +79,8 @@
     height: var(--fs-size);
     margin: 0;
     padding: 0;
-    border: 2px solid var(--fs-border, #{v.$border-fullscreen-square});
-    background-color: var(--fs-bg, #{v.$background-fullscreen-square});
+    border: 2px solid var(--fs-border, var(--q-border-fullscreen-square));
+    background-color: var(--fs-bg, var(--q-bg-fullscreen-square));
     color: var(--fs-fg, inherit);
     line-height: 1;
     cursor: pointer;
@@ -90,7 +90,7 @@
 
 .fullscreen-square:hover,
 .wrap-actions-btn:hover {
-    border-color: var(--fs-border-hover, #{v.$border-hover-fullscreen-square});
+    border-color: var(--fs-border-hover, var(--q-border-fullscreen-square-hover));
     }
 
 /* Override Bootstrap's dotted button:focus outline; keyboard focus gets a soft ring like .btn:focus */
@@ -101,7 +101,7 @@
 
 .fullscreen-square:focus-visible,
 .wrap-actions-btn:focus-visible {
-    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    box-shadow: 0 0 0 0.2rem var(--q-focus-ring);
     }
 
 /* Always-dark controls (qcode/Dracula, console): light-on-dark toolbar buttons */
@@ -135,12 +135,12 @@ body.qcalc-fs-lock {
 /* Trial: fullscreen behavior for table-in and table-out wrappers. */
 /* Keep table surfaces aligned with each themed section while preserving control contrast. */
 .elem-wrapper.table-wrap .tabulator .tabulator-tableholder .tabulator-table {
-  background-color: var(--table-control-bg, var(--layout-tab-panel-bg, #fff)) !important;
-  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0));
+  background-color: var(--q-table-body-bg, var(--table-control-bg, var(--layout-tab-panel-bg, var(--q-surface, #fff)))) !important;
+  background-image: linear-gradient(180deg, rgba(var(--q-hi-rgb), 0.22), rgba(var(--q-hi-rgb), 0));
 }
 
 .elem-wrapper.table-wrap .tabulator .tabulator-tableholder {
-  background-color: var(--table-control-bg, var(--layout-tab-panel-bg, #fff)) !important;
+  background-color: var(--q-table-body-bg, var(--table-control-bg, var(--layout-tab-panel-bg, var(--q-surface, #fff)))) !important;
 }
 
 .elem-wrapper.table-wrap {
@@ -156,10 +156,10 @@ body.qcalc-fs-lock {
   width: 100%;
   max-width: 100%;
   overflow: auto;
-  background-color: var(--table-control-bg, var(--layout-tab-panel-bg, #fff));
-  border: 1px solid rgba(0, 0, 0, 0.18);
+  background-color: var(--q-table-body-bg, var(--table-control-bg, var(--layout-tab-panel-bg, var(--q-surface, #fff))));
+  border: 1px solid var(--q-table-frame);
   border-radius: 4px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  box-shadow: inset 0 1px 0 rgba(var(--q-hi-rgb), 0.6);
   }
 
 /* Trial: keep Tabulator width within wrapper and allow inner horizontal scroll. */
@@ -171,9 +171,9 @@ body.qcalc-fs-lock {
   }
 
 .elem-wrapper.table-wrap .tabulator .tabulator-header {
-  background-color: var(--table-head-bg, var(--table-control-bg, var(--layout-tab-panel-bg, #fff)));
-  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.16));
-  border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+  background-color: var(--q-table-head-bg, var(--table-head-bg, var(--table-control-bg, var(--layout-tab-panel-bg, var(--q-surface, #fff)))));
+  background-image: linear-gradient(180deg, rgba(var(--q-hi-rgb), 0.5), rgba(var(--q-hi-rgb), 0.16));
+  border-bottom: 1px solid rgba(var(--q-lo-rgb), 0.2);
   font-weight: v.$font-weight-bold;
 }
 
@@ -333,11 +333,12 @@ body {
 .info {
   width: 12px;
   padding-bottom: 0.2rem;
+  filter: var(--q-info-icon-filter);
   }
 
 label.required::after {
   content: ' *';
-  color: red;
+  color: var(--q-required);
   }
 
 .dropdown-item {
@@ -362,7 +363,7 @@ label.required::after {
 
 /* Dynamic layout tabs: slightly reduce tab label height. */
 .layout-tabs {
-  border-bottom: 1px solid #d7dde5;
+  border-bottom: 1px solid var(--q-tabs-line, #d7dde5);
   margin-top: 5px;
   margin-bottom: 0;
 }
@@ -377,33 +378,33 @@ label.required::after {
   padding-bottom: 6px;
   font-weight: v.$font-weight-bold;
   line-height: 1.2;
-  border: 1px solid rgba(0, 0, 0, 0.24);
+  border: 1px solid rgba(var(--q-lo-rgb), 0.24);
   margin-bottom: 0;
-  background-color: rgba(255, 255, 255, 0.82);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.78), 0 1px 1px rgba(0, 0, 0, 0.05);
+  background-color: rgba(var(--q-hi-rgb), 0.82);
+  box-shadow: inset 0 1px 0 rgba(var(--q-hi-rgb), 0.78), 0 1px 1px rgba(var(--q-lo-rgb), 0.05);
 }
 
 .layout-tabs .nav-link:hover,
 .layout-tabs .nav-link:focus {
-  border-color: rgba(0, 0, 0, 0.42) rgba(0, 0, 0, 0.42) #b2c2d4;
-  background-color: rgba(255, 255, 255, 0.96);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.86), 0 1px 2px rgba(0, 0, 0, 0.08);
+  border-color: rgba(var(--q-lo-rgb), 0.42) rgba(var(--q-lo-rgb), 0.42) var(--q-tabs-edge-hover, #b2c2d4);
+  background-color: rgba(var(--q-hi-rgb), 0.96);
+  box-shadow: inset 0 1px 0 rgba(var(--q-hi-rgb), 0.86), 0 1px 2px rgba(var(--q-lo-rgb), 0.08);
 }
 
 .layout-tabs .nav-link.active,
 .layout-tabs .nav-item.show .nav-link {
-  border-color: #aebfd1 #aebfd1 var(--layout-tab-panel-bg, #fff);
-  background-color: var(--layout-tab-panel-bg, #fff);
-  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0.18));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  border-color: var(--q-tabs-edge-strong, #aebfd1) var(--q-tabs-edge-strong, #aebfd1) var(--layout-tab-panel-bg, var(--q-surface, #fff));
+  background-color: var(--layout-tab-panel-bg, var(--q-surface, #fff));
+  background-image: linear-gradient(180deg, rgba(var(--q-hi-rgb), 0.58), rgba(var(--q-hi-rgb), 0.18));
+  box-shadow: inset 0 1px 0 rgba(var(--q-hi-rgb), 0.72);
 }
 
 .layout-tab-content {
-  border: 1px solid #b8c7d8;
+  border: 1px solid var(--q-tabs-edge, #b8c7d8);
   border-top: 0;
-  background-color: var(--layout-tab-panel-bg, #fff);
-  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.62);
+  background-color: var(--layout-tab-panel-bg, var(--q-surface, #fff));
+  background-image: linear-gradient(180deg, rgba(var(--q-hi-rgb), 0.34), rgba(var(--q-hi-rgb), 0));
+  box-shadow: inset 0 1px 0 rgba(var(--q-hi-rgb), 0.62);
   border-radius: 0 0 3px 3px;
   margin-top: -1px;
   padding: 0.45rem 0.7rem;
@@ -417,31 +418,31 @@ div.io.section-output2 .layout-tabs {
 
 div.io.section-output1 .layout-tab-content,
 div.io.section-output2 .layout-tab-content {
-  border-top: 1px solid #d7dde5;
+  border-top: 1px solid var(--q-tabs-line, #d7dde5);
   border-radius: 3px;
   margin-top: 0;
 }
 
 div.io.section-input1 {
-  background-color: v.$background-section-input;
-  --layout-tab-panel-bg: #{v.$background-section-input};
-  --table-control-bg: #{v.$background-section-input};
-  --table-head-bg: #{v.$background-section-input};
+  background-color: var(--q-bg-input);
+  --layout-tab-panel-bg: var(--q-bg-input);
+  --table-control-bg: var(--q-bg-input);
+  --table-head-bg: var(--q-bg-input);
   }
 
 div.io.section-input2 {
-  background-color: v.$background-section-input;
-  --layout-tab-panel-bg: #{v.$background-section-input};
-  --table-control-bg: #{v.$background-section-input};
-  --table-head-bg: #{v.$background-section-input};
+  background-color: var(--q-bg-input);
+  --layout-tab-panel-bg: var(--q-bg-input);
+  --table-control-bg: var(--q-bg-input);
+  --table-head-bg: var(--q-bg-input);
   min-width: v.$min-section;
   }
 
 div.io.section-output1 {
-  background-color: v.$background-section-output1;
-  --layout-tab-panel-bg: #{v.$background-section-output1};
-  --table-control-bg: #{v.$background-section-output1};
-  --table-head-bg: #{v.$background-section-output1};
+  background-color: var(--q-bg-output-1);
+  --layout-tab-panel-bg: var(--q-bg-output-1);
+  --table-control-bg: var(--q-bg-output-1);
+  --table-head-bg: var(--q-bg-output-1);
   min-width: v.$min-section;
   padding-right: 0.625rem;
   padding-left: 0.625rem;
@@ -449,17 +450,19 @@ div.io.section-output1 {
 
 div.io.section-output2 {
   min-width: v.$min-section;
-  background-color: v.$background-section-output2;
-  --layout-tab-panel-bg: #{v.$background-section-output2};
-  --table-control-bg: #{v.$background-section-output2};
-  --table-head-bg: #{v.$background-section-output2};
+  background-color: var(--q-bg-output-2);
+  --layout-tab-panel-bg: var(--q-bg-output-2);
+  --table-control-bg: var(--q-bg-output-2);
+  --table-head-bg: var(--q-bg-output-2);
   padding-right: 0.625rem;
   padding-left: 0.625rem;
   }
 
 .btncmd {
   border: 1px solid;
-  background: v.$background-button-cmd;
+  border-color: var(--q-button-cmd-border);
+  background: var(--q-bg-button-cmd);
+  color: var(--q-button-cmd-fg);
   margin-top: 2px; /* looks best below a input table e.g. umatrix() */
   margin-right: 8px;
   padding: 3px 8px 3px 8px;
@@ -482,11 +485,20 @@ div.io.section-output2 {
 
 .wrap {white-space: normal;}
 
-a:link {color: v.$link-color;}
+a:link {color: var(--q-link);}
 
-a:visited {color: v.$link-color;}
+a:visited {color: var(--q-link-visited);}
 
-a:hover {color: v.$link-color-hover;}
+a:hover {color: var(--q-link-hover);}
+
+a:active {color: var(--q-link-active);}
+
+/* Links inside the coloured card header (menu, help, close icons) take the header text colour; the items of the
+   dropdown menus that open from it keep the normal dropdown colours */
+.bg-card-header a:not(.dropdown-item):link,
+.bg-card-header a:not(.dropdown-item):visited,
+.bg-card-header a:not(.dropdown-item):hover,
+.bg-card-header a:not(.dropdown-item):active {color: var(--q-card-title-fg);}
 
 /* nav-sidebar */
 
@@ -527,15 +539,56 @@ button, input, optgroup, select, textarea {
   padding-bottom: 0;
 }
 
+/* Controls without a themed background rely on the browser's default field colour, which is white in a
+   light colour scheme (no change) and an off-palette grey in a dark one. */
+textarea,
+select[multiple],
+select[size] {
+  background-color: var(--q-surface);
+}
+
+/* Plain text inputs without any border rule (e.g. read-only result fields) use the browser's border, whose
+   colour depends on the colour scheme; :where() keeps specificity at zero so every other rule still wins. */
+input:where(:not([type]), [type=text], [type=number], [type=search], [type=email], [type=url], [type=tel],
+            [type=password], [type=date], [type=datetime-local], [type=month], [type=time], [type=week]) {
+  border-color: var(--q-native-border);
+}
+
+/* One value colour for every native control (the browser default is pure black or white); :where() keeps
+   specificity at zero so rules that intentionally colour a control still win. */
+:where(input:not([type=checkbox], [type=radio], [type=range], [type=file], [type=image], [type=submit],
+                 [type=reset], [type=button], [type=color], [type=hidden]), textarea, select) {
+  color: var(--q-text-field);
+}
+:where(input, textarea, select):disabled {
+  color: var(--q-text-muted);
+}
+::placeholder {
+  color: var(--q-text-muted);
+}
+
+/* Checked checkboxes, radios, range sliders and progress bars follow the theme's primary colour. */
+:root {
+  accent-color: var(--q-primary);
+}
+
+/* Selected rows of a multiple-choice list are drawn by the browser (bright cyan in Firefox dark mode);
+   the gradient is how Chrome accepts a background here, and -webkit-text-fill-color overrides its text colour. */
+select[multiple] option:checked {
+  background: var(--q-select-multi-bg) linear-gradient(var(--q-select-multi-bg), var(--q-select-multi-bg));
+  color: var(--q-text-field);
+  -webkit-text-fill-color: var(--q-text-field);
+}
+
 /* Keep native single-line inputs/selects visually consistent with Select2 controls. */
 input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="image"]):not([type="submit"]):not([type="reset"]):not([type="button"]):not([type="hidden"]),
 select:not([multiple]):not([size]),
 .form-control:not(textarea):not([multiple]):not([size]) {
   height: v.$control-height;
   line-height: v.$control-line-height;
-  border: 1px solid v.$control-border-color;
+  border: 1px solid var(--q-border-control);
   border-radius: v.$control-border-radius;
-  background-color: #fff;
+  background-color: var(--q-surface);
 }
 
 /* Keep native single-select controls visually aligned with neighboring inputs. */
@@ -563,12 +616,19 @@ select:not([multiple]):not([size]):not(.tabulator-page-size)::-ms-expand {
 }
 
 textarea {
-  border: 1px solid v.$control-border-color;
+  border: 1px solid var(--q-border-control);
   border-radius: v.$control-border-radius;
   resize: both;
   max-width: 100%;
   overflow: auto;
   }
+
+/* The editor's dark body blends into a dark panel; an inset outline frames it without changing its size. */
+.CodeMirror {
+  border-radius: v.$control-border-radius;
+  outline: 1px solid var(--q-code-frame);
+  outline-offset: -1px;
+}
 
 /* Console-like code areas. */
 .qconsole,
@@ -592,10 +652,6 @@ textarea {
   font-size: 0.82rem !important;
   }
 
-.select2-selection {
-   font-weight: v.$font-weight-bold;
-  }
-
 .select2-container--default .select2-selection--single {
   border-radius: v.$control-border-radius;
   margin-bottom: 0.25rem;
@@ -609,8 +665,8 @@ textarea {
 
 /* spinner */
 .spinner {
-  border: 4px solid rgba(255, 255, 255, 0.1);
-  border-left: 4px solid v.$border-spinner;
+  border: 4px solid rgba(var(--q-hi-rgb), 0.1);
+  border-left: 4px solid var(--q-border-spinner);
   border-radius: 50%;
   width: 15px;
   height: 15px;
@@ -633,17 +689,17 @@ textarea {
   }
 
 /* table */
-.table {border-color: v.$border-table;}
+.table {border-color: var(--q-border-table);}
 
 .table thead, .table th, .table td, .table tr {
-  border-color: v.$border-table-rows;
+  border-color: var(--q-border-table-rows);
   }
 
 /* search-container */
 .categ {
   cursor:pointer;
   font-weight: v.$font-weight-bold;
-  color:v.$link-color;
+  color:var(--q-link);
   }
 
 .desc {
@@ -701,13 +757,21 @@ label {
   }
 
 .qhtml {
-  border: 1px solid v.$border-qhtml;
+  border: 1px solid var(--q-border-qhtml);
   padding: 2px;
   display:inline-block;
   }
 
+/* Chart images are rendered light by matplotlib. A theme may recolour them (the dark theme inverts them and blends
+   the black background into the panel); the image data itself stays light for download and copy. */
+.img-chart {
+  filter: var(--q-chart-filter);
+  mix-blend-mode: var(--q-chart-blend);
+  border-color: var(--q-chart-border);
+  }
+
 .qchat {
-  border: 1px solid v.$border-qhtml;
+  border: 1px solid var(--q-border-qhtml);
   display: block;
   width: 100%;
   min-height: 18rem;
@@ -759,23 +823,24 @@ label {
 /* Card */
 
 .card {
-	background-color: #fff;
-	border-radius: v.$border-radius;
+	background-color: var(--q-surface);
+	border-radius: var(--q-radius);
 	}
 
 .card-header:first-child {
-	border-radius: v.$border-radius v.$border-radius 0 0;
+	border-radius: var(--q-radius) var(--q-radius) 0 0;
 	}
 
 .bg-card-header{
-  background-color: v.$background-card-header !important; /* logo blue */
-  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(0, 0, 0, 0.08));
-  border-bottom: 1px solid rgba(0, 0, 0, 0.18);
+  background-color: var(--q-bg-card-header) !important; /* logo blue */
+  color: var(--q-card-title-fg); /* header icons (menu, help, close) inherit it */
+  background-image: var(--q-card-header-gradient);
+  border-bottom: 1px solid var(--q-card-header-border);
   /* background-color: #17a2b8 !important; */
   }
 
 .card-title{
-  color: v.$card-title-font-color;
+  color: var(--q-card-title-fg);
   }
 
 .card-collapse{
@@ -811,6 +876,18 @@ label {
 .image {
   max-width: 100%;
   height: auto;
+  border-radius: v.$control-border-radius;
+  outline: 1px solid var(--q-img-frame);
+  outline-offset: -1px;
+  margin-top: 8px;
+  filter: var(--q-img-filter);
+  }
+
+/* Black-on-white line art (file name contains ".line.") is inverted in the dark theme like the charts. */
+.image[src*=".line."] {
+  filter: var(--q-chart-filter);
+  mix-blend-mode: var(--q-chart-blend);
+  outline-color: transparent;
   }
 
 .img-plot {
@@ -827,6 +904,13 @@ label {
   height: 36px;
   width: 36px;
   padding-left: 8px;
+  }
+
+/* The Limitless .dropdown-toggle chevron overflows the fixed-width icon button. It is drawn in the button's text
+   colour, so it was white on a white page (unseen) and showed up on dark pages: keep it hidden, and keep its space so
+   the icon does not move. */
+.btnimg.dropdown-toggle::after {
+  visibility: hidden;
   }
 
 .btnimg:disabled,
@@ -1116,8 +1200,8 @@ div.io {
 
 span.mark2 {
 	display: inline-block;
-	background: v.$background-mark2; /* #ffb82e; */
-	color: v.$color-mark-text;
+	background: var(--q-bg-mark); /* #ffb82e; */
+	color: var(--q-mark-fg);
 	padding: 0 3px;
 	height: 16px;
 	border-radius: 2px;

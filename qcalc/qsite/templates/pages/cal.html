@@ -8,7 +8,7 @@
 {% block _cardtitle %}Quick Calculator{% endblock %}
 {% block _content %}
 <style>
-  .calculator { justify-content: left; align-items: center; height: auto; background-color: #f0f0f0; padding:20px; min-width:300px;}
+  .calculator { justify-content: left; align-items: center; height: auto; background-color: var(--q-calc-bg, #f0f0f0); padding:20px; min-width:300px;}
   .display {
     background-color: #000;
     color: #0f0;
@@ -27,23 +27,29 @@
   .buttons { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px 7px; }
   .button {
     padding: 10px;
-    background-color: #f2f2f2;
-    border: 1px solid #ccc;
+    background-color: var(--q-calc-key-bg, #f2f2f2);
+    border: 1px solid var(--q-calc-key-border, #ccc);
     cursor: pointer;
     font-size: 18px;
-    color: #333;
+    color: var(--q-text, #333);
     transition: background-color 0.3s, transform 0.1s;
     border-radius:6px;
-    box-shadow:inset 0 -2px 1px rgba(0,0,0,0.5),inset 0 1px 1px rgba(255,255,255,0.5),inset 0 8px 8px rgba(255,255,255,0.5);
+    box-shadow: var(--q-calc-key-shadow, inset 0 -2px 1px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.5), inset 0 8px 8px rgba(255, 255, 255, 0.5));
   }
+  /* Bootstrap's reboot sets "button:focus { outline: 1px dotted; outline: 5px auto -webkit-focus-ring-color }";
+     Firefox ignores the -webkit value and keeps the dotted one, so override :focus itself with a solid ring */
+  .button::-moz-focus-inner { border: 0; padding: 0; }
+  .button:focus, .button:focus-visible { outline: 2px solid var(--q-text, #333); outline-offset: 1px; }
   .button:hover {
-    color:#777;
-    background-color: #e0e0e0;
+    color: var(--q-calc-key-hover-fg, #595959);
+    background-color: var(--q-calc-key-hover-bg, #e0e0e0);
   }
   .button:active {
     transform: scale(0.98);
-    background-color: #d0d0d0;
+    background-color: var(--q-calc-key-active-bg, #d0d0d0);
   }
+  /* the "=" key sits on the primary colour, so it needs the on-accent text colour in every state */
+  .button.bg-primary, .button.bg-primary:hover { color: var(--q-on-accent, #fff); }
 </style>
 
 <div class="calculator col" tabindex="0">

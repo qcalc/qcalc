@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html lang="en">
 {% load static %}
 {% load qfilter %}
+<html lang="en" data-theme="{% if input.doc.info.print_mode %}light{% else %}{% theme_name %}{% endif %}">
 {% lineless %}
 <head>
 	<meta charset="utf-8">

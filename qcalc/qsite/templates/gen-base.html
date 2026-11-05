@@ -1,8 +1,8 @@
 <!-- template:_gulp-base -->
 <!DOCTYPE html>
-<html lang="en">
 {% load static %}
 {% load qfilter %}
+<html lang="en" data-theme="{% theme_name %}">
 {% lineless %}
 <head>
 	<meta charset="utf-8">
@@ -21,7 +21,7 @@
 	<link href="{% static_ver 'qsite/css/qmd.css' %}" rel="stylesheet" type="text/css">
   <link href="{% static 'vendor/tabulator/6.1.0/tabulator.min.css' %}" rel="stylesheet" type="text/css">
   <link href="{% static 'vendor/select2/4.1.0-rc.0/select2.min.css' %}" rel="stylesheet" type="text/css">
-  <link href="{% static_ver_theme request 'qcalc' %}" rel="stylesheet" type="text/css" class="theme-stylesheet">
+  <link href="{% static_ver 'css/qcalc.css' %}" rel="stylesheet" type="text/css">
   <link href="{% static 'vendor/katex/0.11.1/katex.min.css' %}" rel="stylesheet" type="text/css">
   <!-- /global stylesheets qcalc.css be the last -->
 
@@ -111,6 +111,8 @@
           <span id="cart-count" class="badge bg-primary badge-pill ml-auto"></span>
         </a>
       </li>
+      {% theme_name as current_theme %}
+      {% include 'insert-navbar-theme-toggle.html' with theme=current_theme %}
       <li class="nav-item dropdown dropdown-user" id="nav-user">
           <a href="#" class="navbar-nav-link d-flex align-items-center dropdown-toggle" data-toggle="dropdown">
             <i class="icon-user mr-2"></i>

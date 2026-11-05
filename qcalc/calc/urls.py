@@ -8,6 +8,7 @@ from qsite.views import show_docs
 urlpatterns = [
     path('', views.clear_calcs, name='clear-calc'),
     path('search-calculators/', views.q2cal_search, name='calc-search-calculators'),
+    path('theme/', views.set_theme, name='calc-set-theme'),
     path('core/<str:fname>/', views.q1_func_to_form_core, name='calc-core-func'),
     re_path(r'^core/(?P<path>([^/]+/)*)$', views.q1_func_to_form_core, name='calc-core-func-args'),
 

@@ -192,13 +192,15 @@ Following are some examples of labels of `Calculate` button:
 
 ```python
 'images': {
-    'top': ['calculators/ext/circle.jpg', '<another top image>'],
+    'top': ['calculators/ext/circle.line.jpg', '<another top image>'],
     'bottom': ['<bottom image path>']
 }
 ```
 
 Each position accepts a list of images (e.g. you can have another image at the top section, enter it separated by comma). Use images that clarify the task, such as a wall diagram for a paint calculator.
 Avoid unnecessary use of image as it may slow down the performance of your calculator.
+
+**Dark theme.** Images are shown in a soft frame and slightly dimmed so a white background does not glare. For black-on-white line art or diagrams (not photos or colour images), put `.line.` in the file name, e.g. `circle.line.jpg`. In the dark theme such an image is inverted so the lines turn light on the dark page; in the light theme it is unchanged.
 
 ### 3.3 Info Key: `schema`: Input Widgets and Field Options
 

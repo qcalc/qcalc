@@ -1,11 +1,9 @@
 {
   "type": "choice",
-  "initial": "default",
-  "choices": [
-    "default", 
-    "elegance",
-    "serenity", 
-    "vibe", 
-    "tranquil"
-  ]
+  "initial": "auto",
+  "choices": {
+    "auto": "Auto (follow device)",
+    "light": "Light",
+    "dark": "Dark"
+  }
 }

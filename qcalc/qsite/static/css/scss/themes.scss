@@ -1,0 +1,27 @@
+// Colour tokens of every theme for the single stylesheet (qcalc.css).
+// The light theme (id "light") is plain :root; the others override it via <html data-theme="...">.
+// "auto" has no tokens of its own: it is light, and takes the dark tokens while the device prefers a dark scheme,
+// so it needs no JavaScript and follows a change of the device setting live.
+@use 'variables-light' as th-light;
+@use 'variables-dark' as th-dark;
+@use 'qmd-light' as qmd-light;
+@use 'qmd-dark' as qmd-dark;
+
+@include th-light.q-tokens(':root');
+@include qmd-light.qmd-tokens(':root');
+
+@include th-dark.q-tokens(':root[data-theme="dark"]');
+@include qmd-dark.qmd-tokens(':root[data-theme="dark"]');
+
+@media (prefers-color-scheme: dark) {
+  @include th-dark.q-tokens(':root[data-theme="auto"]');
+  @include qmd-dark.qmd-tokens(':root[data-theme="auto"]');
+}
+
+// Paper is white: print every theme with the light tokens (saves ink, keeps text legible). It must stay the last
+// block, because [data-theme] has the same specificity as the selectors above and the later rule wins. Surfaces that
+// are dark by design (code editor, console) stay dark.
+@media print {
+  @include th-light.q-tokens(':root[data-theme]');
+  @include qmd-light.qmd-tokens(':root[data-theme]');
+}

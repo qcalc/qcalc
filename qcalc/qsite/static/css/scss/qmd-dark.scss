@@ -1,0 +1,22 @@
+// Markdown (qmd.css) colours for the dark theme
+@mixin qmd-tokens($selector: ':root') {
+	#{$selector} {
+		--qmd-pre-bg: #161b22;
+		--qmd-pre-border: #30363d;
+		--qmd-pre-text: #e6edf3;
+		--qmd-inline-bg: #262c34;
+		--qmd-inline-border: #3a424c;
+		--qmd-table-border: #30363d;
+		--qmd-quote-bg: #1a2029;
+		--qmd-quote-border: #4a7bb7;
+		--qmd-quote-text: #aab3bd;
+		--qmd-copy-bg: #21262d;
+		--qmd-copy-bg-hover: #30363d;
+		--qmd-copy-border: #3a424c;
+		--qmd-copy-color: #d7dce1;
+		--qmd-copy-ok-border: #3fb27f;
+		--qmd-copy-ok-color: #7ee2a8;
+		--qmd-copy-fail-border: #f0645a;
+		--qmd-copy-fail-color: #ff9d94;
+	}
+}

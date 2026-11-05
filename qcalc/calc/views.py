@@ -2,9 +2,9 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 import qvars
-from calc import QTemp, QList, QFav, QCalAlias
+from calc import QTemp, QList, QFav, QCalAlias, QPref, StdList
 from django.shortcuts import render
-from django.http import HttpResponse, QueryDict
+from django.http import HttpResponse, QueryDict, JsonResponse
 from django.utils.html import format_html
 from django.views.decorators.http import require_POST
 import catalog.views
@@ -53,6 +53,20 @@ def q2cal_search(request: HtmxHttpRequest):
             error,
         ))
     return HttpResponse(result)
+
+
+@require_POST
+def set_theme(request: HtmxHttpRequest):
+    theme = (request.POST.get('theme') or '').strip().lower()
+    valid_themes = StdList.theme_list.get('choices', []) if isinstance(StdList.theme_list, dict) else []
+    if valid_themes and theme not in valid_themes:
+        return JsonResponse({'ok': False, 'error': 'Invalid theme'}, status=400)
+    QPref.setp1('theme', theme)
+    if request.headers.get('HX-Request') == 'true':
+        response = render(request, 'insert-navbar-theme-toggle.html', {'theme': theme})
+        response['HX-Trigger'] = json.dumps({'qcalc:theme-changed': {'theme': theme}})
+        return response
+    return JsonResponse({'ok': True, 'theme': theme})
 
 
 def clear_calcs(request: HtmxHttpRequest):

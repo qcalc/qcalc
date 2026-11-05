@@ -40,13 +40,13 @@ body { min-height: 100vh; display: flex; flex-direction: column; flex: 1; }
 .navbar-brand { padding-top: 0; padding-bottom: 0; }
 
 /* Dark navbar colour (matches sidebar-xs default theme) */
-.navbar.navbar-dark { background-color: #273246; }
+.navbar.navbar-dark { background-color: var(--q-navbar-bg, #273246); }
 
 .navbar-nav-link {
   display: flex;
   align-items: center;
   padding: .875rem .75rem;
-  color: rgba(255, 255, 255, .9);
+  color: var(--q-shell-dark-fg, rgba(255, 255, 255, 0.9));
   line-height: 1;
   border-radius: .1875rem;
 }
@@ -54,19 +54,30 @@ body { min-height: 100vh; display: flex; flex-direction: column; flex: 1; }
 .navbar-nav-link:focus,
 .navbar-nav-link.active,
 .show > .navbar-nav-link {
-  color: #fff;
+  color: var(--q-shell-dark-fg-strong, #fff);
   text-decoration: none;
-  background-color: rgba(255, 255, 255, .1);
+  background-color: var(--q-shell-dark-hover-bg, rgba(255, 255, 255, 0.1));
+}
+/* Links on the dark navbar/footer: the global a:link / a:visited rules would otherwise paint them in
+   the theme link colour, which has poor contrast on the dark shell. Dropdown items and buttons keep theirs. */
+.navbar-dark a:not(.dropdown-item):not(.btn):link,
+.navbar-dark a:not(.dropdown-item):not(.btn):visited {
+  color: var(--q-navbar-link, rgba(255, 255, 255, 0.9));
+}
+.navbar-dark a:not(.dropdown-item):not(.btn):hover,
+.navbar-dark a:not(.dropdown-item):not(.btn):active,
+.navbar-dark a:not(.dropdown-item):not(.btn):focus {
+  color: var(--q-navbar-link-hover, #fff);
 }
 .navbar.navbar-light .navbar-nav-link {
-  color: rgba(51, 51, 51, .85);
+  color: var(--q-navbar-light-fg, rgba(51, 51, 51, 0.85));
 }
 .navbar.navbar-light .navbar-nav-link:hover,
 .navbar.navbar-light .navbar-nav-link:focus,
 .navbar.navbar-light .navbar-nav-link.active,
 .navbar.navbar-light .show > .navbar-nav-link {
-  color: #333;
-  background-color: rgba(0, 0, 0, .04);
+  color: var(--q-shell-light-fg, #333);
+  background-color: var(--q-shell-light-hover-bg, rgba(0, 0, 0, 0.04));
 }
 
 /* --- Sidebar base --- */
@@ -78,8 +89,8 @@ body { min-height: 100vh; display: flex; flex-direction: column; flex: 1; }
   transition: transform .10s ease-in-out;
 }
 
-.sidebar-dark  { background-color: #273246; color: rgba(255, 255, 255, .9); }
-.sidebar-light { background-color: #fafafa; border-right: 1px solid #ddd;  color: #333; }
+.sidebar-dark  { background-color: var(--q-sidebar-dark-bg, #273246); color: var(--q-shell-dark-fg, rgba(255, 255, 255, 0.9)); }
+.sidebar-light { background-color: var(--q-shell-light-bg, #fafafa); border-right: 1px solid var(--q-shell-light-border, #ddd);  color: var(--q-shell-light-fg, #333); }
 
 .sidebar-content {
   display: flex;
@@ -159,8 +170,8 @@ body.no-transitions * { transition: none !important; }
 }
 
 /* --- Page header helpers --- */
-.page-header-light { background-color: #fff; border-bottom: 1px solid #ddd; }
-.page-header-dark  { background-color: #273246; color: #fff; margin-bottom: 1.25rem; }
+.page-header-light { background-color: var(--q-page-header-light-bg, #fff); border-bottom: 1px solid var(--q-shell-light-border, #ddd); }
+.page-header-dark  { background-color: var(--q-page-header-dark-bg, #273246); color: var(--q-shell-dark-fg-strong, #fff); margin-bottom: 1.25rem; }
 .page-header-content { padding: 0 1.25rem; position: relative; }
 .page-title { padding: 2rem 0; }
 .page-title h1, .page-title h2, .page-title h3,

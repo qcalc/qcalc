@@ -49,6 +49,8 @@
           <span id="cart-count" class="badge bg-primary badge-pill ml-auto"></span>
         </a>
       </li>
+      {% theme_name as current_theme %}
+      {% include 'insert-navbar-theme-toggle.html' with theme=current_theme %}
       <li class="nav-item dropdown dropdown-user" id="nav-user">
           <a href="#" class="navbar-nav-link d-flex align-items-center dropdown-toggle" data-toggle="dropdown">
             <i class="icon-user mr-2"></i>

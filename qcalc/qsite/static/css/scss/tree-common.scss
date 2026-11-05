@@ -29,12 +29,12 @@
     margin:0;
     padding:0 1rem;
     line-height:2rem;
-    color:v.$link-color;
+    color:var(--q-link);
     //font-weight:500;
     position:relative
 }
 .tree li .tdesc {
-    color:#333;
+    color:var(--q-text);
 }
 .tree ul li:before {
     content:"";
@@ -48,7 +48,7 @@
     left:0
 }
 .tree ul li:last-child:before {
-    background:#fff;
+    background:var(--q-surface);
     height:auto;
     top:1rem;
     bottom:0
@@ -58,11 +58,11 @@
 }
 .tree li a {
     text-decoration: none;
-    color:v.$link-color;
+    color:var(--q-link);
 }
 .tree li button, .tree li button:active, .tree li button:focus {
     text-decoration: none;
-    color:v.$link-color;
+    color:var(--q-link);
     border:none;
     background:transparent;
     margin:0px 0px 0px 0px;
@@ -70,5 +70,5 @@
     outline: 0;
 }
 
-.tree li span.mark1 { color: firebrick; background-color: v.$background-mark2;}
+.tree li span.mark1 { color: var(--q-mark1-fg); background-color: var(--q-bg-mark);}
 

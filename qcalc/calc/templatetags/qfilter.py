@@ -301,19 +301,24 @@ def static_ver(path):
     return format_html(f'{full_url}?v={STATIC_VERSION}')
 
 
-@register.simple_tag
-def static_ver_theme(request, file):
-    theme = QPref.getp1('theme', 'default')
+def _current_theme():
+    theme = QPref.getp1('theme', 'auto')
     valid_themes = StdList.theme_list.get('choices', []) if isinstance(StdList.theme_list, dict) else []
-    if valid_themes and theme not in valid_themes:
-        theme = 'default'
-    return static_ver(f'css/{file}-{theme}.css')
+    if (valid_themes and theme not in valid_themes) or not re.fullmatch(r'[a-z0-9_-]+', str(theme)):
+        theme = 'auto'
+    return theme
+
+
+@register.simple_tag
+def theme_name():
+    # value of <html data-theme="...">; css/qcalc.css switches all colours on it
+    return _current_theme()
 
 
 @register.simple_tag
 def calc_cols():
     # CSS variable value; 100 effectively means no cap
-    return int(QPref.getp1('calc_per_row', 0) or 0) or 100
+    return int(QPref.getp1('calc_per_row', 2) or 2) or 100
 
 
 @register.simple_tag

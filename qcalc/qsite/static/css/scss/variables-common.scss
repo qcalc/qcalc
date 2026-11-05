@@ -41,3 +41,343 @@ $vt: 3rem;
 $border-radius: 6px;
 $min-section: 320px; /* important */
 $fullscreen-padding: 7px;
+
+// Shell colours (navbar, sidebars, page header, light buttons, focus ring).
+// Defaults reproduce the values formerly hard-coded in qsite/layout/*.css;
+// a theme may override any of them after its @import of this file.
+$shell-dark-bg: #273246;
+$shell-dark-fg: rgba(255, 255, 255, 0.9);
+$shell-dark-fg-strong: #fff;
+$shell-dark-hover-bg: rgba(255, 255, 255, 0.1);
+$shell-dark-nav-fg: rgba(255, 255, 255, 0.75);
+$shell-dark-nav-hover-bg: rgba(255, 255, 255, 0.06);
+$shell-dark-divider: rgba(255, 255, 255, 0.1);
+$shell-light-bg: #fafafa;
+$shell-light-border: #ddd;
+$shell-light-fg: #333;
+$shell-light-nav-fg: #555;
+$shell-light-hover-bg: rgba(0, 0, 0, 0.04);
+$shell-light-divider: rgba(0, 0, 0, 0.1);
+$navbar-light-fg: rgba(51, 51, 51, 0.85);
+$page-header-light-bg: #fff;
+$btn-light-fg: #333;
+$btn-light-bg: #fafafa;
+$btn-light-border: #ddd;
+$btn-light-hover-bg: #f5f5f5;
+$focus-ring: rgba(0, 123, 255, 0.25);
+
+// Link colours on the dark navbar and footer; they default to the shell text colours.
+$navbar-link: null;
+$navbar-link-hover: null;
+
+// Surface polish (shadows and tone only, never sizes).
+$card-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+$card-border: rgba(0, 0, 0, 0.125);
+$card-header-gradient: linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(0, 0, 0, 0.08));
+$card-header-border: rgba(0, 0, 0, 0.18);
+$dropdown-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1); // Bootstrap's own dropdown shadow
+
+// Semantic palette for dark mode. Defaults are the values of the bundled Bootstrap 4 (Limitless build),
+// Tabulator and select2, so nothing changes until a theme overrides a token. vendor-bridge.scss reads them.
+$color-scheme: light;
+$text: #333;
+$text-muted: #999;
+$text-soft: #444;
+$text-field: #444; // value inside inputs, selects, textareas and select2; one step softer than labels
+$text-strong: black;
+$native-border: #767676; // the browser's own border colour for plain inputs in a light colour scheme
+$body-bg: #f5f5f5;
+$surface: #fff;
+$surface-disabled: #fafafa;
+$hover-bg: #f5f5f5;
+$border-soft: #ddd;
+$border-focus: #ccc;
+$border-strong: #aaa;
+$line: rgba(0, 0, 0, 0.125);
+$dropdown-border: rgba(0, 0, 0, 0.15);
+$modal-border: rgba(0, 0, 0, 0.2);
+$shadow-overlay: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+$shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+$primary: #2196f3;
+$secondary: #777;
+$success: #4caf50;
+$info: #00bcd4;
+$danger: #f44336;
+$warning: #ff7043;
+$on-accent: #fff;
+// In-page messages (qinfo, qwarn, qerror and success alerts): text, background, border and link colour per kind.
+// Defaults are Bootstrap's own (Limitless build) values.
+$alert-info-fg: #00626e;
+$alert-info-bg: #d6f4f8;
+$alert-info-border: #14c1d7;
+$alert-info-link: #00353b;
+$alert-warning-fg: #853a23;
+$alert-warning-bg: #ffe8e1;
+$alert-warning-border: #ff7b52;
+$alert-warning-link: #5d2818;
+$alert-danger-fg: #7f231c;
+$alert-danger-bg: #fde1df;
+$alert-danger-border: #f55246;
+$alert-danger-link: #551713;
+$alert-success-fg: #285b2a;
+$alert-success-bg: #e2f2e3;
+$alert-success-border: #5ab55e;
+$alert-success-link: #18381a;
+$code-fg: #d81b60;
+$code-frame: transparent; // edge of the CodeMirror editor, whose dark Dracula body needs no outline on a light panel
+$img-frame: transparent; // outline and dimming of calculator images; Light shows them as authored
+$img-filter: none;
+$mark-soft-bg: #fcf8e3;
+$required: red;
+$tour-shadow: 0 3px 30px rgba(33, 33, 33, 0.3); // intro.js tooltip shadow
+// Quick calculator page (pages/cal.html): body, keys and key states. The LCD display is always black and green.
+$calc-bg: #f0f0f0;
+$calc-key-bg: #f2f2f2;
+$calc-key-border: #ccc;
+$calc-key-hover-fg: #595959; // 5.4:1 on the hover background (was #777, 3.3:1)
+$calc-key-hover-bg: #e0e0e0;
+$calc-key-active-bg: #d0d0d0;
+$calc-key-shadow: inset 0 -2px 1px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.5), inset 0 8px 8px rgba(255, 255, 255, 0.5);
+// Command buttons (Help, Related, Format Code ...): text and border colours on the --q-bg-button-cmd background.
+// The border defaults to the text colour, as it did before these tokens existed.
+$button-cmd-fg: #fff;
+$button-cmd-border: currentColor;
+// Chart images (img.img-chart): CSS filter and blend mode applied to the light matplotlib PNG; border colour defaults
+// to the qhtml border, a filtering theme sets the colour it should have *before* the filter.
+$chart-filter: none;
+$chart-blend: normal;
+$chart-border: null;
+// Filter for the black field-help (i) icon (img.info); a dark theme inverts it to a light glyph.
+$info-icon-filter: none;
+// Page-local callouts (about page)
+$note-bg: #f5f5f5;
+$note-border: #666;
+$mark1-fg: firebrick;
+// RGB triplets behind the decorative highlight (white) and shade (black) overlays: rgba(var(--q-hi-rgb), .5)
+$hi-rgb: 255, 255, 255;
+$lo-rgb: 0, 0, 0;
+// layout tabs (qcalc-common.scss)
+$tabs-line: #d7dde5;
+$tabs-edge: #b8c7d8;
+$tabs-edge-strong: #aebfd1;
+$tabs-edge-hover: #b2c2d4;
+// Tabulator
+$tab-frame-bg: #888;
+// Frame and surfaces of the qCalc input/output tables; "initial" keeps the per-section colour (see --table-control-bg)
+$table-frame: rgba(0, 0, 0, 0.18);
+$table-body-bg: initial;
+$table-head-bg: initial;
+$tab-border: #999;
+$tab-head-bg: #e6e6e6;
+$tab-head-fg: #555;
+$tab-row-even: #efefef;
+$tab-active-fg: #d00;
+$tab-page-bg: hsla(0, 0%, 100%, 0.2);
+$tab-accent: #1d68cd;
+$tab-accent-ring: hsla(0, 0%, 100%, 0.5);
+$tab-menu-hover: #efefef;
+$tab-row-hover: #bbb;
+$tab-selected-bg: #9abcea;
+$tab-selected-hover: #769bcc;
+$tab-group-bg: #ccc;
+$tab-calcs-bg: #f3f3f3;
+$tab-calcs-bg-2: #e2e2e2;
+$tab-placeholder: #ccc;
+$tab-moving-bg: #cdcdcd;
+$tab-highlight-bg: #d6d6d6;
+$tab-range: #2975dd;
+$tab-range-head: #3876ca;
+$tab-sorter: #bbb;
+$tab-arrow: #666;
+$tab-arrow-hover: #555;
+$tab-danger: #d00;
+$tab-danger-fg: #590000;
+// select2
+$select-arrow: #888;
+$select-disabled-bg: #eee;
+$select-hl: #5897fb;
+$select-selected-bg: #ddd;
+$select-multi-bg: #ccdfe9; // selected row of a multiple-choice list: a soft tint of the primary colour
+$chip-bg: #e4e4e4;
+$chip-hover-bg: #f1f1f1;
+
+// A theme sets this to true (and defines $link-color-visited / $link-color-active)
+// to use its own visited/active link colours; otherwise they mirror link/hover.
+$adopt-link-states: false;
+$link-color-visited: null;
+$link-color-active: null;
+
+// Emits the colour tokens (CSS custom properties) from the theme's variables.
+// Called as `@include v.q-tokens` for a legacy per-theme stylesheet, or with a selector
+// (`:root[data-theme="dark"]`) for the single stylesheet in themes.scss.
+@mixin q-tokens($selector: ':root') {
+  #{$selector} {
+    --q-radius: #{$border-radius};
+    --q-bg-page: #{$background-fullscreen};
+    --q-bg-fullscreen-square: #{$background-fullscreen-square};
+    --q-border-fullscreen-square: #{$border-fullscreen-square};
+    --q-border-fullscreen-square-hover: #{$border-hover-fullscreen-square};
+    --q-border: #{$border-default};
+    --q-border-control: #{$control-border-color};
+    --q-border-table: #{$border-table};
+    --q-border-table-rows: #{$border-table-rows};
+    --q-border-qhtml: #{$border-qhtml};
+    --q-border-spinner: #{$border-spinner};
+    --q-bg-input: #{$background-section-input};
+    --q-bg-output-1: #{$background-section-output1};
+    --q-bg-output-2: #{$background-section-output2};
+    --q-bg-button-cmd: #{$background-button-cmd};
+    --q-bg-card-header: #{$background-card-header};
+    --q-card-title-fg: #{$card-title-font-color};
+    --q-bg-mark: #{$background-mark2};
+    --q-mark-fg: #{$color-mark-text};
+    --q-link: #{$link-color};
+    --q-link-hover: #{$link-color-hover};
+    @if $adopt-link-states {
+      --q-link-visited: #{$link-color-visited};
+      --q-link-active: #{$link-color-active};
+    } @else {
+      // mirror link/hover (no visual change)
+      --q-link-visited: #{$link-color};
+      --q-link-active: #{$link-color-hover};
+    }
+    --q-focus-ring: #{$focus-ring};
+    --q-card-shadow: #{$card-shadow};
+    --q-card-border: #{$card-border};
+    --q-card-header-gradient: #{$card-header-gradient};
+    --q-card-header-border: #{$card-header-border};
+    --q-dropdown-shadow: #{$dropdown-shadow};
+
+    --q-navbar-bg: #{$shell-dark-bg};
+    --q-navbar-link: #{$navbar-link or $shell-dark-fg};
+    --q-navbar-link-hover: #{$navbar-link-hover or $shell-dark-fg-strong};
+    --q-sidebar-dark-bg: #{$shell-dark-bg};
+    --q-page-header-dark-bg: #{$shell-dark-bg};
+    --q-shell-dark-fg: #{$shell-dark-fg};
+    --q-shell-dark-fg-strong: #{$shell-dark-fg-strong};
+    --q-shell-dark-hover-bg: #{$shell-dark-hover-bg};
+    --q-shell-dark-nav-fg: #{$shell-dark-nav-fg};
+    --q-shell-dark-nav-hover-bg: #{$shell-dark-nav-hover-bg};
+    --q-shell-dark-divider: #{$shell-dark-divider};
+    --q-shell-light-bg: #{$shell-light-bg};
+    --q-shell-light-border: #{$shell-light-border};
+    --q-shell-light-fg: #{$shell-light-fg};
+    --q-shell-light-nav-fg: #{$shell-light-nav-fg};
+    --q-shell-light-hover-bg: #{$shell-light-hover-bg};
+    --q-shell-light-divider: #{$shell-light-divider};
+    --q-navbar-light-fg: #{$navbar-light-fg};
+    --q-page-header-light-bg: #{$page-header-light-bg};
+    --q-btn-light-fg: #{$btn-light-fg};
+    --q-btn-light-bg: #{$btn-light-bg};
+    --q-btn-light-border: #{$btn-light-border};
+    --q-btn-light-hover-bg: #{$btn-light-hover-bg};
+
+    --q-color-scheme: #{$color-scheme};
+    --q-text: #{$text};
+    --q-text-muted: #{$text-muted};
+    --q-text-soft: #{$text-soft};
+    --q-text-field: #{$text-field};
+    --q-text-strong: #{$text-strong};
+    --q-native-border: #{$native-border};
+    --q-body-bg: #{$body-bg};
+    --q-surface: #{$surface};
+    --q-surface-disabled: #{$surface-disabled};
+    --q-hover-bg: #{$hover-bg};
+    --q-border-soft: #{$border-soft};
+    --q-border-focus: #{$border-focus};
+    --q-border-strong: #{$border-strong};
+    --q-line: #{$line};
+    --q-dropdown-border: #{$dropdown-border};
+    --q-modal-border: #{$modal-border};
+    --q-shadow-overlay: #{$shadow-overlay};
+    --q-shadow-sm: #{$shadow-sm};
+    --q-primary: #{$primary};
+    --q-secondary: #{$secondary};
+    --q-success: #{$success};
+    --q-info: #{$info};
+    --q-danger: #{$danger};
+    --q-warning: #{$warning};
+    --q-alert-info-fg: #{$alert-info-fg};
+    --q-alert-info-bg: #{$alert-info-bg};
+    --q-alert-info-border: #{$alert-info-border};
+    --q-alert-info-link: #{$alert-info-link};
+    --q-alert-warning-fg: #{$alert-warning-fg};
+    --q-alert-warning-bg: #{$alert-warning-bg};
+    --q-alert-warning-border: #{$alert-warning-border};
+    --q-alert-warning-link: #{$alert-warning-link};
+    --q-alert-danger-fg: #{$alert-danger-fg};
+    --q-alert-danger-bg: #{$alert-danger-bg};
+    --q-alert-danger-border: #{$alert-danger-border};
+    --q-alert-danger-link: #{$alert-danger-link};
+    --q-alert-success-fg: #{$alert-success-fg};
+    --q-alert-success-bg: #{$alert-success-bg};
+    --q-alert-success-border: #{$alert-success-border};
+    --q-alert-success-link: #{$alert-success-link};
+    --q-on-accent: #{$on-accent};
+    --q-code-fg: #{$code-fg};
+    --q-code-frame: #{$code-frame};
+    --q-img-frame: #{$img-frame};
+    --q-img-filter: #{$img-filter};
+    --q-mark-soft-bg: #{$mark-soft-bg};
+    --q-required: #{$required};
+    --q-tour-shadow: #{$tour-shadow};
+    --q-calc-bg: #{$calc-bg};
+    --q-calc-key-bg: #{$calc-key-bg};
+    --q-calc-key-border: #{$calc-key-border};
+    --q-calc-key-hover-fg: #{$calc-key-hover-fg};
+    --q-calc-key-hover-bg: #{$calc-key-hover-bg};
+    --q-calc-key-active-bg: #{$calc-key-active-bg};
+    --q-calc-key-shadow: #{$calc-key-shadow};
+    --q-button-cmd-fg: #{$button-cmd-fg};
+    --q-button-cmd-border: #{$button-cmd-border};
+    --q-chart-filter: #{$chart-filter};
+    --q-chart-blend: #{$chart-blend};
+    --q-info-icon-filter: #{$info-icon-filter};
+    --q-chart-border: #{$chart-border or $border-qhtml};
+    --q-note-bg: #{$note-bg};
+    --q-note-border: #{$note-border};
+    --q-mark1-fg: #{$mark1-fg};
+    --q-hi-rgb: #{$hi-rgb};
+    --q-lo-rgb: #{$lo-rgb};
+    --q-tabs-line: #{$tabs-line};
+    --q-tabs-edge: #{$tabs-edge};
+    --q-tabs-edge-strong: #{$tabs-edge-strong};
+    --q-tabs-edge-hover: #{$tabs-edge-hover};
+    --q-tab-frame-bg: #{$tab-frame-bg};
+    --q-tab-border: #{$tab-border};
+    --q-tab-head-bg: #{$tab-head-bg};
+    --q-table-frame: #{$table-frame};
+    --q-table-body-bg: #{$table-body-bg};
+    --q-table-head-bg: #{$table-head-bg};
+    --q-tab-head-fg: #{$tab-head-fg};
+    --q-tab-row-even: #{$tab-row-even};
+    --q-tab-active-fg: #{$tab-active-fg};
+    --q-tab-page-bg: #{$tab-page-bg};
+    --q-tab-accent: #{$tab-accent};
+    --q-tab-accent-ring: #{$tab-accent-ring};
+    --q-tab-menu-hover: #{$tab-menu-hover};
+    --q-tab-row-hover: #{$tab-row-hover};
+    --q-tab-selected-bg: #{$tab-selected-bg};
+    --q-tab-selected-hover: #{$tab-selected-hover};
+    --q-tab-group-bg: #{$tab-group-bg};
+    --q-tab-calcs-bg: #{$tab-calcs-bg};
+    --q-tab-calcs-bg-2: #{$tab-calcs-bg-2};
+    --q-tab-placeholder: #{$tab-placeholder};
+    --q-tab-moving-bg: #{$tab-moving-bg};
+    --q-tab-highlight-bg: #{$tab-highlight-bg};
+    --q-tab-range: #{$tab-range};
+    --q-tab-range-head: #{$tab-range-head};
+    --q-tab-sorter: #{$tab-sorter};
+    --q-tab-arrow: #{$tab-arrow};
+    --q-tab-arrow-hover: #{$tab-arrow-hover};
+    --q-tab-danger: #{$tab-danger};
+    --q-tab-danger-fg: #{$tab-danger-fg};
+    --q-select-arrow: #{$select-arrow};
+    --q-select-disabled-bg: #{$select-disabled-bg};
+    --q-select-hl: #{$select-hl};
+    --q-select-selected-bg: #{$select-selected-bg};
+    --q-select-multi-bg: #{$select-multi-bg};
+    --q-chip-bg: #{$chip-bg};
+    --q-chip-hover-bg: #{$chip-hover-bg};
+  }
+}

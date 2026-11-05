@@ -280,7 +280,7 @@ def conv__info():
             "mode": {"fields": ["from_qty", "convert_to_qty", "express_in_units", "unit_cost"],
                      "callback": "convert_sh"}
         },
-        'images': {'top': ['calculators/all/measuring-tools.png']},
+        'images': {'top': ['calculators/all/measuring-tools.line.png']},
         'kins': 'conv2',
         'script': '''
             function convert_sh(v)

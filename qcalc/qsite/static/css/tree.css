@@ -1,4 +1,4 @@
-/* qCalc Vibe Theme */
+/* qCalc Light Theme (id: light). Colours target WCAG AA contrast. */
 /* qCalc Variables Common */
 /* 0.82rem, 0.906 */
 /* 700 */
@@ -11,30 +11,8 @@
 /* 12rem; */
 /* -1rem */
 /* important */
-/* Very light peach for a fresh background */
-/* Light pastel mint for a refreshing feel */
-/* Blush pink with a bit more depth */
-/* Muted coral with warmth */
-/* Peachy orange for a modern accent */
-/* Vibrant jade green for a fresh look */
-/* Soft pastel mint */
-/* Refined Section Background Colors */
-/* Soft sage green, calmer and more sophisticated */
-/* Gentle cream for warmth and readability */
-/* Light ivory for a subtle, neutral tone */
-/* Softened sunshine yellow */
-/* Light sunshine yellow */
-/* Soft gold */
-/* Deep forest green for sophistication */
-/* Crisp white */
-/* Bright coral */
-/* Slightly deeper sunflower yellow */
-/* Deep teal for contrast */
-/* Refined Link Colors for a Professional Look */
-/* Muted rose for a softer, elegant link color */
-/* Subtle wine red for hover to avoid overpowering */
-/* Deep muted red for active, adding a clear indication without being harsh */
-/* Warm, earthy brown for visited links to subtly differentiate */
+/* colors */
+/* rgb(0,53,102) rgb(0,8,54), #1a9f8b; */
 .categ {
   cursor: pointer;
   font-weight: bold;
@@ -70,12 +48,12 @@
   margin: 0;
   padding: 0 1rem;
   line-height: 2rem;
-  color: #cc6666;
+  color: var(--q-link);
   position: relative;
 }
 
 .tree li .tdesc {
-  color: #333;
+  color: var(--q-text);
 }
 
 .tree ul li:before {
@@ -91,7 +69,7 @@
 }
 
 .tree ul li:last-child:before {
-  background: #fff;
+  background: var(--q-surface);
   height: auto;
   top: 1rem;
   bottom: 0;
@@ -103,12 +81,12 @@
 
 .tree li a {
   text-decoration: none;
-  color: #cc6666;
+  color: var(--q-link);
 }
 
 .tree li button, .tree li button:active, .tree li button:focus {
   text-decoration: none;
-  color: #cc6666;
+  color: var(--q-link);
   border: none;
   background: transparent;
   margin: 0px 0px 0px 0px;
@@ -117,8 +95,8 @@
 }
 
 .tree li span.mark1 {
-  color: firebrick;
-  background-color: #e8bc52;
+  color: var(--q-mark1-fg);
+  background-color: var(--q-bg-mark);
 }
 
-/*# sourceMappingURL=tree-vibe.css.map */
+/*# sourceMappingURL=tree.css.map */

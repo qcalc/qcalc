@@ -1,0 +1,9 @@
+<li class="nav-item" id="nav-theme">
+  <a href="#" class="navbar-nav-link" id="nav-theme-toggle"
+     hx-post="/calc/theme/" hx-target="#nav-theme" hx-swap="outerHTML"
+     hx-vals='{"theme":"{% if theme == "dark" %}light{% else %}dark{% endif %}"}'
+     aria-label="{% if theme == 'dark' %}Switch to light theme{% else %}Switch to dark theme{% endif %}"
+     title="{% if theme == 'dark' %}Switch to light theme{% else %}Switch to dark theme{% endif %}">
+    <i class="{% if theme == 'dark' %}icon-contrast{% else %}icon-sun3{% endif %}" id="nav-theme-toggle-icon"></i>
+  </a>
+</li>

@@ -134,7 +134,7 @@ def q1145_result_to_form_schema(request, func_id, cid, result, proper_dict):
             request.ojson_doc['table_out'] = True
         elif isinstance(value, QChart) or isinstance(value, QMap):
             request.ojson_data[name] = qhtml(
-                wrap_actions(f"<img class='img-plot qhtml' src='data:image/png;base64,{value.chart()}'>")
+                wrap_actions(f"<img class='img-plot img-chart qhtml' src='data:image/png;base64,{value.chart()}'>")
             )
             request.ojson_data_type.append('html')
         elif isinstance(value, QImage):

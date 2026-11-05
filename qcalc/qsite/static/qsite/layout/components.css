@@ -21,11 +21,11 @@
   line-height: 1;
   white-space: nowrap;
   overflow: hidden;
-  color: rgba(255, 255, 255, .75);
+  color: var(--q-shell-dark-nav-fg, rgba(255, 255, 255, 0.75));
   border-radius: 0;
 }
 .nav-sidebar .nav-link:hover,
-.nav-sidebar .nav-link:focus { color: #fff; background-color: rgba(255, 255, 255, .06); }
+.nav-sidebar .nav-link:focus { color: var(--q-shell-dark-fg-strong, #fff); background-color: var(--q-shell-dark-nav-hover-bg, rgba(255, 255, 255, 0.06)); }
 
 .nav-sidebar .nav-link i {
   font-size: 1rem;
@@ -51,8 +51,8 @@
 }
 
 /* Light sidebar nav */
-.sidebar-light .nav-sidebar .nav-link { color: #555; }
-.sidebar-light .nav-sidebar .nav-link:hover { background-color: rgba(0,0,0,.04); color: #333; }
+.sidebar-light .nav-sidebar .nav-link { color: var(--q-shell-light-nav-fg, #555); }
+.sidebar-light .nav-sidebar .nav-link:hover { background-color: var(--q-shell-light-hover-bg, rgba(0, 0, 0, 0.04)); color: var(--q-shell-light-fg, #333); }
 
 /* In mini (xs) mode icons only — text hidden via layout.css (desktop only) */
 @media (min-width: 768px) {
@@ -82,24 +82,25 @@
 /* --- Card (generic Bootstrap override, used on nearly every page) --- */
 .card {
   margin-bottom: 1.25rem;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  border-color: var(--q-card-border, rgba(0, 0, 0, 0.125));
+  box-shadow: var(--q-card-shadow, 0 1px 2px rgba(0, 0, 0, 0.05));
 }
 .card-title { position: relative; }
 .card-header .card-title { margin-bottom: 0; }
 
 /* --- Buttons --- */
 .btn-light {
-	color: #333;
-	background-color: #fafafa;
-	border-color: #ddd;
+	color: var(--q-btn-light-fg, #333);
+	background-color: var(--q-btn-light-bg, #fafafa);
+	border-color: var(--q-btn-light-border, #ddd);
 }
 .btn-light:hover {
-	background-color: #f5f5f5;
+	background-color: var(--q-btn-light-hover-bg, #f5f5f5);
 }
 /* Subtle inset darkening on hover for solid buttons (btn-primary, btn-danger, etc.) */
 .btn:not([class*=btn-outline]):not(.btn-light):not(.btn-link):hover,
 .btn:not([class*=btn-outline]):not(.btn-light):not(.btn-link):focus {
-	box-shadow: 0 0 0 62.5rem rgba(0, 0, 0, .075) inset;
+	box-shadow: 0 0 0 62.5rem rgba(var(--q-lo-rgb, 0, 0, 0), .075) inset;
 }
 
 /* --- Navbar --- */
@@ -118,7 +119,7 @@
 	margin-left: 1.25rem;
 }
 .navbar-dark .navbar-toggler:hover,
-.navbar-dark .navbar-toggler:focus { color: #fff; }
+.navbar-dark .navbar-toggler:focus { color: var(--q-shell-dark-fg-strong, #fff); }
 
 /* --- Search box icon overlay (include-search-catalog*.html) --- */
 .form-group-feedback {
@@ -139,7 +140,7 @@
   position: absolute;
   /*top: 0;*/
   top: -2px;
-  color: #333;
+  color: var(--q-text, #333);
   padding-left: .875rem;
   /*padding-right: .875rem;
   line-height: calc(1.5385em + .875rem + 2px);*/
@@ -159,9 +160,9 @@
   border-bottom: 1px solid transparent;
 }
 .breadcrumb-line-light {
-  background-color: #fafafa;
-  border-color: #ddd;
-  color: #333;
+  background-color: var(--q-shell-light-bg, #fafafa);
+  border-color: var(--q-shell-light-border, #ddd);
+  color: var(--q-shell-light-fg, #333);
 }
 /* Avoid a doubled edge: the page-header itself already draws this border
    (see .page-header-light/.page-header-dark in layout.css). */
@@ -208,9 +209,9 @@
     padding-left: 1.25rem;
     padding-right: 1.25rem;
     padding-bottom: .625rem;
-    border-bottom: 1px solid rgba(0, 0, 0, .1);
+    border-bottom: 1px solid var(--q-shell-light-divider, rgba(0, 0, 0, 0.1));
   }
-  .breadcrumb-line-dark .d-flex { border-bottom-color: rgba(255, 255, 255, .15); }
+  .breadcrumb-line-dark .d-flex { border-bottom-color: rgba(var(--q-hi-rgb, 255, 255, 255), .15); }
 }
 
 /* Force-show header-elements at md+ even though markup has it d-none (mobile-collapsed by default),
@@ -240,7 +241,7 @@
   height: 1.75rem;
   cursor: pointer;
   color: inherit;
-  opacity: .5;
+  opacity: .75; /* keeps the icon at least 3:1 against the card header */
   text-decoration: none;
 }
 .card-menu:hover, .card-help:hover, .card-close:hover {
@@ -252,7 +253,7 @@
 /* card-menu / card-help / card-close icons defined in qcalc-*.css via ::after */
 
 /* --- Card background for header --- */
-.bg-card-header { background-color: rgba(0, 0, 0, .03); }
+.bg-card-header { background-color: rgba(var(--q-lo-rgb, 0, 0, 0), .03); }
 
 /* --- Sidebar mobile toggler (hidden on desktop via layout.css) --- */
 .sidebar-mobile-toggler {
@@ -260,9 +261,9 @@
   align-items: center;
   justify-content: space-between;
   padding: .75rem 1.25rem;
-  border-bottom: 1px solid rgba(255, 255, 255, .1);
+  border-bottom: 1px solid var(--q-shell-dark-divider, rgba(255, 255, 255, 0.1));
 }
-.sidebar-light .sidebar-mobile-toggler { border-bottom-color: rgba(0,0,0,.1); }
+.sidebar-light .sidebar-mobile-toggler { border-bottom-color: var(--q-shell-light-divider, rgba(0, 0, 0, 0.1)); }
 
 /* --- Misc Bootstrap tweaks --- */
 .font-weight-semibold { font-weight: 600; }
@@ -270,6 +271,7 @@
 
 /* Dropdown user menu alignment */
 .dropdown-user .dropdown-menu { min-width: 11rem; }
+.dropdown-menu { box-shadow: var(--q-dropdown-shadow, 0 .25rem .5rem rgba(0, 0, 0, .1)); }
 
 /* Make badges inline in nav */
 .navbar .badge { font-size: .65rem; vertical-align: middle; }
@@ -295,7 +297,7 @@
   padding: 4px 8px 2px;
   border: 1px solid var(--primary, #17a2b8);
   border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, .2);
+  box-shadow: 0 2px 8px rgba(var(--q-lo-rgb, 0, 0, 0), .2);
 }
 .qcalc-slider[hidden] { display: none; }
 /* mobile: in-flow under the field instead of floating */

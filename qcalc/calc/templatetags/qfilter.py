@@ -11,6 +11,7 @@ from qvars import qc_gpref as gs
 from qsite import STATIC_VERSION
 from django.utils.html import format_html
 from django.conf import settings
+from django.contrib.staticfiles import finders
 from calc import QCals, StdList, get_html, ancestors, QPref, QInput, cur_loader
 import qconst
 import re
@@ -297,6 +298,11 @@ def add_head(title: str, desc: str, name: str = '',
 def static_ver(path):
     from django.templatetags.static import static
 
+    # outside DEBUG serve the .min file made by setup/run_minify.bat, when it exists
+    if not settings.DEBUG and not path.endswith('.min.js') and not path.endswith('.min.css'):
+        min_path = re.sub(r'\.(js|css)$', r'.min.\1', path)
+        if min_path != path and finders.find(min_path):
+            path = min_path
     full_url = static(path)
     return format_html(f'{full_url}?v={STATIC_VERSION}')
 

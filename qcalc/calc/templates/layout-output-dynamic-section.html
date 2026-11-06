@@ -2,5 +2,5 @@
 <div id="output-part-{{ input.cid }}" class="outpart">
 {% include 'layout-render-output-chrome.html' with side_plan=layout_plan.output %}
 {% isdebug as dbg %}
-{% if user.is_staff or dbg %}{% if not input.doc.info.print_mode %}{% include 'insert-calculator-section-ioinfo.html' %}{% endif %}{% endif %}
+{% if user.is_staff or dbg %}{% if not input.doc.info.print_mode and not request.embed %}{% include 'insert-calculator-section-ioinfo.html' %}{% endif %}{% endif %}
 </div>

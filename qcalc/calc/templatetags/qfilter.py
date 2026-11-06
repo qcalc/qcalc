@@ -304,7 +304,7 @@ def static_ver(path):
         if min_path != path and finders.find(min_path):
             path = min_path
     full_url = static(path)
-    return format_html(f'{full_url}?v={STATIC_VERSION}')
+    return format_html('{}?v={}', full_url, STATIC_VERSION)
 
 
 def _current_theme():

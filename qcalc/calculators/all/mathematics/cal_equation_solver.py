@@ -94,7 +94,7 @@ def equation_solver(
     )
 
     return {
-        "Equation": qhtml(md2html(f"$${result['normalized_equation'].replace("**", "^")}$$", wrap=True)),
+        "Equation": qhtml(md2html(f"$${result['normalized_equation'].replace("**", "^")}$$", in_container=True)),
         "Unknown": result["unknown"],
         "Solutions": _solutions_table(result["solutions"]),
         "Status": result["status"],

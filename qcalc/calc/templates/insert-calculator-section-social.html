@@ -1,5 +1,6 @@
 {% load qfilter %}
 {% cal_var_url input.doc.info.name input_id True True True request.is_public as url %}
+{% if not request.embed %}
 <p></p>
 <div class="social-share-buttons d-print-none">
   {% if url %}
@@ -22,8 +23,14 @@
        hx-get="/calc/add/?path=share_by_email/func_id/{{ input.doc.info.name }}/url/{{ url|deslash }}/---/"
        hx-target="closest .calc" hx-swap="afterend" class="btn"><i class="icon-envelop"></i>
     </a>
+    <!-- Embed -->
+    <a href="/calc/embed_code/"
+       hx-get="/calc/add/?path=embed_code/func_id/{{ input.doc.info.name }}/"
+       hx-target="closest .calc" hx-swap="afterend" class="btn" title="Embed"><i class="icon-embed2"></i>
+    </a>
   {% endif %}
     <!-- Favorites -->
     {% include 'favorite_icon_social.html' %}
     {% include 'share_icon_social.html' %}
 </div>
+{% endif %}

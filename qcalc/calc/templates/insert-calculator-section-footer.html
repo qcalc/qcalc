@@ -4,4 +4,5 @@
 {% cal_var_url input.doc.info.name input_id False True False request.is_public as url_noencode %}
 {% cal_var_url input.doc.info.name input_id False False False request.is_public True as url_core %}
 <p style="font-size: 0.8rem;"><i>{{desc|safe}}<a href="{{url_noencode}}" target="_blank">Link</a>,&nbsp;
-<a href="{{url_core}}" target="_blank">Core</a></i></p>
+<a href="{{url_core}}" target="_blank">Core</a>{% if request.embed %},&nbsp;
+Powered by <a href="{{url_noencode}}" target="_blank" rel="noopener">qCalc</a>{% endif %}</i></p>

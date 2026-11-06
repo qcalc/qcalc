@@ -107,7 +107,7 @@ def get_ldjson(title: str, desc: str, canonical: str = '', categories: list | No
 
 def _static_ver(path):
     full_url = f'{qaddr()}{static(path)}'
-    return format_html(f'{full_url}?v={STATIC_VERSION}')
+    return format_html('{}?v={}', full_url, STATIC_VERSION)
 
 
 def _test():

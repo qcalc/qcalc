@@ -208,7 +208,7 @@ print("Hello, World!")
         md_text = upload_markdown.text()
     else:
         raise Exception(f"Error (MR): mode must be one of 'File', 'URL', or 'Text'")
-    return qhtml(md2html(md_text.lstrip('\ufeff'), wrap=True))
+    return qhtml(md2html(md_text.lstrip('\ufeff'), in_container=True))
 
 
 def csv_reader__info():
@@ -325,6 +325,28 @@ def remove_tags(html):
     return ' '.join(soup.stripped_strings)
 
 
+def sanitize_html_for_render(html):
+    soup = BeautifulSoup(html, "html.parser")
+    for data in soup(['script']):
+        data.decompose()
+
+    for tag in soup.find_all(True):
+        for attr_name in list(tag.attrs.keys()):
+            lower_name = attr_name.lower()
+            if lower_name.startswith('on'):
+                del tag.attrs[attr_name]
+                continue
+            if lower_name not in ('href', 'src', 'xlink:href', 'formaction'):
+                continue
+
+            attr_value = tag.attrs.get(attr_name, '')
+            values = attr_value if isinstance(attr_value, list) else [attr_value]
+            if any(str(v).strip().lower().startswith('javascript:') for v in values):
+                del tag.attrs[attr_name]
+
+    return str(soup)
+
+
 def html_reader__info():
     return {
         'title': 'HTML Reader and Editor',
@@ -343,7 +365,7 @@ def html_reader__info():
         'schema': {
             'mode': {
                 'type': 'choice',
-                'choices': {'File': 'File', 'URL': 'URL', 'Text': 'Text'},
+                'choices': ['File', 'URL', 'Text'],
                 'initial': 'URL',
                 'help_text': 'Choose whether to read HTML from a URL or from text input.',
             },
@@ -351,6 +373,12 @@ def html_reader__info():
                 'attrs': {
                     'data-lang': 'html',
                 },
+            },
+            'display': {
+                'type': 'choice',
+                'choices': ['Code', 'Text', 'Formatted'],
+                'initial': 'Code',
+                'help_text': 'Code shows source, Text strips tags, Formatted renders safe HTML.',
             },
         },
     }
@@ -367,7 +395,7 @@ def html_reader(upload_html: qfile = None, html_url: qurl = demo_url('demo.html'
     <li>Second item</li>
     <li>Third item</li>
 </ul>
-""", convert_to_text: bool = False, mode='URL'):
+""", display = 'Code', mode='URL'):
     # https://www.geeksforgeeks.org/remove-all-style-scripts-and-html-tags-using-beautifulsoup/
     mode = str(mode).strip().upper()
     if mode == 'URL':
@@ -385,10 +413,17 @@ def html_reader(upload_html: qfile = None, html_url: qurl = demo_url('demo.html'
         html = upload_html.text()
     else:
         raise Exception(f"Error (HR): mode must be one of 'File', 'URL', or 'Text'")
-    if convert_to_text:
+
+    display = str(display).strip().upper()
+    if display == 'TEXT':
         html = remove_tags(html)
         return qhtml(code2html(html, 'text'))
-    return qhtml(code2html(html, 'html'))
+    if display == 'CODE':
+        return qhtml(code2html(html, 'html'))
+    if display == 'FORMATTED':
+        return qhtml(sanitize_html_for_render(html))
+
+    raise Exception(f"Error (HR): display must be one of 'Code', 'Text', or 'Formatted'")
 
 
 def js_reader__info():

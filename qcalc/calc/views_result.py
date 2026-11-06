@@ -5,7 +5,7 @@ import logging
 from datetime import date, datetime, time as dt_time
 
 import pandas as pd
-from django.utils.html import escape
+from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 
 import qconst
@@ -133,35 +133,48 @@ def q1145_result_to_form_schema(request, func_id, cid, result, proper_dict):
             request.ojson_data_type.append('html')
             request.ojson_doc['table_out'] = True
         elif isinstance(value, QChart) or isinstance(value, QMap):
+            chart_src = f"data:image/png;base64,{value.chart()}"
             request.ojson_data[name] = qhtml(
-                wrap_actions(f"<img class='img-plot img-chart qhtml' src='data:image/png;base64,{value.chart()}'>")
+                wrap_actions(str(format_html(
+                    '<img class="img-plot img-chart qhtml" src="{}">',
+                    chart_src,
+                )))
             )
             request.ojson_data_type.append('html')
         elif isinstance(value, QImage):
+            image_src = f"data:image/png;base64,{value.image()}"
             request.ojson_data[name] = qhtml(
-                wrap_actions(f"<img class='img-plot qhtml' src='data:image/png;base64,{value.image()}'>")
+                wrap_actions(str(format_html(
+                    '<img class="img-plot qhtml" src="{}">',
+                    image_src,
+                )))
             )
             request.ojson_data_type.append('html')
         elif isinstance(value, qchat):
-            chat_html = f"""
-            <div class="qchat" role="log" aria-live="polite" tabindex="0">{value}</div>
+            chat_html = (
+                str(format_html(
+                    '<div class="qchat" role="log" aria-live="polite" tabindex="0">{}</div>',
+                    mark_safe(value),
+                ))
+                + """
             <script>
-            (() => {{
+            (() => {
                 const script = document.currentScript;
                 const chat = script ? script.previousElementSibling : null;
                 if (chat) chat.scrollTop = chat.scrollHeight;
-            }})();
+            })();
             </script>
             """
+            )
             request.ojson_data[name] = mark_safe(wrap_actions(chat_html, 'chat-wrap'))
             request.ojson_data_type.append('html')
         elif isinstance(value, qpage):
-            safe_text = escape(str(value))
-            request.ojson_data[name] = qhtml(
-                "<div class='md-content'>"
-                "<pre style='white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word;'>"
-                f"{safe_text}</pre></div>"
-            )
+            request.ojson_data[name] = qhtml(str(format_html(
+                "<div class='md-content md-pre-wrap'>"
+                "<pre>{}</pre>"
+                "</div>",
+                value,
+            )))
             request.ojson_data_type.append('html')
         elif isinstance(value, float):
             request.ojson_data[name] = qformat(value, pref=us)

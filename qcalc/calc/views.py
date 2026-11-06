@@ -28,6 +28,7 @@ from .views_step2 import cache_step2_io
 from qutil import HtmxHttpRequest, url_to_user_expr, fid2owner
 import qutil as ut
 import json
+from urllib.parse import parse_qs, urlparse
 from django.conf import settings
 import logging
 
@@ -235,6 +236,11 @@ def q1199_func_to_form_common(request: HtmxHttpRequest, **dictf):  # main view
         var_owner = var_info.user.username if var_info else qvars.super_user.username
         variant = var_info.variant_id if var_info else 0
         token = var_info.access_token if var_info else ''
+
+    # widget mode (no social bar, io buttons). A POST has no ?embed of its own, but htmx sends the page url
+    embed_query = request.GET if request.method == 'GET' else parse_qs(
+        urlparse(request.headers.get('HX-Current-URL', '')).query, keep_blank_values=True)
+    request.embed = 'embed' in embed_query
 
     variant = int(variant)
     request.variant = variant

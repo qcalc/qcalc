@@ -10,6 +10,7 @@
   {% block page_profile %}{% endblock %}
   {% block extra_header %}{% endblock %}
   {% include 'insert-head-assets.html' %}
+  {% if request.embed %}<script src="{% static_ver 'qsite/js/qembed.js' %}" data-child defer></script>{% endif %}
   {% block extra_header_script %}{% endblock %}
 </head>
 {% endlineless %}

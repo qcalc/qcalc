@@ -278,7 +278,7 @@ function formReady(cid) {
         elem = $('#' + QCALC_TOK_CARD_PREFIX + cid).find('#renderends') //renderedns time
         elem.text(Date.now()/1000);
 
-        if (window.innerWidth <= 768) {
+        if (window.innerWidth <= 768 && document.querySelector('.navbar-toggler.dropdown-toggle')) {
             addFooterClick();
         }
 

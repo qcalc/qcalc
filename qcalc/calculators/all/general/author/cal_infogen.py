@@ -260,7 +260,7 @@ def infogen(
         return qerror(f'Error (CIF): {e}')
 
     # qhtml, not qchat: qchat auto-scrolls to the end, and .md-content adds a Copy button to code blocks
-    output = {'Info Code': qhtml(md2html(_code_block(result.code), wrap=True))}
+    output = {'Info Code': qhtml(md2html(_code_block(result.code), in_container=True))}
     if result.warnings:
         output['Notes'] = qwarn('\n'.join(f'- {w}' for w in result.warnings))
     return output

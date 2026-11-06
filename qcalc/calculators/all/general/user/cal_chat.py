@@ -32,7 +32,7 @@ def _render_ai_chat(turns):
             '#### AI',
             escape_markdown(turn['assistant']),
         ])
-    return qchat(md2html('\n\n'.join(sections), wrap=True))
+    return qchat(md2html('\n\n'.join(sections), in_container=True))
 
 
 def ai_chat__command(ctx, _func_kwargs):

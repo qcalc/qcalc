@@ -43,7 +43,7 @@ def _render_agent_history():
         if response_code:
             sections.append(f'```python\n{response_code}\n```')
 
-    return qchat(md2html('\n\n'.join(sections), wrap=True))
+    return qchat(md2html('\n\n'.join(sections), in_container=True))
 
 
 def mycal2__command(ctx, func_kwargs):

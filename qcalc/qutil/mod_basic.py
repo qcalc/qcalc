@@ -33,8 +33,8 @@ def joinx(slist, separator=' '):
     Unlike ``separator.join(...)``, this avoids extra separators when adjacent
     values are blank, making it handy for building labels/messages from optional
     parts.
-    
-    Example: 
+
+    Example:
     >> joinx(('hello','', 'how','you','?'))
     >> 'hello how you ?'
     >> ' '.join(('hello','', 'how','you','?'))
@@ -47,17 +47,17 @@ def joinx(slist, separator=' '):
     return s1
 
 
-def quick_find(list_: list, find: str):
-    idx = bisect.bisect_left(list_, find)
-    if idx < len(list_) and list_[idx] == find:
-        return list_[idx]
-    return None
-
-
-def sort_by_key(vdict: dict) -> dict:
-    keys = list(vdict.keys())
-    keys.sort()
-    return {k: vdict[k] for k in keys}
+# def quick_find(list_: list, find: str):
+#     idx = bisect.bisect_left(list_, find)
+#     if idx < len(list_) and list_[idx] == find:
+#         return list_[idx]
+#     return None
+#
+#
+# def sort_by_key(vdict: dict) -> dict:
+#     keys = list(vdict.keys())
+#     keys.sort()
+#     return {k: vdict[k] for k in keys}
 
 
 def sort_by_val(vdict: dict) -> dict:
@@ -235,7 +235,7 @@ def xpr_coeffs(xpr):
     for match in matches:
         if match == '-':
             match = '-1'
-        elif match == '':
+        elif match in ('', '+'):
             match = '1'
         coeffs.append(float(match))
     # print(xpr)
@@ -503,23 +503,3 @@ def fchoices(vchoices):
     else:
         return []
 
-
-if __name__ == '__main__':
-    def _test():
-        print(fchoices({1: 'a', 2: 'b', 3: 'c'}))
-        print(fchoices(((1, 'a'), (2, 'b'), (3, 'c'))))
-        print(fchoices([(1, 'a'), (2, 'b'), (3, 'c')]))
-        print(fchoices([{'name': 'a', 'value': 1}, {'name': 'b', 'value': 2}, {'name': 'c', 'value': 3}]))
-        print(fchoices(['a', 'b', 'c']))
-        print(fchoices({'a', 'b', 'c'}))
-        # print(idx2names('x,y,3,4,z,?', ['a', 'b', 'c', 'd', 'x', 'y', 'z']))
-        # ['x', 'y', 'c', 'd', 'z', '?']
-        print(replace_words('km/usd', ['USD'], 'bdt'))
-        print(replace_words('km/uSd', ['USD'], 'bdt', False))
-        print(css2strs([1, 2, 3]))  # list
-        print(css2strs('1, 2, 3'))  # string
-        print(css2strs((1, 2, 3)))  # touple
-        # print(css2strs({1, 2, 3})) # set
-
-
-    _test()

@@ -74,6 +74,8 @@ def _github_slugger():
         return slug if not count else f'{slug}{separator}{count}'
 
     return slugify
+
+
 """
 extra:  footnotes, abbreviations, and definition lists
 fenced_code: multiline code blocks by wrapping them in three backticks (```) instead of forcing a four-space indentation.
@@ -84,7 +86,7 @@ sane_lists: keeps explicit ordered-list numbering instead of restarting at 1 for
 """
 
 
-def md2html(md_text: str, wrap=False):
+def md2html(md_text: str, *, in_container=False, pre_wrap=False):
     """Render Markdown to HTML using qcalc's standard extension set."""
     html = markdown.markdown(
         md_text,
@@ -92,13 +94,26 @@ def md2html(md_text: str, wrap=False):
         extension_configs={**MARKDOWN_CONFIGS, 'toc': {'slugify': _github_slugger()}},
         output_format='html',
     )
-    return html if not wrap else f'<div class="md-content">{html}</div>'
+    if not in_container:
+        return html
+    wrapper_class = 'md-content md-pre-wrap' if pre_wrap else 'md-content'
+    return f'<div class="{wrapper_class}">{html}</div>'
 
 
 _MARKDOWN_CODE_PATTERN = re.compile(
     r'(```[^\n]*\n.*?^```[ \t]*$|`[^`\n]+`)',
     re.MULTILINE | re.DOTALL,
 )
+
+
+def code2html(code: str, lang: str, *, in_container: bool = True, pre_wrap: bool = False):
+    """Convert a code block to HTML using Markdown."""
+    fence = '`' * max(3, max((len(m) for m in re.findall(r'`+', code)), default=0) + 1)
+    return md2html(
+        f'{fence}{lang}\n{code.strip(chr(10))}\n{fence}',
+        in_container=in_container,
+        pre_wrap=pre_wrap,
+    )
 
 
 def escape_markdown(md_text):
@@ -122,9 +137,3 @@ def wrap_md_images(html: str):
         wrapper.append(image.extract())
 
     return str(soup)
-
-
-def code2html(code: str, lang: str):
-    # the fence must be longer than any backtick run in the code so it cannot close early
-    fence = '`' * max(3, max((len(m) for m in re.findall(r'`+', code)), default=0) + 1)
-    return md2html(f'{fence}{lang}\n{code.strip(chr(10))}\n{fence}', wrap=True)

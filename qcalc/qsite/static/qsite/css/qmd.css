@@ -66,6 +66,13 @@
   line-height: 1.5;
 }
 
+.md-content.md-pre-wrap pre,
+.md-content.md-pre-wrap pre code {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 .md-content :not(pre) > code {
   background: var(--qmd-inline-bg);
   border: 1px solid var(--qmd-inline-border);

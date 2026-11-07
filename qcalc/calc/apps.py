@@ -2,7 +2,7 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 from django.apps import AppConfig
-from calc import StdList, listen_to_qcalc_channel, w2_initialize_py_catalog_once_per_worker, \
+from calc import StdJson, listen_to_qcalc_channel, w2_initialize_py_catalog_once_per_worker, \
     redis_publish_check, redis_pubsub_active
 import os
 import sys
@@ -72,7 +72,7 @@ class CalcConfig(AppConfig):
             logger.info("*** STAGE W.0.2: listen_to_qcalc_channel() started")
 
         # Application data loaded into this worker's memory
-        StdList.w1_prepare_lists_once_per_worker()
+        StdJson.w1_load_json_once_per_worker()
 
         # Worker-local catalog
         w2_initialize_py_catalog_once_per_worker()

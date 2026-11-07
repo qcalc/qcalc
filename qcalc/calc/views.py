@@ -2,7 +2,7 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 import qvars
-from calc import QTemp, QList, QFav, QCalAlias, QPref, StdList
+from calc import QTemp, QJson, QFav, QCalAlias, QPref, StdJson
 from django.shortcuts import render
 from django.http import HttpResponse, QueryDict, JsonResponse
 from django.utils.html import format_html
@@ -59,7 +59,7 @@ def q2cal_search(request: HtmxHttpRequest):
 @require_POST
 def set_theme(request: HtmxHttpRequest):
     theme = (request.POST.get('theme') or '').strip().lower()
-    valid_themes = StdList.theme_list.get('choices', []) if isinstance(StdList.theme_list, dict) else []
+    valid_themes = StdJson.themes.get('choices', []) if isinstance(StdJson.themes, dict) else []
     if valid_themes and theme not in valid_themes:
         return JsonResponse({'ok': False, 'error': 'Invalid theme'}, status=400)
     QPref.setp1('theme', theme)
@@ -365,8 +365,8 @@ def mems(_request: HtmxHttpRequest):
     return JsonResponse(QMem.getp(), encoder=QEncoderBase)
 
 
-def lists(_request: HtmxHttpRequest):
-    return JsonResponse({'stat': QList.dict_of_stat, 'lists': QList.dict_of_list})
+def jcache(_request: HtmxHttpRequest):
+    return JsonResponse({'stat': QJson.json_cache_stat, 'jcache': QJson.json_cache})
 
 
 def q2_open_func(request: HtmxHttpRequest, json_str: str, part='1'):

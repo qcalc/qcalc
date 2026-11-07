@@ -44,16 +44,35 @@ def test_safe_execute_exposes_qapi_symbols():
     assert local_dict["result"] == (200, "qtexta")
 
 
-def test_safe_execute_exposes_qapply_and_reduces_converted_values():
+def test_safe_execute_exposes_qlist():
     local_dict = safe_execute(
-        "from qapi import qapply\n"
+        "from qapi import QList\n"
         "result = (\n"
-        "    qapply(['2', '30'], lambda a: a + 50),\n"
-        "    qapply([], lambda a: a + 50),\n"
+        "    QList(['2', '30']).add(1),\n"
+        "    QList([1, 2]).mul([3, 4]).sum(),\n"
+        "    QList([]).sum(),\n"
+        "    QList([4, 8]).div(2),\n"
+        "    QList([1, 2]).binary(10, lambda a, b: b - a, reverse=False),\n"
         ")"
     )
 
-    assert local_dict["result"] == ([52, 80], [])
+    assert local_dict["result"] == ([3, 31], 11, 0, [2, 4], [9, 8])
+
+
+def test_qlist_quantities_and_errors():
+    from qcore import QList
+    import operator
+
+    assert QList(['2 m', '30 cm']).sum() == Qty('2.3 m')
+    assert QList([]).sum() == 0
+    assert QList([1, 2]).binary(10, operator.sub, reverse=True) == [9, 8]
+    assert QList(['2', '30']).apply(lambda a: a + 50) == [52, 80]
+    with pytest.raises(ValueError):
+        QList([1, 2]).add([1])
+    with pytest.raises(TypeError):
+        QList('abc')
+    with pytest.raises(TypeError):
+        QList([1]).apply(5)
 
 
 def test_safe_execute_exposes_qapi_annotations_as_globals():

@@ -10,12 +10,12 @@ qsett.init()
 
 from django.test import RequestFactory
 
-from calc import QPref, StdList
+from calc import QPref, StdJson
 from calc.views import set_theme
 
 
 def test_set_theme_persists_valid_choice(monkeypatch):
-    monkeypatch.setattr(StdList, 'theme_list', {'choices': ['auto', 'light', 'dark']})
+    monkeypatch.setattr(StdJson, 'themes', {'choices': ['auto', 'light', 'dark']})
     saved = {}
     monkeypatch.setattr(QPref, 'setp1', lambda key, value: saved.update({key: value}))
     request = RequestFactory().post('/calc/theme/', {'theme': 'dark'})
@@ -28,7 +28,7 @@ def test_set_theme_persists_valid_choice(monkeypatch):
 
 
 def test_set_theme_rejects_invalid_choice(monkeypatch):
-    monkeypatch.setattr(StdList, 'theme_list', {'choices': ['auto', 'light', 'dark']})
+    monkeypatch.setattr(StdJson, 'themes', {'choices': ['auto', 'light', 'dark']})
     request = RequestFactory().post('/calc/theme/', {'theme': 'neon'})
 
     response = set_theme(request)
@@ -38,7 +38,7 @@ def test_set_theme_rejects_invalid_choice(monkeypatch):
 
 
 def test_set_theme_returns_htmx_fragment_and_trigger(monkeypatch):
-    monkeypatch.setattr(StdList, 'theme_list', {'choices': ['auto', 'light', 'dark']})
+    monkeypatch.setattr(StdJson, 'themes', {'choices': ['auto', 'light', 'dark']})
     saved = {}
     monkeypatch.setattr(QPref, 'setp1', lambda key, value: saved.update({key: value}))
     request = RequestFactory().post('/calc/theme/', {'theme': 'light'}, HTTP_HX_REQUEST='true')

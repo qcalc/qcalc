@@ -2,7 +2,7 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 from qcore import Qty
-from calc import QList, activity_choice
+from calc import QJson, activity_choice
 
 
 def demo_sel2__info():
@@ -10,7 +10,7 @@ def demo_sel2__info():
         'title': 'Select2 Testing',
         'schema': {
             'activity': activity_choice,
-            'country1': QList.getx("country", type='qsel2', sel2id='cntry'),
+            'country1': QJson.getx("country", type='qsel2', sel2id='cntry'),
             'country2': {'type': 'qsel2', 'sel2id': 'cntry', 'initial': 'JP'},
         },
     }

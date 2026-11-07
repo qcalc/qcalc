@@ -46,29 +46,29 @@ def dict2options(lst, **kwargs):
     return lst
 
 
-class StdList:
+class StdJson:
     initialized = False
-    autofill1_list = {}
-    autofill1data_list = {}
-    autofill2_list = {}
-    autofill2data_list = {}
-    related1_list = {}
-    related1data_list = {}
-    text_list = {}
-    theme_list = {}
-    timezone_list = {}
+    autofill1 = {}  # demo json
+    autofill1data = {}  # demo json
+    autofill2 = {}  # demo json
+    autofill2data = {}  # demo json
+    related1 = {}  # demo json
+    related1data = {}  # demo json
+    texts = {}  # qCalc title, desc
+    themes = {}  # qCalc themes
+    timezones = {}  # not used
 
     @classmethod
-    def w1_prepare_lists_once_per_worker(cls):
-        cls.autofill1_list = load_json("autofill1.json")
-        cls.autofill1data_list = load_json("autofill1data.json")
-        cls.autofill2_list = load_json("autofill2.json")
-        cls.autofill2data_list = load_json("autofill2data.json")
-        cls.related1_list = load_json("related1.json")
-        cls.related1data_list = load_json("related1data.json")
-        cls.text_list = load_json("texts.json")
-        cls.theme_list = load_json("themes.json")
-        cls.timezone_list = load_json("timezones.json")
+    def w1_load_json_once_per_worker(cls):
+        cls.autofill1 = load_json("autofill1.json")
+        cls.autofill1data = load_json("autofill1data.json")
+        cls.autofill2 = load_json("autofill2.json")
+        cls.autofill2data = load_json("autofill2data.json")
+        cls.related1 = load_json("related1.json")
+        cls.related1data = load_json("related1data.json")
+        cls.texts = load_json("texts.json")
+        cls.themes = load_json("themes.json")
+        cls.timezones = load_json("timezones.json")
         load_provider_quotas()
 
         add_measurement_units()
@@ -86,25 +86,25 @@ class StdList:
         qfunc_categ_info.update(load_json("qfunc_categ_info.json"))
         logger.info('*** Calculator categories info updated')
         cls.initialized = True
-        logger.info("*** STAGE W.1: w1_prepare_lists_once_per_worker() completed")
+        logger.info("*** STAGE W.1: w1_load_json_once_per_worker() completed")
 
 
-class QList:
-    dict_of_list: dict = {}
-    dict_of_stat: dict = {}
+class QJson:
+    json_cache: dict = {}
+    json_cache_stat: dict = {}
 
     @classmethod
     def get(cls, key):
-        if key in cls.dict_of_stat:
-            cls.dict_of_stat[key]["hit"] += 1
+        if key in cls.json_cache_stat:
+            cls.json_cache_stat[key]["hit"] += 1
         else:
-            cls.dict_of_list[key] = load_json(f"{key}.json")
-            cls.dict_of_stat[key] = {
+            cls.json_cache[key] = load_json(f"{key}.json")
+            cls.json_cache_stat[key] = {
                 "hit": 0,
-                'length': len(cls.dict_of_list[key]),
-                'size': sys.getsizeof(cls.dict_of_list[key])
+                'length': len(cls.json_cache[key]),
+                'size': sys.getsizeof(cls.json_cache[key])
             }
-        return cls.dict_of_list[key]
+        return cls.json_cache[key]
 
     @classmethod
     def getx(cls, key, **kwargs):

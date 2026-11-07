@@ -2,12 +2,9 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 import qconst
-from .qc_qty import str_to_qty
 from .qf_anno import is_qtbl
-import operator
 import pandas as _pd
 from qutil.mod_autil import to_plain
-from qutil import css2values
 
 # df.<name>(data, ...) builds a DataFrame internally and always returns a
 # plain-Python result (see _to_plain) -- no DataFrame-like object is ever
@@ -83,19 +80,6 @@ class _Df:
 
         return to_plain(target)
 
-    def _col_values(self, col):
-        if isinstance(col, str):
-            if col not in self.__df.columns:
-                raise KeyError(f"Unknown column: {col}")
-            return self.__df[col].tolist()
-
-        if isinstance(col, int):
-            if col < 0 or col >= len(self.__df.columns):
-                raise IndexError(f"Column index out of range: {col}")
-            return self.__df.iloc[:, col].tolist()
-
-        raise TypeError("Column selector must be a column name (str) or index (int)")
-
     def __getitem__(self, key):
         result = self.__df[key]
 
@@ -121,21 +105,6 @@ class _Df:
             )
 
         self.__df = new_df
-
-    def unary(self, col, op):
-        if not callable(op):
-            raise TypeError("unary() expects a callable operator function")
-        return qapply(self._col_values(col), op)
-
-    def binary(self, col1, col2, op):
-        if not callable(op):
-            raise TypeError("binary() expects a callable operator function")
-        return qbinary(self._col_values(col1), self._col_values(col2), op)
-
-    def binop(self, col, values, op):
-        if not callable(op):
-            raise TypeError("binop() expects a callable operator function")
-        return qbinary(self._col_values(col), values, op)
 
     def to_dict(self):
         return to_plain({
@@ -216,22 +185,6 @@ def qdf(tbl):
         raise ValueError("qtbl column names must be unique")
 
     return _Df(data, columns)
-
-
-def qcol(tbl, col: str | int):
-    """Extract one column from qtbl as a plain list.
-
-    Args:
-        tbl: qtbl payload.
-        col: Column name or 0-based column index.
-    """
-    idx = tbl['columns'].index(col) if isinstance(col, str) else col
-    return [row[idx] for row in tbl['data']]
-
-
-def qrow(tbl, row: str | int):
-    """Extract one row from qtbl as a plain list by 0-based row index."""
-    return list(tbl['data'][row])
 
 
 def qrecords(tbl, cols=None, skip_blank=True, skip_header=True, strip=True):
@@ -356,105 +309,3 @@ def qkeymap(tbl_or_rows, key, value, casts=None, unique=True):
     return out
 
 
-def qsum(values):
-    """Sum values after per-item conversion to calculator-native runtime values.
-    Convert numeric/Qty/date/time-like strings to appropriate types before summing.
-    Returns ``0`` for empty input.
-    """
-    values = list(values)
-
-    if not values:
-        return 0
-
-    total = qconvert(values[0])
-
-    for value in values[1:]:
-        total += qconvert(value)
-
-    return total
-
-
-def qapply(values, op):
-    """Apply a unary operation to converted calculator-native runtime values.
-
-    Convert numeric/Qty/date/time-like strings to appropriate types before
-    applying ``op``.
-    """
-    if not callable(op):
-        raise TypeError("qapply() expects a callable operator function")
-
-    if isinstance(values, (list, tuple)):
-        return [op(qconvert(x)) for x in values]
-    return op(qconvert(values))
-
-
-def qto_values(a):
-    """Convert one value or a sequence to calculator-native runtime values.
-    Convert numeric/Qty/date/time-like strings to appropriate types"""
-    if isinstance(a, (list, tuple)):
-        return [qconvert(x) for x in a]
-    return qconvert(a)
-
-
-def qconvert(x):
-    """Convert one input value into calculator-native runtime value.
-
-    Behavior:
-    - Non-string values are returned unchanged.
-    - Convert numeric/Qty/date/time-like strings to appropriate types
-    """
-    if not isinstance(x, str):
-        return x
-
-    q = str_to_qty(x)
-    if q is not None:
-        return q
-
-    val, data_type = css2values(x)
-    return val[0]
-
-
-def qbinary(a, b, op):
-    """Apply a binary operation element-wise to two values or sequences."""
-
-    if isinstance(a, (list, tuple)) and isinstance(b, (list, tuple)):
-        if len(a) != len(b):
-            raise ValueError("Operands must have the same length.")
-        return [
-            op(qconvert(x), qconvert(y))
-            for x, y in zip(a, b)
-        ]
-
-    if isinstance(a, (list, tuple)):
-        b = qconvert(b)
-        return [op(qconvert(x), b) for x in a]
-
-    if isinstance(b, (list, tuple)):
-        a = qconvert(a)
-        return [op(a, qconvert(y)) for y in b]
-
-    return op(qconvert(a), qconvert(b))
-
-
-def qadd(a, b):
-    """Add two values/quantities or two sequences element-wise.
-    Internally convert numeric/Qty/date/time-like strings to appropriate types before performing addition."""
-    return qbinary(a, b, operator.add)
-
-
-def qsub(a, b):
-    """Subtract values/quantities or subtract sequences element-wise.
-    Internally convert numeric/Qty/date/time-like strings to appropriate types before performing subtraction."""
-    return qbinary(a, b, operator.sub)
-
-
-def qmul(a, b):
-    """Multiply values/quantities or multiply sequences element-wise.
-    Internally convert numeric/Qty/date/time-like strings to appropriate types before performing multiplication."""
-    return qbinary(a, b, operator.mul)
-
-
-def qdiv(a, b):
-    """Divide values/quantities or divide sequences element-wise.
-    Internally convert numeric/Qty/date/time-like strings to appropriate types before performing division."""
-    return qbinary(a, b, operator.truediv)

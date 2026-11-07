@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 from qutil import qc_datetime_to_str, qc_str_to_date_and_time, qc_timezone
-from calc import StdList
+from calc import StdJson
 
 
 def cdtime__info():
@@ -8,7 +8,7 @@ def cdtime__info():
         'title': 'Convert Date Time Around the World',
         'schema': {
             'date_time': {'type': str, 'initial': qc_datetime_to_str(datetime.now(timezone.utc))},
-            'time_zone': {'type': 'qsel2', 'choices': StdList.timezone_list},
+            'time_zone': {'type': 'qsel2', 'choices': StdJson.timezones},
         }
     }
 

@@ -26,4 +26,5 @@ from .qf_qjfield import QJField
 from .qb_table_validate import *
 from .mod_fields import *
 from .qb_qbase import *
+from .qb_qlist import *
 from .qb_qdf import *

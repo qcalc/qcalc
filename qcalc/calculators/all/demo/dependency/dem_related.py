@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
-from calc import dict2options, StdList
+from calc import dict2options, StdJson
 
 
 def demo_related__info():
@@ -34,7 +34,7 @@ def demo_related2__info():
         'related':
             {
                 'r1': dict2options(
-                    StdList.related1data_list,
+                    StdJson.related1data,
                     fields={
                         'country': '',
                         'state': '',

@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
-from qcore import Qty, qtbl, qdf, qsum
+from qcore import Qty, qtbl, qdf
 from calc import QResults
 from calculators.all.finance import circ
 
@@ -125,7 +125,7 @@ def tco(
         disposal_pv = at('disposal') * discount_factor_n
         residual_pv = at('residual') * discount_factor_n
 
-        tco_total = qsum([initial_cost, operating_pv, maintenance_pv, financing_pv, disposal_pv, -residual_pv])
+        tco_total = initial_cost + operating_pv + maintenance_pv + financing_pv + disposal_pv - residual_pv
         annualized_tco = tco_total * capital_recovery_factor
         cost_per_hour = annualized_tco / usage_per_yr if usage_per_yr else None
 

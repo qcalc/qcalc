@@ -32,18 +32,22 @@ def _spec_type(spec, name='table', col=''):
 
 
 def _fields(value):
+    """Normalize a column or list of columns into a list of strings."""
     return [value] if isinstance(value, str) else list(value)
 
 
 def _blank(value):
+    """Check if a value is considered blank (None or empty string)."""
     return value is None or (isinstance(value, str) and not value.strip())
 
 
 def _key(values):
+    """Return a key tuple for the given list of values, using a single value if only one element is present."""
     return values[0] if len(values) == 1 else tuple(values)
 
 
 def _unique_specs(unique):
+    """Normalize the unique constraint specification into a list of lists of column names."""
     if unique is None:
         return []
     if isinstance(unique, str):
@@ -91,6 +95,7 @@ class QTable:
             self.validate(raise_exception=True)
 
     def _check_structure(self):
+        """Check the table's structure for consistency, including column names, row lengths, and key constraints."""
         if not all(isinstance(c, str) and c for c in self._columns):
             raise TypeError(f'{self.name}: column names must be non-empty strings')
         if len(set(self._columns)) != len(self._columns):
@@ -108,6 +113,7 @@ class QTable:
             _spec_type(_spec(raw), self.name, col)
 
     def _index(self, col):
+        """Return the index of the specified column in the table."""
         try:
             return self._columns.index(col)
         except ValueError:
@@ -115,31 +121,39 @@ class QTable:
 
     @property
     def columns(self):
+        """Return the list of column names in the table."""
         return list(self._columns)
 
     @property
     def data(self):
+        """Return a deep copy of the table's data as a list of rows."""
         return deepcopy(self._data)
 
     @property
     def shape(self):
+        """Return a tuple (nrows, ncols) representing the table's dimensions."""
         return len(self._data), len(self._columns)
 
     @property
     def nrows(self):
+        """Return the number of rows in the table."""
         return len(self._data)
 
     @property
     def ncols(self):
+        """Return the number of columns in the table."""
         return len(self._columns)
 
     def __len__(self):
+        """Return the number of rows in the table."""
         return self.nrows
 
     def __iter__(self):
+        """Return an iterator over the table's records as dictionaries."""
         return iter(self.records(skip_blank=False, skip_header=False, strip=False))
 
     def __repr__(self):
+        """Return a string representation of the table."""
         return f'QTable(name={self.name!r}, shape={self.shape})'
 
     def to_dict(self, full=False):
@@ -168,13 +182,16 @@ class QTable:
         return out
 
     def row(self, index):
+        """Return the row at the given index as a list."""
         return list(self._data[index])
 
     def column(self, name):
+        """Return the column with the given name as a list."""
         idx = self._index(name)
         return [row[idx] for row in self._data]
 
     def records(self, cols=None, skip_blank=True, skip_header=True, strip=True):
+        """Return the table as a list of dictionaries, optionally filtered by columns."""
         cols = list(cols) if cols is not None else self.columns
         indexes = [self._index(c) for c in cols]
         result = []
@@ -192,7 +209,7 @@ class QTable:
 
     def read(self, cols=None, casts=None, key=None, value=None, unique=True,
              skip_blank=True, skip_header=True, strip=True):
-        """Read normalized records, optionally as a key/value mapping."""
+        """Read normalized records, optionally as a key/value mapping based on the primary key."""
         rows = self.records(cols, skip_blank, skip_header, strip)
         casts = casts or {}
         for i, rec in enumerate(rows):
@@ -213,6 +230,7 @@ class QTable:
             raise ValueError(f'{self.name}: {exc}') from exc
 
     def get(self, key):
+        """Return the record matching the given primary key, or None if not found."""
         if not self.primary_key:
             raise ValueError(f'{self.name}: no primary key is defined')
         wanted = _fields(key) if len(self.primary_key) > 1 else [key]
@@ -224,10 +242,12 @@ class QTable:
         return None
 
     def _check_criteria(self, criteria):
+        """Ensure that all keys in the criteria exist as columns."""
         for k in criteria:
             self._index(k)
 
     def find(self, **criteria):
+        """Return the first record matching the given criteria, or None if not found."""
         self._check_criteria(criteria)
         for rec in self.records(skip_blank=False, skip_header=False, strip=False):
             if all(rec[k] == v for k, v in criteria.items()):
@@ -235,11 +255,13 @@ class QTable:
         return None
 
     def filter(self, **criteria):
+        """Return all records matching the given criteria."""
         self._check_criteria(criteria)
         return [r for r in self.records(skip_blank=False, skip_header=False, strip=False)
                 if all(r[k] == v for k, v in criteria.items())]
 
     def _prepare(self, record, base=None):
+        """Prepare a record for insertion or update, ensuring it conforms to the schema."""
         if not isinstance(record, dict):
             raise TypeError('A row must be a dictionary')
         unknown = set(record) - set(self._columns)
@@ -288,6 +310,7 @@ class QTable:
         return rec
 
     def _check_keys(self, rows, ignore=None):
+        """Check for duplicate keys in the given rows based on primary and unique keys."""
         specs = ([self.primary_key] if self.primary_key else []) + self.unique
         for spec in specs:
             seen = set()
@@ -303,7 +326,7 @@ class QTable:
                 seen.add(k)
 
     def validate(self, coerce=True, raise_exception=False):
-        """Validate schema and keys; return ``{'valid', 'errors'}``."""
+        """Validate the table's structure, schema, and keys; return ``{'valid', 'errors'}``."""
         errors = []
         try:
             self._check_structure()
@@ -327,22 +350,26 @@ class QTable:
         return {'valid': not errors, 'errors': errors}
 
     def _commit(self, rows):
+        """Commit the given rows to the table, ensuring key constraints are satisfied."""
         self._check_keys(rows)
         self._data = [[row[c] for c in self._columns] for row in rows]
 
     def add(self, record):
+        """Add a single record to the table, ensuring key constraints are satisfied."""
         rec = self._prepare(record)
         rows = self.records(skip_blank=False, skip_header=False, strip=False) + [rec]
         self._commit(rows)
         return rec
 
     def add_many(self, records):
+        """Add multiple records to the table, ensuring key constraints are satisfied."""
         rows = self.records(skip_blank=False, skip_header=False, strip=False)
         new_rows = [self._prepare(rec) for rec in records]
         self._commit(rows + new_rows)
         return new_rows
 
     def update(self, key, changes):
+        """Update the record matching the given primary key with the specified changes."""
         if not self.primary_key:
             raise ValueError(f'{self.name}: no primary key is defined')
         rows = self.records(skip_blank=False, skip_header=False, strip=False)
@@ -355,6 +382,7 @@ class QTable:
         raise KeyError(f'{self.name}: record not found: {key!r}')
 
     def delete(self, key):
+        """Delete the record matching the given primary key; return True if deleted, False if not found."""
         if not self.primary_key:
             raise ValueError(f'{self.name}: no primary key is defined')
         wanted = _fields(key) if len(self.primary_key) > 1 else [key]
@@ -366,10 +394,11 @@ class QTable:
         return True
 
     def clear(self):
+        """Clear all records from the table."""
         self._data = []
 
     def _sync_validation_columns(self, payload, old_columns):
-        """Apply canonical header renames made by the legacy validators."""
+        """Synchronize the table's columns with the canonical header names after validation."""
         new_columns = list(payload["columns"])
         if new_columns == old_columns:
             return
@@ -382,7 +411,7 @@ class QTable:
     def require_columns(self, required_cols, optional_cols=None,
                         case_sensitive=False, columns_can_grow=True,
                         required_col_uoms=None):
-        """Validate headers and normalize them to the requested names.
+        """Require specific columns to be present, optionally allowing additional columns.
 
         Retains qCalc's existing case/spacing, strict-input and UOM rules.
         """
@@ -499,6 +528,7 @@ class QRelation:
             raise ValueError("on_delete must be 'restrict', 'cascade', or 'set_null'")
 
     def to_dict(self):
+        """Return a dictionary representation of the relationship."""
         return {'master': self.master, 'detail': self.detail,
                 'master_key': self.master_key[0] if len(self.master_key) == 1 else self.master_key,
                 'detail_key': self.detail_key[0] if len(self.detail_key) == 1 else self.detail_key,
@@ -506,6 +536,7 @@ class QRelation:
                 'nullable': self.nullable}
 
     def validate(self, db):
+        """Validate the relationship against the given database, checking for key consistency and referential integrity."""
         master, detail = db[self.master], db[self.detail]
         for col in self.master_key:
             if col not in master.columns:
@@ -560,20 +591,25 @@ class QBase:
 
     @property
     def tables(self):
+        """Return a dictionary of all registered tables keyed by their names."""
         return dict(self._tables)
 
     @property
     def relations(self):
+        """Return a list of all defined relationships."""
         return list(self._relations)
 
     @property
     def table_names(self):
+        """Return a list of all registered table names."""
         return list(self._tables)
 
     def table(self, name):
+        """Return the table registered under the given name."""
         return self[name]
 
     def register(self, name, table):
+        """Register a new table under the given name."""
         if name in self._tables:
             raise ValueError(f'Table already registered: {name}')
         if not isinstance(table, QTable):
@@ -583,11 +619,13 @@ class QBase:
         return table
 
     def unregister(self, name):
+        """Unregister the table with the given name, ensuring it has no relationships."""
         if any(name in (r.master, r.detail) for r in self._relations):
             raise ValueError(f'{name}: remove its relationships first')
         return self._tables.pop(name)
 
     def relate(self, master, detail, **kwargs):
+        """Define a relationship between the master and detail tables."""
         if master not in self._tables or detail not in self._tables:
             raise KeyError('Register both tables before defining their relationship')
         relation = QRelation(master, detail, **kwargs)
@@ -595,6 +633,7 @@ class QBase:
         return relation
 
     def validate(self, raise_exception=False):
+        """Validate all tables and relationships in the database."""
         errors = {}
         for name, table in self._tables.items():
             result = table.validate()
@@ -611,7 +650,7 @@ class QBase:
         return result
 
     def master_detail(self, master, detail, master_key):
-        """Return detail records matching one master key (or composite key)."""
+        """Return detail records matching one master key (or composite key) in the master table."""
         relation = next((r for r in self._relations
                          if r.master == master and r.detail == detail), None)
         if relation is None:
@@ -621,7 +660,7 @@ class QBase:
                 if _key([row[c] for c in relation.detail_key]) == _key(wanted)]
 
     def delete(self, table_name, key):
-        """Delete a master row, applying on-delete rules through every level."""
+        """Delete a master row, applying on-delete rules through every level of related tables."""
         table = self[table_name]
         record = table.get(key)
         if record is None:
@@ -637,7 +676,7 @@ class QBase:
         return True
 
     def _apply_delete_rules(self, table_name, record, visited):
-        """Restrict/cascade/set-null the rows that reference ``record``."""
+        """Restrict/cascade/set-null the rows that reference ``record`` in related tables."""
         for i, relation in enumerate(self._relations):
             if relation.master != table_name:
                 continue

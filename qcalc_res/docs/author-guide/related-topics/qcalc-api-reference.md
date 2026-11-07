@@ -49,12 +49,8 @@ tbl = {"columns": ["name", "qty"], "data": [["A", 3], ["B", 5]]}
 
 | Symbol | Kind | What it does | Example |
 |---|---|---|---|
-| `qdf(tbl)` | function | Wraps `qtbl` into a safe dataframe facade (limited methods) | `qdf(tbl).sum()` |
-| `qcol(tbl, col)` | function | Returns one column by name or index | `qcol(tbl, "qty")` |
-| `qrow(tbl, row)` | function | Returns one row by index | `qrow(tbl, 0)` |
-| `qsum(values)` | function | Sum numbers and/or quantities safely | `qsum([Qty("2 m"), Qty("30 cm")])` |
-| `qapply(values, op)` | function | Apply a binary operation cumulatively across values after qcalc conversion | `qapply(["2 m", "30 cm"], lambda a, b: a + b)` |
-| `qadd`, `qsub`, `qmul`, `qdiv` | function | Scalar/list element-wise arithmetic; quantity-aware where possible | `qadd([1,2], 10)` |
+| `qdf(tbl)` | function | Wraps `qtbl` into a safe dataframe facade (limited methods); `qdf(tbl)["qty"]` returns one column as a list | `qdf(tbl).sum()` |
+| `QList(values)` | class | List of converted values (numbers, quantities, dates). Methods: `sum()`, `apply(op)`, `add(x)`, `sub(x)`, `mul(x)`, `div(x)`, `binary(x, op)`; `x` is a value or a same-length list | `QList(["2 m", "30 cm"]).sum()` |
 
 ---
 
@@ -75,7 +71,7 @@ tbl = {"columns": ["name", "qty"], "data": [["A", 3], ["B", 5]]}
 | `qmodules()` | function | Lists allowed import modules in safe execution context | `qmodules()` |
 | `qsymbols(scope='api', name_filter=None)` | function | Discover available symbols/calculators/units | `qsymbols("api")` |
 | `qsymstat()` | function | Count summary by symbol category | `qsymstat()` |
-| `qsymhelp(name)` | function | Signature/doc help for one symbol | `qsymhelp("qsum")` |
+| `qsymhelp(name)` | function | Signature/doc help for one symbol | `qsymhelp("QList")` |
 
 ---
 
@@ -149,7 +145,7 @@ def convert(value: qt, target_uom: quom2):
 Example:
 ```python
 def totals(rows: qtbl):
-    return qsum(qcol(rows, "amount"))
+    return QList(qdf(rows)["amount"]).sum()
 ```
 
 ### 10.5 File/image input

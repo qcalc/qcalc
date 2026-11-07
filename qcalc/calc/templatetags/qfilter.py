@@ -12,7 +12,7 @@ from qsite import STATIC_VERSION
 from django.utils.html import format_html
 from django.conf import settings
 from django.contrib.staticfiles import finders
-from calc import QCals, StdList, get_html, ancestors, QPref, QInput, cur_loader
+from calc import QCals, StdJson, get_html, ancestors, QPref, QInput, cur_loader
 import qconst
 import re
 
@@ -309,7 +309,7 @@ def static_ver(path):
 
 def _current_theme():
     theme = QPref.getp1('theme', 'auto')
-    valid_themes = StdList.theme_list.get('choices', []) if isinstance(StdList.theme_list, dict) else []
+    valid_themes = StdJson.themes.get('choices', []) if isinstance(StdJson.themes, dict) else []
     if (valid_themes and theme not in valid_themes) or not re.fullmatch(r'[a-z0-9_-]+', str(theme)):
         theme = 'auto'
     return theme
@@ -329,7 +329,7 @@ def calc_cols():
 
 @register.simple_tag
 def get_text(key):
-    return StdList.text_list.get(key, '')
+    return StdJson.texts.get(key, '')
 
 
 @register.filter

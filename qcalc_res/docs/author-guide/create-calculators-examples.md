@@ -84,8 +84,9 @@ def item_costs(items: qtbl = {
     ]
 }):
     df = qdf(items)
-    df["cost"] = qmul(df["Quantity"], df["Unit Cost"])
-    total_cost = qsum(df["cost"])
+    cost = QList(df["Quantity"]).mul(df["Unit Cost"])
+    df["cost"] = cost
+    total_cost = cost.sum()
 
     return {
         "Item Costs": df.to_dict(),
@@ -96,8 +97,8 @@ def item_costs(items: qtbl = {
 * Use a dict with `"columns"` and `"data"` to represent an input data table using the `qtbl` annotation.
 * `qdf()` provides safe and lightweight DataFrame-like functionality in Python.
 * `.to_dict()` displays a table in the output.
-* `qmul()` is a unit-aware function that multiplies two columns of quantities.
-* `qsum()` is a unit-aware function that totals a column of quantities.
+* `QList()` is a list of values in which strings such as `"3650 nos"` are converted to quantities; `.mul()` multiplies two columns element-wise with units.
+* `QList.sum()` totals a list of quantities with units.
 * To lock columns of an input table, set `attrs` in the `__info` schema (`"schema": {"items": {"attrs": {...}}}`):
   * `'readonly_cols': ['Item']` locks the header and the values of those columns; rows can then not be added or deleted.
   * `'fixed_headers': ['Quantity']` locks only the header, the values remain editable. Use `True` to lock every column.

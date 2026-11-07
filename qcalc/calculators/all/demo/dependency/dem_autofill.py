@@ -1,21 +1,21 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
-from calc import dict2options, StdList
+from calc import dict2options, StdJson
 
 
 def demo_autofill__info():
     return {
         'schema':
             {
-                'select_1': dict2options(StdList.autofill1_list, initial="C3"),
-                'select_2': dict2options(StdList.autofill2_list, initial="z")
+                'select_1': dict2options(StdJson.autofill1, initial="C3"),
+                'select_2': dict2options(StdJson.autofill2, initial="z")
             },
         'autofill':
             {
-                'select_1': dict2options(StdList.autofill1data_list,
+                'select_1': dict2options(StdJson.autofill1data,
                                          fields=['auto_fill_11', 'auto_fill_12', 'auto_fill_13']),
-                'select_2': dict2options(StdList.autofill2data_list, fields=['auto_fill_21', 'auto_fill_22'])
+                'select_2': dict2options(StdJson.autofill2data, fields=['auto_fill_21', 'auto_fill_22'])
             },
     }
 

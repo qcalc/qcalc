@@ -8,7 +8,7 @@ import qvars
 import time
 from .mod_redis import redis_pubsub_active
 from .mod_qcals import QCals
-from .mod_qlist import cur_loader
+from .mod_qjson import cur_loader
 from qvars import qc_gpref
 import logging
 

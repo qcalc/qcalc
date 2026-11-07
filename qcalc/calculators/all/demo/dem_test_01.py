@@ -7,7 +7,7 @@ from calculators.all.general.chart import pie_chart, line_chart, scatter_chart, 
 from calculators.all.engineering.surveying import rectland
 from calculators.all.mathematics.geometry import circle
 from calculators.all.health import bmi
-from calc import QList
+from calc import QJson
 from qutil import cal_link, resize_df, csv2df, callback_button, calurl
 import time
 from calculators.all.general import conv2
@@ -89,7 +89,7 @@ def demo_table2__info():
         'title': 'Testing Table',
         'schema': {
             'x': {'initial': df_x},
-            'tsel': QList.get("test")
+            'tsel': QJson.get("test")
         },
     }
 
@@ -115,7 +115,7 @@ def demo_table__info():
         'title': 'Testing Table',
         'schema': {
             'x': {'initial': df_x},
-            'tsel': QList.get("test")
+            'tsel': QJson.get("test")
         },
     }
 
@@ -191,7 +191,7 @@ def demo_arr2(x: qlist = [100, 200, 300],
 def demo_personal_list__info():
     return {
         'schema': {
-            'x': QList.get("test")
+            'x': QJson.get("test")
         }
     }
 
@@ -211,7 +211,7 @@ def demo_conv3(f: qfunc = conv2):
 def demo_cntry__info():
     return {
         'schema': {
-            'country': QList.getx("country", initial='BD')
+            'country': QJson.getx("country", initial='BD')
         }
     }
 

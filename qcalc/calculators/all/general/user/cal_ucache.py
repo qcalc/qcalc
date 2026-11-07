@@ -22,7 +22,7 @@ from qvars import qc_gpref as gs
 from calc import (
     OPENAI_MODEL_CHOICES,
     dict2options,
-    StdList,
+    StdJson,
     normalize_openai_model,
 )
 
@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 
 
 def _normalize_theme(theme_name, fallback='auto'):
-    choices = StdList.theme_list.get('choices', []) if isinstance(StdList.theme_list, dict) else []
+    choices = StdJson.themes.get('choices', []) if isinstance(StdJson.themes, dict) else []
     if choices and theme_name not in choices:
         return fallback
     return theme_name
@@ -61,7 +61,7 @@ def pref__info():
         'schema': {
             # 'request': {'attrs': {'readonly': True}},
             'theme': {
-                **dict2options(StdList.theme_list, initial="auto"),  # {'type': 'choice', 'choices': theme_list},
+                **dict2options(StdJson.themes, initial="auto"),  # {'type': 'choice', 'choices': themes},
                 'help_text': 'Select qCalc look and feel. Auto follows the light or dark setting of your device.',
             },
             'interactive': {

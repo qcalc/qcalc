@@ -10,9 +10,8 @@ import datetime
 from qcore import (
     # | Qty class and related functions
     Qty, QTable, QRelation, QBase,
-    qdf, qcol, qrow, qrecords, read_table, qkeymap, qsum, qapply, qadd, qsub, qmul,
-    qdiv, qto_values,
-    qconvert, qbinary, qdf_demo_data,
+    qdf, qrecords, read_table, qkeymap, QList,
+    qconvert, qdf_demo_data,
     base_units, base_dims, unit_desc, prefixes,
     unit2lmt, lmt_desc, str_type,
     lmt2cat, lmt2ulist, lmt2qlist, find_unit, is_str_qty, qx, qxi,
@@ -90,9 +89,8 @@ __evacon__ = [
     'ai_prompt_field', 'br',  # qcor.mod_fields
     'iif', 'joinx', 'css2floats', 'css2ints', 'css2values', 'css2strs', 'vals2css', 'css2set', 'css2dict',
     'css2list',  # qutil.mod_basic
-    'np', 'qdf', 'qcol', 'qrow', 'qrecords', 'read_table', 'qkeymap', 'qsum', 'qapply', 'qadd', 'qsub', 'qmul',
-    'qdiv', 'qto_values',  # qapi.mod_qtbl
-    'qconvert', 'qbinary', 'qdf_demo_data',
+    'np', 'qdf', 'qrecords', 'read_table', 'qkeymap', 'QList',  # qapi.mod_qtbl
+    'qconvert', 'qdf_demo_data',
     'qtypes', 'qmodules', 'qsymbols', 'qsymstat', 'qsymhelp',  # qapi.mod_autil
     'QFile', 'qf2bio', 'dd_list',
     'QImage', 'qf2img', 'nparray_to_bio',

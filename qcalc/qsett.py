@@ -19,9 +19,9 @@ def init():
     if __cat_initialized:
         return
 
-    from calc import create_standard_cataog_from_packages, StdList
+    from calc import create_standard_cataog_from_packages, StdJson
     create_standard_cataog_from_packages()
-    StdList.w1_prepare_lists_once_per_worker()
+    StdJson.w1_load_json_once_per_worker()
     __cat_initialized = True
 
 if __name__ == '__main__':

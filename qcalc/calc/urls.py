@@ -23,7 +23,7 @@ urlpatterns = [
     path('io/', views_step2.calc_io, name='calc-io'),
     path('io/clear/<str:cid>/', views_step2.calc_io_clear, name='calc-io-clear'),
     path('mems/', views.mems, name='calc-mems'),
-    path('lists/', views.lists, name='calc-lists'),
+    path('jcache/', views.jcache, name='calc-jcache'),
     path('cart/', views.add_to_cart, name='calc-cart'),
     path('save/', views.q11440b_get_saved_io, name='calc-save'),
 ]

@@ -9,7 +9,7 @@ from .mod_init import *
 from .mod_openai import *
 from .mod_qcals import QCals
 # mod_qcals_security
-from .mod_qlist import *
+from .mod_qjson import *
 from .mod_currency import *
 from .mod_redis import *
 from .mod_redis_act import *
@@ -90,8 +90,8 @@ def w2_initialize_py_catalog_once_per_worker():
 def w3_initialize_db_catalog_once_per_worker():
     # accessing the database during app initialization is discouraged
     # avoid executing queries in AppConfig.ready()
-    if not StdList.initialized:
-        StdList.w1_prepare_lists_once_per_worker()
+    if not StdJson.initialized:
+        StdJson.w1_load_json_once_per_worker()
     if not hasattr(QCals, 'calc_root'):
         w2_initialize_py_catalog_once_per_worker()
     create_public_catalog_from_db()  # | Accessing the database

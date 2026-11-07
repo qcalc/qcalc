@@ -2,7 +2,8 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 # Tests generated with AI assistance. Reviewed and validated by the author.
 
-from qutil import css2list, css2strs
+from qcore import css2list
+from qutil import css2strs
 
 
 def test_css2list_basic_and_whitespace():

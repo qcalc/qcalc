@@ -11,8 +11,8 @@ from calc import QCals
 from calc.mod_prefs import PREF_OPTIONS
 from calc.views_info_meta import q1141_read_func_meta
 from calculators.all.general.author.mod_mycal_validation import INFO_SCHEMA, INFO_VALIDATOR
-from qutil.mod_code_info import build_info
-from qutil.mod_info_keys import (
+from qcore.mod_info import build_info
+from qcore.mod_info_keys import (
     ALL_INFO_KEYS,
     INFO_KEYS,
     INFO_OVERRIDE_KEYS,

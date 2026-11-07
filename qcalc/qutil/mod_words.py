@@ -52,4 +52,4 @@ if __name__ == '__main__':
     address = "123 main street,apt 4b,new york, ny"
     formatted_address = format_address(address)
     print(formatted_address)  # Output: "123 Main Street, Apt 4B, New York, NY"
-    print(format_address('')=='')
+    print(format_address('') == '')

@@ -9,7 +9,7 @@ from django.http import HttpResponse
 from django.shortcuts import render
 
 import qvars
-from .mod_basic import nzs, iif
+from .mod_basic import nzs
 from django.http import Http404
 import hashlib
 import logging

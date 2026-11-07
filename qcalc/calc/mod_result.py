@@ -6,8 +6,8 @@ import pandas as pd
 import datetime
 
 import qconst
-from qutil import title_to_variable, replace_variables, replace_parameter_values, QDateTime, css2strs, specified_args
-from qcore import as_qtable, is_qtbl, Qty, str_to_qty, df_formatter
+from qutil import title_to_variable, replace_variables, replace_parameter_values, css2strs, specified_args
+from qcore import as_qtable, is_qtbl, Qty, str_to_qty, df_formatter, QDateTime
 from qvars import qc_gpref as gs
 from .mod_input_fields import ResultCellsError
 

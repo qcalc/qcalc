@@ -3,9 +3,8 @@
 
 import pandas as pd
 import qconst
-
-from qcore import as_qtable, Qty
-from qutil import as_float, css2strs, specified_args
+from qcore import as_qtable, Qty, as_float
+from qutil import css2strs, specified_args
 from .mod_result_chart import QResults
 
 

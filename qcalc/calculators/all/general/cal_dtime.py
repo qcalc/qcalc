@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from qutil import qc_datetime_to_str, qc_str_to_date_and_time, qc_timezone
+from qcore import qc_datetime_to_str, qc_str_to_date_and_time, qc_timezone
 from calc import StdJson
 
 

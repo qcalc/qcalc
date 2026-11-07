@@ -11,10 +11,11 @@ import qsett
 qsett.init()
 
 from qutil.mod_basic import (
-    category_slug, css2floats, css2ints, css2set, css2strs, css2values, curdir_fullpath, doctrim,
-    docstring_to_html, fchoices, iif, joinx, key_val, nzs, nzv, parameter_values, replace_parameter_values,
-    replace_variables, replace_words, sort_by_val, truncate, vals2css, xpr_coeffs,
+    category_slug, css2strs, curdir_fullpath, doctrim,
+    docstring_to_html, fchoices, iif, joinx, key_val, nzs, parameter_values, replace_parameter_values,
+    replace_variables, replace_words, sort_by_val, truncate, xpr_coeffs,
 )
+from qcore.qd_basic import css2floats, css2ints, css2set, css2values, nzv, vals2css
 
 
 def test_fchoices_dict_gives_items():

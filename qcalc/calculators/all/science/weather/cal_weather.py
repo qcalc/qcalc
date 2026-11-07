@@ -1,10 +1,10 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
-from qcore import Qty, qfunc, QGeo, QScreen, qhtml
+from qcore import Qty, qfunc, QGeo, QScreen, qhtml, pretty_json
 from django.conf import settings
 import math
-from qutil import pretty_json, QThread, is_loggedin
+from qutil import QThread, is_loggedin
 from datetime import datetime, timezone, timedelta
 import requests
 

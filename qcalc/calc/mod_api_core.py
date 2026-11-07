@@ -14,7 +14,7 @@ import time
 from qcore import (
     api_pack_value, api_unpack_value, QJField, qerror, qtable, qtbl, qlist, qdict, as_qtable, is_qtbl,
 )
-from qutil import to_bool
+from qcore import to_bool
 from qvars import qc_gpref as gs
 from .mod_mfunc import func_meta, q0164_execute_qfunc
 from .mod_qcals import QCals

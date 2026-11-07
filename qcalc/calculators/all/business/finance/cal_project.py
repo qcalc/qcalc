@@ -3,8 +3,7 @@
 
 import pandas as pd
 import pulp
-from qutil import to_cast
-from qcore import as_qtable, qtable, require_unique_values, require_values_subset
+from qcore import to_cast, as_qtable, qtable, require_unique_values, require_values_subset
 from calc import validate_schema_if_needed
 
 from calc import (

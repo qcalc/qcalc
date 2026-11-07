@@ -12,25 +12,11 @@ import qconst
 import qutil as ut
 from calc.templatetags.qfilter import field_root
 from qcore import (
-    QChart,
-    QImage,
-    QMap,
-    Qty,
-    df_formatter,
-    is_qtbl,
-    qformat,
-    qchat,
-    qhtml,
-    qjson_dumps,
-    qerror,
-    qinfo,
-    qpage,
-    qwarn,
-    qvstr,
-    wrap_actions,
+    QChart, QImage, QMap, Qty, QDateTime,
+    df_formatter, is_qtbl, qformat, qchat,
+    qhtml, qjson_dumps, qerror, qinfo,
+    qpage, qwarn, qvstr, wrap_actions,
 )
-from qutil import QDateTime
-
 from .mod_cache import QMem
 from .mod_cutil import keep_format
 from .mod_result import df2normalized

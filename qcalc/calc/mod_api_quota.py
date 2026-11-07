@@ -17,7 +17,7 @@ from django.conf import settings
 from django.db import transaction
 from django.db.models import F
 from django.utils import timezone
-from qutil import css2dict
+from qcore import css2dict
 from .mod_cred_quota import _ensure_row, _period_key, _usage, purge_old_usage
 
 logger = logging.getLogger(__name__)

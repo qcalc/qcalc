@@ -3,10 +3,10 @@
 
 import signal
 import time
-from qutil.timed_thread import QThread
+from .timed_thread import QThread
 import platform
 import threading
-from qutil.timed_thread import thread_with_timeout
+from .timed_thread import thread_with_timeout
 
 
 def run_with_timeout(func_addr, args=(), kwargs=None, timeout=60, pref=None):

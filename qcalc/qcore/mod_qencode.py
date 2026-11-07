@@ -2,7 +2,7 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 import pandas as pd
-from qutil import QDateTime, qc_str_to_datetime
+from .qd_datetime import QDateTime, qc_str_to_datetime
 from .qc_qty import Qty
 from .mod_qfile import QFile
 from django.core.serializers.json import DjangoJSONEncoder

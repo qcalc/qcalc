@@ -6,7 +6,7 @@ import qsett
 
 qsett.init()
 
-from qutil import css2dict
+from qcore import css2dict
 
 
 def test_css2dict_basic_and_whitespace():

@@ -31,9 +31,9 @@ import textwrap
 from dataclasses import dataclass, field
 
 import qconst
-from .mod_basic import css2list
-from .mod_data import is_blank, to_bool
-from .mod_func import variable_to_title
+from .qd_basic import css2list
+from .qd_data import is_blank, to_bool
+from qutil.mod_func import variable_to_title
 from .mod_info_keys import INTERNAL_KEYS, LEGACY_KEYS, PUBLIC_KEYS
 
 __all__ = ['InfoResult', 'build_info']
@@ -299,8 +299,8 @@ def _scan_outputs(func_node):
         if isinstance(node, ast.Assign):
             for target in node.targets:
                 if isinstance(target, ast.Subscript) and isinstance(target.value, ast.Name) \
-                        and target.value.id in returned \
-                        and isinstance(target.slice, ast.Constant) and isinstance(target.slice.value, str):
+                    and target.value.id in returned \
+                    and isinstance(target.slice, ast.Constant) and isinstance(target.slice.value, str):
                     add(target.slice.value)
                 elif isinstance(target, ast.Name) and target.id in returned and isinstance(node.value, ast.Dict):
                     for key in node.value.keys:
@@ -764,7 +764,7 @@ def _format_value(value, level):
     return repr(value)
 
 
-def _render_code(func_name, spec, helpers_used): 
+def _render_code(func_name, spec, helpers_used):
     # Render the __info() function code for the given function name, spec, and helpers used.
     lines = []
     if helpers_used:

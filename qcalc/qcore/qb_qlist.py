@@ -3,7 +3,7 @@
 
 import operator
 from .qc_qty import str_to_qty
-from qutil import css2values
+from .qd_basic import css2values
 
 __all__ = ['QList', 'qconvert']
 

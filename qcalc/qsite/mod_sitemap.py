@@ -3,9 +3,8 @@
 
 from django.contrib.sitemaps import Sitemap
 from calc import QCals, get_help_path
-from qcore import _base_slugs
+from qcore import _base_slugs, QDateTime
 # from datetime import date
-from qutil import QDateTime
 from .mod_docs import build_docs_tree
 from . import sitemap_lastmod
 

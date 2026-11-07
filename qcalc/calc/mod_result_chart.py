@@ -2,11 +2,8 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 import pandas as pd
-import datetime
-
-from qutil import QDateTime
 from .mod_result import result_values
-from qcore import Qty, QChart
+from qcore import Qty, QChart, QDateTime
 from qutil import css2strs, variable_to_title, title_to_variable, specified_args
 import qconst
 

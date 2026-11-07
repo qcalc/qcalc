@@ -2,7 +2,6 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 from concurrent.futures import ThreadPoolExecutor
-# import threading
 import time
 
 MAX_THREADS = 10
@@ -16,22 +15,22 @@ def run_func(kwargs: dict):
     # QTPool.local.results[id] = res
 
 
-class QTPool:
-    # local = threading.local()
-
-    def __init__(self, func, params: list[{}]):
-        self.cnt = len(params)
-        # QTPool.local.results = [None for i in range(self.cnt)]
-        self.func = func
-        self.params = params
-        for i in range(self.cnt):
-            params[i].update({'_func': func, '_id': i})
-
-    def execute(self):
-        thread_count = min(MAX_THREADS, self.cnt)
-        with ThreadPoolExecutor(max_workers=thread_count) as executor:
-            results = executor.map(run_func, self.params)
-            return results
+# class QTPool:
+#     # local = threading.local()
+#
+#     def __init__(self, func, params: list[{}]):
+#         self.cnt = len(params)
+#         # QTPool.local.results = [None for i in range(self.cnt)]
+#         self.func = func
+#         self.params = params
+#         for i in range(self.cnt):
+#             params[i].update({'_func': func, '_id': i})
+#
+#     def execute(self):
+#         thread_count = min(MAX_THREADS, self.cnt)
+#         with ThreadPoolExecutor(max_workers=thread_count) as executor:
+#             results = executor.map(run_func, self.params)
+#             return results
 
 
 if __name__ == '__main__':
@@ -54,8 +53,8 @@ if __name__ == '__main__':
 
     t_start = time.time()
     params = [{'n': v} for v in fparams]
-    qt = QTPool(fn, params)
-    print(list(qt.execute()))
+    # qt = QTPool(fn, params)
+    # print(list(qt.execute()))
     print('thread execution time (ms)', (time.time() - t_start) * 1000)
 
     nt_start = time.time()

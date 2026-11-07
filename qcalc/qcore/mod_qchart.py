@@ -9,7 +9,8 @@ import numpy as np
 from statistics import fmean, stdev
 import pandas as pd
 import networkx as nx
-from qutil import QDateTime, QThread, joinx
+from qutil import QThread, joinx
+from .qd_datetime import QDateTime
 import matplotlib.dates as mdates  # requires for 3D as 3D cant natively handle date axes
 from datetime import date, datetime
 import qconst

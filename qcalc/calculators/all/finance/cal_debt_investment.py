@@ -1,8 +1,7 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
-from qcore import Qty
-from qutil import css2ints
+from qcore import Qty, css2ints
 
 
 def debt_invest__info():

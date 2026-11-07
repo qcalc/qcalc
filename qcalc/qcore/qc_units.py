@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
-from qcore.qc_mbase import _base_names, _conv_names, lmt_desc, dim_to_bname, _prefix_list,_prefixes
+from qcore.qc_mbase import _base_names, _conv_names, lmt_desc, dim_to_bname, _prefixes
 from qcore.qc_munit import MeasureUnit, isMeasureUnit
 from qutil import iif, to_python_expr
 import ast
@@ -486,7 +486,7 @@ def _add_all_units():
     _add_unit('m3', '1*m**3', 'cubic meter')
     _add_unit('ft3', '1*ft**3', 'cubic foot')
 
-    _add_unit('bbl', MeasureUnit('bbl', 0.1589873, [3, 0, 0, 0, 0, 0, 0, 0, 0, 0]), 'standrad barrel') # 42 us gallon
+    _add_unit('bbl', MeasureUnit('bbl', 0.1589873, [3, 0, 0, 0, 0, 0, 0, 0, 0, 0]), 'standrad barrel')  # 42 us gallon
     _add_unit('bbl_oil', MeasureUnit('bbl_oil', 0.15899040557, [3, 0, 0, 0, 0, 0, 0, 0, 0, 0]), 'oil barrel')
     _add_unit('bu', MeasureUnit('bu', 0.03523907, [3, 0, 0, 0, 0, 0, 0, 0, 0, 0]), 'bushel')
     _add_unit('bushel', '1*bu', 'bushel')

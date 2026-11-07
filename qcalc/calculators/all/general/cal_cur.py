@@ -1,8 +1,7 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
-from qcore import Qty, qhtml
-from qutil import nzv
+from qcore import Qty, qhtml, nzv
 from calc import QCals, cur_loader
 from qconst import amount_help_text
 

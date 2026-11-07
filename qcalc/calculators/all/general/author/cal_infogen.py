@@ -9,7 +9,7 @@ import pandas as pd
 from calc import QCals, mod_optima_tables
 from qcore import as_qtable, qchar, qcode, qerror, qhtml, qtable, qtexta, qtext, qwarn
 from qutil import md2html
-from qutil.mod_code_info import build_info as _build_info
+from qcore.mod_info import build_info as _build_info
 
 OVERRIDE_COLUMNS = ['Argument', 'Label', 'Help', 'Choices', 'Group', 'Show When']
 ID_PATTERN = re.compile(r'^[A-Za-z_]\w*$')

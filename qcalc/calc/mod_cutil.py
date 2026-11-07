@@ -4,8 +4,8 @@ import qconst
 from .mod_mfunc import q0162_dictify_fargs
 from .mod_qcals import QCals
 from django.conf import settings
-from qcore import Qty, complex_input_xpr, complex_input_url
-from qutil import fid2help_file, QDateTime
+from qcore import Qty, complex_input_xpr, complex_input_url, QDateTime
+from qutil import fid2help_file
 from datetime import date, datetime, time as dt_time
 from pathlib import Path
 import pandas as pd

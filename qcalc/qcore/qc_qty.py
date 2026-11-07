@@ -4,12 +4,13 @@
 import re
 import json
 from functools import lru_cache
-from qutil import css2strs, to_python_expr, to_user_expr
-from qcore.qc_mbase import _fps_names, _cgs_names, _base_categories, powers_to_bname_lmt, _unit_operators
-from qcore.qc_munit import isMeasureUnit
-from qcore.qc_units import _unit_table, _unit_info, _base_names, _unit_tree, unit_desc, safe_eval_unit
-from qcore.qc_mquantity import MeasureQuantity as MQty, find_unit, isMeasureQuantity
-from qcore.qc_units_subset import UNITS_SUBSET_KEYS
+from .qd_basic import css2strs
+from qutil import to_python_expr, to_user_expr
+from .qc_mbase import _fps_names, _cgs_names, _base_categories, powers_to_bname_lmt, _unit_operators
+from .qc_munit import isMeasureUnit
+from .qc_units import _unit_table, _unit_info, _base_names, _unit_tree, unit_desc, safe_eval_unit
+from .qc_mquantity import MeasureQuantity as MQty, find_unit
+from .qc_units_subset import UNITS_SUBSET_KEYS
 
 
 def _decode_qty(jso):
@@ -430,4 +431,3 @@ def search_unit_result(sterm):
     else:
         matches = []
     return matches[0:100]
-

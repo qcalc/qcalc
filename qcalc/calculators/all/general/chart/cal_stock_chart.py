@@ -3,8 +3,8 @@
 
 import pandas as pd
 import numpy as np
-from qcore import qchar, qtable, QChart, as_qtable, qhtml, qurl, require_columns
-from qutil import css2ints, css2floats, QThread, demo_url, action_script
+from qcore import qchar, qtable, QChart, as_qtable, qhtml, qurl, require_columns, css2ints, css2floats
+from qutil import QThread, demo_url, action_script
 import mplfinance as mpf
 
 
@@ -457,7 +457,6 @@ def stock_chart__info():
     }
 
 
-
 def _to_heikin_ashi(ohlc: pd.DataFrame) -> pd.DataFrame:
     ha = pd.DataFrame(index=ohlc.index)
     ha_close = (ohlc['Open'] + ohlc['High'] + ohlc['Low'] + ohlc['Close']) / 4.0
@@ -828,7 +827,7 @@ def _normalize_marker_symbol(symbol):
     allowed = {'^', 'v', 'o', '*', '+', 'X', 's', 'D'}
     if sval in allowed:
         return sval
-    if sval =='**': return '^' # trick for eva() expression
+    if sval == '**': return '^'  # trick for eva() expression
     raise ValueError('Marker symbols must be one of: ^, v, o, *, +, X, s, D')
 
 
@@ -940,8 +939,8 @@ def stock_chart(
     show_donchian_breakout_markers=False,
     marker_symbol_table: qtable = pd.DataFrame({
         'chart': ['MA', 'EMA', 'RSI', 'DONCHIAN', 'BOLLINGER', 'PSAR', 'MACD', 'ATR', 'CCI', 'WILLIAMS_R', 'OBV'],
-        'buy':   ['^', 'D', 'o', '*', '+', 'X', 's', 'D', '^', 'o', 's'],
-        'sell':  ['v', 'D', 'o', '*', '+', 'X', 's', 'D', 'v', 'o', 's'],
+        'buy': ['^', 'D', 'o', '*', '+', 'X', 's', 'D', '^', 'o', 's'],
+        'sell': ['v', 'D', 'o', '*', '+', 'X', 's', 'D', 'v', 'o', 's'],
     }),
     support_levels: qchar = '',
     resistance_levels: qchar = '',

@@ -2,10 +2,9 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 from qcore import qcode, qhtml, qinfo, qerror, br
-from calc.mod_mfunc import *
 from calc import UCals
 from qutil import callback_button, page_link, format_py_code, ensure_calculator_info, extract_calculator_name, \
-    get_functions, pretty_json, addcal_button
+    get_functions, addcal_button
 
 from .mod_mycal_validation import (
     format_calculator_validation_report,
@@ -107,4 +106,3 @@ def addlen__info():
         }
     except Exception as e:
         return f'Error (MC): {e}'
-

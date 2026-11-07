@@ -4,7 +4,7 @@
 import json
 import re
 from datetime import date, datetime, time as dt_time
-from .mod_datetime import QDateTime
+from qcore.qd_datetime import QDateTime
 
 
 def to_bool(value) -> bool:
@@ -82,6 +82,7 @@ def to_cast(value, field_name="value", cast=float, required=False) -> None | flo
 
 def as_float(value, field_name='value', required=False) -> None | float:
     """Best-effort float conversion returning ``None`` for non-numeric inputs."""
+
     def _as_float_or_none(value, field_name="value"):
         if isinstance(value, bool):
             return None
@@ -186,7 +187,7 @@ def str2type(value):
         return str
 
     value = value.strip()
-    # | if string length is >96 it will quickly return as a non-qty string
+    # | if string length is >32 it will quickly return as a non-qty/date string
     if not (5 <= len(value) <= 32):
         return num_type(value)
     else:

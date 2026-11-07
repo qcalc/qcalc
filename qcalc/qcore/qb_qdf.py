@@ -4,7 +4,7 @@
 import qconst
 from .qf_anno import is_qtbl
 import pandas as _pd
-from qutil.mod_autil import to_plain
+from qcore.mod_autil import to_plain
 
 # df.<name>(data, ...) builds a DataFrame internally and always returns a
 # plain-Python result (see _to_plain) -- no DataFrame-like object is ever

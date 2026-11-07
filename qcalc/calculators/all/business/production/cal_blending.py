@@ -5,7 +5,7 @@ import pandas as pd
 import pulp
 from qcore import as_qtable, qtable
 from calc import validate_schema_if_needed
-from qutil import (
+from qcore import (
     is_blank,
     normalize_name,
     to_float,

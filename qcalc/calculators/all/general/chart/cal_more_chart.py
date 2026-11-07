@@ -3,8 +3,8 @@
 
 import numpy as np
 import pandas as pd
-from qutil import css2floats, css2strs, css2ints, css2values, validated_col, to_python_expr
-from qcore import qtexta, qlist, qchar, qtable, QChart, as_qtable
+from qutil import css2strs, validated_col, to_python_expr
+from qcore import qtexta, qlist, qchar, qtable, QChart, as_qtable, css2ints, css2values, css2floats
 from calc import QCals
 import matplotlib.dates as mdates  # requires for 3D as 3D cant natively handle date axes
 from datetime import date, datetime
@@ -550,7 +550,7 @@ def area_chart__info():
     return {
         'title': 'Area Chart',
         'desc': 'Use cases: Visualizing cumulative data trends over time '
-        '(e.g., monthly spending by category, energy usage trends)',
+                '(e.g., monthly spending by category, energy usage trends)',
     }
 
 
@@ -600,7 +600,7 @@ def chord_diagram__info():
     return {
         'title': 'Chord Diagram',
         'desc': 'Use cases: Visualizing relationships between entities in a network using chord diagrams, '
-        'e.g., relationship-heavy data (expense flow between categories, dependency mapping)',
+                'e.g., relationship-heavy data (expense flow between categories, dependency mapping)',
     }
 
 
@@ -620,7 +620,7 @@ def streamgraph__info():
     return {
         'title': 'Streamgraph',
         'desc': 'Use cases: Visualizing data streams over time with emphasis on changes in magnitude and flow, '
-        'e.g., changing composition trends (topic popularity, spending shifts)',
+                'e.g., changing composition trends (topic popularity, spending shifts)',
     }
 
 

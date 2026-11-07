@@ -4,7 +4,8 @@
 from geopy.geocoders import Nominatim
 from django.template.loader import render_to_string
 import json
-from qutil import format_address, makeid, qc_timezone_ll
+from qutil import format_address, makeid
+from .qd_datetime import qc_timezone_ll
 import math
 import requests
 

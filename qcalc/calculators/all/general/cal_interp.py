@@ -2,9 +2,7 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 import numpy as np
-# from .mod_chart import line_chart
-from qutil import css2floats
-from qcore import QChart
+from qcore import QChart, css2floats
 
 
 def linter__info():

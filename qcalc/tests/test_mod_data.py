@@ -9,7 +9,7 @@ from datetime import time as dt_time
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from qutil.mod_data import time2float
+from qcore.qd_data import time2float
 
 
 class TestModData(unittest.TestCase):

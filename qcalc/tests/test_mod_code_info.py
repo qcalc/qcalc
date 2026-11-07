@@ -4,7 +4,7 @@
 
 import pytest
 
-from qutil.mod_code_info import build_info
+from qcore.mod_info import build_info
 
 SOP_SIGNATURE = """
 def optima_sop(

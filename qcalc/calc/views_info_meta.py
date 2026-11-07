@@ -9,7 +9,7 @@ from .mod_cutil import get_help_path
 from .mod_layout_dynamic import has_dynamic_layout
 from .mod_prefs import declared_prefs
 from .mod_qcals import QCals
-from qutil.mod_info_keys import INFO_OVERRIDE_KEYS
+from qcore.mod_info_keys import INFO_OVERRIDE_KEYS
 
 
 _STATIC_SIDES = {

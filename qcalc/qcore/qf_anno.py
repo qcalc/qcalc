@@ -7,7 +7,7 @@ import logging
 import pandas as pd
 from .mod_qfile import QFile
 from .qc_qty import Qty
-from qutil.mod_data import to_bool
+from qcore.qd_data import to_bool
 
 
 logger = logging.getLogger(__name__)

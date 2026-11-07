@@ -4,10 +4,9 @@
 import numpy as np
 import pandas as pd
 
-from qcore import Qty, quomx, qtexta
+from qcore import Qty, quomx, qtexta, vals2css
 from qvars import qc_gpref as gs
 from calc import QCals, QResults
-from qutil import vals2css, preprocess_expression
 
 
 def valid_range(variation_start, variation_stop, variation_step):

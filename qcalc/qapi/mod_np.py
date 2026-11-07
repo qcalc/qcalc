@@ -2,7 +2,7 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 import numpy as _np
-from qutil.mod_autil import to_plain
+from qcore.mod_autil import to_plain
 
 _NP_ALLOWED = dict.fromkeys([
     # Array creation

@@ -12,6 +12,7 @@ from qcore import (
     Qty, QTable, QRelation, QBase,
     qdf, qrecords, read_table, qkeymap, QList,
     qconvert, qdf_demo_data,
+    QDateTime, today, now, spellnow,  # mod_datetime
     base_units, base_dims, unit_desc, prefixes,
     unit2lmt, lmt_desc, str_type,
     lmt2cat, lmt2ulist, lmt2qlist, find_unit, is_str_qty, qx, qxi,
@@ -29,22 +30,27 @@ from qcore import (
     require_unique_pairs, require_complete_pair_grid, validate_value_columns_against_master,
     qformat_q, qformat_v, to_ucur,
     ai_prompt_field, br,
-)
-
-from qutil import (
-    QDateTime, today, now, spellnow,  # mod_datetime
-    DotDict, dd_list,  # mod_dict
-    user_name, user_process, user_ip, local_ip,  # mod_user
-    page_link, calurl, cal_link, callback_button, action_button, action_script, addcal_button,  # mod_links
-    iif, joinx, css2floats, css2ints, css2values, css2strs, vals2css, css2set, css2dict, css2list,  # mod_basic
-    md2html, demo_url, is_debug, is_blank, normalize_name, to_float, pct2fraction, val2fraction, to_cast,
-    to_bool, parameter_values, as_float, specified_args, preprocess_expression, time2float, variable_to_title,
-    title_to_variable, replace_variables, replace_parameter_values, csv2qtbl, np2qtbl,
     qsymbols, qsymstat, qsymhelp,
 )
 
+from qcore import (
+    css2floats, css2ints, css2values, css2strs, vals2css, css2set, css2dict, css2list,  # mod_basic
+    is_blank, normalize_name, to_float, pct2fraction, val2fraction, to_cast,
+    to_bool, as_float, time2float,
+)
+
+from qutil import (
+    DotDict, dd_list,  # mod_dict
+    user_name, user_process, user_ip, local_ip,  # mod_user
+    page_link, calurl, cal_link, callback_button, action_button, action_script, addcal_button,  # mod_links
+    iif, joinx, css2strs,  # mod_basic
+    md2html, demo_url, is_debug,
+    specified_args, preprocess_expression, variable_to_title,
+    title_to_variable, csv2qtbl, np2qtbl,
+    replace_variables, replace_parameter_values, parameter_values,
+)
+
 from .mod_np import np_names, np
-from qutil import qsymbols, qsymstat, qsymhelp
 
 
 def minimum(*args, key=None):
@@ -59,12 +65,9 @@ def minimum(*args, key=None):
 
 
 qlib_dict = {
-    'QDateTime': QDateTime, 'qdt': QDateTime, 'DotDict': DotDict, 'dd': DotDict,
-    'datetime': datetime.datetime, 'date': datetime.date, 'time': datetime.time,
-    'timedelta': datetime.timedelta, 'timezone': datetime.timezone,
-    'Qty': Qty, 'q': Qty, 'qx': qx, 'qxi': qxi,
-    'QTable': QTable, 'QRelation': QRelation, 'QBase': QBase,
-    # 'QCals': QCals, 'UCals': UCals, 'QFav': QFav,
+    'q': Qty, 'qdt': QDateTime, 'dd': DotDict,
+    # | 'datetime': datetime.datetime, 'date': datetime.date, 'time': datetime.time,
+    # | 'timedelta': datetime.timedelta, 'timezone': datetime.timezone,
     # | 'call': QCals.addr, (circular)
 }
 
@@ -80,6 +83,8 @@ __qtypes__ = [
 
 # for eva(), mycal() and console
 __evacon__ = [
+    'datetime',
+    'Qty', 'qx', 'qxi', 'QDateTime', 'DotDict', 'QTable', 'QRelation', 'QBase', 'QList',  # qcore
     'is_qty', 'is_unit', 'base_units', 'base_dims', 'unit_desc', 'prefixes', 'unit2lmt',  # qcore
     'lmt_desc', 'str_type', 'read_unit', 'lmt2cat', 'lmt2ulist', 'lmt2qlist', 'find_unit', 'is_str_qty',  # qcore
     'minimum',  # this file
@@ -89,16 +94,16 @@ __evacon__ = [
     'ai_prompt_field', 'br',  # qcor.mod_fields
     'iif', 'joinx', 'css2floats', 'css2ints', 'css2values', 'css2strs', 'vals2css', 'css2set', 'css2dict',
     'css2list',  # qutil.mod_basic
-    'np', 'qdf', 'qrecords', 'read_table', 'qkeymap', 'QList',  # qapi.mod_qtbl
+    'np', 'qdf', 'qrecords', 'read_table', 'qkeymap',  # qapi.mod_qtbl
     'qconvert', 'qdf_demo_data',
-    'qtypes', 'qmodules', 'qsymbols', 'qsymstat', 'qsymhelp',  # qapi.mod_autil
+    'qtypes', 'qmodules', 'qsymbols', 'qsymstat', 'qsymhelp',  # qcore.mod_autil
     'QFile', 'qf2bio', 'dd_list',
     'QImage', 'qf2img', 'nparray_to_bio',
     'QChart', 'QGeo', 'QMap', 'SmartCalc',
     'user_name', 'user_process', 'user_ip', 'local_ip',  # qutil.mod_user
     'page_link', 'calurl', 'cal_link', 'callback_button', 'action_button', 'action_script', 'addcal_button',
     # qutil.mod_links
-    'today', 'now', 'spellnow',  # qutil.mod_datetime
+    'today', 'now', 'spellnow',  # qcore.qd_datetime
     'md2html', 'demo_url', 'is_debug', 'is_blank', 'normalize_name', 'to_float', 'pct2fraction', 'val2fraction',
     'to_cast',
     'to_bool', 'parameter_values', 'as_float', 'specified_args', 'preprocess_expression', 'time2float',

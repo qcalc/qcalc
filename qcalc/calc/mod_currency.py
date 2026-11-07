@@ -5,7 +5,8 @@ import os
 import json
 import urllib.request
 from django.conf import settings
-from qutil import makeid, check_setting, is_obsolete, timestamp_to_date, timestamp_to_dt, load_json
+from qutil import makeid, check_setting, load_json
+from qcore import is_obsolete, timestamp_to_date, timestamp_to_dt
 from qcore import add_currencies
 import logging
 

@@ -5,14 +5,11 @@ from .mod_func import *
 from .mod_user import *
 from .mod_stop import *
 from .mod_search import *
-from .mod_datetime import *
 from .mod_df import *
 from .mod_words import *
 from .mod_url import *
 from .mod_settings import *
 from .mod_code import *
-from .mod_code_info import *
-from .mod_data import *
 from .mod_db import *
 from .mod_file import *
 from .mod_tree import TreeNode, create_category_node
@@ -24,4 +21,3 @@ from .mod_dict import *
 from .mod_json import *
 from .mod_md import *
 from .mod_np import *
-from .mod_autil import *

@@ -5,8 +5,7 @@ from statistics import fmean, median, mode, stdev, pstdev, \
     geometric_mean, harmonic_mean, median_low, median_high, variance, pvariance, quantiles
 import pandas as pd
 import scipy.stats as ss
-from qutil import css2floats
-from qcore import qchar
+from qcore import qchar, css2floats
 from calculators.all.general.chart import pareq
 
 

@@ -6,7 +6,7 @@ from calculators.all.general.map import geo_location
 from qcore import Qty, qfunc, QGeo, qhtml
 from math import fmod, radians, degrees, sqrt, ceil, acos
 from .cal_coord import *
-from qutil import nzv, qc_tzinfo, julian_date, j2iso, QDateTime
+from qcore import nzv, qc_tzinfo, julian_date, j2iso, QDateTime
 
 
 class EarthRotation:

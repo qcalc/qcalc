@@ -6,7 +6,7 @@ from datetime import date, timedelta
 
 import pytest
 
-from qutil import QDateTime, is_str_date, is_number, julian_date, now, today
+from qcore import QDateTime, is_str_date, is_number, julian_date, now, today
 
 
 def test_qdatetime():

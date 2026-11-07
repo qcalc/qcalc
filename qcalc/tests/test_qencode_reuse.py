@@ -12,9 +12,8 @@ import qsett
 qsett.init()
 
 from calc import views_step2
-from qcore import Qty
+from qcore import Qty, QDateTime
 from qcore import mod_qencode as enc
-from qutil import QDateTime
 
 
 def test_qencoderbase_default_uses_shared_serialize_value(monkeypatch):

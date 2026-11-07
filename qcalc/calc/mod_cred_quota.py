@@ -18,7 +18,8 @@ from django.conf import settings
 from django.db import IntegrityError, transaction
 from django.db.models import F
 from django.utils import timezone
-from qutil import user_ip, css2dict
+from qutil import user_ip
+from qcore import css2dict
 import logging
 
 logger = logging.getLogger(__name__)

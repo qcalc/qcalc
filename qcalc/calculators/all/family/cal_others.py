@@ -1,8 +1,7 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
-from qcore import Qty
-from qutil import nzv
+from qcore import Qty, nzv
 
 
 def applepie__info(): return {'title': 'Ingredients of Apple Pie Recipe'}

@@ -2,8 +2,7 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 from datetime import date
-from qutil import QDateTime
-from qcore import Qty
+from qcore import Qty, QDateTime
 
 
 def age__info():

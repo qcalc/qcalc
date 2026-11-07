@@ -2,8 +2,7 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 import math
-from qcore import Qty, qfunc
-from qutil import QDateTime, qc_datetime_to_str
+from qcore import Qty, qfunc, QDateTime, qc_datetime_to_str
 from datetime import timedelta
 from calculators.all.science.astronomy import sunrise
 

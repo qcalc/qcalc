@@ -3,9 +3,8 @@
 
 import math
 
-from qcore import Qty
+from qcore import Qty, qdf
 from calc import QResults
-from qapi import qdf
 from calculators.all.finance import circ
 
 
@@ -164,7 +163,7 @@ def retirement_sustainability__info():
             'start-of-period or end-of-period withdrawal timing.'
         ),
         'interactive': True,
-        'schema':{
+        'schema': {
             'withdrawal_when': {
                 'type': 'choice',
                 'choices': ['start', 'end'],

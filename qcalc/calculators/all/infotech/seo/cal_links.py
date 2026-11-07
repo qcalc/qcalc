@@ -2,7 +2,7 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 from bs4 import BeautifulSoup
-from qcore.mod_anno import qtexta
+from qcore.qf_anno import qtexta
 from qutil import qaddr, fetch_url
 from urllib.parse import urljoin, urlparse
 import re

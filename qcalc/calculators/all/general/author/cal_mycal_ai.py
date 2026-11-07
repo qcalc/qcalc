@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
-from qcore.mod_anno import *
+from qcore.qf_anno import *
 from qcore.mod_fields import ai_prompt_field, br
 from calc import UCals
 from qutil import (

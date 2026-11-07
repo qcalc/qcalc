@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
-from .mod_qwidgets import *
+from .qf_qwidgets import *
 from django.forms import Field, CharField, ChoiceField
 from .qc_munit import isMeasureUnit
 from .qc_units import find_unit
@@ -121,6 +121,21 @@ class TabulatorField(Field):
 
     def validate(self, value):
         pass
+
+    def clean(self, value):
+        value = super().clean(value)
+        attrs = self.widget.attrs
+        if not (attrs.get('readonly_cols') or attrs.get('fixed_headers')):
+            return value
+        # | the posted table is client data: locked headers/values are restored from the initial table
+        baseline, posted = table_payload(self.initial), table_payload(value)
+        if baseline is None or posted is None:
+            return value
+        try:
+            return json.dumps(enforce_table_locks(posted, baseline, attrs),
+                              default=lambda v: v.item() if hasattr(v, "item") else str(v))
+        except ValueError as e:
+            raise ValidationError(str(e))
 
 
 class Select2Field(ChoiceEditField2):

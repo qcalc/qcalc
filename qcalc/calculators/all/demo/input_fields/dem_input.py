@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
-from qcore.mod_anno import *
+from qcore.qf_anno import *
 
 
 def demo_input__info():

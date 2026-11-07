@@ -1,8 +1,7 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
-from qcore import Qty, qtbl
-from qapi import qdf, qsum
+from qcore import Qty, qtbl, qdf, qsum
 from calc import QResults
 from calculators.all.finance import circ
 

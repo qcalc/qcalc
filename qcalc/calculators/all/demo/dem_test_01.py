@@ -11,7 +11,7 @@ from calc import QList
 from qutil import cal_link, resize_df, csv2df, callback_button, calurl
 import time
 from calculators.all.general import conv2
-from qcore.mod_anno import *
+from qcore.qf_anno import *
 
 
 def demo_modify_number__modify(_ctx, arg_name, arg_value, _action):
@@ -67,7 +67,7 @@ def demo_anno2__info():
 def demo_anno2(u: quom = 'kg', u2: quom2 = 'g', q: qt = '1 ft', q2: qt2 = '1 ft'):
     return u, u2, q, q2
 
-    
+
 def demo_anno__info():
     return {
         'title': 'Test Annotation (implicit)',

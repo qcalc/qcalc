@@ -4,7 +4,7 @@
 from qutil import xpr_coeffs
 from qutil import to_python_expr
 import numpy as np
-from qcore.mod_anno import qlist
+from qcore.qf_anno import qlist
 from sympy import symbols, Eq, solve, sympify
 from sympy.abc import _clash1
 

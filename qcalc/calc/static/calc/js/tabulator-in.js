@@ -190,7 +190,7 @@
         packData(table);
     }
 
-    const rowMenuEdit = [
+    const rowMenuUpload = [
         {
             label: "Upload Data",
             menu: [
@@ -215,6 +215,9 @@
                 },
             ],
         },
+    ];
+
+    const rowMenuRows = [
         {
             label: "<i class='icon-add'></i> Add Row",
             action: function(e, row) {
@@ -232,6 +235,19 @@
             separator: true,
         },
     ];
+
+    // Locked tables (data-lock-headers / data-lock-rows) cannot import data, which replaces the
+    // headers; locked values also fix the rows.
+    function rowMenuEditFor(tableElem) {
+        const lockRows = tableElem.hasAttribute("data-lock-rows");
+        if (lockRows) {
+            return [];
+        }
+        if (tableElem.hasAttribute("data-lock-headers")) {
+            return rowMenuRows;
+        }
+        return rowMenuUpload.concat(rowMenuRows);
+    }
 
     const rowMenuDisplay = [
         {
@@ -712,9 +728,10 @@
         }
 
         // Build Tabulator options. If printing flat, disable pagination to show all rows.
+        const locked = tableElem.hasAttribute("data-lock-headers") || tableElem.hasAttribute("data-lock-rows");
         const dataTableOpts = {
             popupContainer: document.body,
-            rowContextMenu: (mode === "edit" ? rowMenuEdit.concat(rowMenuDisplay) : rowMenuDisplay),
+            rowContextMenu: (mode === "edit" ? rowMenuEditFor(tableElem).concat(rowMenuDisplay) : rowMenuDisplay),
             columnDefaults: {
                 headerSort: false,
                 editor: (mode === "edit"),
@@ -722,7 +739,7 @@
                 minWidth: 60,   // global minimum
                 maxWidth: 320,   // global maximum
             },
-            clipboard: (mode === "edit" ? true : "copy"),
+            clipboard: (mode === "edit" && !locked ? true : "copy"),
             clipboardPasteAction: "replace",
         };
         try {

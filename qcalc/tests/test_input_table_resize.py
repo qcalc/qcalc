@@ -13,7 +13,7 @@ import pandas as pd
 import pytest
 
 from qutil.mod_df import resize_df
-from qcore.mod_qwidgets import TabulatorWidget
+from qcore.qf_qwidgets import TabulatorWidget
 from calc import views as calc_views
 
 

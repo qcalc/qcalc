@@ -242,6 +242,40 @@ body.qcalc-fs-lock {
   min-height: 35px;
 }
 
+.elem-wrapper.table-wrap .tabulator .tabulator-row .tabulator-cell.q-col-locked {
+  color: var(--q-text);
+  cursor: not-allowed;
+}
+
+/* Translucent tint keeps the zebra rows visible; skipped when every column is locked (q-col-all). */
+.elem-wrapper.table-wrap .tabulator .tabulator-row .tabulator-cell.q-col-locked:not(.q-col-all) {
+  background: var(--q-tab-locked-bg);
+}
+
+/* Static locked titles get the editable header's height and vertical centring. */
+.elem-wrapper.table-wrap .table-responsive.table-in .tabulator-header .tabulator-col:is(.q-col-locked, .q-col-fixed-head) .tabulator-col-content {
+  min-height: 35px;
+}
+
+.elem-wrapper.table-wrap .table-responsive.table-in .tabulator-header .tabulator-col:is(.q-col-locked, .q-col-fixed-head) .tabulator-col-title {
+  display: flex;
+  align-items: center;
+  margin: 0 0 0 3px;
+  min-height: 35px;
+}
+
+.elem-wrapper.table-wrap .tabulator .tabulator-col:is(.q-col-locked, .q-col-fixed-head) .tabulator-col-title {
+  cursor: not-allowed;
+}
+
+.elem-wrapper.table-wrap .tabulator .tabulator-col:is(.q-col-locked, .q-col-fixed-head) .tabulator-col-title::after {
+  font-family: icomoon;
+  content: "\eb65";
+  margin-left: 4px;
+  font-size: .5em;
+  color: var(--q-tab-head-fg);
+}
+
 /* Compact tabulator footer so it tracks header height more closely. */
 .elem-wrapper.table-wrap .table-responsive.tabulator > .tabulator-footer .tabulator-footer-contents {
   padding-top: 3px;

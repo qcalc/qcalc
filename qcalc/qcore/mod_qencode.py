@@ -9,7 +9,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 from .mod_qimage import QImage
 from .mod_qchart import QChart
 import json
-from .mod_anno import qchat, qhtml, qerror, qinfo, qwarn
+from .qf_anno import qchat, qhtml, qerror, qinfo, qwarn
 import datetime
 import decimal
 import math

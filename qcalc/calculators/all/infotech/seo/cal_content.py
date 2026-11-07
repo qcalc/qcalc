@@ -4,7 +4,7 @@
 from wordcloud import WordCloud
 import yake
 from qcore import QChart
-from qcore.mod_anno import *
+from qcore.qf_anno import *
 from qutil import (
     get_wordcloud_stop_words,
     nzs,

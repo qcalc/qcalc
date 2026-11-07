@@ -9,7 +9,11 @@ import datetime
 
 from qcore import (
     # | Qty class and related functions
-    Qty, base_units, base_dims, unit_desc, prefixes,
+    Qty, QTable, QRelation, QBase,
+    qdf, qcol, qrow, qrecords, read_table, qkeymap, qsum, qapply, qadd, qsub, qmul,
+    qdiv, qto_values,
+    qconvert, qbinary, qdf_demo_data,
+    base_units, base_dims, unit_desc, prefixes,
     unit2lmt, lmt_desc, str_type,
     lmt2cat, lmt2ulist, lmt2qlist, find_unit, is_str_qty, qx, qxi,
     isMeasureUnit as is_unit, isMeasureQuantity as is_qty, read_unit,
@@ -37,11 +41,11 @@ from qutil import (
     md2html, demo_url, is_debug, is_blank, normalize_name, to_float, pct2fraction, val2fraction, to_cast,
     to_bool, parameter_values, as_float, specified_args, preprocess_expression, time2float, variable_to_title,
     title_to_variable, replace_variables, replace_parameter_values, csv2qtbl, np2qtbl,
+    qsymbols, qsymstat, qsymhelp,
 )
 
 from .mod_np import np_names, np
-from .mod_qtbl import *
-from .mod_autil import qsymbols, qsymstat, qsymhelp
+from qutil import qsymbols, qsymstat, qsymhelp
 
 
 def minimum(*args, key=None):
@@ -60,6 +64,7 @@ qlib_dict = {
     'datetime': datetime.datetime, 'date': datetime.date, 'time': datetime.time,
     'timedelta': datetime.timedelta, 'timezone': datetime.timezone,
     'Qty': Qty, 'q': Qty, 'qx': qx, 'qxi': qxi,
+    'QTable': QTable, 'QRelation': QRelation, 'QBase': QBase,
     # 'QCals': QCals, 'UCals': UCals, 'QFav': QFav,
     # | 'call': QCals.addr, (circular)
 }
@@ -85,7 +90,8 @@ __evacon__ = [
     'ai_prompt_field', 'br',  # qcor.mod_fields
     'iif', 'joinx', 'css2floats', 'css2ints', 'css2values', 'css2strs', 'vals2css', 'css2set', 'css2dict',
     'css2list',  # qutil.mod_basic
-    'np', 'qdf', 'qcol', 'qrow', 'qsum', 'qapply', 'qadd', 'qsub', 'qmul', 'qdiv', 'qto_values',  # qapi.mod_qtbl
+    'np', 'qdf', 'qcol', 'qrow', 'qrecords', 'read_table', 'qkeymap', 'qsum', 'qapply', 'qadd', 'qsub', 'qmul',
+    'qdiv', 'qto_values',  # qapi.mod_qtbl
     'qconvert', 'qbinary', 'qdf_demo_data',
     'qtypes', 'qmodules', 'qsymbols', 'qsymstat', 'qsymhelp',  # qapi.mod_autil
     'QFile', 'qf2bio', 'dd_list',

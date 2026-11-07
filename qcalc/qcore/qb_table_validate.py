@@ -7,7 +7,7 @@ import json
 from django.core.exceptions import ValidationError
 import pandas as pd
 from .qc_qty import Qty
-from .mod_anno import as_qtable
+from .qf_anno import as_qtable
 from qutil import QThread
 
 
@@ -28,7 +28,6 @@ def _compact_token(value):
 def _is_strict_table_input_enabled():
     """Read strict table validation preference from thread-local request context."""
     try:
-        # from .timed_thread import QThread
         return bool(QThread.get_pref('strict_table_input', False))
     except Exception:
         return False
@@ -184,7 +183,7 @@ def require_columns(
             columns_can_grow=True,
             required_col_uoms={'Budget': 'USD'},
         )
-        
+
     Notes:
         The function may rename columns in-place to canonical names (for
         example fixing case/spacing or preserving a validated header unit).
@@ -342,7 +341,7 @@ def require_columns(
         resolved[col] = actual
         if header_uom:
             canonical = f'{col} {qconst.TBL_UOM_SEP} {header_uom}'
-        elif actual_base != col:
+        elif actual_base != col or actual != actual_base:
             canonical = col
         else:
             canonical = actual

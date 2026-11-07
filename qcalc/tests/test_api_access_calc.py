@@ -23,6 +23,7 @@ def access_db():
     connection.creation.create_test_db(verbosity=0, autoclobber=True)
     yield
     connection.creation.destroy_test_db(old_name, verbosity=0)
+    connection.close()  # sqlite keeps the in-memory test db open until closed with the restored name
 
 
 @pytest.fixture

@@ -4,7 +4,7 @@
 import numpy as _np
 import pandas as _pd
 import inspect
-from qutil import css2strs
+from .mod_basic import css2strs
 
 
 def to_plain(value):
@@ -38,7 +38,6 @@ def qsymbols(scope='api', name_filter=None):
       scope can also be a comma separated list of scope names: e.g. 'api, aux'
     """
     from calc import QCals, qapis  # local import: calc imports qutil, avoid circular import
-    # from . import _qapis
     from qcore import _unit_table, _qty_info
     import fnmatch
 

@@ -171,6 +171,7 @@
   --q-table-head-bg: initial;
   --q-tab-head-fg: #555;
   --q-tab-row-even: #efefef;
+  --q-tab-locked-bg: rgba(30, 70, 120, 0.16);
   --q-tab-active-fg: #c00000;
   --q-tab-page-bg: hsla(0, 0%, 100%, 0.2);
   --q-tab-accent: #1d68cd;
@@ -353,6 +354,7 @@
   --q-table-head-bg: #262c34;
   --q-tab-head-fg: #aab3bd;
   --q-tab-row-even: #20252b;
+  --q-tab-locked-bg: rgba(0, 0, 0, 0.35);
   --q-tab-active-fg: #ff8fb3;
   --q-tab-page-bg: rgba(255, 255, 255, 0.06);
   --q-tab-accent: #2f6fbd;
@@ -536,6 +538,7 @@
     --q-table-head-bg: #262c34;
     --q-tab-head-fg: #aab3bd;
     --q-tab-row-even: #20252b;
+    --q-tab-locked-bg: rgba(0, 0, 0, 0.35);
     --q-tab-active-fg: #ff8fb3;
     --q-tab-page-bg: rgba(255, 255, 255, 0.06);
     --q-tab-accent: #2f6fbd;
@@ -718,6 +721,7 @@
     --q-table-head-bg: initial;
     --q-tab-head-fg: #555;
     --q-tab-row-even: #efefef;
+    --q-tab-locked-bg: rgba(30, 70, 120, 0.16);
     --q-tab-active-fg: #c00000;
     --q-tab-page-bg: hsla(0, 0%, 100%, 0.2);
     --q-tab-accent: #1d68cd;
@@ -1745,6 +1749,40 @@ body.qcalc-fs-lock {
   align-items: center;
   margin: 0 0 0 3px;
   min-height: 35px;
+}
+
+.elem-wrapper.table-wrap .tabulator .tabulator-row .tabulator-cell.q-col-locked {
+  color: var(--q-text);
+  cursor: not-allowed;
+}
+
+/* Translucent tint keeps the zebra rows visible; skipped when every column is locked (q-col-all). */
+.elem-wrapper.table-wrap .tabulator .tabulator-row .tabulator-cell.q-col-locked:not(.q-col-all) {
+  background: var(--q-tab-locked-bg);
+}
+
+/* Static locked titles get the editable header's height and vertical centring. */
+.elem-wrapper.table-wrap .table-responsive.table-in .tabulator-header .tabulator-col:is(.q-col-locked, .q-col-fixed-head) .tabulator-col-content {
+  min-height: 35px;
+}
+
+.elem-wrapper.table-wrap .table-responsive.table-in .tabulator-header .tabulator-col:is(.q-col-locked, .q-col-fixed-head) .tabulator-col-title {
+  display: flex;
+  align-items: center;
+  margin: 0 0 0 3px;
+  min-height: 35px;
+}
+
+.elem-wrapper.table-wrap .tabulator .tabulator-col:is(.q-col-locked, .q-col-fixed-head) .tabulator-col-title {
+  cursor: not-allowed;
+}
+
+.elem-wrapper.table-wrap .tabulator .tabulator-col:is(.q-col-locked, .q-col-fixed-head) .tabulator-col-title::after {
+  font-family: icomoon;
+  content: "\eb65";
+  margin-left: 4px;
+  font-size: 0.5em;
+  color: var(--q-tab-head-fg);
 }
 
 /* Compact tabulator footer so it tracks header height more closely. */

@@ -7,7 +7,7 @@ from qcore import read_unit, lmt2ulist, lmt2cat, _unit_info, _base_categ_mlist, 
 from qutil import css2strs, list2table, find_matched_variables, cal_link, calurl
 from calc import QCals
 import itertools
-from qcore.mod_anno import *
+from qcore.qf_anno import *
 from qconst import amount_help_text
 
 

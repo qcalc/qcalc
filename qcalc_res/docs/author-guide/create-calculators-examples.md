@@ -98,6 +98,11 @@ def item_costs(items: qtbl = {
 * `.to_dict()` displays a table in the output.
 * `qmul()` is a unit-aware function that multiplies two columns of quantities.
 * `qsum()` is a unit-aware function that totals a column of quantities.
+* To lock columns of an input table, set `attrs` in the `__info` schema (`"schema": {"items": {"attrs": {...}}}`):
+  * `'readonly_cols': ['Item']` locks the header and the values of those columns; rows can then not be added or deleted.
+  * `'fixed_headers': ['Quantity']` locks only the header, the values remain editable. Use `True` to lock every column.
+  * Column names match ignoring case and any `|unit` suffix. The default table in the function signature is the reference, and the server restores any locked header or value that is changed.
+  * Tables with locked columns cannot be replaced by pasting or by loading a CSV/JSON file.
 
 
 ## Example 4: Nested calculator, `qfunc`

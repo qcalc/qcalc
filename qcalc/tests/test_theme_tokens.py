@@ -267,10 +267,11 @@ def _resolve(theme_tokens, name, base=None):
 
 # (foreground token, background token, minimum ratio, surface the background sits on when translucent)
 SURFACES = ["surface", "body-bg", "bg-page", "bg-input", "bg-output-1", "bg-output-2", "hover-bg", "shell-light-bg",
-            "tab-row-even", "tab-calcs-bg", "tab-menu-hover", "tab-selected-bg"]
+            "tab-row-even", "tab-calcs-bg", "tab-menu-hover", "tab-selected-bg", "tab-locked-bg"]
 PAIRS = (
     [("text", s, 4.5, "surface") for s in SURFACES]
     + [("text-soft", "surface", 4.5, "surface"), ("text-muted", "surface", 4.5, "surface"),
+       ("text", "tab-locked-bg", 4.5, "tab-row-even"),  # the locked tint also sits on the zebra rows
        ("text-field", "surface", 4.5, "surface"), ("text-muted", "bg-input", 4.5, "surface"),
        ("primary", "surface", 3.0, "surface"), ("primary", "bg-input", 3.0, "surface"),  # accent of checkbox/radio/range
        ("text-field", "select-multi-bg", 4.5, "surface")]

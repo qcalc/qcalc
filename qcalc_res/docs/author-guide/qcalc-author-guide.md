@@ -167,7 +167,7 @@ Common examples:
 Example:
 
 ```python
-from qcore.mod_anno import qtexta, qtable, quomx
+from qcore.qf_anno import qtexta, qtable, quomx
 import pandas as pd
 
 
@@ -288,7 +288,7 @@ Also inspect production calculators for real Qty patterns, for example:
 
 ```python
 from qcore import Qty
-from qcore.mod_anno import qtexta
+from qcore.qf_anno import qtexta
 
 
 def mycalfunc__info(__info=None):

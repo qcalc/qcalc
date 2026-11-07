@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
-from qcore.mod_anno import *
+from qcore.qf_anno import *
 from datetime import date, time as dt_time, datetime
 import qutil as ut
 from qvars import qc_gpref as gs

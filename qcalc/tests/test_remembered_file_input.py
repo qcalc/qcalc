@@ -11,7 +11,7 @@ from django.test import RequestFactory
 
 from calc import QPref
 from qcore import QFile
-from qcore.mod_qforms import RememberedFileInput
+from qcore.qf_qforms import RememberedFileInput
 from qutil.timed_thread import QThread
 
 

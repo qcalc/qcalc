@@ -3,8 +3,7 @@
 
 import numpy as np
 
-from qcore import Qty, qtbl, require_columns
-from qapi import qdf
+from qcore import Qty, qtbl, require_columns, qdf
 
 
 def supdisc__info():

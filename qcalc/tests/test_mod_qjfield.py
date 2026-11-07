@@ -12,11 +12,11 @@ import pandas as pd
 import pytest
 
 from qconst import TOK_UOM, TOK_PART, TOK_PART_UOM, TOK_INDEX_SEP
-from qcore.mod_anno import (
+from qcore.qf_anno import (
     qchar, qcode, qdict, qfunc, qhide, qhidex, qlist, qtable, qtbl, qtexta, qhtml,
 )
-from qcore.mod_qjfield import QJField
-import qcore.mod_qjfield as mqj
+from qcore.qf_qjfield import QJField
+import qcore.qf_qjfield as mqj
 
 
 def _jf(name='x', arg_type=None, value=None, inf_class='', **kw):

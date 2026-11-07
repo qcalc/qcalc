@@ -4,7 +4,7 @@
 from django.template.defaultfilters import filesizeformat
 from django.utils.html import format_html
 from .qc_qty import *
-from .mod_qfields import *
+from .qf_qfields import *
 from qutil import fchoices, variable_to_title
 from qutil.mod_settings import max_file_mb
 from .mod_qfvalidators import validate_file_size
@@ -131,7 +131,7 @@ class QFieldHandler:
             'url': self.create_url_field,
             'uuid': self.create_uuid_field,
         }
-    
+
     @staticmethod
     def _apply_spec_attrs(field, meta):
         for attr, value in (meta.get('attrs') or {}).items():

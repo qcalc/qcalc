@@ -379,7 +379,7 @@ def wrap_actions(html_element, wrapper_class=''):
     <div class="wrap-actions">{fullscreen_button()}</div></div>"""
 
 
-# json data type doesn't have q-prfix, refer to mod_qjfield.py
+# json data type doesn't have q-prfix, refer to qf_qjfield.py
 complex_input_xpr = ['codeedit', 'file', 'image', 'regex', 'duration', 'decimal', 'uuid']  #
 complex_input_url = complex_input_xpr + ['table']  # +list
 

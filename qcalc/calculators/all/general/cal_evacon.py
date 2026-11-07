@@ -210,7 +210,7 @@ def qeval(request: HtmxHttpRequest, xpr: str):
         rest = xpr[1:].strip() if xpr.startswith("?") else xpr[4:].strip()
         if rest:
             if ' ' not in rest:
-                from qapi.mod_autil import qsymhelp
+                from qutil.mod_autil import qsymhelp
                 help_text = qsymhelp(rest)
                 stdout = out.flush()
                 return help_text, stdout
@@ -221,7 +221,7 @@ def qeval(request: HtmxHttpRequest, xpr: str):
         rest = xpr[4:].strip()
         if rest:
             if ' ' not in rest:
-                from qapi.mod_autil import qsymbols, qsymhelp
+                from qutil.mod_autil import qsymbols, qsymhelp
                 matches = qsymbols('all', rest)
                 stdout = out.flush()
                 if not matches:

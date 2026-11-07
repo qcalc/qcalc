@@ -1,5 +1,5 @@
 
-from qcore.mod_anno import qfl
+from qcore.qf_anno import qfl
 
 
 def demo_addy__info():

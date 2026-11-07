@@ -5,10 +5,10 @@
 from django import forms
 
 from qconst import TOK_INDEX_SEP
-from qcore.mod_anno import qcode, qhtml
-from qcore.mod_qjfield import QJField
-from qcore.mod_qforms import QFieldHandler
-from qcore.mod_qwidgets import CodeWidget_codemirror, QtyWidget
+from qcore.qf_anno import qcode, qhtml
+from qcore.qf_qjfield import QJField
+from qcore.qf_qforms import QFieldHandler
+from qcore.qf_qwidgets import CodeWidget_codemirror, QtyWidget
 
 
 def test_qhtml_value_creates_display_only_html_field():
@@ -96,7 +96,7 @@ def test_rchoice_field_without_explicit_choices():
 
 
 def test_uom_subset_datalists_have_unique_ids(monkeypatch):
-    monkeypatch.setattr('qcore.mod_qforms.request_prefs', lambda: {'uom_subset_enabled': True})
+    monkeypatch.setattr('qcore.qf_qforms.request_prefs', lambda: {'uom_subset_enabled': True})
     schema = [
         {'name': name, 'type': 'uom2', 'initial': unit, 'required': False}
         for name, unit in [('a', 'sqft'), ('b', 'roti'), ('c', 'decimal'), ('d', 'roti'), ('e', 'm2')]

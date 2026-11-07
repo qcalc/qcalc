@@ -8,8 +8,70 @@ from django.forms import Widget
 import pandas as pd
 import json
 from qutil import resize_df
-from qcore.mod_anno import is_qtbl, wrap_actions, fullscreen_button
-from qconst import TOK_ROW, TOK_COL, TOK_TABLE_RESIZE, TOK_TABLE_ED, TOK_TABLE_UPDATE, TOK_ID_PREFIX, TOK_FIELD_SEP
+from qcore.qf_anno import is_qtbl, wrap_actions, fullscreen_button
+from qconst import TOK_ROW, TOK_COL, TOK_TABLE_RESIZE, TOK_TABLE_ED, TOK_TABLE_UPDATE, TOK_ID_PREFIX, TOK_FIELD_SEP, \
+    TBL_UOM_SEP
+import re
+
+
+def table_lock_indices(attrs, columns):
+    """Return (header_locked, value_locked) column index sets for an input table.
+
+    ``attrs['readonly_cols']`` locks header and values, ``attrs['fixed_headers']`` locks only the header;
+    either may be a list of column names or True for every column. Names match on the base name, ignoring
+    case and the ``|uom`` header suffix. Locked values also fix the rows.
+    """
+    attrs = attrs or {}
+    bases = [str(c).split(TBL_UOM_SEP)[0].strip().casefold() for c in columns]
+
+    def pick(spec):
+        if spec is True:
+            return set(range(len(bases)))
+        names = {str(n).split(TBL_UOM_SEP)[0].strip().casefold() for n in (spec or [])}
+        return {i for i, b in enumerate(bases) if b in names}
+
+    values = pick(attrs.get('readonly_cols'))
+    return values | pick(attrs.get('fixed_headers')), values
+
+
+def table_payload(value):
+    """Return a ``{'columns', 'data', ...}`` dict from a posted JSON string, DataFrame or qtbl, else None."""
+    if isinstance(value, str):
+        try:
+            value = json.loads(value)
+        except ValueError:
+            return None
+    if isinstance(value, list) and value and all(isinstance(r, dict) for r in value):
+        value = pd.DataFrame(value)
+    if isinstance(value, pd.DataFrame):
+        return {'columns': [str(c) for c in value.columns],
+                'data': [["" if pd.isna(c) else c for c in row] for row in value.values.tolist()]}
+    if is_qtbl(value):
+        return dict(value, columns=list(value['columns']), data=[list(r) for r in value['data']])
+    return None
+
+
+def enforce_table_locks(posted, baseline, attrs):
+    """Restore locked headers and values of a posted table from its baseline (the field's initial table).
+
+    Raises ValueError when a locked column was removed, or rows were added or deleted while values are locked.
+    """
+    headers, values = table_lock_indices(attrs, baseline['columns'])
+    if not headers:
+        return posted
+    columns = list(posted['columns'])
+    data = [list(r) for r in posted['data']]
+    if max(headers) >= len(columns):
+        raise ValueError('Locked columns cannot be removed.')
+    if values and len(data) != len(baseline['data']):
+        raise ValueError('Rows cannot be added or deleted in a table with locked values.')
+    for i in headers:
+        columns[i] = baseline['columns'][i]
+    for i in values:
+        for row, base_row in zip(data, baseline['data']):
+            row.extend([""] * (i + 1 - len(row)))
+            row[i] = base_row[i]
+    return dict(posted, columns=columns, data=data)
 
 
 class ButtonWidget(Widget):
@@ -364,6 +426,7 @@ class TabulatorWidget(Widget):
             # print('mode in data', mode)
 
         mode = mode if self.class_ == '' else ('edit' if self.class_ == 'table-in' else 'display')
+        lock_headers, lock_values = table_lock_indices(self.attrs, [str(c) for c in df.columns])
         # print('mode, class_', mode, self.class_)
         extra_cols = 0  # if "Edit" in df.columns else 0  # before resizing
         # if self.mode == 'edit':
@@ -379,6 +442,10 @@ class TabulatorWidget(Widget):
         elif len(resize) > 0:  # or cur_nrow == 0 or cur_ncol <= 0:
             nrow = max(int(resize[0]), 0)
             ncol = max(int(resize[1]), 0)
+            if lock_values:
+                nrow = cur_nrow
+            if lock_headers:
+                ncol = max(ncol, max(lock_headers) + 1)
             if nrow != cur_nrow or ncol != cur_ncol:
                 df = resize_df(df, nrow, ncol, extra_cols)
                 extra_cols = 0  # if "Edit" in df.columns else 0  # after resizing
@@ -396,11 +463,28 @@ class TabulatorWidget(Widget):
             # float_format=qformatter().format,
             index=False,
         )
+        lock_attrs = (' data-lock-headers="true"' if lock_headers else '') + \
+                     (' data-lock-rows="true"' if lock_values else '')
         html = html.replace(
             '<table ',
-            '<table data-interactive-ignore="true" ',
+            f'<table data-interactive-ignore="true"{lock_attrs} ',
             1,
         )
+        if lock_headers:
+            # | Tabulator reads tabulator-* attributes of <th> as column options; the header cells are the only <th>
+            th_index = iter(range(len(df.columns)))
+
+            def lock_th(_match):
+                i = next(th_index, -1)
+                opts = ' tabulator-editabletitle="false"' if i in lock_headers else ''
+                if i in lock_values:
+                    # | a fully locked table needs no tint: nothing editable is left to tell it apart from
+                    cls = 'q-col-locked' + (' q-col-all' if len(lock_values) == len(df.columns) else '')
+                    opts += f' tabulator-editor="false" tabulator-cssclass="{cls}"'
+                elif i in lock_headers:
+                    opts += ' tabulator-cssclass="q-col-fixed-head"'
+                return f'<th{opts}>'
+            html = re.sub(r'<th>', lock_th, html)
 
         # if mode == 'edit' and extra_cols == 0:
         #     html = html
@@ -418,8 +502,9 @@ class TabulatorWidget(Widget):
         update_id = f'{id_base}{TOK_TABLE_UPDATE}'
 
         ed = 'Display' if mode == 'edit' else 'Edit'
+        row_ro = ' readonly' if lock_values else ''
         row_inp = f'<label for="{row_id}">Row:</label>' + \
-              f'<input type="text" name="{row_name}" value="{row}" id="{row_id}" class="vt mr-2" data-interactive-ignore="true">'
+              f'<input type="text" name="{row_name}" value="{row}" id="{row_id}" class="vt mr-2"{row_ro} data-interactive-ignore="true">'
         col_inp = f'<label for="{col_id}">Col:</label>' + \
               f'<input type="text" name="{col_name}" value="{col}" id="{col_id}" class="vt mr-2" data-interactive-ignore="true">'
         rsz_btn = f'<button type="button" name="{resize_name}" id="{resize_id}" ' + \

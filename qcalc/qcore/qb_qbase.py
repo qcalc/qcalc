@@ -7,9 +7,9 @@ separate, restricted pandas computation facade.
 """
 
 from .qb_df_proxy import qkeymap, qdf
-from .qb_table_validate import (require_columns, require_unique_values, require_unique_pairs,
-                                require_values_subset, require_complete_pair_grid,
-                                validate_value_columns_against_master)
+from .qc_qty import Qty
+import qconst
+import re
 from copy import deepcopy
 
 
@@ -408,96 +408,531 @@ class QTable:
         self.primary_key = [rename.get(col, col) for col in self.primary_key]
         self.unique = [[rename.get(col, col) for col in spec] for spec in self.unique]
 
+    @staticmethod
+    def _normalize_token(value):
+        return str(value).strip().casefold()
+
+    @staticmethod
+    def _compact_token(value):
+        return ''.join(ch for ch in str(value).casefold() if ch.isalnum())
+
+    def _optional_name_words(self, value):
+        words = [w for w in re.split(r'[^a-z0-9]+', str(value).casefold()) if w]
+        alias_map = {
+            'minimum': 'min',
+            'min': 'min',
+            'maximum': 'max',
+            'max': 'max',
+            'quantity': 'qty',
+            'qty': 'qty',
+        }
+        return [alias_map.get(w, w) for w in words]
+
+    def _looks_like_optional_alias(self, candidate, optional_name):
+        candidate_norm = self._normalize_token(candidate)
+        optional_norm = self._normalize_token(optional_name)
+        if candidate_norm == optional_norm:
+            return False
+
+        candidate_compact = self._compact_token(candidate)
+        optional_compact = self._compact_token(optional_name)
+        if not candidate_compact or not optional_compact:
+            return False
+
+        if candidate_compact == optional_compact:
+            return True
+        if candidate_compact.startswith(optional_compact) or optional_compact.startswith(candidate_compact):
+            return True
+
+        c_words = self._optional_name_words(candidate)
+        o_words = self._optional_name_words(optional_name)
+        if not c_words or not o_words:
+            return False
+
+        for ow in o_words:
+            if len(ow) < 2:
+                continue
+            if not any(cw.startswith(ow[:3]) or ow.startswith(cw[:3]) for cw in c_words if len(cw) >= 2):
+                return False
+        return True
+
+    @staticmethod
+    def _strict_table_input_enabled():
+        try:
+            from qutil import QThread
+            return bool(QThread.get_pref('strict_table_input', False))
+        except Exception:
+            return False
+
+    @staticmethod
+    def _split_column_title_uom(column_name, uom_sep=qconst.TBL_UOM_SEP):
+        text = str(column_name).strip()
+        if uom_sep not in text:
+            return text, None
+        base_name, header_uom = text.split(uom_sep, 1)
+        return base_name.strip(), header_uom.strip()
+
+    def _apply_column_renames(self, rename_map):
+        if not rename_map:
+            return
+        old_columns = self.columns
+        payload = {'columns': [rename_map.get(col, col) for col in old_columns]}
+        self._sync_validation_columns(payload, old_columns)
+
     def require_columns(self, required_cols, optional_cols=None,
                         case_sensitive=False, columns_can_grow=True,
                         required_col_uoms=None):
-        """Require specific columns to be present, optionally allowing additional columns.
+        """Validate table headers against a required/optional schema.
 
-        Retains qCalc's existing case/spacing, strict-input and UOM rules.
+        Args:
+            required_cols: Column names that must exist.
+            optional_cols: Additional allowed columns (not mandatory).
+            case_sensitive: Whether header matching is case-sensitive.
+            columns_can_grow: When False (with Strict Table Input mode enabled),
+                unknown columns are rejected.
+            required_col_uoms: Optional ``{column: expected_uom}`` map to allow
+                unitized headers like ``"Flow :: m3/hr"`` and verify unit
+                compatibility.
+
+        Returns:
+            Mapping of canonical expected names to actual/resolved column names.
+
+        Example:
+            a) table.require_columns(['Customer', 'Demand'])
+
+            b) table.require_columns(
+                required_cols=['Project', 'Budget'],
+                optional_cols=['Manager'],
+                case_sensitive=False,
+                columns_can_grow=True,
+                required_col_uoms={'Budget': 'USD'},
+            )
+
+        Notes:
+            The method may rename columns in-place to canonical names (for
+            example fixing case/spacing or preserving a validated header unit).
         """
-        payload = self.to_dict()
-        old_columns = list(payload["columns"])
-        result = require_columns(
-            payload, self.name, required_cols, optional_cols,
-            case_sensitive=case_sensitive,
-            columns_can_grow=columns_can_grow,
-            required_col_uoms=required_col_uoms,
-        )
-        self._sync_validation_columns(payload, old_columns)
-        return result
+        optional_cols = optional_cols or []
+        expected_cols = list(required_cols) + [col for col in optional_cols if col not in required_cols]
+        actual_cols = self.columns
+        required_col_uoms = required_col_uoms or None
+
+        actual_meta = []
+        base_seen = {}
+        duplicate_bases = []
+        unitized_cols = []
+
+        for col in actual_cols:
+            base_name, header_uom = self._split_column_title_uom(col)
+            has_uom = qconst.TBL_UOM_SEP in str(col)
+            if has_uom:
+                unitized_cols.append(str(col))
+
+            base_key = base_name if case_sensitive else self._normalize_token(base_name)
+            if base_key in base_seen and base_seen[base_key] != col:
+                duplicate_bases.append((base_seen[base_key], col))
+                continue
+
+            base_seen[base_key] = col
+            actual_meta.append({
+                'actual': col,
+                'base': base_name,
+                'uom': header_uom,
+                'has_uom': has_uom,
+                'key': base_key,
+            })
+
+        if duplicate_bases:
+            pairs = ', '.join(f"'{left}' vs '{right}'" for left, right in duplicate_bases)
+            raise ValueError(
+                f"Ambiguous column names detected (same base name after trimming/unit split): {pairs}. "
+                'Please keep one canonical version.'
+            )
+
+        if required_col_uoms is None and unitized_cols:
+            preview = ', '.join(f"'{name}'" for name in unitized_cols[:10])
+            raise ValueError(
+                f"{self.name}: One or more column headers include a unit using '{qconst.TBL_UOM_SEP}'. "
+                f"This table expects plain header names without units in the title. "
+                f"Please remove the unit from these header(s): {preview}."
+            )
+
+        if required_col_uoms is not None:
+            canonical_required_uoms = {
+                self._normalize_token(k): (str(k).strip(), str(v).strip())
+                for k, v in required_col_uoms.items()
+            }
+            for item in actual_meta:
+                if not item['has_uom']:
+                    continue
+                base_name = item['base']
+                header_uom = item['uom']
+                base_key = self._normalize_token(base_name)
+                if base_key not in canonical_required_uoms:
+                    raise ValueError(
+                        f"{self.name} column '{item['actual']}' does not allow units in the header title. "
+                        f"Expected plain header names unless explicitly configured in required_col_uoms."
+                    )
+                _, expected_uom = canonical_required_uoms[base_key]
+                try:
+                    Qty(1.0, header_uom, expected_uom)
+                except Exception as e:
+                    raise ValueError(
+                        f"{self.name} column '{item['actual']}' unit '{header_uom}' is not compatible with "
+                        f"expected unit '{expected_uom}' for '{base_name}'."
+                    ) from e
+
+        actual_bases = [item['base'] for item in actual_meta]
+        if case_sensitive:
+            missing = [col for col in required_cols if col not in actual_bases]
+            if missing:
+                expected = ', '.join(expected_cols)
+                raise ValueError(
+                    f"{self.name} missing required column(s): {', '.join(missing)}. "
+                    f"Expected columns: {expected}."
+                )
+            return {
+                col: next(item['actual'] for item in actual_meta if item['base'] == col)
+                for col in expected_cols
+                if col in actual_bases
+            }
+
+        lookup = {item['key']: item['actual'] for item in actual_meta}
+        lookup_base = {item['key']: item['base'] for item in actual_meta}
+
+        missing = [col for col in required_cols if self._normalize_token(col) not in lookup]
+        if missing:
+            expected = ', '.join(expected_cols)
+            raise ValueError(
+                f"{self.name} missing required column(s): {', '.join(missing)}. "
+                f"Expected columns: {expected}."
+            )
+
+        strict_mode = self._strict_table_input_enabled()
+        if optional_cols and strict_mode:
+            expected_keys = {self._normalize_token(col) for col in expected_cols}
+            suspicious = []
+            for item in actual_meta:
+                actual_col = item['actual']
+                actual_key = item['key']
+                if actual_key in expected_keys:
+                    continue
+                for opt_col in optional_cols:
+                    if self._looks_like_optional_alias(lookup_base.get(actual_key, actual_col), opt_col):
+                        suspicious.append((actual_col, opt_col))
+                        break
+            if suspicious:
+                preview = ', '.join(f"'{actual}' ~ '{expected}'" for actual, expected in suspicious[:10])
+                expected = ', '.join(expected_cols)
+                raise ValueError(
+                    f"{self.name} has suspicious column name(s) under Strict Table Input mode: {preview}. "
+                    f"Rename these columns to the expected canonical names. Expected columns: {expected}."
+                )
+
+        if strict_mode and not columns_can_grow:
+            expected_keys = {self._normalize_token(col) for col in expected_cols}
+            unexpected = [
+                str(item['actual'])
+                for item in actual_meta
+                if item['key'] not in expected_keys
+            ]
+            if unexpected:
+                allowed = ', '.join(expected_cols)
+                found = ', '.join(unexpected[:10])
+                raise ValueError(
+                    f"{self.name} has unexpected column(s) under Strict Table Input mode: {found}. "
+                    f"Allowed columns: {allowed}."
+                )
+
+        rename_map = {}
+        resolved = {}
+        for col in expected_cols:
+            key = self._normalize_token(col)
+            actual = lookup.get(key)
+            if actual is None:
+                continue
+            actual_base = lookup_base.get(key, col)
+            _, header_uom = self._split_column_title_uom(actual)
+
+            resolved[col] = actual
+            if header_uom:
+                canonical = f'{col} {qconst.TBL_UOM_SEP} {header_uom}'
+            elif actual_base != col or actual != actual_base:
+                canonical = col
+            else:
+                canonical = actual
+
+            if actual != canonical:
+                rename_map[actual] = canonical
+                resolved[col] = canonical
+
+        self._apply_column_renames(rename_map)
+        return resolved
 
     def require_unique(self, column_name, case_sensitive=False, ignore_blank=False):
-        """Require unique values in one column; return canonical values."""
-        payload = self.to_dict()
-        old_columns = list(payload["columns"])
-        result = require_unique_values(
-            payload, self.name, column_name,
-            case_sensitive=case_sensitive, ignore_blank=ignore_blank,
-        )
-        self._sync_validation_columns(payload, old_columns)
-        return result
+        """Ensure a column has unique values and return canonical values.
+
+        Useful for key columns such as Project, Item, Worker, Shift, etc.
+
+        Example:
+            canonical_values = table.require_unique(
+                column_name='Project',
+                case_sensitive=False,
+                ignore_blank=True,
+            )
+        """
+        resolved = self.require_columns([column_name], case_sensitive=case_sensitive)
+        col = resolved.get(column_name, column_name)
+        values = self.column(col)
+
+        seen = {}
+        duplicates = []
+        ordered_keys = []
+        for value in values:
+            text = str(value).strip()
+            if ignore_blank and text == '':
+                continue
+            key = text if case_sensitive else self._normalize_token(text)
+            if key in seen:
+                duplicates.append((seen[key], text))
+            else:
+                seen[key] = text
+                ordered_keys.append(key)
+
+        if duplicates:
+            preview = ', '.join(f"{left}/{right}" for left, right in duplicates[:10])
+            raise ValueError(f"{self.name} '{col}' has duplicate value(s): {preview}")
+
+        return [seen[key] for key in ordered_keys]
 
     def require_unique_pairs(self, left_col, right_col, case_sensitive=False):
-        """Require unique pairs and return their normalized pair-key set."""
-        payload = self.to_dict()
-        old_columns = list(payload["columns"])
-        result = require_unique_pairs(
-            payload, self.name, left_col, right_col,
-            case_sensitive=case_sensitive,
-        )
-        self._sync_validation_columns(payload, old_columns)
-        return result
+        """Ensure each ``(left_col, right_col)`` combination appears at most once.
+
+        Returns:
+            Set of normalized pair keys suitable for downstream membership checks.
+
+        Example:
+            table.require_unique_pairs(
+                left_col='From',
+                right_col='To',
+                case_sensitive=False,
+            )
+        """
+        resolved = self.require_columns([left_col, right_col], case_sensitive=case_sensitive)
+        left_name = resolved.get(left_col, left_col)
+        right_name = resolved.get(right_col, right_col)
+
+        left_values = self.column(left_name)
+        right_values = self.column(right_name)
+
+        pair_keys = []
+        pair_display_by_key = {}
+        pair_count = {}
+
+        for left_raw, right_raw in zip(left_values, right_values):
+            left_text = str(left_raw).strip()
+            right_text = str(right_raw).strip()
+            left_key = left_text if case_sensitive else self._normalize_token(left_text)
+            right_key = right_text if case_sensitive else self._normalize_token(right_text)
+            key = (left_key, right_key)
+            pair_keys.append(key)
+            pair_display_by_key.setdefault(key, (left_text, right_text))
+            pair_count[key] = pair_count.get(key, 0) + 1
+
+        duplicate_keys = [key for key, count in pair_count.items() if count > 1]
+        if duplicate_keys:
+            preview = ', '.join(
+                f"{pair_display_by_key[key][0]}-{pair_display_by_key[key][1]}"
+                for key in duplicate_keys[:10]
+            )
+            raise ValueError(f"{self.name} contains duplicate pair row(s): {preview}")
+
+        return set(pair_keys)
 
     def require_values_subset(self, parent, child_col, parent_col,
                               case_sensitive=False):
-        """Require this table's values to exist in a parent table."""
-        child_payload, parent_payload = self.to_dict(), parent.to_dict()
-        child_columns = list(child_payload["columns"])
-        parent_columns = list(parent_payload["columns"])
-        result = require_values_subset(
-            child_payload, self.name, child_col,
-            parent_payload, parent.name, parent_col,
-            case_sensitive=case_sensitive,
-        )
-        self._sync_validation_columns(child_payload, child_columns)
-        parent._sync_validation_columns(parent_payload, parent_columns)
-        return result
+        """Ensure each non-blank child value exists in the parent value set.
+
+        Use this for foreign-key style checks between two input tables.
+
+        Example:
+            child_table.require_values_subset(
+                parent=parent_table,
+                child_col='Project',
+                parent_col='Project',
+                case_sensitive=False,
+            )
+        """
+        child_resolved = self.require_columns([child_col], case_sensitive=case_sensitive)
+        parent_resolved = parent.require_columns([parent_col], case_sensitive=case_sensitive)
+        child_name = child_resolved.get(child_col, child_col)
+        parent_name = parent_resolved.get(parent_col, parent_col)
+
+        parent_values = {
+            str(value).strip(): value
+            for value in parent.column(parent_name)
+            if str(value).strip() != ''
+        }
+        if case_sensitive:
+            parent_keys = set(parent_values.keys())
+            child_keys = [str(value).strip() for value in self.column(child_name) if str(value).strip() != '']
+        else:
+            parent_keys = {self._normalize_token(value) for value in parent_values.keys()}
+            child_keys = [
+                self._normalize_token(value)
+                for value in self.column(child_name)
+                if str(value).strip() != ''
+            ]
+
+        unknown = sorted({key for key in child_keys if key not in parent_keys})
+        if unknown:
+            typed = {self._normalize_token(v): str(v).strip() for v in self.column(child_name)}
+            unknown_preview = ', '.join(typed.get(key, key) for key in unknown[:10])
+            raise ValueError(
+                f"{self.name} '{child_name}' has value(s) not found in "
+                f"{parent.name} '{parent_name}': {unknown_preview}"
+            )
 
     def require_complete_pair_grid(self, left_col, right_col, left_values,
                                    right_values, left_label=None,
                                    right_label=None, case_sensitive=False):
-        """Require every combination of left_values × right_values exactly once."""
-        payload = self.to_dict()
-        old_columns = list(payload["columns"])
-        result = require_complete_pair_grid(
-            payload, self.name, left_col, right_col,
-            left_values, right_values,
-            left_label=left_label, right_label=right_label,
-            case_sensitive=case_sensitive,
-        )
-        self._sync_validation_columns(payload, old_columns)
-        return result
+        """Ensure the pair table contains the full Cartesian grid.
+
+        Specifically, every combination from ``left_values × right_values`` must
+        exist exactly once in ``(left_col, right_col)``.
+
+        Example:
+            table.require_complete_pair_grid(
+                left_col='Source',
+                right_col='Destination',
+                left_values=sources,
+                right_values=destinations,
+            )
+        """
+        observed_pairs = self.require_unique_pairs(left_col, right_col, case_sensitive=case_sensitive)
+
+        left_lookup = {}
+        for value in left_values:
+            text = str(value).strip()
+            key = text if case_sensitive else self._normalize_token(text)
+            left_lookup[key] = text
+
+        right_lookup = {}
+        for value in right_values:
+            text = str(value).strip()
+            key = text if case_sensitive else self._normalize_token(text)
+            right_lookup[key] = text
+
+        missing = []
+        for left_key, left_text in left_lookup.items():
+            for right_key, right_text in right_lookup.items():
+                if (left_key, right_key) not in observed_pairs:
+                    missing.append(f'{left_text}-{right_text}')
+
+        if missing:
+            preview = ', '.join(missing[:10])
+            left_title = left_label or left_col
+            right_title = right_label or right_col
+            raise ValueError(
+                f"{self.name} missing {left_title}-{right_title} pair(s): {preview}"
+            )
 
     def require_value_columns(self, master, master_value_col,
                               matrix_reserved_cols=None,
                               require_master_in_matrix=True,
                               require_matrix_in_master=True,
                               case_sensitive=False):
-        """Validate dynamic matrix headers against values in a master table."""
-        matrix_payload, master_payload = self.to_dict(), master.to_dict()
-        matrix_columns = list(matrix_payload["columns"])
-        master_columns = list(master_payload["columns"])
-        result = validate_value_columns_against_master(
-            matrix_payload, self.name,
-            master_payload, master.name, master_value_col,
-            matrix_reserved_cols=matrix_reserved_cols,
-            require_master_in_matrix=require_master_in_matrix,
-            require_matrix_in_master=require_matrix_in_master,
-            case_sensitive=case_sensitive,
-        )
-        self._sync_validation_columns(matrix_payload, matrix_columns)
-        master._sync_validation_columns(master_payload, master_columns)
-        return result
+        """Validate matrix value-columns against a master key list.
+
+        Typical use: matrix table where dynamic columns represent entities listed
+        as row values in a master table key column (for example cost matrix
+        columns vs facility master Location values).
+
+        Returns:
+            Dict containing canonical ``master_values`` and ``renamed_columns``
+            applied to the matrix table.
+
+        Example:
+            matched = matrix.require_value_columns(
+                master=facility,
+                master_value_col='Location',
+                matrix_reserved_cols=['Location', 'Demand'],
+            )
+        """
+        matrix_reserved_cols = matrix_reserved_cols or []
+        master_resolved = master.require_columns([master_value_col], case_sensitive=case_sensitive)
+        master_col_name = master_resolved.get(master_value_col, master_value_col)
+
+        master_values = [
+            str(value).strip()
+            for value in master.column(master_col_name)
+            if str(value).strip() != ''
+        ]
+
+        master_lookup = {}
+        for value in master_values:
+            key = value if case_sensitive else self._normalize_token(value)
+            if key in master_lookup and master_lookup[key] != value:
+                raise ValueError(
+                    f"Duplicate values in {master.name} '{master_col_name}' (case-insensitive): "
+                    f"{master_lookup[key]}, {value}"
+                )
+            master_lookup[key] = value
+
+        matrix_columns = self.columns
+        reserved_keys = {
+            col if case_sensitive else self._normalize_token(col)
+            for col in matrix_reserved_cols
+        }
+
+        matrix_lookup = {}
+        for col in matrix_columns:
+            col_text = str(col).strip()
+            key = col_text if case_sensitive else self._normalize_token(col_text)
+            if key in reserved_keys:
+                continue
+            if key in matrix_lookup and matrix_lookup[key] != col:
+                raise ValueError(
+                    f"Duplicate value columns in {self.name} (case-insensitive): "
+                    f"{matrix_lookup[key]}, {col}"
+                )
+            matrix_lookup[key] = col
+
+        if require_master_in_matrix:
+            missing = [
+                master_lookup[key]
+                for key in master_lookup
+                if key not in matrix_lookup
+            ]
+            if missing:
+                raise ValueError(
+                    f"Values from {master.name} '{master_col_name}' must exist as columns in "
+                    f"{self.name}. Missing column(s): {', '.join(missing)}"
+                )
+
+        if require_matrix_in_master:
+            unknown = [
+                matrix_lookup[key]
+                for key in matrix_lookup
+                if key not in master_lookup
+            ]
+            if unknown:
+                raise ValueError(
+                    f"Value column(s) in {self.name} must exist in "
+                    f"{master.name} '{master_col_name}'. Unknown column(s): {', '.join(unknown)}"
+                )
+
+        rename_map = {
+            matrix_lookup[key]: master_lookup[key]
+            for key in matrix_lookup
+            if key in master_lookup and matrix_lookup[key] != master_lookup[key]
+        }
+        self._apply_column_renames(rename_map)
+
+        return {
+            'master_values': [master_lookup[key] for key in master_lookup],
+            'renamed_columns': rename_map,
+        }
 
     # Explicit legacy-name aliases ease migration from mod_table_validate.
     require_unique_values = require_unique

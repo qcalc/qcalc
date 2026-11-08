@@ -3,7 +3,7 @@
 
 import pandas as pd
 import pulp
-from qcore import as_qtable, qtable, require_unique_values
+from qcore import as_qtable, qtable, QTable
 from qcore import validate_schema_if_needed
 from qcore import css2set
 
@@ -37,8 +37,12 @@ def optima_workforce(
     staff_df['Worker'] = staff_df['Worker'].astype(str).str.strip()
     demand_df['Shift'] = demand_df['Shift'].astype(str).str.strip()
 
-    workers = require_unique_values(staff_df, 'workforce_staff', 'Worker')
-    shifts = require_unique_values(demand_df, 'workforce_shift_demand', 'Shift')
+    staff_qt = QTable(staff_df, name='workforce_staff')
+    demand_qt = QTable(demand_df, name='workforce_shift_demand')
+    workers = staff_qt.assert_unique('Worker')
+    shifts = demand_qt.assert_unique('Shift')
+    staff_df.columns = staff_qt.columns
+    demand_df.columns = demand_qt.columns
 
     max_shifts = dict(zip(staff_df['Worker'], pd.to_numeric(staff_df['Max Shifts'])))
     cost_per_shift = dict(zip(staff_df['Worker'], pd.to_numeric(staff_df['Cost per Shift'])))
@@ -207,3 +211,4 @@ def optima_workforce__info():
         # 'out1': ['Summary', 'Decision Table', 'Coverage Table', 'Worker Utilization'],
         'tags': 'optimization, workforce, scheduling, staffing, mixed integer programming',
     }
+

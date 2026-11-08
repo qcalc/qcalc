@@ -3,7 +3,7 @@
 
 import numpy as np
 import pandas as pd
-from qcore import Qty, qtable, qhtml, require_columns, as_qtable
+from qcore import Qty, qtable, qhtml, as_qtable, QTable
 import numpy_financial as npf
 from math import log10
 from qutil import addcal_button
@@ -19,7 +19,9 @@ def _cf(v):
 
 def _validate_cashflow_table_columns(cashflows, func_name):
     expected_cols = ['Period', 'Cashflow']
-    require_columns(cashflows, f'{func_name}.cashflows', expected_cols)
+    cashflows_qt = QTable(cashflows, name=f'{func_name}.cashflows')
+    cashflows_qt.assert_columns(expected_cols)
+    cashflows.columns = cashflows_qt.columns
     return {
         'period': 'Period',
         'cashflow': 'Cashflow',
@@ -516,3 +518,4 @@ def invest(future_value: float = 100000,
     payment_per_period = (rate_per_period * future_value) / ((1 + rate_per_period.val) ** number_of_periods.val - 1)
     total_payment = payment_per_period * number_of_periods
     return {'payment_per_period': payment_per_period, 'total_payment': total_payment}
+

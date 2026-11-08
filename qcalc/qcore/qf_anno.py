@@ -256,6 +256,8 @@ def is_qtbl(value):
 
 def as_qtable(value):
     # Convert various table-like inputs to a dataframe based qtable instance with trimmed column names.
+    # Can be used inside backend calculator, it allows expressions to pass qtbl instead of qtable
+    # And function body can still use dataframe based qtable and related methods
     if isinstance(value, qtable):
         return _trim_table_columns_inplace(value)
     if isinstance(value, pd.DataFrame):

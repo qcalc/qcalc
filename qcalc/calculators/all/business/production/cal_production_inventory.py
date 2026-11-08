@@ -5,7 +5,7 @@ import pandas as pd
 import pulp
 from qcore import as_qtable, qtable
 from qcore import validate_schema_if_needed
-from qcore import require_unique_pairs, require_unique_values, require_values_subset
+from qcore import QTable
 
 from calc import (
     field_show_zero,
@@ -36,15 +36,20 @@ def optima_production_inventory(
     prodinv_item_master = as_qtable(prodinv_item_master)
     prodinv_demand = as_qtable(prodinv_demand)
     prodinv_production = as_qtable(prodinv_production)
-    require_values_subset(prodinv_demand, 'prodinv_demand', 'Item', prodinv_item_master, 'prodinv_item_master', 'Item')
-    require_values_subset(
-        prodinv_production,
-        'prodinv_production',
-        'Item',
-        prodinv_item_master,
-        'prodinv_item_master',
-        'Item',
+    item_master_qt = QTable(
+        {'columns': list(prodinv_item_master.columns), 'data': prodinv_item_master.values.tolist()},
+        name='prodinv_item_master',
     )
+    demand_qt = QTable(prodinv_demand, name='prodinv_demand')
+    production_qt = QTable(
+        {'columns': list(prodinv_production.columns), 'data': prodinv_production.values.tolist()},
+        name='prodinv_production',
+    )
+    demand_qt.assert_foreign_key(item_master_qt, 'Item', 'Item')
+    production_qt.assert_foreign_key(item_master_qt, 'Item', 'Item')
+    prodinv_item_master.columns = item_master_qt.columns
+    prodinv_demand.columns = demand_qt.columns
+    prodinv_production.columns = production_qt.columns
 
     item_df = prodinv_item_master.copy()
     demand_df = prodinv_demand.copy()
@@ -63,7 +68,9 @@ def optima_production_inventory(
     demand_df['Period'] = demand_df['Period'].astype(str).str.strip()
     prod_df['Period'] = prod_df['Period'].astype(str).str.strip()
 
-    items = require_unique_values(item_df, 'prodinv_item_master', 'Item')
+    item_qt = QTable(item_df, name='prodinv_item_master')
+    items = item_qt.assert_unique('Item')
+    item_df.columns = item_qt.columns
 
     demand_df['Demand'] = pd.to_numeric(demand_df['Demand'])
     prod_df['Unit Cost'] = pd.to_numeric(prod_df['Unit Cost'])
@@ -83,7 +90,9 @@ def optima_production_inventory(
 
     demand_df = demand_df.groupby(['Period', 'Item'], as_index=False)['Demand'].sum()
 
-    require_unique_pairs(prod_df, 'prodinv_production', 'Period', 'Item')
+    prod_qt = QTable(prod_df, name='prodinv_production')
+    prod_qt.assert_unique_pairs('Period', 'Item')
+    prod_df.columns = prod_qt.columns
 
     periods = sorted(set(demand_df['Period'].tolist()) | set(prod_df['Period'].tolist()), key=_period_sort_key)
     if not periods:
@@ -278,3 +287,4 @@ def optima_production_inventory__info():
         # 'out1': ['Summary', 'Decision Table'],
         'tags': 'optimization, production planning, inventory, lot sizing, linear programming',
     }
+

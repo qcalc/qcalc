@@ -1,8 +1,9 @@
+from .qb_qtable import *
 from .qb_qbase import *
 from .qb_df_proxy import *
 from .qb_np_proxy import qnp, np_names
 from .qb_qlist import *
-from .qb_table_validate import *
+from .qb_table_validate import QTableValidationError, table_columns_validator
 
 from .qc_mbase import _base_categories, _base_categ_list, _base_categ_list2, _base_categ_s2d,\
     _base_names, _base_slugs, dim_to_bname, _conv_names, _base_categ_d2s, _unit_operators,\

@@ -5,7 +5,7 @@ import inspect
 
 import pandas as pd
 
-from qcore import require_columns, require_unique_values, require_values_subset
+from qcore import QTable
 from qcore import qtbl
 from qutil import md2html
 
@@ -396,7 +396,17 @@ def _fin2_default_inputs(entities):
 
 def _fin2_validate(inputs, rows):
     # Row labels are the fixed contract of the table; entity columns are free-form.
-    require_columns(inputs, _FIN2_INPUTS, [_FIN2_LABEL_COL])
+    try:
+        inputs_qt = QTable(inputs, name=_FIN2_INPUTS)
+    except Exception as e:
+        msg = str(e)
+        if 'column names must be unique' in msg:
+            raise Exception('Value column names in the inputs table must be different from each other.') from e
+        if 'column names must be non-empty strings' in msg:
+            raise Exception('Every value column in the inputs table needs a name.') from e
+        raise
+    inputs_qt.assert_columns([_FIN2_LABEL_COL])
+    inputs['columns'] = inputs_qt.columns
     columns = inputs['columns']
     if columns[0] != _FIN2_LABEL_COL:
         raise Exception(f"The first column of the inputs table must be named '{_FIN2_LABEL_COL}'.")
@@ -414,9 +424,12 @@ def _fin2_validate(inputs, rows):
         raise Exception(f"Value column name(s) not allowed in the inputs table: {', '.join(reserved)}.")
 
     master = {'columns': [_FIN2_LABEL_COL], 'data': [[label] for label, _ in rows]}
-    require_unique_values(inputs, _FIN2_INPUTS, _FIN2_LABEL_COL)
-    require_values_subset(inputs, _FIN2_INPUTS, _FIN2_LABEL_COL, master, _FIN2_MASTER, _FIN2_LABEL_COL)
-    require_values_subset(master, _FIN2_MASTER, _FIN2_LABEL_COL, inputs, _FIN2_INPUTS, _FIN2_LABEL_COL)
+    inputs_qt = QTable(inputs, name=_FIN2_INPUTS)
+    master_qt = QTable(master, name=_FIN2_MASTER)
+    inputs_qt.assert_unique(_FIN2_LABEL_COL)
+    inputs_qt.assert_foreign_key(master_qt, _FIN2_LABEL_COL, _FIN2_LABEL_COL)
+    master_qt.assert_foreign_key(inputs_qt, _FIN2_LABEL_COL, _FIN2_LABEL_COL)
+    inputs['columns'] = inputs_qt.columns
     if len(inputs['data']) != len(rows):
         raise Exception('The inputs table has extra blank rows. Remove them.')
     return entities
@@ -517,3 +530,4 @@ def finstate2(
             values[entity].update({name: first[name] for name in _FIN2_BASIS_PARAMS})
 
     return _fin2_merge({entity: finstate(**values[entity]) for entity in entities})
+

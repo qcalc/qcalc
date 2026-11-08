@@ -7,7 +7,8 @@ Run from the qCalc project root:
 
 import pytest
 
-from qcore.qb_qbase import QBase, QRelation, QTable
+from qcore.qb_qbase import QBase, QRelation
+from qcore.qb_qtable import QTable
 
 
 def make_products():
@@ -501,7 +502,7 @@ def test_require_columns_normalizes_headers_and_updates_key_metadata():
         primary_key=" ID ",
     )
 
-    resolved = table.require_columns(["id", "Product Name"])
+    resolved = table.assert_columns(["id", "Product Name"])
 
     assert resolved == {"id": "id", "Product Name": "Product Name"}
     assert table.columns == ["id", "Product Name"]
@@ -514,7 +515,7 @@ def test_require_unique_returns_canonical_values():
         {"columns": ["Code"], "data": [[" A "], ["B"]]}
     )
 
-    assert table.require_unique("Code") == ["A", "B"]
+    assert table.assert_unique("Code") == ["A", "B"]
 
 
 def test_require_unique_detects_case_insensitive_duplicates():
@@ -523,7 +524,7 @@ def test_require_unique_detects_case_insensitive_duplicates():
     )
 
     with pytest.raises(ValueError, match="duplicate"):
-        table.require_unique("Code")
+        table.assert_unique("Code")
 
 
 def test_require_unique_pairs_returns_normalized_pairs():
@@ -531,14 +532,14 @@ def test_require_unique_pairs_returns_normalized_pairs():
         {"columns": ["From", "To"], "data": [["A", "B"], ["B", "C"]]}
     )
 
-    assert table.require_unique_pairs("From", "To") == {("a", "b"), ("b", "c")}
+    assert table.assert_unique_pairs("From", "To") == {("a", "b"), ("b", "c")}
 
 
 def test_require_values_subset_checks_child_against_parent():
     parent = QTable({"columns": ["Code"], "data": [["A"], ["B"]]}, name="parent")
     child = QTable({"columns": ["Parent Code"], "data": [["A"], ["B"]]}, name="child")
 
-    child.require_values_subset(parent, "Parent Code", "Code")
+    child.assert_foreign_key(parent, "Parent Code", "Code")
 
 
 def test_require_values_subset_rejects_unknown_child_value():
@@ -546,7 +547,7 @@ def test_require_values_subset_rejects_unknown_child_value():
     child = QTable({"columns": ["Parent Code"], "data": [["X"]]}, name="child")
 
     with pytest.raises(ValueError, match="not found"):
-        child.require_values_subset(parent, "Parent Code", "Code")
+        child.assert_foreign_key(parent, "Parent Code", "Code")
 
 
 def test_require_complete_pair_grid():
@@ -555,7 +556,7 @@ def test_require_complete_pair_grid():
         "data": [["A", "X"], ["A", "Y"], ["B", "X"], ["B", "Y"]],
     })
 
-    assert table.require_complete_pair_grid(
+    assert table.assert_complete_cross_join(
         "From", "To", ["A", "B"], ["X", "Y"]
     ) is None
 
@@ -571,9 +572,10 @@ def test_require_value_columns_normalizes_matrix_headers():
         name="cost_matrix",
     )
 
-    result = matrix.require_value_columns(
+    result = matrix.assert_columns_match_domain(
         master, "Location", matrix_reserved_cols=["Source"]
     )
 
     assert matrix.columns == ["Source", "North", "South"]
     assert result["master_values"] == ["North", "South"]
+

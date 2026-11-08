@@ -5,7 +5,7 @@ import pandas as pd
 import pulp
 from qcore import as_qtable, qtable
 from qcore import validate_schema_if_needed
-from qcore import require_complete_pair_grid, require_values_subset
+from qcore import QTable
 from calc import field_show_zero, table_agents, table_assign_cost, table_tasks
 from calc import safe_objective_value, solver, slack_table
 
@@ -20,16 +20,21 @@ def optima_assignment(
     agents = as_qtable(agents)
     tasks = as_qtable(tasks)
     assign_cost = as_qtable(assign_cost)
-    require_values_subset(assign_cost, 'assign_cost', 'Agent', agents, 'agents', 'Agent')
-    require_values_subset(assign_cost, 'assign_cost', 'Task', tasks, 'tasks', 'Task')
+    agents_qt = QTable(agents, name='agents')
+    tasks_qt = QTable(tasks, name='tasks')
+    assign_cost_qt = QTable(assign_cost, name='assign_cost')
+    assign_cost_qt.assert_foreign_key(agents_qt, 'Agent', 'Agent')
+    assign_cost_qt.assert_foreign_key(tasks_qt, 'Task', 'Task')
+    agents.columns = agents_qt.columns
+    tasks.columns = tasks_qt.columns
+    assign_cost.columns = assign_cost_qt.columns
 
     agent_list = agents['Agent'].astype(str).tolist()
     task_list = tasks['Task'].astype(str).tolist()
     capacity = dict(zip(agents['Agent'].astype(str), pd.to_numeric(agents['Capacity'])))
     cost = {(str(r['Agent']), str(r['Task'])): float(r['Cost']) for _, r in assign_cost.iterrows()}
-    require_complete_pair_grid(
-        pair_table=assign_cost,
-        pair_table_name='assign_cost',
+    assign_cost_qt = QTable(assign_cost, name='assign_cost')
+    assign_cost_qt.assert_complete_cross_join(
         left_col='Agent',
         right_col='Task',
         left_values=agent_list,
@@ -37,6 +42,7 @@ def optima_assignment(
         left_label='Agent',
         right_label='Task',
     )
+    assign_cost.columns = assign_cost_qt.columns
 
     prob = pulp.LpProblem('optima_assignment', pulp.LpMinimize)
     x = pulp.LpVariable.dicts(
@@ -102,7 +108,6 @@ def optima_assignment__info():
         # 'out1': ['Summary', 'Decision Table'],
         'tags': 'optimization, assignment, mixed integer programming',
     }
-
 
 
 

@@ -3,7 +3,7 @@
 
 import pandas as pd
 import numpy as np
-from qcore import qchar, qtable, QChart, as_qtable, qhtml, qurl, require_columns, css2ints, css2floats
+from qcore import qchar, qtable, QChart, as_qtable, qhtml, qurl, QTable, css2ints, css2floats
 from qutil import QThread, demo_url, action_script
 import mplfinance as mpf
 
@@ -972,7 +972,9 @@ def stock_chart(
     required_columns = [date_col, open_col, high_col, low_col, close_col]
     if show_volume or show_obv:
         required_columns.append(volume_col)
-    require_columns(df, 'data', required_columns)
+    df_qt = QTable(df, name='data')
+    df_qt.assert_columns(required_columns)
+    df.columns = df_qt.columns
 
     date_column = df[date_col]
     open_column = df[open_col]
@@ -1662,3 +1664,4 @@ def stock_chart(
             f"<small class='text-muted'>Ignored overlays for {chart_type.upper()}: {', '.join(ignored_overlays)}.</small>"
         )
     return result
+

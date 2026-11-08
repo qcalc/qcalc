@@ -6,7 +6,7 @@ import pulp
 from qcore import as_qtable, qtable
 from qcore import to_cast
 from qcore import validate_schema_if_needed
-from qcore import require_unique_values, require_values_subset
+from qcore import QTable
 
 from calc import (
     field_show_zero,
@@ -32,24 +32,25 @@ def optima_supplier_selection(
     material_demand = as_qtable(material_demand)
     supplier_master = as_qtable(supplier_master)
     supplier_item_cost = as_qtable(supplier_item_cost)
-    require_values_subset(
-        supplier_item_cost,
-        'supplier_item_cost',
-        'Supplier',
-        supplier_master,
-        'supplier_master',
-        'Supplier',
+    material_demand_qt = QTable(
+        {'columns': list(material_demand.columns), 'data': material_demand.values.tolist()},
+        name='material_demand',
     )
-    require_values_subset(
-        supplier_item_cost,
-        'supplier_item_cost',
-        'Item',
-        material_demand,
-        'material_demand',
-        'Item',
+    supplier_master_qt = QTable(
+        {'columns': list(supplier_master.columns), 'data': supplier_master.values.tolist()},
+        name='supplier_master',
     )
-    require_unique_values(material_demand, 'material_demand', 'Item')
-    require_unique_values(supplier_master, 'supplier_master', 'Supplier')
+    supplier_item_cost_qt = QTable(
+        {'columns': list(supplier_item_cost.columns), 'data': supplier_item_cost.values.tolist()},
+        name='supplier_item_cost',
+    )
+    supplier_item_cost_qt.assert_foreign_key(supplier_master_qt, 'Supplier', 'Supplier')
+    supplier_item_cost_qt.assert_foreign_key(material_demand_qt, 'Item', 'Item')
+    material_demand_qt.assert_unique('Item')
+    supplier_master_qt.assert_unique('Supplier')
+    material_demand.columns = material_demand_qt.columns
+    supplier_master.columns = supplier_master_qt.columns
+    supplier_item_cost.columns = supplier_item_cost_qt.columns
 
     items = material_demand['Item'].astype(str).tolist()
     suppliers = supplier_master['Supplier'].astype(str).tolist()
@@ -243,7 +244,6 @@ def optima_supplier_selection__info():
         # 'out1': ['Summary', 'Decision Table'],
         'tags': 'optimization, supplier selection, mixed integer programming',
     }
-
 
 
 

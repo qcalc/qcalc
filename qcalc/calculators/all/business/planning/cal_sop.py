@@ -5,8 +5,7 @@ import pandas as pd
 import pulp
 
 from calc import QResults
-from qcore import as_qtable, qhtml, qtable
-from qcore import require_unique_pairs, require_unique_values, require_values_subset
+from qcore import as_qtable, qhtml, qtable, QTable
 from qcore import validate_schema_if_needed
 from qcore import to_bool
 
@@ -40,6 +39,10 @@ def _product_sort_key(value):
     return str(value).strip()
 
 
+def _df_to_qtable(df, name):
+    return QTable(df, name=name)
+
+
 def _extract_previous_plan(previous_plan_df: pd.DataFrame | None, products, periods):
     if previous_plan_df is None or previous_plan_df.empty:
         return {}, False
@@ -49,7 +52,9 @@ def _extract_previous_plan(previous_plan_df: pd.DataFrame | None, products, peri
     previous_plan_df['Period'] = previous_plan_df['Period'].astype(str).str.strip()
     previous_plan_df['Previous Production'] = pd.to_numeric(previous_plan_df['Previous Production'])
 
-    require_unique_pairs(previous_plan_df, 'sop_previous_plan', 'Period', 'Product')
+    previous_qt = _df_to_qtable(previous_plan_df, 'sop_previous_plan')
+    previous_qt.assert_unique_pairs('Period', 'Product')
+    previous_plan_df.columns = previous_qt.columns
 
     lookup = {
         (str(r['Product']), str(r['Period'])): float(r['Previous Production'])
@@ -116,8 +121,12 @@ def _build_material_requirements(product_df, product_rows, sop_material_requirem
     bom_df['Material'] = bom_df['Material'].astype(str).str.strip()
     bom_df['Qty per Unit'] = pd.to_numeric(bom_df['Qty per Unit'])
 
-    require_values_subset(bom_df, 'sop_material_requirements', 'Product', product_df, 'sop_product_master', 'Product')
-    require_unique_pairs(bom_df, 'sop_material_requirements', 'Product', 'Material')
+    bom_qt = _df_to_qtable(bom_df, 'sop_material_requirements')
+    product_qt = _df_to_qtable(product_df, 'sop_product_master')
+    bom_qt.assert_foreign_key(product_qt, 'Product', 'Product')
+    bom_qt.assert_unique_pairs('Product', 'Material')
+    bom_df.columns = bom_qt.columns
+    product_df.columns = product_qt.columns
 
     product_totals = {}
     for row in product_rows:
@@ -217,24 +226,16 @@ def _attach_procurement_model(
     supplier_item_cost_df['Item'] = supplier_item_cost_df['Item'].astype(str).str.strip()
     supplier_item_cost_df['Unit Cost'] = pd.to_numeric(supplier_item_cost_df['Unit Cost'])
 
-    require_unique_pairs(bom_df, 'sop_material_requirements', 'Product', 'Material')
-    require_unique_values(supplier_master_df, 'supplier_master', 'Supplier')
-    require_values_subset(
-        supplier_item_cost_df,
-        'supplier_item_cost',
-        'Supplier',
-        supplier_master_df,
-        'supplier_master',
-        'Supplier',
-    )
-    require_values_subset(
-        bom_df,
-        'sop_material_requirements',
-        'Material',
-        supplier_item_cost_df,
-        'supplier_item_cost',
-        'Item',
-    )
+    bom_qt = _df_to_qtable(bom_df, 'sop_material_requirements')
+    supplier_master_qt = _df_to_qtable(supplier_master_df, 'supplier_master')
+    supplier_item_qt = _df_to_qtable(supplier_item_cost_df, 'supplier_item_cost')
+    bom_qt.assert_unique_pairs('Product', 'Material')
+    supplier_master_qt.assert_unique('Supplier')
+    supplier_item_qt.assert_foreign_key(supplier_master_qt, 'Supplier', 'Supplier')
+    bom_qt.assert_foreign_key(supplier_item_qt, 'Material', 'Item')
+    bom_df.columns = bom_qt.columns
+    supplier_master_df.columns = supplier_master_qt.columns
+    supplier_item_cost_df.columns = supplier_item_qt.columns
 
     bom_map = {(str(r['Product']), str(r['Material'])): float(r['Qty per Unit']) for _, r in bom_df.iterrows()}
     materials = sorted({material for _, material in bom_map.keys()}, key=_product_sort_key)
@@ -462,19 +463,29 @@ def _prepare_sop_inputs(
         overtime_df['Period'] = overtime_df['Period'].astype(str).str.strip()
         overtime_df['Overtime Capacity'] = pd.to_numeric(overtime_df['Overtime Capacity'])
         overtime_df['Overtime Cost'] = pd.to_numeric(overtime_df['Overtime Cost'])
-        require_unique_values(overtime_df, 'sop_overtime', 'Period')
+        overtime_qt = _df_to_qtable(overtime_df, 'sop_overtime')
+        overtime_qt.assert_unique('Period')
+        overtime_df.columns = overtime_qt.columns
 
     product_df['Product'] = product_df['Product'].astype(str).str.strip()
     demand_df['Product'] = demand_df['Product'].astype(str).str.strip()
     demand_df['Period'] = demand_df['Period'].astype(str).str.strip()
     capacity_df['Period'] = capacity_df['Period'].astype(str).str.strip()
 
-    products = require_unique_values(product_df, 'sop_product_master', 'Product')
+    product_qt = _df_to_qtable(product_df, 'sop_product_master')
+    products = product_qt.assert_unique('Product')
+    product_df.columns = product_qt.columns
     demand_df['Demand'] = pd.to_numeric(demand_df['Demand'])
     capacity_df['Capacity'] = pd.to_numeric(capacity_df['Capacity'])
 
-    require_values_subset(demand_df, 'sop_demand', 'Product', product_df, 'sop_product_master', 'Product')
-    require_unique_values(capacity_df, 'sop_capacity', 'Period')
+    demand_qt = _df_to_qtable(demand_df, 'sop_demand')
+    product_qt = _df_to_qtable(product_df, 'sop_product_master')
+    capacity_qt = _df_to_qtable(capacity_df, 'sop_capacity')
+    demand_qt.assert_foreign_key(product_qt, 'Product', 'Product')
+    capacity_qt.assert_unique('Period')
+    demand_df.columns = demand_qt.columns
+    product_df.columns = product_qt.columns
+    capacity_df.columns = capacity_qt.columns
 
     opening_inventory = dict(zip(product_df['Product'], pd.to_numeric(product_df['Opening Inventory'])))
     safety_stock = dict(zip(product_df['Product'], pd.to_numeric(product_df['Safety Stock'])))
@@ -579,7 +590,9 @@ def _prepare_sop_inputs(
             if col not in scenarios_enabled_df.columns:
                 raise Exception(f'Missing required column in sop_scenarios: {col}')
         scenarios_enabled_df['Scenario'] = scenarios_enabled_df['Scenario'].astype(str).str.strip()
-        require_unique_values(scenarios_enabled_df, 'sop_scenarios', 'Scenario')
+        scenarios_qt = _df_to_qtable(scenarios_enabled_df, 'sop_scenarios')
+        scenarios_qt.assert_unique('Scenario')
+        scenarios_enabled_df.columns = scenarios_qt.columns
 
     use_stability = stability_enabled and (stability_penalty > 0 or max_change_pct > 0)
     previous_lookup = {}
@@ -701,7 +714,9 @@ def optima_sop(
         local_demand_df['Demand'] = pd.to_numeric(local_demand_df['Demand'])
         local_capacity_df['Capacity'] = pd.to_numeric(local_capacity_df['Capacity'])
 
-        local_products = require_unique_values(local_product_df, 'sop_product_master', 'Product')
+        local_product_qt = _df_to_qtable(local_product_df, 'sop_product_master')
+        local_products = local_product_qt.assert_unique('Product')
+        local_product_df.columns = local_product_qt.columns
         local_demand_df = local_demand_df.groupby(['Period', 'Product'], as_index=False)['Demand'].sum()
         local_periods = sorted(
             set(local_demand_df['Period'].tolist()) | set(local_capacity_df['Period'].tolist()),
@@ -1598,3 +1613,4 @@ def optima_sop__info():
         },
         'tags': 'planning, sop, optimization, production, inventory, overtime, procurement, mixed integer programming',
     }
+

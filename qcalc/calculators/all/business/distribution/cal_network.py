@@ -1,16 +1,9 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
-from qcore import qtable, qtexta, QScreen, QChart, as_qtable
+from qcore import qtable, qtexta, QScreen, QChart, as_qtable, QTable
 from qutil import css2strs
 from calc import is_debug
-from qcore import (
-    require_complete_pair_grid,
-    require_columns,
-    require_unique_pairs,
-    require_values_subset,
-    validate_value_columns_against_master,
-)
 import pandas as pd
 import pulp
 import math
@@ -74,11 +67,17 @@ def transship_opt(
 
 
 def solve_transport_network(supply, demand, cost):
-    require_columns(supply, 'supply', ['Plant', 'Capacity'])
-    require_columns(demand, 'demand', ['Customer', 'Demand'])
-    require_columns(cost, 'cost', ['Plant', 'Customer', 'Cost'])
-    require_values_subset(cost, 'cost', 'Plant', supply, 'supply', 'Plant')
-    require_values_subset(cost, 'cost', 'Customer', demand, 'demand', 'Customer')
+    supply_qt = QTable(supply, name='supply')
+    demand_qt = QTable(demand, name='demand')
+    cost_qt = QTable(cost, name='cost')
+    supply_qt.assert_columns(['Plant', 'Capacity'])
+    demand_qt.assert_columns(['Customer', 'Demand'])
+    cost_qt.assert_columns(['Plant', 'Customer', 'Cost'])
+    cost_qt.assert_foreign_key(supply_qt, 'Plant', 'Plant')
+    cost_qt.assert_foreign_key(demand_qt, 'Customer', 'Customer')
+    supply.columns = supply_qt.columns
+    demand.columns = demand_qt.columns
+    cost.columns = cost_qt.columns
 
     # Extract data from DataFrames
     plants = supply['Plant'].astype(str).str.strip().tolist()
@@ -86,9 +85,8 @@ def solve_transport_network(supply, demand, cost):
     capacity = dict(zip(supply['Plant'], supply['Capacity'].astype(float)))
     demand = dict(zip(demand['Customer'], demand['Demand'].astype(float)))
 
-    require_complete_pair_grid(
-        pair_table=cost,
-        pair_table_name='cost',
+    cost_qt = QTable(cost, name='cost')
+    cost_qt.assert_complete_cross_join(
         left_col='Plant',
         right_col='Customer',
         left_values=plants,
@@ -96,6 +94,7 @@ def solve_transport_network(supply, demand, cost):
         left_label='Plant',
         right_label='Customer',
     )
+    cost.columns = cost_qt.columns
 
     cost_matrix = {(str(row['Plant']).strip(), str(row['Customer']).strip()): float(row['Cost']) for _, row in cost.iterrows()}
 
@@ -133,10 +132,18 @@ def solve_transport_network(supply, demand, cost):
 
 
 def solve_transshipment_network(supply, distribution, demand, cost):
-    require_columns(supply, 'supply', ['Plant', 'Capacity'])
-    require_columns(distribution, 'distribution', ['DC'])
-    require_columns(demand, 'demand', ['Customer', 'Demand'])
-    require_columns(cost, 'cost', ['From', 'To', 'Cost'])
+    supply_qt = QTable(supply, name='supply')
+    distribution_qt = QTable(distribution, name='distribution')
+    demand_qt = QTable(demand, name='demand')
+    cost_qt = QTable(cost, name='cost')
+    supply_qt.assert_columns(['Plant', 'Capacity'])
+    distribution_qt.assert_columns(['DC'])
+    demand_qt.assert_columns(['Customer', 'Demand'])
+    cost_qt.assert_columns(['From', 'To', 'Cost'])
+    supply.columns = supply_qt.columns
+    distribution.columns = distribution_qt.columns
+    demand.columns = demand_qt.columns
+    cost.columns = cost_qt.columns
 
     # Extract data from DataFrames
     plants = supply['Plant'].astype(str).str.strip().tolist()
@@ -160,7 +167,9 @@ def solve_transshipment_network(supply, distribution, demand, cost):
     # dc_capacity = dict(zip(distribution['DC'], distribution['Capacity'].astype(float)))
     demand = dict(zip(demand['Customer'], demand['Demand'].astype(float)))
 
-    require_unique_pairs(cost, 'cost', 'From', 'To')
+    cost_qt = QTable(cost, name='cost')
+    cost_qt.assert_unique_pairs('From', 'To')
+    cost.columns = cost_qt.columns
 
     cost_matrix = {(str(row['From']).strip(), str(row['To']).strip()): float(row['Cost']) for _, row in cost.iterrows()}
 
@@ -168,9 +177,8 @@ def solve_transshipment_network(supply, distribution, demand, cost):
         cost['From'].astype(str).str.strip().isin(set(plants))
         & cost['To'].astype(str).str.strip().isin(set(dcs))
     ]
-    require_complete_pair_grid(
-        pair_table=plant_dc_cost,
-        pair_table_name='cost',
+    plant_dc_cost_qt = QTable(plant_dc_cost, name='cost')
+    plant_dc_cost_qt.assert_complete_cross_join(
         left_col='From',
         right_col='To',
         left_values=plants,
@@ -183,9 +191,8 @@ def solve_transshipment_network(supply, distribution, demand, cost):
         cost['From'].astype(str).str.strip().isin(set(dcs))
         & cost['To'].astype(str).str.strip().isin(set(customers))
     ]
-    require_complete_pair_grid(
-        pair_table=dc_customer_cost,
-        pair_table_name='cost',
+    dc_customer_cost_qt = QTable(dc_customer_cost, name='cost')
+    dc_customer_cost_qt.assert_complete_cross_join(
         left_col='From',
         right_col='To',
         left_values=dcs,
@@ -391,29 +398,32 @@ def facility_opt(
 ):
     cost = as_qtable(cost)
     facility = as_qtable(facility)
-    require_columns(cost, 'cost', ['Location', 'Demand'])
-    require_columns(
-        facility,
-        'facility',
+    cost_qt = QTable(cost, name='cost')
+    facility_qt = QTable(facility, name='facility')
+    cost_qt.assert_columns(['Location', 'Demand'])
+    facility_qt.assert_columns(
         ['Location', 'Capacity', 'Fixed Cost'],
         columns_can_grow=False,
     )
+    cost.columns = cost_qt.columns
+    facility.columns = facility_qt.columns
 
     # Define the problem
     prob = pulp.LpProblem("Facility_Location_Problem", pulp.LpMinimize)
     # Decision variables
     try:
-        matched = validate_value_columns_against_master(
-            matrix_table=cost,
-            matrix_table_name='cost',
-            master_table=facility,
-            master_table_name='facility',
+        cost_qt = QTable(cost, name='cost')
+        facility_qt = QTable(facility, name='facility')
+        matched = cost_qt.assert_columns_match_domain(
+            master=facility_qt,
             master_value_col='Location',
             matrix_reserved_cols=['Location', 'Demand'],
             require_master_in_matrix=True,
             require_matrix_in_master=True,
             case_sensitive=False,
         )
+        cost.columns = cost_qt.columns
+        facility.columns = facility_qt.columns
     except Exception as e:
         return str(e)
 

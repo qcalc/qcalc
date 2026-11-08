@@ -3,7 +3,7 @@
 
 import numpy as np
 
-from qcore import Qty, qtbl, require_columns, qdf
+from qcore import Qty, qtbl, QTable, qdf
 
 
 def supdisc__info():
@@ -46,7 +46,9 @@ def supdisc(
     if cost_of_capital_v < 0:
         raise ValueError('Cost of Capital cannot be negative.')
 
-    require_columns(discount_tiers, 'discount_tiers', ['Discount Tier', 'Minimum Order Quantity', 'Unit Price'])
+    discount_tiers_qt = QTable(discount_tiers, name='discount_tiers')
+    discount_tiers_qt.assert_columns(['Discount Tier', 'Minimum Order Quantity', 'Unit Price'])
+    discount_tiers['columns'] = discount_tiers_qt.columns
     df = qdf(discount_tiers)
     if not len(df):
         raise ValueError('Discount Tier Table needs at least one tier.')
@@ -124,3 +126,4 @@ def supdisc(
         'Lowest Total Annual Cost': Qty(lowest_cost, f'{to_cur}/yr'),
         'Annual Savings vs No-Discount Tier': Qty(base_total_cost - lowest_cost, f'{to_cur}/yr'),
     }
+

@@ -3,7 +3,7 @@
 
 import pandas as pd
 import pulp
-from qcore import to_cast, as_qtable, qtable, require_unique_values, require_values_subset
+from qcore import to_cast, as_qtable, qtable, QTable
 from qcore import validate_schema_if_needed
 
 from calc import (
@@ -32,7 +32,9 @@ def optima_project(
 
     prj = projects.copy()
     prj['Project'] = prj['Project'].astype(str).str.strip()
-    project_list = require_unique_values(prj, 'projects', 'Project')
+    prj_qt = QTable(prj, name='projects')
+    project_list = prj_qt.assert_unique('Project')
+    prj.columns = prj_qt.columns
     if not project_list:
         raise Exception('projects must contain at least one row')
 
@@ -80,8 +82,12 @@ def optima_project(
 
     rules = project_rules if project_rules is not None else pd.DataFrame(columns=['From', 'To', 'Type'])
     if len(rules) > 0:
-        require_values_subset(rules, 'project_rules', 'From', prj, 'projects', 'Project')
-        require_values_subset(rules, 'project_rules', 'To', prj, 'projects', 'Project')
+        rules_qt = QTable(rules, name='project_rules')
+        prj_qt = QTable(prj, name='projects')
+        rules_qt.assert_foreign_key(prj_qt, 'From', 'Project')
+        rules_qt.assert_foreign_key(prj_qt, 'To', 'Project')
+        rules.columns = rules_qt.columns
+        prj.columns = prj_qt.columns
         for _, row in rules.iterrows():
             from_p = str(row['From'])
             to_p = str(row['To'])
@@ -177,8 +183,6 @@ def optima_project__info():
         # 'out1': ['Summary', 'Decision Table'],
         'tags': 'optimization, project portfolio, knapsack, mixed integer programming',
     }
-
-
 
 
 

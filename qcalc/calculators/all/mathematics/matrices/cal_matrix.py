@@ -4,7 +4,7 @@
 import numpy
 import pandas as pd
 import random
-from qcore import qtable
+from qcore import qtable, as_qtable
 from calc import QCals
 from qcore import np2df
 
@@ -46,9 +46,6 @@ def bmatrix__info():
         'layout': 'tb',
         'inp1': '~y',
     }
-
-
-from qcore import as_qtable
 
 
 def bmatrix(x: qtable, y: qtable, operation='Add', expression: str = 'x*y-5*x+17'):

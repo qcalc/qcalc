@@ -6,7 +6,7 @@ import re
 import numpy as np
 import pandas as pd
 
-from qcore import qchar, qcode, qtbl, QChart, require_columns
+from qcore import qchar, qcode, qtbl, QChart, QTable
 from calc import scalar_results, QResults, FLD_SHOW_CHOICE, \
     FLD_RESULT_CELLS, result_values, ResultCellsError, \
     FLD_VARIATION_TARGET, FLD_INPUTS
@@ -185,12 +185,12 @@ def monte_carlo2(
     chart_title='Monte Carlo Simulation v2',
 ):
     inputs = inputs or {'columns': [], 'data': []}
-    require_columns(
-        inputs,
-        'inputs',
+    inputs_qt = QTable(inputs, name='inputs')
+    inputs_qt.assert_columns(
         ['Variable', 'Distribution', 'Param 1', 'Param 2', 'Param 3'],
         columns_can_grow=False,
     )
+    inputs['columns'] = inputs_qt.columns
 
     columns = list(inputs.get('columns', []))
     rows = list(inputs.get('data', []))
@@ -428,12 +428,12 @@ def sensitivity(
     chart_title='Sensitivity Analysis',
 ):
     inputs = inputs or {'columns': [], 'data': []}
-    require_columns(
-        inputs,
-        'inputs',
+    inputs_qt = QTable(inputs, name='inputs')
+    inputs_qt.assert_columns(
         ['Variable', 'Distribution', 'Param 1', 'Param 2', 'Param 3'],
         columns_can_grow=False,
     )
+    inputs['columns'] = inputs_qt.columns
     if method not in ('src', 'prcc', 'both'):
         raise Exception("method must be one of: src, prcc, both")
 
@@ -618,3 +618,4 @@ def sensitivity(
     if show in ('both', 'chart'):
         output['chart'] = chart
     return output
+

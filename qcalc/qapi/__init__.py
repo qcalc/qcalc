@@ -26,8 +26,7 @@ from qcore import (
     QFile, qf2bio,
     QImage, qf2img, nparray_to_bio,
     QChart, QGeo, QMap, SmartCalc,
-    table_columns_validator, require_columns, require_values_subset, require_unique_values,
-    require_unique_pairs, require_complete_pair_grid, validate_value_columns_against_master,
+    table_columns_validator,
     qformat_q, qformat_v, to_ucur,
     ai_prompt_field, br,
     qsymbols, qsymstat, qsymhelp,
@@ -88,8 +87,7 @@ __evacon__ = [
     'is_qty', 'is_unit', 'base_units', 'base_dims', 'unit_desc', 'prefixes', 'unit2lmt',  # qcore
     'lmt_desc', 'str_type', 'read_unit', 'lmt2cat', 'lmt2ulist', 'lmt2qlist', 'find_unit', 'is_str_qty',  # qcore
     'minimum',  # this file
-    'table_columns_validator', 'require_columns', 'require_values_subset', 'require_unique_values',
-    'require_unique_pairs', 'require_complete_pair_grid', 'validate_value_columns_against_master',
+    'table_columns_validator',
     'qformat_q', 'qformat_v', 'to_ucur',  # qcore.mod_qcutil
     'ai_prompt_field', 'br',  # qcor.mod_fields
     'iif', 'joinx', 'css2floats', 'css2ints', 'css2values', 'css2strs', 'vals2css', 'css2set', 'css2dict',

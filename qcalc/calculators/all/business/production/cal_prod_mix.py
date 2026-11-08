@@ -4,7 +4,7 @@
 import pulp
 import qconst
 
-from qcore import Qty, qtbl, require_columns
+from qcore import Qty, qtbl, QTable
 from qutil import is_debug
 
 
@@ -84,12 +84,12 @@ def production_mix_profit(
         return Qty(raw_value, target_uom).val
 
     try:
-        resolved_cols = require_columns(
-            products,
-            'products',
+        products_qt = QTable(products, name='products')
+        resolved_cols = products_qt.assert_columns(
             required_cols,
             required_col_uoms=required_col_uoms,
         )
+        products['columns'] = products_qt.columns
     except Exception as e:
         return str(e)
 
@@ -322,3 +322,4 @@ def production_mix_profit(
         'Annual Contribution Profit Improvement': Qty((total_profit - total_current_profit) * 12.0, f'{to_cur}/yr'),
         'Annual Contribution Profit': Qty(total_profit * 12.0, f'{to_cur}/yr'),
     }
+

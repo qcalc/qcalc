@@ -78,8 +78,7 @@ e.g. you do not ever require "from qcore import Qty" statement for frontend calc
     is_qty, is_unit, base_units, base_dims, unit_desc, prefixes, unit2lmt,
     lmt_desc, str_type, read_unit, lmt2cat, lmt2ulist, lmt2qlist, find_unit, is_str_qty,
     minimum,
-    table_columns_validator, require_columns, require_values_subset, require_unique_values,
-    require_unique_pairs, require_complete_pair_grid, validate_value_columns_against_master,
+    table_columns_validator,
     qformat_q, qformat_v, to_ucur,
     iif, joinx, css2floats, css2ints, css2values, css2strs, vals2css, css2set,
     np, qdf, QList,
@@ -98,6 +97,11 @@ e.g. you do not ever require "from qcore import Qty" statement for frontend calc
     csv2qtbl, np2qtbl,
 
     QResults
+
+- Table validation is class-based: create a `QTable` and call methods such as
+  `assert_columns`, `assert_unique`, `assert_foreign_key`,
+  `assert_unique_pairs`, `assert_complete_cross_join`, and
+  `assert_columns_match_domain`.
 
 ### 4.2 Backend Calculators
 - Backend calculators are typically under `qcalc/calculators/all/`.

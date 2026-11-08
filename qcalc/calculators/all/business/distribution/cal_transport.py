@@ -5,7 +5,7 @@ import pandas as pd
 import pulp
 from qcore import as_qtable, qtable
 from qcore import validate_schema_if_needed
-from qcore import require_complete_pair_grid, require_values_subset
+from qcore import QTable
 from calc import field_show_zero, table_demand, table_ship_cost, table_supply
 from calc import safe_objective_value, solver, slack_table
 
@@ -21,17 +21,22 @@ def optima_transport(
     supply = as_qtable(supply)
     demand = as_qtable(demand)
     ship_cost = as_qtable(ship_cost)
-    require_values_subset(ship_cost, 'ship_cost', 'Source', supply, 'supply', 'Source')
-    require_values_subset(ship_cost, 'ship_cost', 'Destination', demand, 'demand', 'Destination')
+    supply_qt = QTable(supply, name='supply')
+    demand_qt = QTable(demand, name='demand')
+    ship_cost_qt = QTable(ship_cost, name='ship_cost')
+    ship_cost_qt.assert_foreign_key(supply_qt, 'Source', 'Source')
+    ship_cost_qt.assert_foreign_key(demand_qt, 'Destination', 'Destination')
+    supply.columns = supply_qt.columns
+    demand.columns = demand_qt.columns
+    ship_cost.columns = ship_cost_qt.columns
 
     sources = supply['Source'].astype(str).tolist()
     destinations = demand['Destination'].astype(str).tolist()
     capacity = dict(zip(supply['Source'].astype(str), pd.to_numeric(supply['Capacity'])))
     req = dict(zip(demand['Destination'].astype(str), pd.to_numeric(demand['Demand'])))
     cost = {(str(r['Source']), str(r['Destination'])): float(r['Cost']) for _, r in ship_cost.iterrows()}
-    require_complete_pair_grid(
-        pair_table=ship_cost,
-        pair_table_name='ship_cost',
+    ship_cost_qt = QTable(ship_cost, name='ship_cost')
+    ship_cost_qt.assert_complete_cross_join(
         left_col='Source',
         right_col='Destination',
         left_values=sources,
@@ -39,6 +44,7 @@ def optima_transport(
         left_label='Source',
         right_label='Destination',
     )
+    ship_cost.columns = ship_cost_qt.columns
 
     prob = pulp.LpProblem('optima_transport', pulp.LpMinimize)
     var_type = pulp.LpInteger if flow_type == 'integer' else pulp.LpContinuous
@@ -111,7 +117,6 @@ def optima_transport__info():
         # 'out1': ['Summary', 'Decision Table'],
         'tags': 'optimization, transportation, linear programming',
     }
-
 
 
 

@@ -31,6 +31,8 @@ from qcore import (
     qformat_q, qformat_v, to_ucur,
     ai_prompt_field, br,
     qsymbols, qsymstat, qsymhelp,
+    csv2qtbl, np2qtbl,  # qd_df, qd_np
+    qnp as np, np_names,  # qb_np_proxy
 )
 
 from qcore import (
@@ -46,11 +48,9 @@ from qutil import (
     iif, joinx, css2strs,  # mod_basic
     md2html, demo_url, is_debug,
     specified_args, preprocess_expression, variable_to_title,
-    title_to_variable, csv2qtbl, np2qtbl,
+    title_to_variable,
     replace_variables, replace_parameter_values, parameter_values,
 )
-
-from .mod_np import np_names, np
 
 
 def minimum(*args, key=None):

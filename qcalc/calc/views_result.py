@@ -19,7 +19,7 @@ from qcore import (
 )
 from .mod_cache import QMem
 from .mod_cutil import keep_format
-from .mod_result import df2normalized
+from qcore import df2normalized
 from .views_info_meta import _normalize_layout_blocks, resolve_static_side
 
 logger = logging.getLogger(__name__)

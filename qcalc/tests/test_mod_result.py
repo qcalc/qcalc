@@ -17,7 +17,7 @@ import qconst
 
 qsett.init()
 
-from calc.mod_result import df2normalized
+from qcore import df2normalized
 from qcore import Qty
 from qutil import QThread
 

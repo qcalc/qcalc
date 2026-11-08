@@ -6,7 +6,7 @@ import pandas as pd
 import random
 from qcore import qtable
 from calc import QCals
-from qutil import np2df
+from qcore import np2df
 
 mat_dict = {
     'det': numpy.linalg.det,

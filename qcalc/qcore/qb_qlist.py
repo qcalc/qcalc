@@ -3,7 +3,7 @@
 
 import operator
 from .qc_qty import str_to_qty
-from .qd_basic import css2values
+from .qd_data import str2val
 
 __all__ = ['QList', 'qconvert']
 
@@ -14,6 +14,7 @@ def qconvert(x):
     Behavior:
     - Non-string values are returned unchanged.
     - Convert numeric/Qty/date/time-like strings to appropriate types
+      (a time string gives ``datetime.time``); other strings are returned stripped
     """
     if not isinstance(x, str):
         return x
@@ -22,8 +23,7 @@ def qconvert(x):
     if q is not None:
         return q
 
-    val, data_type = css2values(x)
-    return val[0]
+    return str2val(x)
 
 
 class QList(list):

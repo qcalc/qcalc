@@ -4,9 +4,10 @@
 import hashlib
 from bs4 import BeautifulSoup
 from qconst import delimiter_help_text
-from qutil import nzs, csv2df, demo_url, md2html, md_math_script, action_script, fetch_url, code2html
+from qcore import csv2df
+from qutil import nzs, demo_url, md2html, md_math_script, action_script, fetch_url, code2html
 from qcore.qf_anno import *
-from calc.mod_result import df2normalized
+from qcore import df2normalized
 
 
 def is_text_content(data: bytes):

@@ -8,7 +8,8 @@ from calculators.all.engineering.surveying import rectland
 from calculators.all.mathematics.geometry import circle
 from calculators.all.health import bmi
 from calc import QJson
-from qutil import cal_link, resize_df, csv2df, callback_button, calurl
+from qutil import cal_link, callback_button, calurl
+from qcore import resize_df, csv2df
 import time
 from calculators.all.general import conv2
 from qcore.qf_anno import *

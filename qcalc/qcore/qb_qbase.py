@@ -6,7 +6,7 @@ QTable stores ordinary Python lists/dicts in qtbl shape.  qdf remains the
 separate, restricted pandas computation facade.
 """
 
-from .qb_qdf import qkeymap, qdf
+from .qb_df_proxy import qkeymap, qdf
 from .qb_table_validate import (require_columns, require_unique_values, require_unique_pairs,
                                 require_values_subset, require_complete_pair_grid,
                                 validate_value_columns_against_master)

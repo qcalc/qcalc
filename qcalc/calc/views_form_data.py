@@ -3,7 +3,8 @@
 
 from calc import QMem, QPref, QCache, QKeep, QSave, QInput
 from .mod_cutil import *
-from qutil import HtmxHttpRequest, csv2df, user_name, is_loggedin, user_ip, cell_count, fchoices
+from qutil import HtmxHttpRequest, user_name, is_loggedin, user_ip, fchoices
+from qcore import csv2df, cell_count
 from qcore import qhidex, qtable, qtbl, QFile, qlist_types, QFieldHandler, QEncoderBase, QJField, convert_to_type, \
     qinfo, qerror, qwarn
 import json

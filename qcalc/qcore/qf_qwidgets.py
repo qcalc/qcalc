@@ -7,7 +7,7 @@ from django.utils.safestring import mark_safe
 from django.forms import Widget
 import pandas as pd
 import json
-from qutil import resize_df
+from .qd_df import resize_df
 from qcore.qf_anno import is_qtbl, wrap_actions, fullscreen_button
 from qconst import TOK_ROW, TOK_COL, TOK_TABLE_RESIZE, TOK_TABLE_ED, TOK_TABLE_UPDATE, TOK_ID_PREFIX, TOK_FIELD_SEP, \
     TBL_UOM_SEP

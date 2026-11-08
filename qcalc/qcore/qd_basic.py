@@ -1,9 +1,8 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
-from .qd_data import str2type, time2float, is_blank
-from .qd_datetime import QDateTime
-from datetime import date, datetime, time as dt_time
+from .qd_data import str2type, str2val, is_blank
+from datetime import time as dt_time
 from qutil import css2strs
 
 
@@ -28,45 +27,14 @@ def css2values(cs_string, separator=',', time2val='hr'):  # '', ('hr','min','s',
     if isinstance(cs_string, list): return cs_string, type(cs_string[0]) if len(cs_string) > 0 else float
     cs_string = cs_string.strip()
     if cs_string == '': return [], float
-    list_values = []
     try:
         list_strings = [x.strip() for x in cs_string.split(separator)]
         data_type = str2type(list_strings[0])
-        if data_type == float:
-            list_values = [float(x) for x in list_strings]
-        elif data_type == int:
-            list_values = [int(x) for x in list_strings]
-        elif data_type == date:
-            list_values = []
-            for x in list_strings:
-                parsed = QDateTime(x).val
-                if not (isinstance(parsed, date) and not isinstance(parsed, datetime)):
-                    raise ValueError(f"Error (C2V): Invalid date value: {x}")
-                list_values.append(parsed)
-        elif data_type == datetime:
-            list_values = []
-            for x in list_strings:
-                parsed = QDateTime(x).val
-                if not isinstance(parsed, datetime):
-                    raise ValueError(f"Error (C2V): Invalid datetime value: {x}")
-                list_values.append(parsed)
-        elif data_type == dt_time:
-            parsed_times = []
-            for x in list_strings:
-                parsed = QDateTime(x).val
-                if not isinstance(parsed, dt_time):
-                    raise ValueError(f"Error (C2V): Invalid time value: {x}")
-                parsed_times.append(parsed)
-            if time2val == '':
-                list_values = parsed_times
-            else:
-                list_values = [time2float(x, time2val) for x in parsed_times]
-                data_type = float
-        elif data_type == str:
-            list_values = list_strings
+        list_values = [str2val(x, data_type, time2val) for x in list_strings]
+        if data_type == dt_time and time2val != '':
+            data_type = float
     except ValueError as e:
         raise ValueError(f"Error (C2V): Input issue: {e}")
-    # print('l', list_values, data_type)
     return list_values, data_type
 
 

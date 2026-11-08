@@ -7,6 +7,9 @@ import pandas as pd
 
 import qconst
 from qutil.mod_url import fetch_url
+from .qc_qty import Qty, str_to_qty
+from .qf_anno import as_qtable
+from .mod_qcutil import df_formatter
 
 
 def df2qtbl(df):
@@ -135,3 +138,89 @@ def cell_count(value) -> int:
             return cell_count
 
     return 0
+
+
+def df2normalized(df, do_format: bool = False) -> pd.DataFrame:
+    """Return an Excel-friendly DataFrame with Qty units moved into headers.
+
+    Each Qty-valued column is converted to its scalar qty values, and the
+    column title is renamed as "<column> | <unit>".
+    If do_format=True, every cell is string-formatted for UI rendering and
+    unitized columns use quantity-aware precision.
+    """
+    df = as_qtable(df)
+    if not isinstance(df, pd.DataFrame) or df.empty:
+        return df
+
+    obj_cols = df.select_dtypes(include=['object', 'string']).columns
+    if len(obj_cols) == 0 and not do_format:
+        return df
+
+    normalized_df = df.copy()
+    rename_map = {}
+
+    for col in obj_cols:
+        col_unit = ''
+        can_convert = True
+        has_qty = False
+        col_values = normalized_df[col].tolist()
+        qty_values = [None] * len(col_values)
+
+        def _to_qty(value):
+            if isinstance(value, Qty):
+                return value
+            if isinstance(value, str):
+                return str_to_qty(value.strip())
+            return None
+
+        # pre-check all values: convert only when the whole non-empty column is Qty
+        # or qty string, and all qty values share one common unit.
+        for i, value in enumerate(col_values):
+            if value is None:
+                continue
+
+            qty_value = _to_qty(value)
+            if qty_value is not None:
+                qty_values[i] = qty_value
+                has_qty = True
+                value_unit = str(qty_value.uom).strip()
+                if value_unit:
+                    if col_unit == '':
+                        col_unit = value_unit
+                    elif value_unit != col_unit:
+                        can_convert = False
+                        break
+            else:
+                can_convert = False
+                break
+
+        if not (can_convert and has_qty):
+            if do_format:
+                normalized_df[col] = normalized_df[col].map(df_formatter)
+            continue
+
+        if do_format:
+            values = [
+                None if value is None else df_formatter(qty_values[i].val, unit_hint=col_unit, val_only=True)
+                for i, value in enumerate(col_values)
+            ]
+        else:
+            values = [None if value is None else qty_values[i].val for i, value in enumerate(col_values)]
+
+        normalized_df[col] = values
+        if col_unit:
+            col_name = str(col)
+            suffix = f'{qconst.TBL_UOM_SEP} {col_unit}'
+            if not col_name.strip().endswith(suffix):
+                rename_map[col] = f'{col_name} {suffix}'
+
+    if rename_map:
+        normalized_df = normalized_df.rename(columns=rename_map)
+
+    if do_format:
+        obj_cols_set = set(obj_cols)
+        for col in normalized_df.columns:
+            if col not in obj_cols_set:
+                normalized_df[col] = normalized_df[col].map(df_formatter)
+
+    return normalized_df

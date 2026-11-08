@@ -28,7 +28,7 @@ def np_names():
 
 
 class _RestrictedProxy:
-    """Generic allowlist proxy (currently used by np). `_allowed` maps a
+    """Generic allowlist proxy (currently used by qnp, exposed as np). `_allowed` maps a
     permitted attribute name to either True (call/read, convert result to
     plain Python) or a nested allowed-dict (call, wrap result in a new proxy
     exposing only those names). Add entries to _NP_ALLOWED below to expose
@@ -78,4 +78,4 @@ class _RestrictedProxy:
         return repr(self._obj)
 
 
-np = _RestrictedProxy(_np, _NP_ALLOWED)
+qnp = _RestrictedProxy(_np, _NP_ALLOWED)

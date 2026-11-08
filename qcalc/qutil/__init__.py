@@ -5,7 +5,6 @@ from .mod_func import *
 from .mod_user import *
 from .mod_stop import *
 from .mod_search import *
-from .mod_df import *
 from .mod_words import *
 from .mod_url import *
 from .mod_settings import *
@@ -15,9 +14,7 @@ from .mod_file import *
 from .mod_tree import TreeNode, create_category_node
 from .timed_thread import thread_with_timeout, QThread
 from .timed_signal import run_with_timeout
-from .mod_code_format import *
 from .mod_code_security import *
 from .mod_dict import *
 from .mod_json import *
 from .mod_md import *
-from .mod_np import *

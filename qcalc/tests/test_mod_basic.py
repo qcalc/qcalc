@@ -92,6 +92,18 @@ def test_css2values_reports_input_issue():
         css2values('1, 2, x')
 
 
+def test_qconvert_converts_one_value_without_splitting():
+    from datetime import time
+    from qcore import qconvert, Qty
+    assert qconvert('5') == 5 and qconvert('2.5') == 2.5
+    assert qconvert('2024-01-02') == date(2024, 1, 2)
+    assert qconvert('06:00') == time(6, 0)
+    assert isinstance(qconvert('3 m'), Qty)
+    assert qconvert('1,2') == '1,2'
+    assert qconvert('') == ''
+    assert qconvert(7) == 7
+
+
 def test_vals2css_and_iif_and_none_helpers():
     assert vals2css([1, 'a', 2.5]) == '1, a, 2.5'
     assert vals2css([1, 2], separator=';') == '1;2'

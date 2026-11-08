@@ -3,7 +3,8 @@
 
 import numpy as np
 import pandas as pd
-from qutil import css2strs, validated_col, to_python_expr
+from qutil import css2strs, to_python_expr
+from qcore import validated_col
 from qcore import qtexta, qlist, qchar, qtable, QChart, as_qtable, css2ints, css2values, css2floats
 from calc import QCals
 import matplotlib.dates as mdates  # requires for 3D as 3D cant natively handle date axes

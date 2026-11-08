@@ -1,5 +1,6 @@
 from .qb_qbase import *
-from .qb_qdf import *
+from .qb_df_proxy import *
+from .qb_np_proxy import qnp, np_names
 from .qb_qlist import *
 from .qb_table_validate import *
 
@@ -19,6 +20,8 @@ from .qc_units_subset import *
 from .qd_basic import *
 from .qd_data import *
 from .qd_datetime import *
+from .qd_df import *
+from .qd_np import *
 
 from .qf_anno import *
 from .qf_qfields import *
@@ -38,3 +41,4 @@ from .mod_qgeo import QGeo
 from .mod_qmap import QMap
 from .mod_fields import *
 from .mod_autil import *
+from .mod_schema_validate import validate_schema_if_needed

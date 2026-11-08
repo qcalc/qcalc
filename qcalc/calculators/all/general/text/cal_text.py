@@ -3,7 +3,7 @@
 
 import pandas as pd
 from titlecase import titlecase
-from qcore import qtexta, QScreen, qchar, qtable, as_qtable, qfile, qurl, qhtml
+from qcore import qtexta, QScreen, qchar, qtable, as_qtable, qfile, qurl, qhtml, validated_col
 from functools import partial
 import math
 import re
@@ -13,7 +13,6 @@ from qutil import (
     get_wordcloud_stop_words,
     nzs,
     url2text,
-    validated_col,
     word_count,
 )
 

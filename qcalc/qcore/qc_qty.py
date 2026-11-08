@@ -207,7 +207,6 @@ def str_to_qty(snum_unit: str):
     q = None
     try:
         q = Qty(snum_unit)
-        # q = q if isMeasureQuantity(q) else None
     except:
         pass
     return q

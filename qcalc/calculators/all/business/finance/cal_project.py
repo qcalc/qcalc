@@ -4,7 +4,7 @@
 import pandas as pd
 import pulp
 from qcore import to_cast, as_qtable, qtable, require_unique_values, require_values_subset
-from calc import validate_schema_if_needed
+from qcore import validate_schema_if_needed
 
 from calc import (
     field_show_zero,

@@ -205,6 +205,40 @@ def str2type(value):
     return num_type(value)
 
 
+def str2val(text: str, data_type=None, time2val: str = ''):
+    """Parse one string into a value of ``data_type`` (inferred with ``str2type`` when None).
+
+    Supported types are float, int, date, datetime, time and str. A time value is
+    returned as ``datetime.time`` when ``time2val == ''``, otherwise as a float in
+    ``time2val`` units ('hr', 'min', 's', 'ms' or 'mics') via ``time2float``.
+    Raises ValueError when the text does not match ``data_type``.
+    """
+    text = text.strip()
+    if data_type is None:
+        data_type = str2type(text)
+    if data_type == float:
+        return float(text)
+    if data_type == int:
+        return int(text)
+    if data_type == str:
+        return text
+
+    parsed = QDateTime(text).val
+    if data_type == date:
+        if not (isinstance(parsed, date) and not isinstance(parsed, datetime)):
+            raise ValueError(f"Error (S2V): Invalid date value: {text}")
+        return parsed
+    if data_type == datetime:
+        if not isinstance(parsed, datetime):
+            raise ValueError(f"Error (S2V): Invalid datetime value: {text}")
+        return parsed
+    if data_type == dt_time:
+        if not isinstance(parsed, dt_time):
+            raise ValueError(f"Error (S2V): Invalid time value: {text}")
+        return parsed if time2val == '' else time2float(parsed, time2val)
+    return text
+
+
 def time2float(tm: dt_time, time2val: str) -> float:
     """Convert a datetime-time value to a float based on specified units.
 

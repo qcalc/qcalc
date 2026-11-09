@@ -3,18 +3,25 @@
 
 import pandas as pd
 import pulp
-from qcore import as_qtable, qtable
+from qcore import qtable
 from qcore import to_cast
 from qcore import validate_schema_if_needed
 from qcore import QTable
 
 from calc import (
+    MATERIAL_DEMAND_SCHEMA,
+    SUPPLIER_ITEM_COST_SCHEMA,
+    SUPPLIER_MASTER_SCHEMA,
     field_show_zero,
     table_material_demand,
     table_supplier_item_cost,
     table_supplier_master,
 )
-from calc import safe_objective_value, solver, slack_table
+from calc import safe_objective_value, solver, slack_table, supplier_attribute
+
+
+def _rounded(value):
+    return None if value is None else round(float(value), 6)
 
 
 def optima_supplier_selection(
@@ -29,44 +36,22 @@ def optima_supplier_selection(
     show_zero,
 ):
     validate_schema_if_needed('optima_supplier_selection')
-    material_demand = as_qtable(material_demand)
-    supplier_master = as_qtable(supplier_master)
-    supplier_item_cost = as_qtable(supplier_item_cost)
-    material_demand_qt = QTable(
-        {'columns': list(material_demand.columns), 'data': material_demand.values.tolist()},
-        name='material_demand',
-    )
-    supplier_master_qt = QTable(
-        {'columns': list(supplier_master.columns), 'data': supplier_master.values.tolist()},
-        name='supplier_master',
-    )
-    supplier_item_cost_qt = QTable(
-        {'columns': list(supplier_item_cost.columns), 'data': supplier_item_cost.values.tolist()},
-        name='supplier_item_cost',
-    )
-    supplier_item_cost_qt.assert_foreign_key(supplier_master_qt, 'Supplier', 'Supplier')
-    supplier_item_cost_qt.assert_foreign_key(material_demand_qt, 'Item', 'Item')
-    material_demand_qt.assert_unique('Item')
-    supplier_master_qt.assert_unique('Supplier')
-    material_demand.columns = material_demand_qt.columns
-    supplier_master.columns = supplier_master_qt.columns
-    supplier_item_cost.columns = supplier_item_cost_qt.columns
+    material_demand = QTable(material_demand, name='material_demand', schema=MATERIAL_DEMAND_SCHEMA)
+    supplier_master = QTable(supplier_master, name='supplier_master', schema=SUPPLIER_MASTER_SCHEMA)
+    supplier_item_cost = QTable(supplier_item_cost, name='supplier_item_cost', schema=SUPPLIER_ITEM_COST_SCHEMA)
+    supplier_item_cost.assert_foreign_key(supplier_master, 'Supplier', 'Supplier')
+    supplier_item_cost.assert_foreign_key(material_demand, 'Item', 'Item')
 
-    items = material_demand['Item'].astype(str).tolist()
-    suppliers = supplier_master['Supplier'].astype(str).tolist()
-    demand = dict(zip(material_demand['Item'].astype(str), pd.to_numeric(material_demand['Demand'])))
-    capacity = dict(zip(supplier_master['Supplier'].astype(str), pd.to_numeric(supplier_master['Capacity'])))
-    fixed_cost = dict(zip(supplier_master['Supplier'].astype(str), pd.to_numeric(supplier_master['Fixed Cost'])))
-
-    pair_cost = {}
+    items = material_demand.assert_unique('Item')
+    suppliers = supplier_master.assert_unique('Supplier')
+    demand = material_demand.to_map('Item', 'Demand')
+    capacity = supplier_master.to_map('Supplier', 'Capacity')
+    fixed_cost = supplier_master.to_map('Supplier', 'Fixed Cost')
+    pair_cost = supplier_item_cost.to_map(['Supplier', 'Item'], 'Unit Cost')
     pair_max_qty = {}
-    for _, row in supplier_item_cost.iterrows():
-        supplier = str(row['Supplier'])
-        item = str(row['Item'])
-        pair = (supplier, item)
-        pair_cost[pair] = float(row['Unit Cost'])
-        if 'Max Qty' in supplier_item_cost.columns and str(row.get('Max Qty', '')).strip() != '':
-            pair_max_qty[pair] = float(row['Max Qty'])
+    if 'Max Qty' in supplier_item_cost.columns:
+        pair_max_qty = {(row['Supplier'], row['Item']): row['Max Qty']
+                        for row in supplier_item_cost.select() if row['Max Qty'] is not None}
 
     pairs = list(pair_cost.keys())
     if not pairs:
@@ -104,7 +89,7 @@ def optima_supplier_selection(
         prob += x[(supplier, item)] <= pair_max * y[supplier], f'link_{supplier}_{item}'
 
     if 'Min Order' in supplier_master.columns:
-        min_order = dict(zip(supplier_master['Supplier'].astype(str), pd.to_numeric(supplier_master['Min Order'])))
+        min_order = supplier_master.to_map('Supplier', 'Min Order')
         for supplier in suppliers:
             supplier_pairs = [pair for pair in pairs if pair[0] == supplier]
             prob += (
@@ -127,9 +112,7 @@ def optima_supplier_selection(
 
     min_avg_quality_val = to_cast(min_avg_quality, 'min_avg_quality', float)
     if min_avg_quality_val is not None:
-        if 'Quality' not in supplier_master.columns:
-            raise Exception("supplier_master must include 'Quality' when min_avg_quality is used")
-        quality = dict(zip(supplier_master['Supplier'].astype(str), pd.to_numeric(supplier_master['Quality'])))
+        quality = supplier_attribute(supplier_master, 'Quality', 'min_avg_quality')
         prob += (
             pulp.lpSum(
                 float(quality[supplier]) * pulp.lpSum(x[pair] for pair in pairs if pair[0] == supplier)
@@ -140,9 +123,7 @@ def optima_supplier_selection(
 
     max_avg_risk_val = to_cast(max_avg_risk, 'max_avg_risk', float)
     if max_avg_risk_val is not None:
-        if 'Risk' not in supplier_master.columns:
-            raise Exception("supplier_master must include 'Risk' when max_avg_risk is used")
-        risk = dict(zip(supplier_master['Supplier'].astype(str), pd.to_numeric(supplier_master['Risk'])))
+        risk = supplier_attribute(supplier_master, 'Risk', 'max_avg_risk')
         prob += (
             pulp.lpSum(
                 float(risk[supplier]) * pulp.lpSum(x[pair] for pair in pairs if pair[0] == supplier)
@@ -171,6 +152,8 @@ def optima_supplier_selection(
                     'Line Cost': round(unit_cost * qty, 6),
                 })
 
+    risk_of = supplier_master.to_map('Supplier', 'Risk') if 'Risk' in supplier_master.columns else None
+    quality_of = supplier_master.to_map('Supplier', 'Quality') if 'Quality' in supplier_master.columns else None
     selected_rows = []
     for supplier in suppliers:
         supplier_pairs = [pair for pair in pairs if pair[0] == supplier]
@@ -185,10 +168,10 @@ def optima_supplier_selection(
             'Utilization %': round((purchased / cap * 100) if cap else 0, 4),
             'Fixed Cost': round(float(fixed_cost[supplier]), 6),
         }
-        if 'Risk' in supplier_master.columns:
-            row['Risk'] = round(float(supplier_master.loc[supplier_master['Supplier'].astype(str) == supplier, 'Risk'].iloc[0]), 6)
-        if 'Quality' in supplier_master.columns:
-            row['Quality'] = round(float(supplier_master.loc[supplier_master['Supplier'].astype(str) == supplier, 'Quality'].iloc[0]), 6)
+        if risk_of is not None:
+            row['Risk'] = _rounded(risk_of[supplier])
+        if quality_of is not None:
+            row['Quality'] = _rounded(quality_of[supplier])
         selected_rows.append(row)
 
     total_purchased = sum(float(x[pair].value() or 0) for pair in pairs)

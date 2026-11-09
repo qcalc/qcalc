@@ -15,6 +15,119 @@ import pandas as pd
 from qcore import table_columns_validator
 
 
+_NON_NEGATIVE = {'type': float, 'min': 0}
+
+
+def _optional(typ, **extra):
+    return {'type': typ, 'required': False, **extra}
+
+
+# QTable schemas shared by the form validators below and by the calculators that read these
+# tables. Every column is required (and must be filled) unless it is declared optional.
+SUPPLY_SCHEMA = {'Source': str, 'Capacity': float}
+DEMAND_SCHEMA = {'Destination': str, 'Demand': float}
+SHIP_COST_SCHEMA = {'Source': str, 'Destination': str, 'Cost': float}
+AGENTS_SCHEMA = {'Agent': str, 'Capacity': float}
+TASKS_SCHEMA = {'Task': str}
+ASSIGN_COST_SCHEMA = {'Agent': str, 'Task': str, 'Cost': float}
+MATERIAL_DEMAND_SCHEMA = {'Item': str, 'Demand': float}
+SUPPLIER_MASTER_SCHEMA = {
+    'Supplier': str,
+    'Capacity': float,
+    'Fixed Cost': float,
+    'Min Order': _optional(float, min=0, default=0.0),
+    'Risk': _optional(float),
+    'Quality': _optional(float),
+}
+SUPPLIER_ITEM_COST_SCHEMA = {
+    'Supplier': str,
+    'Item': str,
+    'Unit Cost': float,
+    'Max Qty': _optional(float),
+}
+WORKFORCE_STAFF_SCHEMA = {
+    'Worker': str,
+    'Max Shifts': _NON_NEGATIVE,
+    'Cost per Shift': _NON_NEGATIVE,
+    'Skills': _optional(str),
+}
+WORKFORCE_SHIFT_DEMAND_SCHEMA = {
+    'Shift': str,
+    'Required': _NON_NEGATIVE,
+    'Required Skill': _optional(str),
+}
+PRODINV_ITEM_MASTER_SCHEMA = {
+    'Item': str,
+    'Initial Inventory': _NON_NEGATIVE,
+    'Holding Cost': _NON_NEGATIVE,
+    'Backlog Penalty': _NON_NEGATIVE,
+}
+PRODINV_DEMAND_SCHEMA = {'Period': str, 'Item': str, 'Demand': float}
+PRODINV_PRODUCTION_SCHEMA = {
+    'Period': str,
+    'Item': str,
+    'Unit Cost': _NON_NEGATIVE,
+    'Max Production': _NON_NEGATIVE,
+    'Setup Cost': _optional(float, min=0, default=0.0),
+}
+SOP_PRODUCT_MASTER_SCHEMA = {
+    'Product': str,
+    'Opening Inventory': _NON_NEGATIVE,
+    'Safety Stock': _NON_NEGATIVE,
+    'Production Cost': _NON_NEGATIVE,
+    'Holding Cost': _NON_NEGATIVE,
+    'Max Production': _NON_NEGATIVE,
+    'Backlog Penalty': _NON_NEGATIVE,
+    'Setup Cost': _optional(float, min=0, default=0.0),
+}
+BLEND_MATERIALS_SCHEMA = {
+    'Material': str,
+    'Unit Cost': _NON_NEGATIVE,
+    'Min Qty': _optional(float, min=0, default=0.0),
+    'Max Qty': _optional(float, min=0),
+}
+BLEND_SPECS_SCHEMA = {'Property': str, 'Min %': {'required': False}, 'Max %': {'required': False}}
+ITEMS_SCHEMA = {'Item': str, 'Value': float, 'Weight': float, 'Max Qty': _optional(float, default=1.0)}
+CAPACITY_OBJECT_SCHEMA = {'Resource': str, 'Available': float, 'Required': float, 'Unit Cost': float}
+ROUTING_OBJECT_SCHEMA = {'From': str, 'To': str, 'Cost': float, 'Capacity': float}
+PLACEMENT_OBJECT_SCHEMA = {'Entity': str, 'Location': str, 'Score': float, 'Cost': float}
+REDUNDANCY_OBJECT_SCHEMA = {'Primary': str, 'Backup': str, 'Coverage %': float, 'Extra Cost': float}
+PROJECTS_SCHEMA = {
+    'Project': str,
+    'Value': float,
+    'Cost': float,
+    'Resource': _optional(float, default=0.0),
+    'Must Do': _optional(float, default=0.0),
+}
+PROJECT_RULES_SCHEMA = {
+    'From': str,
+    'To': str,
+    'Type': {'cast': lambda v: str(v).strip().lower(), 'choices': ['depends_on', 'excludes']},
+}
+SOP_DEMAND_SCHEMA = {'Period': str, 'Product': str, 'Demand': float}
+SOP_CAPACITY_SCHEMA = {'Period': str, 'Capacity': float}
+SOP_OVERTIME_SCHEMA = {'Period': str, 'Overtime Capacity': float, 'Overtime Cost': float}
+SOP_PREVIOUS_PLAN_SCHEMA = {'Product': str, 'Period': str, 'Previous Production': float}
+SOP_MATERIAL_REQUIREMENTS_SCHEMA = {'Product': str, 'Material': str, 'Qty per Unit': _NON_NEGATIVE}
+SOP_SCENARIOS_SCHEMA = {
+    'Scenario': str,
+    **{f'{name} Multiplier': {'type': float, 'default': 1.0} for name in (
+        'Demand', 'Capacity', 'Production Cost', 'Holding Cost', 'Backlog Penalty')},
+    **{f'{name} Multiplier': _optional(float, default=1.0) for name in (
+        'Opening Inventory', 'Safety Stock', 'Setup Cost')},
+}
+
+
+def supplier_attribute(supplier_master, column, option):
+    """Return ``{supplier: value}`` for an optional supplier_master column that a constraint needs."""
+    if column not in supplier_master.columns:
+        raise Exception(f"supplier_master must include '{column}' when {option} is used")
+    values = supplier_master.to_map('Supplier', column)
+    if None in values.values():
+        raise Exception(f"supplier_master '{column}' must be filled for every supplier when {option} is used")
+    return values
+
+
 def field_show_zero():
     return {
         'type': 'checkbox',
@@ -33,13 +146,7 @@ def table_blend_materials(field_name):
             'Protein %': [30, 15, 40],
             'Fiber %': [2, 4, 8],
         }),
-        'validators': [
-            table_columns_validator(
-                field_name,
-                required_cols=['Material', 'Unit Cost'],
-                optional_cols=['Min Qty', 'Max Qty'],
-            )
-        ],
+        'validators': [table_columns_validator(field_name, schema=BLEND_MATERIALS_SCHEMA)],
         'help_text': (
             'Material table with Unit Cost, optional Min Qty/Max Qty, and one column per property '
             '(for example Protein %, Fiber %, Moisture %).'
@@ -56,12 +163,7 @@ def table_blend_specs(field_name):
             'Min %': [20, None],
             'Max %': [None, 5],
         }),
-        'validators': [
-            table_columns_validator(
-                field_name,
-                required_cols=['Property', 'Min %', 'Max %'],
-            )
-        ],
+        'validators': [table_columns_validator(field_name, schema=BLEND_SPECS_SCHEMA)],
         'help_text': (
             "Specification table with Property, Min %, Max %. "
             "Property names must match blend_materials property columns (ignoring trailing '%'). "
@@ -75,7 +177,7 @@ def table_supply(field_name):
     # Example use: plant capacity, warehouse stock, server throughput caps.
     return {
         'initial': pd.DataFrame({'Source': ['P1', 'P2'], 'Capacity': [100, 125]}),
-        'validators': [table_columns_validator(field_name, required_cols=['Source', 'Capacity'])],
+        'validators': [table_columns_validator(field_name, schema=SUPPLY_SCHEMA)],
         'help_text': 'Source capacity table. Capacity must use the same quantity unit basis as demand and flow decisions.',
     }
 
@@ -85,7 +187,7 @@ def table_demand(field_name):
     # Example use: customer orders, department demand, service request volume.
     return {
         'initial': pd.DataFrame({'Destination': ['C1', 'C2', 'C3'], 'Demand': [25, 95, 80]}),
-        'validators': [table_columns_validator(field_name, required_cols=['Destination', 'Demand'])],
+        'validators': [table_columns_validator(field_name, schema=DEMAND_SCHEMA)],
         'help_text': 'Demand table by destination. Demand must use the same quantity unit basis as supply capacity and flow decisions.',
     }
 
@@ -99,7 +201,7 @@ def table_ship_cost(field_name):
             'Destination': ['C1', 'C2', 'C3', 'C1', 'C2', 'C3'],
             'Cost': [250, 325, 445, 275, 260, 460],
         }),
-        'validators': [table_columns_validator(field_name, required_cols=['Source', 'Destination', 'Cost'])],
+        'validators': [table_columns_validator(field_name, schema=SHIP_COST_SCHEMA)],
         'help_text': 'Shipping cost per unit flow for each Source-Destination pair. Cost is interpreted per one quantity unit.',
     }
 
@@ -109,7 +211,7 @@ def table_agents(field_name):
     # Example use: workers, machines, support teams, compute nodes.
     return {
         'initial': pd.DataFrame({'Agent': ['A1', 'A2', 'A3'], 'Capacity': [1, 1, 1]}),
-        'validators': [table_columns_validator(field_name, required_cols=['Agent', 'Capacity'])],
+        'validators': [table_columns_validator(field_name, schema=AGENTS_SCHEMA)],
         'help_text': 'Agent capacity table. Capacity is maximum number of tasks assignable to each agent.',
     }
 
@@ -119,7 +221,7 @@ def table_tasks(field_name):
     # Example use: jobs, tickets, inspection points, deployment tasks.
     return {
         'initial': pd.DataFrame({'Task': ['T1', 'T2', 'T3']}),
-        'validators': [table_columns_validator(field_name, required_cols=['Task'])],
+        'validators': [table_columns_validator(field_name, schema=TASKS_SCHEMA)],
         'help_text': 'Task list. Each task requires exactly one assignment in the standard assignment model.',
     }
 
@@ -133,7 +235,7 @@ def table_assign_cost(field_name):
             'Task': ['T1', 'T2', 'T3', 'T1', 'T2', 'T3', 'T1', 'T2', 'T3'],
             'Cost': [14, 5, 8, 2, 12, 6, 7, 8, 3],
         }),
-        'validators': [table_columns_validator(field_name, required_cols=['Agent', 'Task', 'Cost'])],
+        'validators': [table_columns_validator(field_name, schema=ASSIGN_COST_SCHEMA)],
         'help_text': 'Assignment cost per Agent-Task pair. Cost is compared across feasible assignment combinations.',
     }
 
@@ -148,13 +250,7 @@ def table_items(field_name):
             'Weight': [2, 1, 3, 2],
             'Max Qty': [1, 1, 1, 1],
         }),
-        'validators': [
-            table_columns_validator(
-                field_name,
-                required_cols=['Item', 'Value', 'Weight'],
-                optional_cols=['Max Qty'],
-            )
-        ],
+        'validators': [table_columns_validator(field_name, schema=ITEMS_SCHEMA)],
         'help_text': 'Item table with Value and Weight per unit item. Weight is resource consumption per unit and must match capacity_limit units.',
     }
 
@@ -187,7 +283,7 @@ def table_material_demand(field_name, profile='supplier_selection', **kwargs):
             'Item': items,
             'Demand': [100, 80, 60],
         }),
-        'validators': [table_columns_validator(field_name, required_cols=['Item', 'Demand'])],
+        'validators': [table_columns_validator(field_name, schema=MATERIAL_DEMAND_SCHEMA)],
         'help_text': 'Item demand quantities. Demand units should match supplier capacities and supplier-item Max Qty units.',
     }
 
@@ -204,13 +300,7 @@ def table_supplier_master(field_name):
             'Risk': [4, 7, 3],
             'Quality': [82, 75, 88],
         }),
-        'validators': [
-            table_columns_validator(
-                field_name,
-                required_cols=['Supplier', 'Capacity', 'Fixed Cost'],
-                optional_cols=['Min Order', 'Risk', 'Quality'],
-            )
-        ],
+        'validators': [table_columns_validator(field_name, schema=SUPPLIER_MASTER_SCHEMA)],
         'help_text': (
             "Supplier attributes table. Capacity uses the same quantity units as item demand. "
             "Fixed Cost is per selected supplier. Optional Risk/Quality values use user-defined scales; "
@@ -249,13 +339,7 @@ def table_supplier_item_cost(field_name, profile='supplier_selection', **kwargs)
 
     return {
         'initial': pd.DataFrame(rows),
-        'validators': [
-            table_columns_validator(
-                field_name,
-                required_cols=['Supplier', 'Item', 'Unit Cost'],
-                optional_cols=['Max Qty'],
-            )
-        ],
+        'validators': [table_columns_validator(field_name, schema=SUPPLIER_ITEM_COST_SCHEMA)],
         'help_text': 'Supplier-item variable cost table. Unit Cost is cost per one quantity unit; Max Qty uses the same quantity basis as demand.',
     }
 
@@ -270,12 +354,7 @@ def table_capacity_object(field_name):
             'Required': [70, 60, 50],
             'Unit Cost': [5, 6, 7],
         }),
-        'validators': [
-            table_columns_validator(
-                field_name,
-                required_cols=['Resource', 'Available', 'Required', 'Unit Cost'],
-            )
-        ],
+        'validators': [table_columns_validator(field_name, schema=CAPACITY_OBJECT_SCHEMA)],
         'help_text': 'Resource table. Available and Required must use the same quantity units. Unit Cost is per one quantity unit.',
     }
 
@@ -290,12 +369,7 @@ def table_routing_object(field_name):
             'Cost': [4, 7, 3, 6, 2],
             'Capacity': [100, 80, 90, 70, 110],
         }),
-        'validators': [
-            table_columns_validator(
-                field_name,
-                required_cols=['From', 'To', 'Cost', 'Capacity'],
-            )
-        ],
+        'validators': [table_columns_validator(field_name, schema=ROUTING_OBJECT_SCHEMA)],
         'help_text': 'Route edge table. Capacity must use the same units as demand_qty. Cost is per one unit of routed flow.',
     }
 
@@ -310,12 +384,7 @@ def table_placement_object(field_name):
             'Score': [9, 7, 8, 6, 7, 9],
             'Cost': [5, 4, 6, 3, 4, 5],
         }),
-        'validators': [
-            table_columns_validator(
-                field_name,
-                required_cols=['Entity', 'Location', 'Score', 'Cost'],
-            )
-        ],
+        'validators': [table_columns_validator(field_name, schema=PLACEMENT_OBJECT_SCHEMA)],
         'help_text': 'Table of entity-location options with score and cost.',
     }
 
@@ -330,12 +399,7 @@ def table_redundancy_object(field_name):
             'Coverage %': [99.0, 97.5, 98.8],
             'Extra Cost': [12, 9, 11],
         }),
-        'validators': [
-            table_columns_validator(
-                field_name,
-                required_cols=['Primary', 'Backup', 'Coverage %', 'Extra Cost'],
-            )
-        ],
+        'validators': [table_columns_validator(field_name, schema=REDUNDANCY_OBJECT_SCHEMA)],
         'help_text': 'Primary-backup options with Coverage % and Extra Cost. Coverage % uses percent scale (0-100).',
     }
 
@@ -351,13 +415,7 @@ def table_projects(field_name):
             'Resource': [5, 4, 6, 3, 2],
             'Must Do': [0, 0, 0, 0, 0],
         }),
-        'validators': [
-            table_columns_validator(
-                field_name,
-                required_cols=['Project', 'Value', 'Cost'],
-                optional_cols=['Resource', 'Must Do'],
-            )
-        ],
+        'validators': [table_columns_validator(field_name, schema=PROJECTS_SCHEMA)],
         'help_text': 'Project table with Project, Value, Cost and optional Resource, Must Do columns.',
     }
 
@@ -371,12 +429,7 @@ def table_project_rules(field_name):
             'To': ['P1', 'P4'],
             'Type': ['depends_on', 'excludes'],
         }),
-        'validators': [
-            table_columns_validator(
-                field_name,
-                required_cols=['From', 'To', 'Type'],
-            )
-        ],
+        'validators': [table_columns_validator(field_name, schema=PROJECT_RULES_SCHEMA)],
         'help_text': "Optional relation rules: Type in {'depends_on', 'excludes'}.",
     }
 
@@ -391,13 +444,7 @@ def table_workforce_staff(field_name):
             'Cost per Shift': [100, 90, 95, 110],
             'Skills': ['packing,forklift', 'packing', 'quality', 'forklift,quality'],
         }),
-        'validators': [
-            table_columns_validator(
-                field_name,
-                required_cols=['Worker', 'Max Shifts', 'Cost per Shift'],
-                optional_cols=['Skills'],
-            )
-        ],
+        'validators': [table_columns_validator(field_name, schema=WORKFORCE_STAFF_SCHEMA)],
         'help_text': 'Worker table with max shifts, cost per shift, and optional comma-separated skills.',
     }
 
@@ -410,13 +457,7 @@ def table_workforce_shift_demand(field_name):
             'Required': [2, 2, 1],
             'Required Skill': ['packing', '', 'quality'],
         }),
-        'validators': [
-            table_columns_validator(
-                field_name,
-                required_cols=['Shift', 'Required'],
-                optional_cols=['Required Skill'],
-            )
-        ],
+        'validators': [table_columns_validator(field_name, schema=WORKFORCE_SHIFT_DEMAND_SCHEMA)],
         'help_text': "Shift demand table with required headcount/assignments and optional 'Required Skill'. Required should generally be integer-valued.",
     }
 
@@ -430,12 +471,7 @@ def table_prodinv_item_master(field_name):
             'Holding Cost': [1.5, 1.0],
             'Backlog Penalty': [12, 10],
         }),
-        'validators': [
-            table_columns_validator(
-                field_name,
-                required_cols=['Item', 'Initial Inventory', 'Holding Cost', 'Backlog Penalty'],
-            )
-        ],
+        'validators': [table_columns_validator(field_name, schema=PRODINV_ITEM_MASTER_SCHEMA)],
         'help_text': 'Item economics table. Initial Inventory uses the same quantity units as Demand and Max Production. Holding Cost and Backlog Penalty are per one quantity unit.',
     }
 
@@ -448,12 +484,7 @@ def table_prodinv_demand(field_name):
             'Item': ['A', 'B', 'A', 'B', 'A', 'B'],
             'Demand': [50, 45, 55, 40, 60, 50],
         }),
-        'validators': [
-            table_columns_validator(
-                field_name,
-                required_cols=['Period', 'Item', 'Demand'],
-            )
-        ],
+        'validators': [table_columns_validator(field_name, schema=PRODINV_DEMAND_SCHEMA)],
         'help_text': 'Period-wise demand by item. Demand units should match Initial Inventory and Max Production units.',
     }
 
@@ -468,13 +499,7 @@ def table_prodinv_production(field_name):
             'Max Production': [65, 55, 65, 55, 70, 60],
             'Setup Cost': [20, 15, 20, 15, 20, 15],
         }),
-        'validators': [
-            table_columns_validator(
-                field_name,
-                required_cols=['Period', 'Item', 'Unit Cost', 'Max Production'],
-                optional_cols=['Setup Cost'],
-            )
-        ],
+        'validators': [table_columns_validator(field_name, schema=PRODINV_PRODUCTION_SCHEMA)],
         'help_text': 'Period-item production table. Max Production uses same quantity units as demand/inventory; Unit Cost is per one quantity unit.',
     }
 
@@ -492,21 +517,7 @@ def table_sop_product_master(field_name):
             'Backlog Penalty': [12, 10, 14],
             'Setup Cost': [20, 15, 18],
         }),
-        'validators': [
-            table_columns_validator(
-                field_name,
-                required_cols=[
-                    'Product',
-                    'Opening Inventory',
-                    'Safety Stock',
-                    'Production Cost',
-                    'Holding Cost',
-                    'Max Production',
-                    'Backlog Penalty',
-                ],
-                optional_cols=['Setup Cost'],
-            )
-        ],
+        'validators': [table_columns_validator(field_name, schema=SOP_PRODUCT_MASTER_SCHEMA)],
         'help_text': (
             'Product planning table with opening inventory, safety stock, production cost, holding cost, '
             'max production, and backlog penalty. Setup Cost is optional and used only when positive.'
@@ -522,12 +533,7 @@ def table_sop_demand(field_name):
             'Product': ['A', 'B', 'A', 'B', 'A', 'B'],
             'Demand': [50, 45, 55, 40, 60, 50],
         }),
-        'validators': [
-            table_columns_validator(
-                field_name,
-                required_cols=['Period', 'Product', 'Demand'],
-            )
-        ],
+        'validators': [table_columns_validator(field_name, schema=SOP_DEMAND_SCHEMA)],
         'help_text': 'Period-wise demand by product. Demand units should match Opening Inventory and Max Production units.',
     }
 
@@ -539,12 +545,7 @@ def table_sop_capacity(field_name):
             'Period': ['1', '2', '3'],
             'Capacity': [120, 115, 125],
         }),
-        'validators': [
-            table_columns_validator(
-                field_name,
-                required_cols=['Period', 'Capacity'],
-            )
-        ],
+        'validators': [table_columns_validator(field_name, schema=SOP_CAPACITY_SCHEMA)],
         'help_text': 'Production capacity table for each period. Capacity must use the same quantity basis as product production.',
     }
 
@@ -557,12 +558,7 @@ def table_sop_overtime(field_name):
             'Overtime Capacity': [0, 0, 0],
             'Overtime Cost': [0, 0, 0],
         }),
-        'validators': [
-            table_columns_validator(
-                field_name,
-                required_cols=['Period', 'Overtime Capacity', 'Overtime Cost'],
-            )
-        ],
+        'validators': [table_columns_validator(field_name, schema=SOP_OVERTIME_SCHEMA)],
         'help_text': 'Optional overtime capacity table for extra production by period. Overtime Capacity uses the same quantity basis as product production.',
     }
 
@@ -575,12 +571,7 @@ def table_sop_previous_plan(field_name):
             'Product': ['A', 'B', 'C', 'A', 'B', 'C', 'A', 'B', 'C'],
             'Previous Production': [48, 44, 40, 52, 41, 43, 58, 49, 47],
         }),
-        'validators': [
-            table_columns_validator(
-                field_name,
-                required_cols=['Period', 'Product', 'Previous Production'],
-            )
-        ],
+        'validators': [table_columns_validator(field_name, schema=SOP_PREVIOUS_PLAN_SCHEMA)],
         'help_text': 'Optional previous approved production plan. Previous Production uses the same quantity basis as Production.',
     }
 
@@ -593,12 +584,7 @@ def table_sop_material_requirements(field_name):
             'Material': ['RM1', 'RM2', 'RM1', 'RM3', 'RM2', 'RM3'],
             'Qty per Unit': [1.2, 0.4, 1.0, 0.8, 0.6, 1.1],
         }),
-        'validators': [
-            table_columns_validator(
-                field_name,
-                required_cols=['Product', 'Material', 'Qty per Unit'],
-            )
-        ],
+        'validators': [table_columns_validator(field_name, schema=SOP_MATERIAL_REQUIREMENTS_SCHEMA)],
         'help_text': (
             'Bill-of-materials / material-requirement table. Qty per Unit is the amount of each Material consumed per one unit of Product production.'
         ),
@@ -616,18 +602,6 @@ def table_sop_scenarios(field_name):
             'Holding Cost Multiplier': [1.0, 1.0, 1.0, 1.0],
             'Backlog Penalty Multiplier': [1.0, 1.0, 1.0, 1.0],
         }),
-        'validators': [
-            table_columns_validator(
-                field_name,
-                required_cols=[
-                    'Scenario',
-                    'Demand Multiplier',
-                    'Capacity Multiplier',
-                    'Production Cost Multiplier',
-                    'Holding Cost Multiplier',
-                    'Backlog Penalty Multiplier',
-                ],
-            )
-        ],
+        'validators': [table_columns_validator(field_name, schema=SOP_SCENARIOS_SCHEMA)],
         'help_text': 'Scenario table used to rerun the same S&OP model under demand/capacity/cost multipliers.',
     }

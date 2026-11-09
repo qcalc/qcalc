@@ -8,6 +8,7 @@ separate, restricted pandas computation facade.
 
 from .qb_df_proxy import qdf
 from .qc_qty import Qty
+from .qd_data import is_empty_cell as _blank
 from .qf_anno import is_qtbl
 import qconst
 import re
@@ -61,11 +62,6 @@ def _looks_like_alias(candidate, expected):
             or bool(key_words) and all(w in c_words for w in key_words))
 
 
-def _blank(value):
-    """Check if a value is considered blank (None or empty string)."""
-    return value is None or (isinstance(value, str) and not value.strip())
-
-
 def _key(values):
     """Return a key tuple for the given list of values, using a single value if only one element is present."""
     return values[0] if len(values) == 1 else tuple(values)
@@ -98,7 +94,7 @@ class QTable:
     """
 
     def __init__(self, data=None, columns=None, schema=None, primary_key=None,
-                 unique=None, name=None, validate=False, case_sensitive=False):
+                 unique=None, name=None, validate=True, case_sensitive=False):
         """Initialize a QTable instance with the given data, columns, schema, and constraints."""
         if isinstance(data, dict):
             # If the data is a dictionary, it should represent a qtbl with 'columns' and 'data' keys.
@@ -122,7 +118,8 @@ class QTable:
                 raise ValueError(
                     f"{table_name}: column(s) not found in DataFrame: {', '.join(map(str, missing_cols))}"
                 )
-            data = data[columns].values.tolist()
+            # astype(object) keeps each column's own type (an int column must not become float)
+            data = data[columns].astype(object).values.tolist()
         elif data and isinstance(data, (list, tuple)) and isinstance(data[0], dict):
             # Convert a list of row dictionaries into a list of row lists, using the specified columns or inferred columns.
             if columns is None:
@@ -140,6 +137,20 @@ class QTable:
             self.validate(raise_exception=True)
         else:
             self._check_structure()
+
+    @classmethod
+    def optional(cls, value, **kwargs):
+        """Build a validated table, or return None when the input is missing or has no rows.
+
+        Use it for optional table inputs; ``kwargs`` are the usual ``QTable`` arguments.
+        """
+        if value is None:
+            return None
+        table = cls(value, validate=False, **kwargs)
+        if not table.select():
+            return None
+        table.validate(raise_exception=True)
+        return table
 
     def _check_structure(self):
         """Check the table's structure for consistency, including column names, row lengths, and key constraints."""
@@ -223,6 +234,7 @@ class QTable:
             spec = _spec(raw)
             typ = _spec_type(spec, self.name, col) or str
             spec['type'] = _TYPE_LABELS.get(typ, 'string')
+            spec.setdefault('required', True)
             spec.pop('cast', None)
             spec.pop('validator', None)
             out[col] = spec
@@ -274,8 +286,9 @@ class QTable:
     def to_map(self, key, value, unique=True):
         """Return ``{key: value}`` built from the table rows (multiple fields form tuples).
 
-        Rows are read like ``select`` (blank and repeated header rows skipped).
-        With ``unique=True`` a duplicate key raises ``ValueError``.
+        Rows are read like ``select`` (blank and repeated header rows skipped). A blank
+        key raises ``ValueError``; blank values are kept as they are. With ``unique=True``
+        a duplicate key raises ``ValueError``.
 
         Example:
             table.to_map(['Category', 'Key'], ['Label', 'Factor'])
@@ -283,10 +296,33 @@ class QTable:
         key_fields, value_fields = _fields(key), _fields(value)
         out = {}
         for rec in self.select(key_fields + value_fields):
+            self._check_key_filled(rec, key_fields)
             map_key = _key([rec[k] for k in key_fields])
             if unique and map_key in out:
                 raise ValueError(f'{self.name}: Duplicate key: {map_key}')
             out[map_key] = _key([rec[v] for v in value_fields])
+        return out
+
+    def _check_key_filled(self, rec, key_fields):
+        """Raise when any key cell of a record is empty."""
+        if any(_blank(rec[c]) for c in key_fields):
+            raise ValueError(f'{self.name}: blank key {key_fields} in row {rec}')
+
+    def sum_by(self, key, value):
+        """Return ``{key: total}`` summing a column per key (SQL ``SUM ... GROUP BY``).
+
+        Rows are read like ``select``; multiple key fields form tuple keys. A blank key
+        raises ``ValueError``; blank values add nothing, as in SQL ``SUM``.
+
+        Example:
+            demand.sum_by(['Period', 'Product'], 'Demand')
+        """
+        key_fields = _fields(key)
+        out = {}
+        for rec in self.select(key_fields + [value]):
+            self._check_key_filled(rec, key_fields)
+            k = _key([rec[c] for c in key_fields])
+            out[k] = out.get(k, 0) + (0 if _blank(rec[value]) else rec[value])
         return out
 
     def get(self, key):
@@ -318,16 +354,18 @@ class QTable:
         for col, raw_spec in self.schema.items():
             spec = _spec(raw_spec)
             value = rec.get(col)
+            typ = _spec_type(spec, self.name, col)
             if _blank(value):
-                if 'default' in spec and value is None:
+                if 'default' in spec:
                     value = rec[col] = deepcopy(spec['default'])
-                if spec.get('required') and _blank(value):
+                if spec.get('required', True) and _blank(value):
                     raise ValueError(f'{self.name}: {col} is required')
                 if not spec.get('nullable', True) and _blank(value):
                     raise ValueError(f'{self.name}: {col} cannot be blank')
+                if _blank(value):
+                    rec[col] = '' if typ is str else None
                 continue
             caster = spec.get('cast')
-            typ = _spec_type(spec, self.name, col)
             try:
                 if caster:
                     value = caster(value)
@@ -343,6 +381,8 @@ class QTable:
             except Exception as exc:
                 raise ValueError(f'{self.name}: invalid {col}: {value!r} ({exc})') from exc
             rec[col] = value
+            if spec.get('strip', typ is str) and isinstance(value, str):
+                value = rec[col] = value.strip()
             if 'min' in spec and value < spec['min']:
                 raise ValueError(f'{self.name}: {col} must be at least {spec["min"]}')
             if 'max' in spec and value > spec['max']:
@@ -372,15 +412,24 @@ class QTable:
                 seen.add(k)
 
     def validate(self, coerce=True, raise_exception=False):
-        """Validate the table's structure, schema, and keys; return ``{'valid', 'errors'}``."""
+        """Validate the table's structure, schema, and keys; return ``{'valid', 'errors'}``.
+
+        Schema columns are required headers (unless the column is declared
+        ``required: False``): they are matched case/space-insensitively
+        and renamed to the schema's spelling before values are coerced and checked.
+        Fully blank rows (the spare rows added in the input grid) are ignored, and
+        with ``coerce=True`` they are removed from the table.
+        """
         errors = []
         try:
             self._check_structure()
-            missing = set(self.schema) - set(self._columns)
-            if missing:
-                raise ValueError(f'Missing schema column(s): {", ".join(sorted(missing))}')
+            if self.schema:
+                required = [c for c, raw in self.schema.items() if _spec(raw).get('required', True)]
+                self.assert_columns(required, [c for c in self.schema if c not in required])
             rows = []
             for i, values in enumerate(self._data):
+                if all(_blank(v) for v in values):
+                    continue
                 raw = dict(zip(self._columns, values))
                 try:
                     rows.append(self._prepare(raw))
@@ -621,9 +670,12 @@ class QTable:
         duplicates = []
         ordered_keys = []
         for value in values:
-            text = str(value).strip()
-            if ignore_blank and text == '':
-                continue
+            if _blank(value):
+                if ignore_blank:
+                    continue
+                text = ''
+            else:
+                text = str(value).strip()
             key = self._vkey(text)
             if key in seen:
                 duplicates.append((seen[key], text))
@@ -632,13 +684,15 @@ class QTable:
                 ordered_keys.append(key)
 
         if duplicates:
-            preview = ', '.join(f"{left}/{right}" for left, right in duplicates[:10])
+            preview = ', '.join(f"{left or '(blank)'}/{right or '(blank)'}" for left, right in duplicates[:10])
             raise ValueError(f"{self.name} '{col}' has duplicate value(s): {preview}")
 
         return [seen[key] for key in ordered_keys]
 
     def assert_unique_pairs(self, left_col, right_col):
         """Ensure each ``(left_col, right_col)`` combination appears at most once.
+
+        A pair with an empty side is ignored, like a unique key containing NULL.
 
         Returns:
             Set of normalized pair keys suitable for downstream membership checks.
@@ -658,6 +712,8 @@ class QTable:
         pair_count = {}
 
         for left_raw, right_raw in zip(left_values, right_values):
+            if _blank(left_raw) or _blank(right_raw):
+                continue
             left_text = str(left_raw).strip()
             right_text = str(right_raw).strip()
             left_key = self._vkey(left_text)
@@ -677,11 +733,59 @@ class QTable:
 
         return set(pair_keys)
 
+    def _canonical_values(self, values, label):
+        """Map each comparison key to the first-seen spelling; reject spellings that differ only by case."""
+        canonical = {}
+        for value in values:
+            if _blank(value):
+                continue
+            first = canonical.setdefault(self._vkey(value), value)
+            if str(first).strip() != str(value).strip():
+                raise ValueError(
+                    f"{self.name}: {label} are ambiguous when case is ignored: {first}, {value}"
+                )
+        return canonical
+
+    def _use_canonical_spelling(self, col, canonical):
+        """Rewrite cells that differ only by case to the canonical spelling (tolerant mode only)."""
+        if self.case_sensitive:
+            return
+        idx = self._index(col)
+        for row in self._data:
+            if _blank(row[idx]):
+                continue
+            spelling = canonical.get(self._vkey(row[idx]))
+            if spelling is not None and str(row[idx]).strip() != str(spelling).strip():
+                row[idx] = spelling
+
+    def assert_in(self, column_name, allowed, label=None):
+        """Ensure each non-blank value of a column is one of the ``allowed`` values.
+
+        Use it like SQL ``column IN (...)``. Values are compared per the table's
+        ``case_sensitive`` setting. When case is ignored, matching cells are
+        rewritten to the spelling used in ``allowed`` so later exact lookups work.
+
+        Example:
+            cost.assert_in('From', plants + dcs, label='plants or DCs')
+        """
+        col = self.assert_columns([column_name]).get(column_name, column_name)
+        canonical = self._canonical_values(allowed, label or 'the allowed values')
+        found = {self._vkey(v): str(v).strip() for v in self.column(col) if not _blank(v)}
+        unknown = sorted(key for key in found if key not in canonical)
+        if unknown:
+            raise ValueError(
+                f"{self.name} '{col}' has value(s) not found in {label or 'the allowed values'}: "
+                f"{', '.join(found[key] for key in unknown[:10])}"
+            )
+        self._use_canonical_spelling(col, canonical)
+
     def assert_foreign_key(self, parent, child_col, parent_col):
         """Ensure each non-blank child value exists in the parent value set.
 
         Use this for foreign-key style checks between two input tables.
         Values are compared per this (child) table's ``case_sensitive`` setting.
+        When case is ignored, the child column is rewritten to the parent's
+        spelling (the parent table is never changed).
 
         Example:
             child_table.assert_foreign_key(
@@ -690,29 +794,8 @@ class QTable:
                 parent_col='Project',
             )
         """
-        child_resolved = self.assert_columns([child_col])
-        parent_resolved = parent.assert_columns([parent_col])
-        child_name = child_resolved.get(child_col, child_col)
-        parent_name = parent_resolved.get(parent_col, parent_col)
-
-        parent_keys = {
-            self._vkey(value)
-            for value in parent.column(parent_name)
-            if str(value).strip() != ''
-        }
-        child_values = {
-            self._vkey(value): str(value).strip()
-            for value in self.column(child_name)
-            if str(value).strip() != ''
-        }
-
-        unknown = sorted(key for key in child_values if key not in parent_keys)
-        if unknown:
-            unknown_preview = ', '.join(child_values[key] for key in unknown[:10])
-            raise ValueError(
-                f"{self.name} '{child_name}' has value(s) not found in "
-                f"{parent.name} '{parent_name}': {unknown_preview}"
-            )
+        parent_col = parent.assert_columns([parent_col]).get(parent_col, parent_col)
+        self.assert_in(child_col, parent.column(parent_col), label=f"{parent.name} '{parent_col}'")
 
     def assert_complete_cross_join(self, left_col, right_col, left_values,
                                    right_values, left_label=None,
@@ -720,7 +803,8 @@ class QTable:
         """Ensure the pair table contains the full Cartesian grid.
 
         Specifically, every combination from ``left_values x right_values`` must
-        exist exactly once in ``(left_col, right_col)``.
+        exist exactly once in ``(left_col, right_col)``. When case is ignored, the
+        pair columns are rewritten to the spelling used in the supplied values.
 
         Example:
             table.assert_complete_cross_join(
@@ -732,21 +816,14 @@ class QTable:
         """
         observed_pairs = self.assert_unique_pairs(left_col, right_col)
 
-        left_lookup = {}
-        for value in left_values:
-            text = str(value).strip()
-            left_lookup[self._vkey(text)] = text
-
-        right_lookup = {}
-        for value in right_values:
-            text = str(value).strip()
-            right_lookup[self._vkey(text)] = text
+        left_lookup = self._canonical_values(left_values, f'{left_label or left_col} values')
+        right_lookup = self._canonical_values(right_values, f'{right_label or right_col} values')
 
         missing = []
-        for left_key, left_text in left_lookup.items():
-            for right_key, right_text in right_lookup.items():
+        for left_key, left_value in left_lookup.items():
+            for right_key, right_value in right_lookup.items():
                 if (left_key, right_key) not in observed_pairs:
-                    missing.append(f'{left_text}-{right_text}')
+                    missing.append(f'{str(left_value).strip()}-{str(right_value).strip()}')
 
         if missing:
             preview = ', '.join(missing[:10])
@@ -755,6 +832,10 @@ class QTable:
             raise ValueError(
                 f"{self.name} missing {left_title}-{right_title} pair(s): {preview}"
             )
+
+        resolved = self.assert_columns([left_col, right_col])
+        self._use_canonical_spelling(resolved.get(left_col, left_col), left_lookup)
+        self._use_canonical_spelling(resolved.get(right_col, right_col), right_lookup)
 
     def assert_columns_match_domain(self, master, master_value_col,
                               matrix_reserved_cols=None,
@@ -851,6 +932,14 @@ class QTable:
             'renamed_columns': rename_map,
         }
 
-    def df(self):
-        """Return qCalc's restricted qdf facade (never a raw DataFrame)."""
+    def to_qdf(self):
+        """Return qCalc's restricted qdf facade (never a raw DataFrame); safe for user calculators."""
         return qdf(self.to_dict())
+
+    def to_df(self):
+        """Return a new pandas DataFrame of the table (trusted, built-in calculators only).
+
+        The method name is on the ``dangerous_attributes`` blocklist, so user
+        calculators cannot call it; they use ``to_qdf()`` instead.
+        """
+        return pd.DataFrame(self.data, columns=self.columns)

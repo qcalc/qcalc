@@ -3,11 +3,13 @@
 
 import pandas as pd
 import pulp
-from qcore import as_qtable, qtable, QTable
+from qcore import qtable, QTable
 from qcore import validate_schema_if_needed
 from qcore import css2set
 
 from calc import (
+    WORKFORCE_SHIFT_DEMAND_SCHEMA,
+    WORKFORCE_STAFF_SCHEMA,
     field_show_zero,
     table_workforce_shift_demand,
     table_workforce_staff,
@@ -23,54 +25,27 @@ def optima_workforce(
     show_zero,
 ):
     validate_schema_if_needed('optima_workforce')
-    workforce_staff = as_qtable(workforce_staff)
-    workforce_shift_demand = as_qtable(workforce_shift_demand)
+    staff = QTable(workforce_staff, name='workforce_staff', schema=WORKFORCE_STAFF_SCHEMA)
+    shift_demand = QTable(workforce_shift_demand, name='workforce_shift_demand',
+                          schema=WORKFORCE_SHIFT_DEMAND_SCHEMA)
+    for table in (staff, shift_demand):
+        if not table.nrows:
+            raise Exception(f'{table.name} must contain at least one row')
 
-    staff_df = workforce_staff.copy()
-    demand_df = workforce_shift_demand.copy()
-
-    if staff_df.empty:
-        raise Exception('workforce_staff must contain at least one row')
-    if demand_df.empty:
-        raise Exception('workforce_shift_demand must contain at least one row')
-
-    staff_df['Worker'] = staff_df['Worker'].astype(str).str.strip()
-    demand_df['Shift'] = demand_df['Shift'].astype(str).str.strip()
-
-    staff_qt = QTable(staff_df, name='workforce_staff')
-    demand_qt = QTable(demand_df, name='workforce_shift_demand')
-    workers = staff_qt.assert_unique('Worker')
-    shifts = demand_qt.assert_unique('Shift')
-    staff_df.columns = staff_qt.columns
-    demand_df.columns = demand_qt.columns
-
-    max_shifts = dict(zip(staff_df['Worker'], pd.to_numeric(staff_df['Max Shifts'])))
-    cost_per_shift = dict(zip(staff_df['Worker'], pd.to_numeric(staff_df['Cost per Shift'])))
-    required = dict(zip(demand_df['Shift'], pd.to_numeric(demand_df['Required'])))
-
-    for worker in workers:
-        if float(max_shifts[worker]) < 0:
-            raise Exception(f'Max Shifts must be non-negative for worker: {worker}')
-        if float(cost_per_shift[worker]) < 0:
-            raise Exception(f'Cost per Shift must be non-negative for worker: {worker}')
-
-    for shift in shifts:
-        if float(required[shift]) < 0:
-            raise Exception(f'Required must be non-negative for shift: {shift}')
+    workers = staff.assert_unique('Worker')
+    shifts = shift_demand.assert_unique('Shift')
+    max_shifts = staff.to_map('Worker', 'Max Shifts')
+    cost_per_shift = staff.to_map('Worker', 'Cost per Shift')
+    required = shift_demand.to_map('Shift', 'Required')
 
     worker_skills = {worker: set() for worker in workers}
-    if 'Skills' in staff_df.columns:
-        worker_skills = {
-            str(row['Worker']).strip(): css2set(row['Skills'])
-            for _, row in staff_df.iterrows()
-        }
+    if 'Skills' in staff.columns:
+        worker_skills = {worker: css2set(skills) for worker, skills in staff.to_map('Worker', 'Skills').items()}
 
     shift_required_skill = {shift: '' for shift in shifts}
-    if 'Required Skill' in demand_df.columns:
-        shift_required_skill = {
-            str(row['Shift']).strip(): str(row['Required Skill']).strip().lower()
-            for _, row in demand_df.iterrows()
-        }
+    if 'Required Skill' in shift_demand.columns:
+        shift_required_skill = {shift: skill.lower()
+                                for shift, skill in shift_demand.to_map('Shift', 'Required Skill').items()}
 
     feasible_pairs = []
     for worker in workers:

@@ -3,11 +3,14 @@
 
 import pandas as pd
 import pulp
-from qcore import as_qtable, qtable
+from qcore import qtable
 from qcore import validate_schema_if_needed
 from qcore import QTable
 
 from calc import (
+    PRODINV_DEMAND_SCHEMA,
+    PRODINV_ITEM_MASTER_SCHEMA,
+    PRODINV_PRODUCTION_SCHEMA,
     field_show_zero,
     table_prodinv_demand,
     table_prodinv_item_master,
@@ -33,80 +36,28 @@ def optima_production_inventory(
     show_zero,
 ):
     validate_schema_if_needed('optima_production_inventory')
-    prodinv_item_master = as_qtable(prodinv_item_master)
-    prodinv_demand = as_qtable(prodinv_demand)
-    prodinv_production = as_qtable(prodinv_production)
-    item_master_qt = QTable(
-        {'columns': list(prodinv_item_master.columns), 'data': prodinv_item_master.values.tolist()},
-        name='prodinv_item_master',
-    )
-    demand_qt = QTable(prodinv_demand, name='prodinv_demand')
-    production_qt = QTable(
-        {'columns': list(prodinv_production.columns), 'data': prodinv_production.values.tolist()},
-        name='prodinv_production',
-    )
-    demand_qt.assert_foreign_key(item_master_qt, 'Item', 'Item')
-    production_qt.assert_foreign_key(item_master_qt, 'Item', 'Item')
-    prodinv_item_master.columns = item_master_qt.columns
-    prodinv_demand.columns = demand_qt.columns
-    prodinv_production.columns = production_qt.columns
+    item_master = QTable(prodinv_item_master, name='prodinv_item_master', schema=PRODINV_ITEM_MASTER_SCHEMA)
+    demand_table = QTable(prodinv_demand, name='prodinv_demand', schema=PRODINV_DEMAND_SCHEMA)
+    production = QTable(prodinv_production, name='prodinv_production', schema=PRODINV_PRODUCTION_SCHEMA)
+    for table in (item_master, demand_table, production):
+        if not table.nrows:
+            raise Exception(f'{table.name} must contain at least one row')
 
-    item_df = prodinv_item_master.copy()
-    demand_df = prodinv_demand.copy()
-    prod_df = prodinv_production.copy()
+    items = item_master.assert_unique('Item')
+    demand_table.assert_foreign_key(item_master, 'Item', 'Item')
+    production.assert_foreign_key(item_master, 'Item', 'Item')
+    production.assert_unique_pairs('Period', 'Item')
 
-    if item_df.empty:
-        raise Exception('prodinv_item_master must contain at least one row')
-    if demand_df.empty:
-        raise Exception('prodinv_demand must contain at least one row')
-    if prod_df.empty:
-        raise Exception('prodinv_production must contain at least one row')
+    initial_inventory = item_master.to_map('Item', 'Initial Inventory')
+    holding_cost = item_master.to_map('Item', 'Holding Cost')
+    backlog_penalty = item_master.to_map('Item', 'Backlog Penalty')
 
-    item_df['Item'] = item_df['Item'].astype(str).str.strip()
-    demand_df['Item'] = demand_df['Item'].astype(str).str.strip()
-    prod_df['Item'] = prod_df['Item'].astype(str).str.strip()
-    demand_df['Period'] = demand_df['Period'].astype(str).str.strip()
-    prod_df['Period'] = prod_df['Period'].astype(str).str.strip()
-
-    item_qt = QTable(item_df, name='prodinv_item_master')
-    items = item_qt.assert_unique('Item')
-    item_df.columns = item_qt.columns
-
-    demand_df['Demand'] = pd.to_numeric(demand_df['Demand'])
-    prod_df['Unit Cost'] = pd.to_numeric(prod_df['Unit Cost'])
-    prod_df['Max Production'] = pd.to_numeric(prod_df['Max Production'])
-
-    initial_inventory = dict(zip(item_df['Item'], pd.to_numeric(item_df['Initial Inventory'])))
-    holding_cost = dict(zip(item_df['Item'], pd.to_numeric(item_df['Holding Cost'])))
-    backlog_penalty = dict(zip(item_df['Item'], pd.to_numeric(item_df['Backlog Penalty'])))
-
-    for item in items:
-        if float(initial_inventory[item]) < 0:
-            raise Exception(f'Initial Inventory must be non-negative for item: {item}')
-        if float(holding_cost[item]) < 0:
-            raise Exception(f'Holding Cost must be non-negative for item: {item}')
-        if float(backlog_penalty[item]) < 0:
-            raise Exception(f'Backlog Penalty must be non-negative for item: {item}')
-
-    demand_df = demand_df.groupby(['Period', 'Item'], as_index=False)['Demand'].sum()
-
-    prod_qt = QTable(prod_df, name='prodinv_production')
-    prod_qt.assert_unique_pairs('Period', 'Item')
-    prod_df.columns = prod_qt.columns
-
-    periods = sorted(set(demand_df['Period'].tolist()) | set(prod_df['Period'].tolist()), key=_period_sort_key)
-    if not periods:
-        raise Exception('No periods found in demand/production tables')
-
-    demand = {(str(r['Period']), str(r['Item'])): float(r['Demand']) for _, r in demand_df.iterrows()}
-    prod_cost = {(str(r['Period']), str(r['Item'])): float(r['Unit Cost']) for _, r in prod_df.iterrows()}
-    max_prod = {(str(r['Period']), str(r['Item'])): float(r['Max Production']) for _, r in prod_df.iterrows()}
-
-    setup_cost = {}
-    has_setup = 'Setup Cost' in prod_df.columns
-    if has_setup:
-        prod_df['Setup Cost'] = pd.to_numeric(prod_df['Setup Cost'])
-        setup_cost = {(str(r['Period']), str(r['Item'])): float(r['Setup Cost']) for _, r in prod_df.iterrows()}
+    demand = demand_table.sum_by(['Period', 'Item'], 'Demand')
+    prod_cost = production.to_map(['Period', 'Item'], 'Unit Cost')
+    max_prod = production.to_map(['Period', 'Item'], 'Max Production')
+    has_setup = 'Setup Cost' in production.columns
+    setup_cost = production.to_map(['Period', 'Item'], 'Setup Cost') if has_setup else {}
+    periods = sorted({period for period, _ in demand} | {period for period, _ in prod_cost}, key=_period_sort_key)
 
     pairs = []
     for period in periods:
@@ -117,12 +68,6 @@ def optima_production_inventory(
                     f'Missing production row for Period={period}, Item={item}. '
                     'Provide Unit Cost and Max Production for every period-item pair.'
                 )
-            if float(max_prod[pair]) < 0:
-                raise Exception(f'Max Production must be non-negative for Period={period}, Item={item}')
-            if float(prod_cost[pair]) < 0:
-                raise Exception(f'Unit Cost must be non-negative for Period={period}, Item={item}')
-            if has_setup and float(setup_cost[pair]) < 0:
-                raise Exception(f'Setup Cost must be non-negative for Period={period}, Item={item}')
             pairs.append(pair)
 
     qty_cat = pulp.LpInteger if str(prodinv_qty_type).lower() == 'integer' else pulp.LpContinuous

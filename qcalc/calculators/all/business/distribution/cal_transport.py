@@ -3,9 +3,10 @@
 
 import pandas as pd
 import pulp
-from qcore import as_qtable, qtable
+from qcore import qtable
 from qcore import validate_schema_if_needed
 from qcore import QTable
+from calc import DEMAND_SCHEMA, SHIP_COST_SCHEMA, SUPPLY_SCHEMA
 from calc import field_show_zero, table_demand, table_ship_cost, table_supply
 from calc import safe_objective_value, solver, slack_table
 
@@ -18,33 +19,18 @@ def optima_transport(
     show_zero,
 ):
     validate_schema_if_needed('optima_transport')
-    supply = as_qtable(supply)
-    demand = as_qtable(demand)
-    ship_cost = as_qtable(ship_cost)
-    supply_qt = QTable(supply, name='supply')
-    demand_qt = QTable(demand, name='demand')
-    ship_cost_qt = QTable(ship_cost, name='ship_cost')
-    ship_cost_qt.assert_foreign_key(supply_qt, 'Source', 'Source')
-    ship_cost_qt.assert_foreign_key(demand_qt, 'Destination', 'Destination')
-    supply.columns = supply_qt.columns
-    demand.columns = demand_qt.columns
-    ship_cost.columns = ship_cost_qt.columns
+    supply = QTable(supply, name='supply', schema=SUPPLY_SCHEMA)
+    demand = QTable(demand, name='demand', schema=DEMAND_SCHEMA)
+    ship_cost = QTable(ship_cost, name='ship_cost', schema=SHIP_COST_SCHEMA)
+    sources = supply.column('Source')
+    destinations = demand.column('Destination')
+    ship_cost.assert_foreign_key(supply, 'Source', 'Source')
+    ship_cost.assert_foreign_key(demand, 'Destination', 'Destination')
+    ship_cost.assert_complete_cross_join('Source', 'Destination', sources, destinations)
 
-    sources = supply['Source'].astype(str).tolist()
-    destinations = demand['Destination'].astype(str).tolist()
-    capacity = dict(zip(supply['Source'].astype(str), pd.to_numeric(supply['Capacity'])))
-    req = dict(zip(demand['Destination'].astype(str), pd.to_numeric(demand['Demand'])))
-    cost = {(str(r['Source']), str(r['Destination'])): float(r['Cost']) for _, r in ship_cost.iterrows()}
-    ship_cost_qt = QTable(ship_cost, name='ship_cost')
-    ship_cost_qt.assert_complete_cross_join(
-        left_col='Source',
-        right_col='Destination',
-        left_values=sources,
-        right_values=destinations,
-        left_label='Source',
-        right_label='Destination',
-    )
-    ship_cost.columns = ship_cost_qt.columns
+    capacity = supply.to_map('Source', 'Capacity')
+    req = demand.to_map('Destination', 'Demand')
+    cost = ship_cost.to_map(['Source', 'Destination'], 'Cost')
 
     prob = pulp.LpProblem('optima_transport', pulp.LpMinimize)
     var_type = pulp.LpInteger if flow_type == 'integer' else pulp.LpContinuous
@@ -117,7 +103,3 @@ def optima_transport__info():
         # 'out1': ['Summary', 'Decision Table'],
         'tags': 'optimization, transportation, linear programming',
     }
-
-
-
-

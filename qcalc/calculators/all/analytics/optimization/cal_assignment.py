@@ -3,9 +3,10 @@
 
 import pandas as pd
 import pulp
-from qcore import as_qtable, qtable
+from qcore import qtable
 from qcore import validate_schema_if_needed
 from qcore import QTable
+from calc import AGENTS_SCHEMA, ASSIGN_COST_SCHEMA, TASKS_SCHEMA
 from calc import field_show_zero, table_agents, table_assign_cost, table_tasks
 from calc import safe_objective_value, solver, slack_table
 
@@ -17,32 +18,17 @@ def optima_assignment(
     show_zero,
 ):
     validate_schema_if_needed('optima_assignment')
-    agents = as_qtable(agents)
-    tasks = as_qtable(tasks)
-    assign_cost = as_qtable(assign_cost)
-    agents_qt = QTable(agents, name='agents')
-    tasks_qt = QTable(tasks, name='tasks')
-    assign_cost_qt = QTable(assign_cost, name='assign_cost')
-    assign_cost_qt.assert_foreign_key(agents_qt, 'Agent', 'Agent')
-    assign_cost_qt.assert_foreign_key(tasks_qt, 'Task', 'Task')
-    agents.columns = agents_qt.columns
-    tasks.columns = tasks_qt.columns
-    assign_cost.columns = assign_cost_qt.columns
+    agents = QTable(agents, name='agents', schema=AGENTS_SCHEMA)
+    tasks = QTable(tasks, name='tasks', schema=TASKS_SCHEMA)
+    assign_cost = QTable(assign_cost, name='assign_cost', schema=ASSIGN_COST_SCHEMA)
+    agent_list = agents.column('Agent')
+    task_list = tasks.column('Task')
+    assign_cost.assert_foreign_key(agents, 'Agent', 'Agent')
+    assign_cost.assert_foreign_key(tasks, 'Task', 'Task')
+    assign_cost.assert_complete_cross_join('Agent', 'Task', agent_list, task_list)
 
-    agent_list = agents['Agent'].astype(str).tolist()
-    task_list = tasks['Task'].astype(str).tolist()
-    capacity = dict(zip(agents['Agent'].astype(str), pd.to_numeric(agents['Capacity'])))
-    cost = {(str(r['Agent']), str(r['Task'])): float(r['Cost']) for _, r in assign_cost.iterrows()}
-    assign_cost_qt = QTable(assign_cost, name='assign_cost')
-    assign_cost_qt.assert_complete_cross_join(
-        left_col='Agent',
-        right_col='Task',
-        left_values=agent_list,
-        right_values=task_list,
-        left_label='Agent',
-        right_label='Task',
-    )
-    assign_cost.columns = assign_cost_qt.columns
+    capacity = agents.to_map('Agent', 'Capacity')
+    cost = assign_cost.to_map(['Agent', 'Task'], 'Cost')
 
     prob = pulp.LpProblem('optima_assignment', pulp.LpMinimize)
     x = pulp.LpVariable.dicts(
@@ -108,6 +94,3 @@ def optima_assignment__info():
         # 'out1': ['Summary', 'Decision Table'],
         'tags': 'optimization, assignment, mixed integer programming',
     }
-
-
-

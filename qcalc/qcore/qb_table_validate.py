@@ -31,21 +31,22 @@ def _coerce_table_for_validation(value, field_name):
         raise ValidationError(f"Invalid table payload for {field_name}") from e
 
 
-def table_columns_validator(field_name, required_cols, optional_cols=None):
-    """Return a reusable validator that enforces expected table columns."""
+def table_columns_validator(field_name, required_cols=None, optional_cols=None, schema=None):
+    """Return a reusable validator for a table input.
+
+    Pass ``schema`` (a QTable schema) to check headers and values, or ``required_cols`` /
+    ``optional_cols`` to check headers only.
+    """
     optional_cols = optional_cols or []
 
     def _validator(value):
         table = _coerce_table_for_validation(value, field_name)
         try:
             from .qb_qtable import QTable
-            table_qt = QTable(table, name=field_name)
-            table_qt.assert_columns(
-                list(required_cols),
-                optional_cols=list(optional_cols),
-            )
+            table_qt = QTable(table, name=field_name, schema=schema, validate=bool(schema))
+            if not schema:
+                table_qt.assert_columns(list(required_cols), optional_cols=list(optional_cols))
         except (QTableValidationError, ValueError) as e:
             raise ValidationError(str(e)) from e
 
     return _validator
-

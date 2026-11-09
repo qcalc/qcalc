@@ -109,7 +109,7 @@ class QBase:
         if name in self._tables:
             raise ValueError(f'Table already registered: {name}')
         if not isinstance(table, QTable):
-            table = QTable(table, name=name)
+            table = QTable(table, name=name, validate=False)
         table.name = name
         self._tables[name] = table
         return table

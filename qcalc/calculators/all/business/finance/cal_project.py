@@ -3,18 +3,18 @@
 
 import pandas as pd
 import pulp
-from qcore import to_cast, as_qtable, qtable, QTable
+from qcore import to_cast, qtable, QTable
 from qcore import validate_schema_if_needed
 
 from calc import (
+    PROJECT_RULES_SCHEMA,
+    PROJECTS_SCHEMA,
     field_show_zero,
     table_project_rules,
     table_projects,
 )
 from calc import safe_objective_value, solver, slack_table
 
-
-_ALLOWED_RULE_TYPES = {'depends_on', 'excludes'}
 
 
 def optima_project(
@@ -27,28 +27,17 @@ def optima_project(
     show_zero,
 ):
     validate_schema_if_needed('optima_project')
-    projects = as_qtable(projects)
-    project_rules = as_qtable(project_rules)
-
-    prj = projects.copy()
-    prj['Project'] = prj['Project'].astype(str).str.strip()
-    prj_qt = QTable(prj, name='projects')
-    project_list = prj_qt.assert_unique('Project')
-    prj.columns = prj_qt.columns
+    prj = QTable(projects, name='projects', schema=PROJECTS_SCHEMA)
+    project_list = prj.assert_unique('Project')
     if not project_list:
         raise Exception('projects must contain at least one row')
 
-    value = dict(zip(prj['Project'], pd.to_numeric(prj['Value'])))
-    cost = dict(zip(prj['Project'], pd.to_numeric(prj['Cost'])))
-
+    value = prj.to_map('Project', 'Value')
+    cost = prj.to_map('Project', 'Cost')
     has_resource = 'Resource' in prj.columns
-    resource = dict(zip(prj['Project'], pd.to_numeric(prj['Resource']))) if has_resource else {p: 0.0 for p in project_list}
-
+    resource = prj.to_map('Project', 'Resource') if has_resource else {p: 0.0 for p in project_list}
     has_must_do = 'Must Do' in prj.columns
-    must_do = (
-        dict(zip(prj['Project'], pd.to_numeric(prj['Must Do'], errors='coerce').fillna(0)))
-        if has_must_do else {p: 0 for p in project_list}
-    )
+    must_do = prj.to_map('Project', 'Must Do') if has_must_do else {p: 0 for p in project_list}
 
     budget_limit = to_cast(project_budget_limit, 'project_budget_limit', float)
     resource_limit = to_cast(project_resource_limit, 'project_resource_limit', float)
@@ -80,26 +69,16 @@ def optima_project(
         if float(must_do[p]) > 0:
             prob += x[p] == 1, f'must_do_{p}'
 
-    rules = project_rules if project_rules is not None else pd.DataFrame(columns=['From', 'To', 'Type'])
-    if len(rules) > 0:
-        rules_qt = QTable(rules, name='project_rules')
-        prj_qt = QTable(prj, name='projects')
-        rules_qt.assert_foreign_key(prj_qt, 'From', 'Project')
-        rules_qt.assert_foreign_key(prj_qt, 'To', 'Project')
-        rules.columns = rules_qt.columns
-        prj.columns = prj_qt.columns
-        for _, row in rules.iterrows():
-            from_p = str(row['From'])
-            to_p = str(row['To'])
-            rtype = str(row['Type']).strip().lower()
-            if rtype not in _ALLOWED_RULE_TYPES:
-                raise Exception(
-                    f"project_rules Type must be one of {sorted(_ALLOWED_RULE_TYPES)}. Found: {row['Type']}"
-                )
-
-            if rtype == 'depends_on':
+    rules = QTable.optional(project_rules, name='project_rules', schema=PROJECT_RULES_SCHEMA)
+    if rules is not None:
+        rules.assert_foreign_key(prj, 'From', 'Project')
+        rules.assert_foreign_key(prj, 'To', 'Project')
+        for row in rules.select():
+            from_p = row['From']
+            to_p = row['To']
+            if row['Type'] == 'depends_on':
                 prob += x[from_p] <= x[to_p], f'depends_{from_p}_on_{to_p}'
-            elif rtype == 'excludes':
+            else:
                 cname = '_'.join(sorted([from_p, to_p]))
                 prob += x[from_p] + x[to_p] <= 1, f'excludes_{cname}'
 

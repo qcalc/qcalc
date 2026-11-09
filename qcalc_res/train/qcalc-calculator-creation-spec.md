@@ -99,15 +99,36 @@ e.g. you do not ever require "from qcore import Qty" statement for frontend calc
     QResults
 
 - Table validation is class-based: create a `QTable` and call methods such as
-  `assert_columns`, `assert_unique`, `assert_foreign_key`,
+  `assert_columns`, `assert_unique`, `assert_foreign_key`, `assert_in`,
   `assert_unique_pairs`, `assert_complete_cross_join`, and
   `assert_columns_match_domain`.
+- Typical input handling is one line per table: declare the schema and validate, e.g.
+  `supply = QTable(supply, name='supply', schema={'Plant': str, 'Capacity': float}, validate=True)`.
+  This accepts a DataFrame or a qtbl dict, matches headers case/space-insensitively,
+  trims text, converts numbers and drops the spare blank rows the input grid adds.
+  Every schema column is required (a blank cell raises an error) unless it is declared
+  `{'type': float, 'required': False}` (the column may then be absent, and blank
+  numbers become `None`; add `'default': 0.0` to fill blanks instead). Then use
+  `supply.column('Plant')`, `supply.to_map('Plant', 'Capacity')` and
+  `demand.sum_by(['Period', 'Product'], 'Demand')`.
+- `assert_foreign_key`, `assert_in` and `assert_complete_cross_join` ignore case by
+  default and rewrite the checked cells to the other side's spelling, so exact
+  dictionary lookups afterwards are consistent. Pass `case_sensitive=True` to
+  `QTable(...)` for exact matching (a mismatch then raises).
 - To read table data use `QTable.select(cols, where=None, **criteria)` (SQL-like
   column subset and row filter; skips blank/repeated-header rows and trims text by
   default), e.g. `t.select(['Name'], Dept='IT')`. `t.find(**criteria)` returns the
   first matching record and `t.to_map(key, value)` builds a `{key: value}` dict.
   Declare casts in the schema, e.g. `QTable(df, schema={'Qty': {'cast': float}})`
-  followed by `t.validate(raise_exception=True)`.
+  followed by `t.validate(raise_exception=True)`; text (`str`) columns are trimmed
+  by `validate()` unless the column spec sets `'strip': False`.
+- Reusable input tables are declared once in `qcalc/calc/mod_optima_tables.py`: each `table_*` helper has a
+  matching `<NAME>_SCHEMA` constant (for example `SUPPLY_SCHEMA`) used by the form validator and imported by
+  the calculator, e.g. `QTable(supply, name='supply', schema=SUPPLY_SCHEMA)`.
+- For an optional table input use `QTable.optional(value, name=..., schema=...)`: it returns `None` when the
+  input is missing or has no rows, otherwise a validated table.
+- `t.to_qdf()` returns the restricted `qdf` facade. `t.to_df()` returns a raw pandas
+  DataFrame for built-in calculators only; it is blocked for user calculators.
 ### 4.2 Backend Calculators
 - Backend calculators are typically under `qcalc/calculators/all/`.
 - Backend Extendended set of calculators may be under `qcalc/calculators/ext/` or supported subtrees.

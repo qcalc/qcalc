@@ -118,8 +118,8 @@ def test_schema_accepts_json_type_names():
 
 
 def test_schema_required_rejects_whitespace_only_value():
-    table = QTable({"columns": ["a"], "data": [["   "]]},
-                   schema={"a": {"type": str, "required": True}})
+    table = QTable({"columns": ["a", "b"], "data": [["   ", 1]]},
+                   schema={"a": {"type": str, "required": True}}, validate=False)
 
     with pytest.raises(ValueError, match="required"):
         table.validate(raise_exception=True)
@@ -159,6 +159,7 @@ def test_schema_rejects_missing_required_value():
         {"columns": ["id", "name"], "data": [[1, ""]]},
         schema={"name": {"type": str, "required": True}},
         primary_key="id",
+        validate=False,
     )
 
     result = table.validate()
@@ -171,6 +172,7 @@ def test_schema_rejects_value_outside_range():
         {"columns": ["id", "price"], "data": [[1, -2]]},
         schema={"price": {"type": float, "min": 0}},
         primary_key="id",
+        validate=False,
     )
 
     with pytest.raises(ValueError, match="at least"):
@@ -182,6 +184,7 @@ def test_primary_and_unique_keys_are_checked():
         {"columns": ["id", "email"], "data": [[1, "a@x"], [2, "a@x"]]},
         primary_key="id",
         unique="email",
+        validate=False,
     )
 
     result = table.validate()

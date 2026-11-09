@@ -3,7 +3,7 @@
 
 import pandas as pd
 import pulp
-from qcore import as_qtable, qtable
+from qcore import qtable, QTable
 from qcore import validate_schema_if_needed
 from qcore import (
     is_blank,
@@ -12,6 +12,7 @@ from qcore import (
     val2fraction,
 )
 
+from calc import BLEND_MATERIALS_SCHEMA, BLEND_SPECS_SCHEMA
 from calc import field_show_zero, table_blend_materials, table_blend_specs
 from calc import safe_objective_value, solver, slack_table
 
@@ -24,63 +25,37 @@ def optima_blending(
     show_zero,
 ):
     validate_schema_if_needed('optima_blending')
-    blend_materials = as_qtable(blend_materials)
-    blend_specs = as_qtable(blend_specs)
-    has_min_qty_col = 'Min Qty' in blend_materials.columns
-    has_max_qty_col = 'Max Qty' in blend_materials.columns
+    materials = QTable(blend_materials, name='blend_materials', schema=BLEND_MATERIALS_SCHEMA)
+    specs = QTable(blend_specs, name='blend_specs', schema=BLEND_SPECS_SCHEMA)
+    has_min_qty_col = 'Min Qty' in materials.columns
+    has_max_qty_col = 'Max Qty' in materials.columns
 
-    if blend_materials.empty:
+    if not materials.nrows:
         raise Exception('blend_materials must contain at least one material row')
 
     batch_size_val = to_float(batch_size, 'batch_size')
     if batch_size_val <= 0:
         raise Exception('batch_size must be greater than zero')
 
-    materials_df = blend_materials.copy()
-    specs_df = blend_specs.copy()
-
-    material_names = []
+    material_names = materials.assert_unique('Material')
+    material_rows = {row['Material']: row for row in materials.select()}
     unit_cost = {}
     min_qty = {}
     max_qty = {}
 
-    for idx, row in materials_df.iterrows():
-        material = str(row['Material']).strip() if not is_blank(
-            row['Material']) else f'Material {len(material_names) + 1}'
-        if material in material_names:
-            raise Exception(f"Duplicate material name found: {material}")
-
-        cost = to_float(row['Unit Cost'], f'blend_materials.Unit Cost (row {idx + 1})')
-        if cost < 0:
-            raise Exception(f'Unit Cost must be non-negative for material: {material}')
-
-        lo = 0.0
-        if 'Min Qty' in materials_df.columns:
-            min_val = to_float(row.get('Min Qty'), f'blend_materials.Min Qty (row {idx + 1})', required=False)
-            if min_val is not None:
-                lo = float(min_val)
-
-        hi = None
-        if 'Max Qty' in materials_df.columns:
-            max_val = to_float(row.get('Max Qty'), f'blend_materials.Max Qty (row {idx + 1})', required=False)
-            if max_val is not None:
-                hi = float(max_val)
-
-        if lo < 0:
-            raise Exception(f'Min Qty must be non-negative for material: {material}')
-        if hi is not None and hi < 0:
-            raise Exception(f'Max Qty must be non-negative for material: {material}')
+    for material, row in material_rows.items():
+        lo = row.get('Min Qty') or 0.0
+        hi = row.get('Max Qty')
         if hi is not None and lo > hi:
             raise Exception(f'Min Qty cannot exceed Max Qty for material: {material}')
 
-        material_names.append(material)
-        unit_cost[material] = float(cost)
-        min_qty[material] = float(lo)
-        max_qty[material] = float(hi) if hi is not None else None
+        unit_cost[material] = row['Unit Cost']
+        min_qty[material] = lo
+        max_qty[material] = hi
 
     property_col_map = {}
     reserved = {'material', 'unit cost', 'min qty', 'max qty'}
-    for col in materials_df.columns:
+    for col in materials.columns:
         key = normalize_name(col)
         if key in reserved:
             continue
@@ -92,8 +67,8 @@ def optima_blending(
             'blend_materials must include at least one property column besides Material/Unit Cost/Min Qty/Max Qty')
 
     spec_rows = []
-    for idx, row in specs_df.iterrows():
-        prop_raw = row.get('Property')
+    for idx, row in enumerate(specs.select()):
+        prop_raw = row['Property']
         if is_blank(prop_raw):
             continue
         prop_name = str(prop_raw).strip()
@@ -127,7 +102,7 @@ def optima_blending(
 
     comp = {}
     for material in material_names:
-        row = materials_df.loc[materials_df['Material'].astype(str).str.strip() == material].iloc[0]
+        row = material_rows[material]
         comp[material] = {}
         for spec in spec_rows:
             col = property_col_map[spec['key']]

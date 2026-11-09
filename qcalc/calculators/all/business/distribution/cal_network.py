@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
-from qcore import qtable, qtexta, QScreen, QChart, as_qtable, QTable
+from qcore import qtable, qtexta, QScreen, QChart, QTable
 from qutil import css2strs
 from calc import is_debug
 import pandas as pd
@@ -23,12 +23,16 @@ def transport_opt(
         'Customer': ['C1', 'C2', 'C3', 'C1', 'C2', 'C3'],
         'Cost': [250, 325, 445, 275, 260, 460]}),
 ):
-    supply = as_qtable(supply)
-    demand = as_qtable(demand)
-    cost = as_qtable(cost)
-    plants = supply['Plant']
-    customers = demand['Customer']
-    links = [f"{row['Plant']}-{row['Customer']}" for index, row in cost.iterrows()]
+    supply = QTable(supply, name='supply', schema={'Plant': str, 'Capacity': float})
+    demand = QTable(demand, name='demand', schema={'Customer': str, 'Demand': float})
+    cost = QTable(cost, name='cost', schema={'Plant': str, 'Customer': str, 'Cost': float})
+    plants = supply.column('Plant')
+    customers = demand.column('Customer')
+    cost.assert_foreign_key(supply, 'Plant', 'Plant')
+    cost.assert_foreign_key(demand, 'Customer', 'Customer')
+    cost.assert_complete_cross_join('Plant', 'Customer', plants, customers)
+
+    links = [f"{row['Plant']}-{row['Customer']}" for row in cost.select()]
     solution, x = solve_transport_network(supply, demand, cost)
     labels = [x[p, c].value() for p in plants for c in customers]
     chart = sd_mesh(','.join(plants), ','.join(customers), ','.join(links),
@@ -51,14 +55,19 @@ def transship_opt(
         'To': ['D1', 'D2', 'D1', 'D2', 'C1', 'C2', 'C3', 'C1', 'C2', 'C3'],
         'Cost': [190, 210, 185, 205, 175, 180, 165, 235, 130, 145]}),
 ):
-    supply = as_qtable(supply)
-    distribution = as_qtable(distribution)
-    demand = as_qtable(demand)
-    cost = as_qtable(cost)
-    plants = supply['Plant']
-    dcs = distribution['DC']
-    customers = demand['Customer']
-    links = [f"{row['From']}-{row['To']}" for index, row in cost.iterrows()]
+    supply = QTable(supply, name='supply', schema={'Plant': str, 'Capacity': float})
+    distribution = QTable(distribution, name='distribution', schema={'DC': str})
+    demand = QTable(demand, name='demand', schema={'Customer': str, 'Demand': float})
+    cost = QTable(cost, name='cost', schema={'From': str, 'To': str, 'Cost': float})
+    plants = supply.column('Plant')
+    dcs = distribution.column('DC')
+    customers = demand.column('Customer')
+    cost.assert_in('From', plants + dcs, label='plants or DCs')
+    cost.assert_in('To', dcs + customers, label='DCs or customers')
+    cost.assert_complete_cross_join('From', 'To', plants, dcs, left_label='Plant', right_label='DC')
+    cost.assert_complete_cross_join('From', 'To', dcs, customers, left_label='DC', right_label='Customer')
+
+    links = [f"{row['From']}-{row['To']}" for row in cost.select()]
     solution, x1, x2 = solve_transshipment_network(supply, distribution, demand, cost)
     labels = [x1[p, d].value() for p in plants for d in dcs] + [x2[d, c].value() for d in dcs for c in customers]
     chart = std_mesh(','.join(plants), ','.join(dcs), ','.join(customers), ','.join(links),
@@ -67,36 +76,11 @@ def transship_opt(
 
 
 def solve_transport_network(supply, demand, cost):
-    supply_qt = QTable(supply, name='supply')
-    demand_qt = QTable(demand, name='demand')
-    cost_qt = QTable(cost, name='cost')
-    supply_qt.assert_columns(['Plant', 'Capacity'])
-    demand_qt.assert_columns(['Customer', 'Demand'])
-    cost_qt.assert_columns(['Plant', 'Customer', 'Cost'])
-    cost_qt.assert_foreign_key(supply_qt, 'Plant', 'Plant')
-    cost_qt.assert_foreign_key(demand_qt, 'Customer', 'Customer')
-    supply.columns = supply_qt.columns
-    demand.columns = demand_qt.columns
-    cost.columns = cost_qt.columns
-
-    # Extract data from DataFrames
-    plants = supply['Plant'].astype(str).str.strip().tolist()
-    customers = demand['Customer'].astype(str).str.strip().tolist()
-    capacity = dict(zip(supply['Plant'], supply['Capacity'].astype(float)))
-    demand = dict(zip(demand['Customer'], demand['Demand'].astype(float)))
-
-    cost_qt = QTable(cost, name='cost')
-    cost_qt.assert_complete_cross_join(
-        left_col='Plant',
-        right_col='Customer',
-        left_values=plants,
-        right_values=customers,
-        left_label='Plant',
-        right_label='Customer',
-    )
-    cost.columns = cost_qt.columns
-
-    cost_matrix = {(str(row['Plant']).strip(), str(row['Customer']).strip()): float(row['Cost']) for _, row in cost.iterrows()}
+    plants = supply.column('Plant')
+    customers = demand.column('Customer')
+    capacity = supply.to_map('Plant', 'Capacity')
+    demand_of = demand.to_map('Customer', 'Demand')
+    cost_matrix = cost.to_map(['Plant', 'Customer'], 'Cost')
 
     # Create the LP problem
     prob = pulp.LpProblem("SupplyChainProblem", pulp.LpMinimize)
@@ -114,7 +98,7 @@ def solve_transport_network(supply, demand, cost):
 
     # Constraints: meet the demand of each customer
     for customer in customers:
-        prob += pulp.lpSum(x[plant, customer] for plant in plants) == demand[customer]
+        prob += pulp.lpSum(x[plant, customer] for plant in plants) == demand_of[customer]
 
     # Solve the problem
     prob.solve(pulp.PULP_CBC_CMD(msg=is_debug()))
@@ -132,74 +116,12 @@ def solve_transport_network(supply, demand, cost):
 
 
 def solve_transshipment_network(supply, distribution, demand, cost):
-    supply_qt = QTable(supply, name='supply')
-    distribution_qt = QTable(distribution, name='distribution')
-    demand_qt = QTable(demand, name='demand')
-    cost_qt = QTable(cost, name='cost')
-    supply_qt.assert_columns(['Plant', 'Capacity'])
-    distribution_qt.assert_columns(['DC'])
-    demand_qt.assert_columns(['Customer', 'Demand'])
-    cost_qt.assert_columns(['From', 'To', 'Cost'])
-    supply.columns = supply_qt.columns
-    distribution.columns = distribution_qt.columns
-    demand.columns = demand_qt.columns
-    cost.columns = cost_qt.columns
-
-    # Extract data from DataFrames
-    plants = supply['Plant'].astype(str).str.strip().tolist()
-    dcs = distribution['DC'].astype(str).str.strip().tolist()
-    customers = demand['Customer'].astype(str).str.strip().tolist()
-
-    from_nodes = set(cost['From'].astype(str).str.strip().tolist())
-    to_nodes = set(cost['To'].astype(str).str.strip().tolist())
-    valid_from = set(plants) | set(dcs)
-    valid_to = set(dcs) | set(customers)
-
-    unknown_from = sorted(from_nodes - valid_from)
-    if unknown_from:
-        raise Exception(f"cost.From contains unknown node(s): {', '.join(unknown_from)}")
-
-    unknown_to = sorted(to_nodes - valid_to)
-    if unknown_to:
-        raise Exception(f"cost.To contains unknown node(s): {', '.join(unknown_to)}")
-
-    pl_capacity = dict(zip(supply['Plant'], supply['Capacity'].astype(float)))
-    # dc_capacity = dict(zip(distribution['DC'], distribution['Capacity'].astype(float)))
-    demand = dict(zip(demand['Customer'], demand['Demand'].astype(float)))
-
-    cost_qt = QTable(cost, name='cost')
-    cost_qt.assert_unique_pairs('From', 'To')
-    cost.columns = cost_qt.columns
-
-    cost_matrix = {(str(row['From']).strip(), str(row['To']).strip()): float(row['Cost']) for _, row in cost.iterrows()}
-
-    plant_dc_cost = cost[
-        cost['From'].astype(str).str.strip().isin(set(plants))
-        & cost['To'].astype(str).str.strip().isin(set(dcs))
-    ]
-    plant_dc_cost_qt = QTable(plant_dc_cost, name='cost')
-    plant_dc_cost_qt.assert_complete_cross_join(
-        left_col='From',
-        right_col='To',
-        left_values=plants,
-        right_values=dcs,
-        left_label='Plant',
-        right_label='DC',
-    )
-
-    dc_customer_cost = cost[
-        cost['From'].astype(str).str.strip().isin(set(dcs))
-        & cost['To'].astype(str).str.strip().isin(set(customers))
-    ]
-    dc_customer_cost_qt = QTable(dc_customer_cost, name='cost')
-    dc_customer_cost_qt.assert_complete_cross_join(
-        left_col='From',
-        right_col='To',
-        left_values=dcs,
-        right_values=customers,
-        left_label='DC',
-        right_label='Customer',
-    )
+    plants = supply.column('Plant')
+    dcs = distribution.column('DC')
+    customers = demand.column('Customer')
+    pl_capacity = supply.to_map('Plant', 'Capacity')
+    demand_of = demand.to_map('Customer', 'Demand')
+    cost_matrix = cost.to_map(['From', 'To'], 'Cost')
 
     # Create the LP problem
     prob = pulp.LpProblem("SupplyChainProblem", pulp.LpMinimize)
@@ -225,7 +147,7 @@ def solve_transshipment_network(supply, distribution, demand, cost):
 
     # Constraints: meet the demand of each customer
     for customer in customers:
-        prob += pulp.lpSum(x2[dc, customer] for dc in dcs) == demand[customer]
+        prob += pulp.lpSum(x2[dc, customer] for dc in dcs) == demand_of[customer]
 
     # print(prob)
     # Solve the problem
@@ -396,40 +318,30 @@ def facility_opt(
     min_percent_demand: float = 80,
     demand_within_distance: float = 50
 ):
-    cost = as_qtable(cost)
-    facility = as_qtable(facility)
-    cost_qt = QTable(cost, name='cost')
-    facility_qt = QTable(facility, name='facility')
-    cost_qt.assert_columns(['Location', 'Demand'])
-    facility_qt.assert_columns(
-        ['Location', 'Capacity', 'Fixed Cost'],
-        columns_can_grow=False,
-    )
-    cost.columns = cost_qt.columns
-    facility.columns = facility_qt.columns
+    cost = QTable(cost, name='cost', schema={'Location': str, 'Demand': float})
+    facility = QTable(facility, name='facility',
+                      schema={'Location': str, 'Capacity': float, 'Fixed Cost': float})
+    facility.assert_columns(['Location', 'Capacity', 'Fixed Cost'], columns_can_grow=False)
 
-    # Define the problem
-    prob = pulp.LpProblem("Facility_Location_Problem", pulp.LpMinimize)
-    # Decision variables
     try:
-        cost_qt = QTable(cost, name='cost')
-        facility_qt = QTable(facility, name='facility')
-        matched = cost_qt.assert_columns_match_domain(
-            master=facility_qt,
+        matched = cost.assert_columns_match_domain(
+            master=facility,
             master_value_col='Location',
             matrix_reserved_cols=['Location', 'Demand'],
-            require_master_in_matrix=True,
-            require_matrix_in_master=True,
         )
-        cost.columns = cost_qt.columns
-        facility.columns = facility_qt.columns
     except Exception as e:
         return str(e)
 
     facilities = matched['master_values']
+    demand = cost.to_map('Location', 'Demand')
+    capacity = facility.to_map('Location', 'Capacity')
+    fixed_cost = facility.to_map('Location', 'Fixed Cost')
+    locations = list(demand)
+    cost_matrix = {(row['Location'], f): float(row[f]) for row in cost.select() for f in facilities}
 
-    cost_matrix = {(row['Location'], f): float(row[f]) for _, row in cost.iterrows() for f in facilities}
-    locations = cost['Location'].tolist()
+    # Define the problem
+    prob = pulp.LpProblem("Facility_Location_Problem", pulp.LpMinimize)
+    # Decision variables
     possible_facilities = pulp.LpVariable.dicts("Possible_Facility", facilities, 0, 1, pulp.LpBinary)
 
     possible_flow = pulp.LpVariable.dicts(
@@ -441,7 +353,6 @@ def facility_opt(
 
 
     # Objective function
-    fixed_cost = {f: float(facility.iloc[i]['Fixed Cost']) for i, f in enumerate(facilities)}
     prob += pulp.lpSum(cost_matrix[key] * possible_flow[key] for key in cost_matrix) + pulp.lpSum(
         fixed_cost[f] * possible_facilities[f] for f in facilities)
 
@@ -449,16 +360,16 @@ def facility_opt(
     prob += pulp.lpSum(possible_facilities[f] for f in facilities) <= max_number_of_facilities
     prob += pulp.lpSum(possible_facilities[f] for f in facilities) >= min_number_of_facilities
 
-    for i, l in enumerate(locations):
-        prob += pulp.lpSum(possible_flow[(l, f)] for f in facilities) == float(cost.iloc[i]['Demand'])
+    for l in locations:
+        prob += pulp.lpSum(possible_flow[(l, f)] for f in facilities) == demand[l]
 
-    for i, f in enumerate(facilities):
-        prob += pulp.lpSum(possible_flow[(l, f)] for l in locations) <= float(facility.iloc[i]['Capacity'])
+    for f in facilities:
+        prob += pulp.lpSum(possible_flow[(l, f)] for l in locations) <= capacity[f]
 
     for l in locations:
         for f in facilities:
             prob += possible_flow[(l, f)] - possible_facilities[f] * 999e9 <= 0
-            prob += possible_flow[(l, f)] <= float(cost.loc[cost['Location'] == l, 'Demand'].iloc[0]) * arc_used[(l, f)]
+            prob += possible_flow[(l, f)] <= demand[l] * arc_used[(l, f)]
             prob += arc_used[(l, f)] <= possible_facilities[f]
 
     if max_average_customer_distance:
@@ -470,7 +381,7 @@ def facility_opt(
                  <= max_average_demand_distance * pulp.lpSum(possible_flow[key] for key in possible_flow))
 
     if min_percent_demand and demand_within_distance:
-        total_demand = sum(cost['Demand'].astype(float))
+        total_demand = sum(demand.values())
         prob += (pulp.lpSum((1 if cost_matrix[key] <= demand_within_distance else 0) * possible_flow[key]
                             for key in possible_flow) / total_demand) >= min_percent_demand / 100
 
@@ -498,9 +409,9 @@ def facility_opt(
             open_facilities.append(f)
 
     facility_rows = []
-    for i, f in enumerate(facilities):
+    for f in facilities:
         used = float(sum((possible_flow[(l, f)].value() or 0) for l in locations))
-        cap = float(facility.iloc[i]['Capacity'])
+        cap = capacity[f]
         utilization = (used / cap * 100) if cap > 0 else 0
         facility_rows.append({
             'Facility': f,
@@ -508,13 +419,13 @@ def facility_opt(
             'Capacity': round(cap, 2),
             'Used': round(used, 2),
             'Utilization %': round(utilization, 2),
-            'Fixed Cost': round(float(facility.iloc[i]['Fixed Cost']), 2)
+            'Fixed Cost': round(fixed_cost[f], 2)
         })
     facility_table = pd.DataFrame(facility_rows)
 
     alloc_rows = []
-    for i, l in enumerate(locations):
-        row = {'Location': l, 'Demand': round(float(cost.iloc[i]['Demand']), 2)}
+    for l in locations:
+        row = {'Location': l, 'Demand': round(demand[l], 2)}
         served = 0.0
         for f in facilities:
             flow = float(possible_flow[(l, f)].value() or 0)
@@ -523,7 +434,7 @@ def facility_opt(
         row['Served'] = round(served, 2)
         alloc_rows.append(row)
 
-    totals_row = {'Location': 'TOTAL', 'Demand': round(sum(float(cost.iloc[i]['Demand']) for i in range(len(locations))), 2)}
+    totals_row = {'Location': 'TOTAL', 'Demand': round(sum(demand.values()), 2)}
     for f in facilities:
         totals_row[f] = round(sum(float(possible_flow[(l, f)].value() or 0) for l in locations), 2)
     totals_row['Served'] = round(sum(totals_row[f] for f in facilities), 2)

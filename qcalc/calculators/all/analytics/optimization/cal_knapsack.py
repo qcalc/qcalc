@@ -3,10 +3,10 @@
 
 import pandas as pd
 import pulp
-from qcore import as_qtable, qtable
+from qcore import qtable, QTable
 from qcore import validate_schema_if_needed
 
-from calc import field_show_zero, table_items
+from calc import ITEMS_SCHEMA, field_show_zero, table_items
 from calc import safe_objective_value, solver, slack_table
 
 
@@ -17,15 +17,11 @@ def optima_knapsack(
     show_zero,
 ):
     validate_schema_if_needed('optima_knapsack')
-    items = as_qtable(items)
-
-    item_list = items['Item'].astype(str).tolist()
-    value = dict(zip(items['Item'].astype(str), pd.to_numeric(items['Value'])))
-    weight = dict(zip(items['Item'].astype(str), pd.to_numeric(items['Weight'])))
-    max_qty = (
-        dict(zip(items['Item'].astype(str), pd.to_numeric(items['Max Qty'])))
-        if 'Max Qty' in items.columns else {item: 1 for item in item_list}
-    )
+    items = QTable(items, name='items', schema=ITEMS_SCHEMA)
+    item_list = items.assert_unique('Item')
+    value = items.to_map('Item', 'Value')
+    weight = items.to_map('Item', 'Weight')
+    max_qty = items.to_map('Item', 'Max Qty') if 'Max Qty' in items.columns else {item: 1 for item in item_list}
     capacity = float(capacity_limit)
 
     prob = pulp.LpProblem('optima_knapsack', pulp.LpMaximize)
@@ -100,8 +96,3 @@ def optima_knapsack__info():
         # 'out1': ['Summary', 'Decision Table'],
         'tags': 'optimization, knapsack, integer programming',
     }
-
-
-
-
-

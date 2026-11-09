@@ -5,16 +5,26 @@ import pandas as pd
 import pulp
 
 from calc import QResults
-from qcore import as_qtable, qhtml, qtable, QTable
+from qcore import qhtml, qtable, QTable
 from qcore import validate_schema_if_needed
 from qcore import to_bool
 
 from calc import (
+    SOP_CAPACITY_SCHEMA,
+    SOP_DEMAND_SCHEMA,
+    SOP_MATERIAL_REQUIREMENTS_SCHEMA,
+    SOP_OVERTIME_SCHEMA,
+    SOP_PREVIOUS_PLAN_SCHEMA,
+    SOP_PRODUCT_MASTER_SCHEMA,
+    SOP_SCENARIOS_SCHEMA,
+    SUPPLIER_ITEM_COST_SCHEMA,
+    SUPPLIER_MASTER_SCHEMA,
     field_show_zero,
     optimization_status_description,
     safe_objective_value,
     slack_table,
     solver,
+    supplier_attribute,
     table_sop_capacity,
     table_sop_demand,
     table_sop_material_requirements,
@@ -39,61 +49,51 @@ def _product_sort_key(value):
     return str(value).strip()
 
 
-def _df_to_qtable(df, name):
-    return QTable(df, name=name)
+# plan field -> table column it comes from (per product)
+_PRODUCT_FIELDS = {
+    'opening_inventory': 'Opening Inventory',
+    'safety_stock': 'Safety Stock',
+    'production_cost': 'Production Cost',
+    'holding_cost': 'Holding Cost',
+    'max_production': 'Max Production',
+    'backlog_penalty': 'Backlog Penalty',
+}
+# plan field -> scenario column holding its multiplier
+_SCENARIO_SCALES = {
+    'demand': 'Demand Multiplier',
+    'capacity': 'Capacity Multiplier',
+    'opening_inventory': 'Opening Inventory Multiplier',
+    'safety_stock': 'Safety Stock Multiplier',
+    'production_cost': 'Production Cost Multiplier',
+    'holding_cost': 'Holding Cost Multiplier',
+    'backlog_penalty': 'Backlog Penalty Multiplier',
+    'setup_cost': 'Setup Cost Multiplier',
+}
 
 
-def _extract_previous_plan(previous_plan_df: pd.DataFrame | None, products, periods):
-    if previous_plan_df is None or previous_plan_df.empty:
+def _rounded(value):
+    return None if value is None else round(float(value), 6)
+
+
+def _extract_previous_plan(sop_previous_plan, products, periods):
+    previous = QTable.optional(sop_previous_plan, name='sop_previous_plan', schema=SOP_PREVIOUS_PLAN_SCHEMA)
+    if previous is None:
         return {}, False
 
-    previous_plan_df = previous_plan_df.copy()
-    previous_plan_df['Product'] = previous_plan_df['Product'].astype(str).str.strip()
-    previous_plan_df['Period'] = previous_plan_df['Period'].astype(str).str.strip()
-    previous_plan_df['Previous Production'] = pd.to_numeric(previous_plan_df['Previous Production'])
-
-    previous_qt = _df_to_qtable(previous_plan_df, 'sop_previous_plan')
-    previous_qt.assert_unique_pairs('Period', 'Product')
-    previous_plan_df.columns = previous_qt.columns
-
-    lookup = {
-        (str(r['Product']), str(r['Period'])): float(r['Previous Production'])
-        for _, r in previous_plan_df.iterrows()
-    }
-    expected = {(product, period) for product in products for period in periods}
-    missing_pairs = expected - set(lookup)
-    for product, period in missing_pairs:
-        lookup[(product, period)] = 0.0
+    previous.assert_unique_pairs('Period', 'Product')
+    lookup = previous.to_map(['Product', 'Period'], 'Previous Production')
+    for product in products:
+        for period in periods:
+            lookup.setdefault((product, period), 0.0)
     return lookup, True
 
 
-def _apply_scenario_multipliers(product_df, demand_df, capacity_df, scenario_row):
-    scen_product_df = product_df.copy()
-    scen_demand_df = demand_df.copy()
-    scen_capacity_df = capacity_df.copy()
-
-    demand_multiplier = float(scenario_row.get('Demand Multiplier', 1.0) or 1.0)
-    capacity_multiplier = float(scenario_row.get('Capacity Multiplier', 1.0) or 1.0)
-    production_cost_multiplier = float(scenario_row.get('Production Cost Multiplier', 1.0) or 1.0)
-    holding_cost_multiplier = float(scenario_row.get('Holding Cost Multiplier', 1.0) or 1.0)
-    backlog_penalty_multiplier = float(scenario_row.get('Backlog Penalty Multiplier', 1.0) or 1.0)
-    setup_cost_multiplier = float(scenario_row.get('Setup Cost Multiplier', 1.0) or 1.0)
-    opening_inventory_multiplier = float(scenario_row.get('Opening Inventory Multiplier', 1.0) or 1.0)
-    safety_stock_multiplier = float(scenario_row.get('Safety Stock Multiplier', 1.0) or 1.0)
-
-    scen_demand_df['Demand'] = scen_demand_df['Demand'].astype(float) * demand_multiplier
-    scen_capacity_df['Capacity'] = scen_capacity_df['Capacity'].astype(float) * capacity_multiplier
-
-    scen_product_df['Opening Inventory'] = scen_product_df['Opening Inventory'].astype(
-        float) * opening_inventory_multiplier
-    scen_product_df['Safety Stock'] = scen_product_df['Safety Stock'].astype(float) * safety_stock_multiplier
-    scen_product_df['Production Cost'] = scen_product_df['Production Cost'].astype(float) * production_cost_multiplier
-    scen_product_df['Holding Cost'] = scen_product_df['Holding Cost'].astype(float) * holding_cost_multiplier
-    scen_product_df['Backlog Penalty'] = scen_product_df['Backlog Penalty'].astype(float) * backlog_penalty_multiplier
-    if 'Setup Cost' in scen_product_df.columns:
-        scen_product_df['Setup Cost'] = scen_product_df['Setup Cost'].astype(float) * setup_cost_multiplier
-
-    return scen_product_df, scen_demand_df, scen_capacity_df
+def _apply_scenario_multipliers(plan, scenario):
+    scaled = dict(plan)
+    for field, column in _SCENARIO_SCALES.items():
+        factor = float(scenario.get(column, 1.0))
+        scaled[field] = {key: value * factor for key, value in plan[field].items()}
+    return scaled
 
 
 def _chart_metric_for_objective(objective):
@@ -111,74 +111,14 @@ def _optional_table_schema(table_builder, field_name, **kwargs):
     return schema
 
 
-def _build_material_requirements(product_df, product_rows, sop_material_requirements):
-    bom_df = as_qtable(sop_material_requirements if sop_material_requirements is not None else pd.DataFrame())
-    if bom_df.empty:
-        return pd.DataFrame(), pd.DataFrame()
-
-    bom_df = bom_df.copy()
-    bom_df['Product'] = bom_df['Product'].astype(str).str.strip()
-    bom_df['Material'] = bom_df['Material'].astype(str).str.strip()
-    bom_df['Qty per Unit'] = pd.to_numeric(bom_df['Qty per Unit'])
-
-    bom_qt = _df_to_qtable(bom_df, 'sop_material_requirements')
-    product_qt = _df_to_qtable(product_df, 'sop_product_master')
-    bom_qt.assert_foreign_key(product_qt, 'Product', 'Product')
-    bom_qt.assert_unique_pairs('Product', 'Material')
-    bom_df.columns = bom_qt.columns
-    product_df.columns = product_qt.columns
-
-    product_totals = {}
-    for row in product_rows:
-        product_name = str(row.get('Product', '')).strip()
-        if product_name:
-            product_totals[product_name] = float(row.get('Total Production', 0.0) or 0.0)
-
-    known_products = set(str(product).strip() for product in product_df['Product'].tolist())
-    bom_products = set(bom_df['Product'].tolist())
-    missing_products = sorted(known_products - bom_products)
-    if missing_products:
-        raise Exception(
-            'sop_material_requirements must include at least one row for every product when procurement is enabled. Missing: '
-            + ', '.join(missing_products)
-        )
-
-    detail_rows = []
-    demand_map = {}
-    for _, row in bom_df.iterrows():
-        product = str(row['Product'])
-        material = str(row['Material'])
-        qty_per_unit = float(row['Qty per Unit'])
-        if qty_per_unit < 0:
-            raise Exception(f'Qty per Unit must be non-negative for Product={product}, Material={material}')
-        produced_qty = float(product_totals.get(product, 0.0))
-        required_qty = produced_qty * qty_per_unit
-        detail_rows.append({
-            'Product': product,
-            'Material': material,
-            'Total Production': round(produced_qty, 6),
-            'Qty per Unit': round(qty_per_unit, 6),
-            'Required Qty': round(required_qty, 6),
-        })
-        demand_map[material] = demand_map.get(material, 0.0) + required_qty
-
-    material_demand_df = pd.DataFrame([
-        {'Item': material, 'Demand': round(demand, 6)}
-        for material, demand in sorted(demand_map.items())
-        if demand > 0
-    ])
-
-    return pd.DataFrame(detail_rows), material_demand_df
-
-
 def _attach_procurement_model(
     prob,
     production,
     local_products,
     local_periods,
-    bom_df,
-    supplier_master_df,
-    supplier_item_cost_df,
+    bom,
+    supplier_master,
+    supplier_item_cost,
     qty_cat,
     max_suppliers,
     material_qty_type,
@@ -186,72 +126,30 @@ def _attach_procurement_model(
     min_avg_quality,
     max_avg_risk,
 ):
-    bom_df = as_qtable(bom_df if bom_df is not None else pd.DataFrame())
-    supplier_master_df = as_qtable(supplier_master_df if supplier_master_df is not None else pd.DataFrame())
-    supplier_item_cost_df = as_qtable(supplier_item_cost_df if supplier_item_cost_df is not None else pd.DataFrame())
-
-    if bom_df.empty:
-        raise Exception('sop_material_requirements must contain at least one row when procurement is enabled')
-    if supplier_master_df.empty:
+    supplier_master = QTable.optional(supplier_master, name='supplier_master', schema=SUPPLIER_MASTER_SCHEMA)
+    supplier_items = QTable.optional(supplier_item_cost, name='supplier_item_cost', schema=SUPPLIER_ITEM_COST_SCHEMA)
+    if supplier_master is None:
         raise Exception('supplier_master must contain at least one row when procurement is enabled')
-    if supplier_item_cost_df.empty:
+    if supplier_items is None:
         raise Exception('supplier_item_cost must contain at least one row when procurement is enabled')
 
-    required_bom_cols = {'Product', 'Material', 'Qty per Unit'}
-    missing_bom_cols = required_bom_cols - set(bom_df.columns)
-    if missing_bom_cols:
-        raise Exception('sop_material_requirements is missing required columns: ' + ', '.join(sorted(missing_bom_cols)))
+    bom.assert_unique_pairs('Product', 'Material')
+    supplier_master.assert_unique('Supplier')
+    supplier_items.assert_foreign_key(supplier_master, 'Supplier', 'Supplier')
+    bom.assert_foreign_key(supplier_items, 'Material', 'Item')
 
-    required_supplier_cols = {'Supplier', 'Capacity', 'Fixed Cost'}
-    missing_supplier_cols = required_supplier_cols - set(supplier_master_df.columns)
-    if missing_supplier_cols:
-        raise Exception('supplier_master is missing required columns: ' + ', '.join(sorted(missing_supplier_cols)))
-
-    required_cost_cols = {'Supplier', 'Item', 'Unit Cost'}
-    missing_cost_cols = required_cost_cols - set(supplier_item_cost_df.columns)
-    if missing_cost_cols:
-        raise Exception('supplier_item_cost is missing required columns: ' + ', '.join(sorted(missing_cost_cols)))
-
-    bom_df = bom_df.copy()
-    supplier_master_df = supplier_master_df.copy()
-    supplier_item_cost_df = supplier_item_cost_df.copy()
-
-    bom_df['Product'] = bom_df['Product'].astype(str).str.strip()
-    bom_df['Material'] = bom_df['Material'].astype(str).str.strip()
-    bom_df['Qty per Unit'] = pd.to_numeric(bom_df['Qty per Unit'])
-    supplier_master_df['Supplier'] = supplier_master_df['Supplier'].astype(str).str.strip()
-    supplier_master_df['Capacity'] = pd.to_numeric(supplier_master_df['Capacity'])
-    supplier_master_df['Fixed Cost'] = pd.to_numeric(supplier_master_df['Fixed Cost'])
-    supplier_item_cost_df['Supplier'] = supplier_item_cost_df['Supplier'].astype(str).str.strip()
-    supplier_item_cost_df['Item'] = supplier_item_cost_df['Item'].astype(str).str.strip()
-    supplier_item_cost_df['Unit Cost'] = pd.to_numeric(supplier_item_cost_df['Unit Cost'])
-
-    bom_qt = _df_to_qtable(bom_df, 'sop_material_requirements')
-    supplier_master_qt = _df_to_qtable(supplier_master_df, 'supplier_master')
-    supplier_item_qt = _df_to_qtable(supplier_item_cost_df, 'supplier_item_cost')
-    bom_qt.assert_unique_pairs('Product', 'Material')
-    supplier_master_qt.assert_unique('Supplier')
-    supplier_item_qt.assert_foreign_key(supplier_master_qt, 'Supplier', 'Supplier')
-    bom_qt.assert_foreign_key(supplier_item_qt, 'Material', 'Item')
-    bom_df.columns = bom_qt.columns
-    supplier_master_df.columns = supplier_master_qt.columns
-    supplier_item_cost_df.columns = supplier_item_qt.columns
-
-    bom_map = {(str(r['Product']), str(r['Material'])): float(r['Qty per Unit']) for _, r in bom_df.iterrows()}
-    materials = sorted({material for _, material in bom_map.keys()}, key=_product_sort_key)
-    supplier_rows = supplier_master_df['Supplier'].astype(str).tolist()
-    supplier_capacity = dict(zip(supplier_master_df['Supplier'], supplier_master_df['Capacity']))
-    supplier_fixed_cost = dict(zip(supplier_master_df['Supplier'], supplier_master_df['Fixed Cost']))
-
-    pair_cost = {}
+    bom_map = bom.to_map(['Product', 'Material'], 'Qty per Unit')
+    materials = sorted({material for _, material in bom_map}, key=_product_sort_key)
+    supplier_rows = supplier_master.column('Supplier')
+    supplier_capacity = supplier_master.to_map('Supplier', 'Capacity')
+    supplier_fixed_cost = supplier_master.to_map('Supplier', 'Fixed Cost')
+    supplier_quality = supplier_master.to_map('Supplier', 'Quality') if 'Quality' in supplier_master.columns else None
+    supplier_risk = supplier_master.to_map('Supplier', 'Risk') if 'Risk' in supplier_master.columns else None
+    pair_cost = supplier_items.to_map(['Supplier', 'Item'], 'Unit Cost')
     pair_max_qty = {}
-    for _, row in supplier_item_cost_df.iterrows():
-        supplier = str(row['Supplier'])
-        material = str(row['Item'])
-        pair = (supplier, material)
-        pair_cost[pair] = float(row['Unit Cost'])
-        if 'Max Qty' in supplier_item_cost_df.columns and str(row.get('Max Qty', '')).strip() != '':
-            pair_max_qty[pair] = float(row['Max Qty'])
+    if 'Max Qty' in supplier_items.columns:
+        pair_max_qty = {(row['Supplier'], row['Item']): row['Max Qty']
+                        for row in supplier_items.select() if row['Max Qty'] is not None}
 
     purchase = pulp.LpVariable.dicts('Buy', list(pair_cost.keys()), lowBound=0, cat=qty_cat)
     supplier_use = pulp.LpVariable.dicts('UseSupplier', supplier_rows, lowBound=0, upBound=1, cat=pulp.LpBinary)
@@ -298,9 +196,7 @@ def _attach_procurement_model(
     total_material_requirement = pulp.lpSum(material_requirement_expr[material] for material in materials)
     min_avg_quality_val = None if min_avg_quality in (None, '') else float(min_avg_quality)
     if min_avg_quality_val is not None:
-        if 'Quality' not in supplier_master_df.columns:
-            raise Exception("supplier_master must include 'Quality' when procurement_min_avg_quality is used")
-        quality = dict(zip(supplier_master_df['Supplier'], pd.to_numeric(supplier_master_df['Quality'])))
+        quality = supplier_attribute(supplier_master, 'Quality', 'procurement_min_avg_quality')
         prob += (
             pulp.lpSum(
                 float(quality[supplier]) * pulp.lpSum(purchase[pair] for pair in pair_cost if pair[0] == supplier)
@@ -311,9 +207,7 @@ def _attach_procurement_model(
 
     max_avg_risk_val = None if max_avg_risk in (None, '') else float(max_avg_risk)
     if max_avg_risk_val is not None:
-        if 'Risk' not in supplier_master_df.columns:
-            raise Exception("supplier_master must include 'Risk' when procurement_max_avg_risk is used")
-        risk = dict(zip(supplier_master_df['Supplier'], pd.to_numeric(supplier_master_df['Risk'])))
+        risk = supplier_attribute(supplier_master, 'Risk', 'procurement_max_avg_risk')
         prob += (
             pulp.lpSum(
                 float(risk[supplier]) * pulp.lpSum(purchase[pair] for pair in pair_cost if pair[0] == supplier)
@@ -335,14 +229,13 @@ def _attach_procurement_model(
         'fixed_cost_expr': fixed_cost_expr,
         'material_requirement_expr': material_requirement_expr,
         'material_requirement_total_expr': total_material_requirement,
-        'bom_df': bom_df,
-        'supplier_master_df': supplier_master_df,
-        'supplier_item_cost_df': supplier_item_cost_df,
+        'supplier_quality': supplier_quality,
+        'supplier_risk': supplier_risk,
     }
 
 
-def _build_sop_output(base_result, use_stability, overtime_enabled, scenario_enabled, scenarios_enabled_df, product_df,
-                      demand_df, capacity_df, previous_lookup, objective, solve_plan):
+def _build_sop_output(base_result, use_stability, overtime_enabled, scenario_enabled, scenarios, plan,
+                      previous_lookup, objective, solve_plan):
     summary_row = dict(base_result['summary'])
     summary_row['Status Description'] = optimization_status_description(str(summary_row.get('Status', 'Unknown')))
     output = {
@@ -375,24 +268,17 @@ def _build_sop_output(base_result, use_stability, overtime_enabled, scenario_ena
 
     if scenario_enabled:
         scenario_rows = []
-        for _, row in scenarios_enabled_df.iterrows():
-            scenario_name = str(row['Scenario']).strip() or 'Scenario'
-            scen_product_df, scen_demand_df, scen_capacity_df = _apply_scenario_multipliers(product_df, demand_df,
-                                                                                            capacity_df, row)
+        for scenario in scenarios:
             scen_result = solve_plan(
-                scen_product_df,
-                scen_demand_df,
-                scen_capacity_df,
+                _apply_scenario_multipliers(plan, scenario),
                 previous_lookup_map=previous_lookup if use_stability else None,
                 build_details=False,
             )
             scen_summary = dict(scen_result['summary'])
-            scen_summary['Scenario'] = scenario_name
-            scen_summary['Demand Multiplier'] = float(row.get('Demand Multiplier', 1.0) or 1.0)
-            scen_summary['Capacity Multiplier'] = float(row.get('Capacity Multiplier', 1.0) or 1.0)
-            scen_summary['Production Cost Multiplier'] = float(row.get('Production Cost Multiplier', 1.0) or 1.0)
-            scen_summary['Holding Cost Multiplier'] = float(row.get('Holding Cost Multiplier', 1.0) or 1.0)
-            scen_summary['Backlog Penalty Multiplier'] = float(row.get('Backlog Penalty Multiplier', 1.0) or 1.0)
+            scen_summary['Scenario'] = scenario['Scenario']
+            for column in ('Demand Multiplier', 'Capacity Multiplier', 'Production Cost Multiplier',
+                           'Holding Cost Multiplier', 'Backlog Penalty Multiplier'):
+                scen_summary[column] = float(scenario[column])
             scenario_rows.append(scen_summary)
 
         scenario_df = pd.DataFrame(scenario_rows)
@@ -435,96 +321,38 @@ def _prepare_sop_inputs(
 ):
     validate_schema_if_needed('optima_sop')
 
-    product_df = as_qtable(sop_product_master)
-    demand_df = as_qtable(sop_demand)
-    capacity_df = as_qtable(sop_capacity)
-    overtime_df = as_qtable(sop_overtime if sop_overtime is not None else pd.DataFrame())
-    bom_df = as_qtable(sop_material_requirements if sop_material_requirements is not None else pd.DataFrame())
-    previous_plan_df = as_qtable(sop_previous_plan if sop_previous_plan is not None else pd.DataFrame())
-    scenarios_df = as_qtable(sop_scenarios if sop_scenarios is not None else pd.DataFrame())
-
-    if product_df.empty:
+    product = QTable.optional(sop_product_master, name='sop_product_master', schema=SOP_PRODUCT_MASTER_SCHEMA)
+    demand = QTable.optional(sop_demand, name='sop_demand', schema=SOP_DEMAND_SCHEMA)
+    capacity = QTable.optional(sop_capacity, name='sop_capacity', schema=SOP_CAPACITY_SCHEMA)
+    if product is None:
         raise Exception('sop_product_master must contain at least one row')
-    if demand_df.empty:
+    if demand is None:
         raise Exception('sop_demand must contain at least one row')
-    if capacity_df.empty:
+    if capacity is None:
         raise Exception('sop_capacity must contain at least one row')
-    if to_bool(overtime_enabled) and overtime_df.empty:
-        raise Exception('sop_overtime must contain at least one row when overtime is enabled')
-    if to_bool(bom_enabled) and bom_df.empty:
-        raise Exception('sop_material_requirements must contain at least one row when BOM is enabled')
 
-    product_df = product_df.copy()
-    demand_df = demand_df.copy()
-    capacity_df = capacity_df.copy()
+    overtime = None
+    if to_bool(overtime_enabled):
+        overtime = QTable.optional(sop_overtime, name='sop_overtime', schema=SOP_OVERTIME_SCHEMA)
+        if overtime is None:
+            raise Exception('sop_overtime must contain at least one row when overtime is enabled')
+        overtime.assert_unique('Period')
 
-    if to_bool(overtime_enabled) and not overtime_df.empty:
-        overtime_df = overtime_df.copy()
-        overtime_df['Period'] = overtime_df['Period'].astype(str).str.strip()
-        overtime_df['Overtime Capacity'] = pd.to_numeric(overtime_df['Overtime Capacity'])
-        overtime_df['Overtime Cost'] = pd.to_numeric(overtime_df['Overtime Cost'])
-        overtime_qt = _df_to_qtable(overtime_df, 'sop_overtime')
-        overtime_qt.assert_unique('Period')
-        overtime_df.columns = overtime_qt.columns
+    bom = None
+    if to_bool(bom_enabled):
+        bom = QTable.optional(sop_material_requirements, name='sop_material_requirements', schema=SOP_MATERIAL_REQUIREMENTS_SCHEMA)
+        if bom is None:
+            raise Exception('sop_material_requirements must contain at least one row when BOM is enabled')
 
-    product_df['Product'] = product_df['Product'].astype(str).str.strip()
-    demand_df['Product'] = demand_df['Product'].astype(str).str.strip()
-    demand_df['Period'] = demand_df['Period'].astype(str).str.strip()
-    capacity_df['Period'] = capacity_df['Period'].astype(str).str.strip()
+    products = product.assert_unique('Product')
+    demand.assert_foreign_key(product, 'Product', 'Product')
+    capacity.assert_unique('Period')
 
-    product_qt = _df_to_qtable(product_df, 'sop_product_master')
-    products = product_qt.assert_unique('Product')
-    product_df.columns = product_qt.columns
-    demand_df['Demand'] = pd.to_numeric(demand_df['Demand'])
-    capacity_df['Capacity'] = pd.to_numeric(capacity_df['Capacity'])
-
-    demand_qt = _df_to_qtable(demand_df, 'sop_demand')
-    product_qt = _df_to_qtable(product_df, 'sop_product_master')
-    capacity_qt = _df_to_qtable(capacity_df, 'sop_capacity')
-    demand_qt.assert_foreign_key(product_qt, 'Product', 'Product')
-    capacity_qt.assert_unique('Period')
-    demand_df.columns = demand_qt.columns
-    product_df.columns = product_qt.columns
-    capacity_df.columns = capacity_qt.columns
-
-    opening_inventory = dict(zip(product_df['Product'], pd.to_numeric(product_df['Opening Inventory'])))
-    safety_stock = dict(zip(product_df['Product'], pd.to_numeric(product_df['Safety Stock'])))
-    production_cost = dict(zip(product_df['Product'], pd.to_numeric(product_df['Production Cost'])))
-    holding_cost = dict(zip(product_df['Product'], pd.to_numeric(product_df['Holding Cost'])))
-    max_production = dict(zip(product_df['Product'], pd.to_numeric(product_df['Max Production'])))
-    backlog_penalty = dict(zip(product_df['Product'], pd.to_numeric(product_df['Backlog Penalty'])))
-
-    setup_cost = {}
-    has_setup = 'Setup Cost' in product_df.columns
-    if has_setup:
-        product_df['Setup Cost'] = pd.to_numeric(product_df['Setup Cost'])
-        setup_cost = dict(zip(product_df['Product'], product_df['Setup Cost']))
-
-    for product in products:
-        if float(opening_inventory[product]) < 0:
-            raise Exception(f'Opening Inventory must be non-negative for product: {product}')
-        if float(safety_stock[product]) < 0:
-            raise Exception(f'Safety Stock must be non-negative for product: {product}')
-        if float(production_cost[product]) < 0:
-            raise Exception(f'Production Cost must be non-negative for product: {product}')
-        if float(holding_cost[product]) < 0:
-            raise Exception(f'Holding Cost must be non-negative for product: {product}')
-        if float(max_production[product]) < 0:
-            raise Exception(f'Max Production must be non-negative for product: {product}')
-        if float(backlog_penalty[product]) < 0:
-            raise Exception(f'Backlog Penalty must be non-negative for product: {product}')
-        if has_setup and float(setup_cost[product]) < 0:
-            raise Exception(f'Setup Cost must be non-negative for product: {product}')
-
-    demand_df = demand_df.groupby(['Period', 'Product'], as_index=False)['Demand'].sum()
-    periods = sorted(set(demand_df['Period'].tolist()) | set(capacity_df['Period'].tolist()), key=_period_sort_key)
-    if not periods:
-        raise Exception('No periods found in sop_demand or sop_capacity')
-
-    demand = {(str(r['Period']), str(r['Product'])): float(r['Demand']) for _, r in demand_df.iterrows()}
-    capacity = {str(r['Period']): float(r['Capacity']) for _, r in capacity_df.iterrows()}
-
-    missing_capacity_periods = [period for period in periods if period not in capacity]
+    demand_by_period_product = demand.sum_by(['Period', 'Product'], 'Demand')
+    capacity_by_period = capacity.to_map('Period', 'Capacity')
+    periods = sorted({period for period, _ in demand_by_period_product} | set(capacity_by_period),
+                     key=_period_sort_key)
+    missing_capacity_periods = [period for period in periods if period not in capacity_by_period]
     if missing_capacity_periods:
         raise Exception(
             'sop_capacity must contain Capacity for every planning period. Missing: '
@@ -533,16 +361,24 @@ def _prepare_sop_inputs(
 
     overtime_capacity = {}
     overtime_cost = {}
-    if to_bool(overtime_enabled) and not overtime_df.empty:
-        overtime_periods = set(overtime_df['Period'].tolist())
-        missing_overtime_periods = [period for period in periods if period not in overtime_periods]
+    if overtime is not None:
+        overtime_capacity = overtime.to_map('Period', 'Overtime Capacity')
+        overtime_cost = overtime.to_map('Period', 'Overtime Cost')
+        missing_overtime_periods = [period for period in periods if period not in overtime_capacity]
         if missing_overtime_periods:
             raise Exception(
                 'sop_overtime must contain Overtime Capacity and Overtime Cost for every planning period. Missing: '
                 + ', '.join(missing_overtime_periods)
             )
-        overtime_capacity = {str(r['Period']): float(r['Overtime Capacity']) for _, r in overtime_df.iterrows()}
-        overtime_cost = {str(r['Period']): float(r['Overtime Cost']) for _, r in overtime_df.iterrows()}
+
+    plan = {
+        'products': products,
+        'periods': periods,
+        'demand': demand_by_period_product,
+        'capacity': capacity_by_period,
+        'setup_cost': product.to_map('Product', 'Setup Cost') if 'Setup Cost' in product.columns else {},
+        **{field: product.to_map('Product', column) for field, column in _PRODUCT_FIELDS.items()},
+    }
 
     objective = str(objective).strip().lower()
     qty_cat = pulp.LpInteger if str(qty_type).lower() == 'integer' else pulp.LpContinuous
@@ -574,44 +410,29 @@ def _prepare_sop_inputs(
     if backlog_policy not in ('allow', 'disallow', 'cap'):
         raise Exception("backlog_policy must be one of 'allow', 'disallow', or 'cap'")
 
-    scenarios_enabled_df = scenarios_df.copy()
+    scenarios = []
     if scenario_enabled:
-        if scenarios_enabled_df.empty:
+        scenario_table = QTable.optional(sop_scenarios, name='sop_scenarios', schema=SOP_SCENARIOS_SCHEMA)
+        if scenario_table is None:
             raise Exception('sop_scenarios must contain at least one row when scenario analysis is enabled')
-        required_scenario_cols = [
-            'Scenario',
-            'Demand Multiplier',
-            'Capacity Multiplier',
-            'Production Cost Multiplier',
-            'Holding Cost Multiplier',
-            'Backlog Penalty Multiplier',
-        ]
-        for col in required_scenario_cols:
-            if col not in scenarios_enabled_df.columns:
-                raise Exception(f'Missing required column in sop_scenarios: {col}')
-        scenarios_enabled_df['Scenario'] = scenarios_enabled_df['Scenario'].astype(str).str.strip()
-        scenarios_qt = _df_to_qtable(scenarios_enabled_df, 'sop_scenarios')
-        scenarios_qt.assert_unique('Scenario')
-        scenarios_enabled_df.columns = scenarios_qt.columns
+        scenario_table.assert_unique('Scenario')
+        scenarios = scenario_table.select()
 
     use_stability = stability_enabled and (stability_penalty > 0 or max_change_pct > 0)
     previous_lookup = {}
     if use_stability:
-        previous_lookup, has_previous_plan = _extract_previous_plan(previous_plan_df, products, periods)
+        previous_lookup, has_previous_plan = _extract_previous_plan(sop_previous_plan, products, periods)
         if not has_previous_plan:
             raise Exception('sop_previous_plan is required when previous-plan stability is enabled')
 
     return {
-        'product_df': product_df,
-        'demand_df': demand_df,
-        'capacity_df': capacity_df,
-        'overtime_df': overtime_df,
-        'bom_enabled': to_bool(bom_enabled),
-        'bom_df': bom_df,
+        'plan': plan,
+        'overtime_allowed': overtime is not None,
+        'bom_enabled': bom is not None,
+        'bom': bom,
         'overtime_capacity': overtime_capacity,
         'overtime_cost': overtime_cost,
-        'previous_plan_df': previous_plan_df,
-        'scenarios_enabled_df': scenarios_enabled_df,
+        'scenarios': scenarios,
         'objective': objective,
         'qty_cat': qty_cat,
         'backlog_policy': backlog_policy,
@@ -678,16 +499,13 @@ def optima_sop(
         sop_scenarios,
     )
 
-    product_df = prepared['product_df']
-    demand_df = prepared['demand_df']
-    capacity_df = prepared['capacity_df']
-    overtime_df = prepared['overtime_df']
+    plan = prepared['plan']
+    bom = prepared['bom']
     bom_enabled = prepared['bom_enabled']
-    bom_df = prepared['bom_df']
+    overtime_allowed = prepared['overtime_allowed']
     overtime_capacity = prepared['overtime_capacity']
     overtime_cost = prepared['overtime_cost']
-    previous_plan_df = prepared['previous_plan_df']
-    scenarios_enabled_df = prepared['scenarios_enabled_df']
+    scenarios = prepared['scenarios']
     objective = prepared['objective']
     qty_cat = prepared['qty_cat']
     backlog_policy = prepared['backlog_policy']
@@ -699,55 +517,21 @@ def optima_sop(
     scenario_enabled = prepared['scenario_enabled']
     use_stability = prepared['use_stability']
     previous_lookup = prepared['previous_lookup']
-    overtime_allowed = to_bool(overtime_enabled) and not overtime_df.empty
     procurement_allowed = to_bool(procurement_enabled)
 
-    def solve_plan(product_frame, demand_frame, capacity_frame, previous_lookup_map=None, build_details=True):
-        local_product_df = product_frame.copy()
-        local_demand_df = demand_frame.copy()
-        local_capacity_df = capacity_frame.copy()
-
-        local_product_df['Product'] = local_product_df['Product'].astype(str).str.strip()
-        local_demand_df['Product'] = local_demand_df['Product'].astype(str).str.strip()
-        local_demand_df['Period'] = local_demand_df['Period'].astype(str).str.strip()
-        local_capacity_df['Period'] = local_capacity_df['Period'].astype(str).str.strip()
-        local_demand_df['Demand'] = pd.to_numeric(local_demand_df['Demand'])
-        local_capacity_df['Capacity'] = pd.to_numeric(local_capacity_df['Capacity'])
-
-        local_product_qt = _df_to_qtable(local_product_df, 'sop_product_master')
-        local_products = local_product_qt.assert_unique('Product')
-        local_product_df.columns = local_product_qt.columns
-        local_demand_df = local_demand_df.groupby(['Period', 'Product'], as_index=False)['Demand'].sum()
-        local_periods = sorted(
-            set(local_demand_df['Period'].tolist()) | set(local_capacity_df['Period'].tolist()),
-            key=_period_sort_key,
-        )
-        if not local_periods:
-            raise Exception('No periods found in sop_demand or sop_capacity')
-
-        local_demand = {
-            (str(r['Period']), str(r['Product'])): float(r['Demand'])
-            for _, r in local_demand_df.iterrows()
-        }
-        local_capacity = {
-            str(r['Period']): float(r['Capacity'])
-            for _, r in local_capacity_df.iterrows()
-        }
-
-        local_opening_inventory = dict(
-            zip(local_product_df['Product'], pd.to_numeric(local_product_df['Opening Inventory'])))
-        local_safety_stock = dict(zip(local_product_df['Product'], pd.to_numeric(local_product_df['Safety Stock'])))
-        local_production_cost = dict(
-            zip(local_product_df['Product'], pd.to_numeric(local_product_df['Production Cost'])))
-        local_holding_cost = dict(zip(local_product_df['Product'], pd.to_numeric(local_product_df['Holding Cost'])))
-        local_max_production = dict(zip(local_product_df['Product'], pd.to_numeric(local_product_df['Max Production'])))
-        local_backlog_penalty = dict(
-            zip(local_product_df['Product'], pd.to_numeric(local_product_df['Backlog Penalty'])))
-        local_setup_cost = {}
-        local_has_setup = 'Setup Cost' in local_product_df.columns
-        if local_has_setup:
-            local_product_df['Setup Cost'] = pd.to_numeric(local_product_df['Setup Cost'])
-            local_setup_cost = dict(zip(local_product_df['Product'], local_product_df['Setup Cost']))
+    def solve_plan(plan, previous_lookup_map=None, build_details=True):
+        local_products = plan['products']
+        local_periods = plan['periods']
+        local_demand = plan['demand']
+        local_capacity = plan['capacity']
+        local_opening_inventory = plan['opening_inventory']
+        local_safety_stock = plan['safety_stock']
+        local_production_cost = plan['production_cost']
+        local_holding_cost = plan['holding_cost']
+        local_max_production = plan['max_production']
+        local_backlog_penalty = plan['backlog_penalty']
+        local_setup_cost = plan['setup_cost']
+        local_has_setup = bool(local_setup_cost)
 
         demand_total = sum(local_demand.values())
         backlog_allowed = backlog_policy != 'disallow'
@@ -799,7 +583,7 @@ def optima_sop(
                 production,
                 local_products,
                 local_periods,
-                bom_df,
+                bom,
                 supplier_master,
                 supplier_item_cost,
                 qty_cat,
@@ -1106,10 +890,10 @@ def optima_sop(
                 product: sum(float(production[(product, period)].value() or 0.0) for period in local_periods)
                 for product in local_products
             }
-            for _, row in bom_df.iterrows():
-                product = str(row['Product']).strip()
-                material = str(row['Material']).strip()
-                qty_per_unit = float(row['Qty per Unit'])
+            for row in bom.select():
+                product = row['Product']
+                material = row['Material']
+                qty_per_unit = row['Qty per Unit']
                 required_qty = float(product_totals.get(product, 0.0)) * qty_per_unit
                 material_requirement_rows.append({
                     'Product': product,
@@ -1142,14 +926,10 @@ def optima_sop(
                             procurement_ctx['supplier_capacity'][supplier]) else 0.0, 4),
                     'Fixed Cost': round(float(procurement_ctx['supplier_fixed_cost'][supplier]), 6),
                 }
-                if 'Risk' in procurement_ctx['supplier_master_df'].columns:
-                    supplier_row['Risk'] = round(float(procurement_ctx['supplier_master_df'].loc[
-                                                           procurement_ctx['supplier_master_df'][
-                                                               'Supplier'] == supplier, 'Risk'].iloc[0]), 6)
-                if 'Quality' in procurement_ctx['supplier_master_df'].columns:
-                    supplier_row['Quality'] = round(float(procurement_ctx['supplier_master_df'].loc[
-                                                              procurement_ctx['supplier_master_df'][
-                                                                  'Supplier'] == supplier, 'Quality'].iloc[0]), 6)
+                if procurement_ctx['supplier_risk'] is not None:
+                    supplier_row['Risk'] = _rounded(procurement_ctx['supplier_risk'][supplier])
+                if procurement_ctx['supplier_quality'] is not None:
+                    supplier_row['Quality'] = _rounded(procurement_ctx['supplier_quality'][supplier])
                 procurement_supplier_rows.append(supplier_row)
 
                 for material in procurement_ctx['materials']:
@@ -1268,9 +1048,7 @@ def optima_sop(
         }
 
     base_result = solve_plan(
-        product_df,
-        demand_df,
-        capacity_df,
+        plan,
         previous_lookup_map=previous_lookup if use_stability else None,
         build_details=True,
     )
@@ -1280,10 +1058,8 @@ def optima_sop(
         use_stability,
         overtime_allowed,
         scenario_enabled,
-        scenarios_enabled_df,
-        product_df,
-        demand_df,
-        capacity_df,
+        scenarios,
+        plan,
         previous_lookup,
         objective,
         solve_plan,

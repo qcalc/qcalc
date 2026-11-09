@@ -35,6 +35,16 @@ def is_blank(value) -> bool:
     return text in {'', 'none', 'null', 'nan', 'na'}
 
 
+def is_empty_cell(value) -> bool:
+    """Return ``True`` for an empty table cell: None, NaN or an empty/whitespace-only string.
+
+    Unlike ``is_blank`` this does not treat the text 'NA', 'null' or 'none' as empty, so a
+    code such as a location called 'NA' is kept.
+    """
+    return (value is None or (isinstance(value, float) and value != value)
+            or (isinstance(value, str) and not value.strip()))
+
+
 def to_float(value, field_name="value", required=True) -> None | float:
     """Parse a numeric string input to float.
 

@@ -46,6 +46,8 @@ dangerous_attributes = {
     '__divmod__', '__pow__', '__lshift__', '__rshift__', '__and__', '__xor__', '__or__',
     '__radd__', '__rsub__', '__rmul__', '__rmatmul__', '__rtruediv__', '__rfloordiv__',
     '__rmod__', '__rdivmod__', '__rpow__', '__rlshift__', '__rrshift__', '__rand__', '__rxor__', '__ror__',
+    # public methods that return a raw pandas object
+    'to_df',
 }
 
 allowed_dunder_attributes = {'__annotations__', '__name__'}

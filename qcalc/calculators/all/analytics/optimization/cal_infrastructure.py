@@ -3,10 +3,14 @@
 
 import pandas as pd
 import pulp
-from qcore import as_qtable, qtable
+from qcore import qtable, QTable
 from qcore import validate_schema_if_needed
 
 from calc import (
+    CAPACITY_OBJECT_SCHEMA,
+    PLACEMENT_OBJECT_SCHEMA,
+    REDUNDANCY_OBJECT_SCHEMA,
+    ROUTING_OBJECT_SCHEMA,
     field_show_zero,
     table_capacity_object,
     table_placement_object,
@@ -23,12 +27,12 @@ def optima_capacity(
     show_zero,
 ):
     validate_schema_if_needed('optima_capacity')
-    capacity_object = as_qtable(capacity_object)
+    capacity_object = QTable(capacity_object, name='capacity_object', schema=CAPACITY_OBJECT_SCHEMA)
 
-    resources = capacity_object['Resource'].astype(str).tolist()
-    available = dict(zip(capacity_object['Resource'].astype(str), pd.to_numeric(capacity_object['Available'])))
-    required = dict(zip(capacity_object['Resource'].astype(str), pd.to_numeric(capacity_object['Required'])))
-    unit_cost = dict(zip(capacity_object['Resource'].astype(str), pd.to_numeric(capacity_object['Unit Cost'])))
+    resources = capacity_object.assert_unique('Resource')
+    available = capacity_object.to_map('Resource', 'Available')
+    required = capacity_object.to_map('Resource', 'Required')
+    unit_cost = capacity_object.to_map('Resource', 'Unit Cost')
 
     var_type = pulp.LpInteger if str(capacity_qty_type).lower() == 'integer' else pulp.LpContinuous
     penalty = float(shortage_penalty)
@@ -94,11 +98,11 @@ def optima_routing(
     show_zero,
 ):
     validate_schema_if_needed('optima_routing')
-    routing_object = as_qtable(routing_object)
+    routing_object = QTable(routing_object, name='routing_object', schema=ROUTING_OBJECT_SCHEMA)
 
-    edges = [(str(r['From']), str(r['To'])) for _, r in routing_object.iterrows()]
-    cost = {(str(r['From']), str(r['To'])): float(r['Cost']) for _, r in routing_object.iterrows()}
-    capacity = {(str(r['From']), str(r['To'])): float(r['Capacity']) for _, r in routing_object.iterrows()}
+    cost = routing_object.to_map(['From', 'To'], 'Cost')
+    capacity = routing_object.to_map(['From', 'To'], 'Capacity')
+    edges = list(cost)
 
     nodes = sorted({n for edge in edges for n in edge})
     source = str(source_node)
@@ -176,17 +180,12 @@ def optima_placement(
     show_zero,
 ):
     validate_schema_if_needed('optima_placement')
-    placement_object = as_qtable(placement_object)
+    placement_object = QTable(placement_object, name='placement_object', schema=PLACEMENT_OBJECT_SCHEMA)
 
-    entities = placement_object['Entity'].astype(str).unique().tolist()
-    locations = placement_object['Location'].astype(str).unique().tolist()
-
-    pair_score = {}
-    pair_cost = {}
-    for _, r in placement_object.iterrows():
-        pair = (str(r['Entity']), str(r['Location']))
-        pair_score[pair] = float(r['Score'])
-        pair_cost[pair] = float(r['Cost'])
+    pair_score = placement_object.to_map(['Entity', 'Location'], 'Score')
+    pair_cost = placement_object.to_map(['Entity', 'Location'], 'Cost')
+    entities = list(dict.fromkeys(entity for entity, _ in pair_score))
+    locations = list(dict.fromkeys(location for _, location in pair_score))
 
     pairs = list(pair_score.keys())
     if not pairs:
@@ -268,17 +267,18 @@ def optima_redundancy(
     show_zero,
 ):
     validate_schema_if_needed('optima_redundancy')
-    redundancy_object = as_qtable(redundancy_object)
+    redundancy_object = QTable(redundancy_object, name='redundancy_object', schema=REDUNDANCY_OBJECT_SCHEMA)
 
-    rows = []
-    for idx, r in redundancy_object.iterrows():
-        rows.append({
-            'id': int(idx),
-            'Primary': str(r['Primary']),
-            'Backup': str(r['Backup']),
-            'Coverage': float(r['Coverage %']),
-            'ExtraCost': float(r['Extra Cost']),
-        })
+    rows = [
+        {
+            'id': idx,
+            'Primary': r['Primary'],
+            'Backup': r['Backup'],
+            'Coverage': r['Coverage %'],
+            'ExtraCost': r['Extra Cost'],
+        }
+        for idx, r in enumerate(redundancy_object.select())
+    ]
 
     if not rows:
         raise Exception('redundancy_object must contain at least one primary-backup row')
@@ -448,11 +448,3 @@ def optima_redundancy__info():
         # 'out1': ['Summary', 'Decision Table'],
         'tags': 'optimization, redundancy, resilience, mixed integer programming',
     }
-
-
-
-
-
-
-
-

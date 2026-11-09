@@ -65,7 +65,7 @@ def test_qtable_accepts_record_dictionaries():
     )
 
     assert table.columns == ["id", "name"]
-    assert table.records(skip_blank=False) == [
+    assert table.select(skip_blank=False) == [
         {"id": 1, "name": "A"},
         {"id": 2, "name": "B"},
     ]
@@ -79,12 +79,12 @@ def test_qtable_rejects_duplicate_columns_and_ragged_rows():
         QTable({"columns": ["id", "name"], "data": [[1]]})
 
 
-def test_qtable_filter_find_and_column():
+def test_qtable_select_find_and_column():
     table = make_products()
 
     assert table.column("name") == ["Laptop", "Monitor"]
     assert table.find(name="Monitor")["id"] == 2
-    assert table.filter(price=1200) == [
+    assert table.select(price=1200) == [
         {"id": 1, "name": "Laptop", "price": 1200}
     ]
 
@@ -97,7 +97,7 @@ def test_unknown_columns_are_reported():
     with pytest.raises(KeyError, match="Unknown column"):
         table.find(missing=1)
     with pytest.raises(KeyError, match="Unknown column"):
-        table.filter(missing=1)
+        table.select(missing=1)
 
 
 def test_qtable_rejects_dict_without_columns_and_data():
@@ -109,29 +109,33 @@ def test_qtable_rejects_dict_without_columns_and_data():
 
 
 def test_schema_accepts_json_type_names():
-    table = QTable({"columns": ["n"], "data": []}, schema={"n": {"type": "integer"}})
+    table = QTable({"columns": ["n"], "data": [["5"]]}, schema={"n": {"type": "integer"}})
+    table.validate(raise_exception=True)
 
-    assert table.add({"n": "5"}) == {"n": 5}
+    assert table.select() == [{"n": 5}]
     with pytest.raises(ValueError, match="unknown schema type"):
         QTable({"columns": ["n"], "data": []}, schema={"n": {"type": "weird"}})
 
 
 def test_schema_required_rejects_whitespace_only_value():
-    table = QTable({"columns": ["a"], "data": []},
+    table = QTable({"columns": ["a"], "data": [["   "]]},
                    schema={"a": {"type": str, "required": True}})
 
     with pytest.raises(ValueError, match="required"):
-        table.add({"a": "   "})
+        table.validate(raise_exception=True)
 
 
 def test_schema_int_rejects_fractions_and_names_the_column():
-    table = QTable({"columns": ["n"], "data": []}, schema={"n": int}, name="t")
+    def table(value):
+        return QTable({"columns": ["n"], "data": [[value]]}, schema={"n": int}, name="t")
 
-    assert table.add({"n": 3.0}) == {"n": 3}
+    whole = table(3.0)
+    whole.validate(raise_exception=True)
+    assert whole.select() == [{"n": 3}]
     with pytest.raises(ValueError, match="t: invalid n: 3.7"):
-        table.add({"n": 3.7})
+        table(3.7).validate(raise_exception=True)
     with pytest.raises(ValueError, match="t: invalid n: 'abc'"):
-        table.add({"n": "abc"})
+        table("abc").validate(raise_exception=True)
 
 
 def test_schema_coercion_and_constraints():
@@ -201,58 +205,10 @@ def test_composite_primary_key():
     }
 
 
-# QTable: CRUD and atomicity
-
-
-def test_add_update_delete_and_clear():
-    table = make_products()
-
-    added = table.add({"id": "3", "name": "Keyboard", "price": "50"})
-    assert added == {"id": 3, "name": "Keyboard", "price": 50.0}
-
-    updated = table.update(3, {"price": "45"})
-    assert updated["price"] == 45.0
-
-    assert table.delete(3) is True
-    assert table.delete(3) is False
-    assert table.nrows == 2
-
-    table.clear()
-    assert table.shape == (0, 3)
-
-
-def test_add_many_is_atomic_when_a_row_is_invalid():
-    table = make_products()
-    before = table.to_dict()
-
-    with pytest.raises((ValueError, TypeError)):
-        table.add_many([
-            {"id": 3, "name": "Keyboard", "price": 50},
-            {"id": 4, "name": "", "price": 20},
-        ])
-
-    assert table.to_dict() == before
-
-
-def test_add_rejects_duplicate_primary_key_without_mutating_table():
-    table = make_products()
-    before = table.to_dict()
-
-    with pytest.raises(ValueError, match="duplicate key"):
-        table.add({"id": 1, "name": "Duplicate", "price": 10})
-
-    assert table.to_dict() == before
-
-
-def test_update_rejects_unknown_record():
-    with pytest.raises(KeyError, match="record not found"):
-        make_products().update(999, {"name": "Missing"})
-
-
 # QTable: input normalization and mapping
 
 
-def test_records_skips_blank_and_repeated_header_rows():
+def test_select_skips_blank_and_repeated_header_rows():
     table = QTable(
         {
             "columns": ["id", "name"],
@@ -264,29 +220,46 @@ def test_records_skips_blank_and_repeated_header_rows():
         }
     )
 
-    assert table.records() == [{"id": 1, "name": "A"}]
+    assert table.select() == [{"id": 1, "name": "A"}]
 
 
-def test_read_casts_columns():
+def test_schema_cast_replaces_per_read_casts():
     table = QTable(
-        {"columns": ["id", "amount"], "data": [["1", "12.5"]]}
+        {"columns": ["id", "amount"], "data": [["1", "12.5"]]},
+        schema={"id": {"cast": int}, "amount": {"cast": float}},
     )
+    table.validate(raise_exception=True)
 
-    assert table.read(casts={"id": int, "amount": float}) == [
-        {"id": 1, "amount": 12.5}
-    ]
+    assert table.select() == [{"id": 1, "amount": 12.5}]
 
 
-def test_read_can_return_key_value_mapping():
+def test_to_map_returns_key_value_mapping():
     table = QTable(
         {"columns": ["code", "label"], "data": [["A", "Alpha"], ["B", "Beta"]]}
     )
 
-    assert table.read(key="code", value="label") == {
+    assert table.to_map("code", "label") == {
         "A": "Alpha",
         "B": "Beta",
     }
 
+
+def test_to_map_composite_key_and_value_use_tuples():
+    table = QTable(
+        {"columns": ["a", "b", "c", "d"], "data": [[1, 2, 3, 4], ["", "", "", ""]]}
+    )
+
+    assert table.to_map(["a", "b"], ["c", "d"]) == {(1, 2): (3, 4)}
+
+
+def test_to_map_rejects_duplicate_keys_unless_allowed():
+    table = QTable({"columns": ["k", "v"], "data": [[1, "x"], [1, "y"]]}, name="t")
+
+    with pytest.raises(ValueError, match="t: Duplicate key: 1"):
+        table.to_map("k", "v")
+    assert table.to_map("k", "v", unique=False) == {1: "y"}
+    with pytest.raises(KeyError, match="Unknown column"):
+        table.to_map("k", "missing")
 
 # QRelation and QBase
 
@@ -351,61 +324,6 @@ def test_one_to_one_rejects_duplicate_detail_reference():
     assert "one-to-one" in result["errors"]["relation_1"][0]
 
 
-def test_restrict_delete_prevents_deleting_referenced_master():
-    db = QBase({"products": make_products(), "items": make_items()})
-    db.relate("products", "items", master_key="id", detail_key="product_id")
-
-    with pytest.raises(ValueError, match="referenced by"):
-        db.delete("products", 1)
-
-    assert db["products"].get(1) is not None
-
-
-def test_cascade_delete_removes_detail_rows():
-    db = QBase({"products": make_products(), "items": make_items()})
-    db.relate(
-        "products", "items",
-        master_key="id", detail_key="product_id",
-        on_delete="cascade",
-    )
-
-    assert db.delete("products", 1)
-    assert db["products"].get(1) is None
-    assert db["items"].filter(product_id=1) == []
-    assert db["items"].nrows == 1
-
-
-def test_set_null_delete_updates_detail_foreign_key():
-    db = QBase({"products": make_products(), "items": make_items()})
-    db.relate(
-        "products", "items",
-        master_key="id", detail_key="product_id",
-        on_delete="set_null", nullable=True,
-    )
-
-    assert db.delete("products", 1)
-    assert db["items"].filter(product_id=None) == [
-        {"id": 1, "product_id": None, "qty": 2},
-        {"id": 2, "product_id": None, "qty": 3},
-    ]
-
-
-def test_set_null_requires_nullable_relationship():
-    db = QBase({"products": make_products(), "items": make_items()})
-    db.relate(
-        "products", "items",
-        master_key="id", detail_key="product_id",
-        on_delete="set_null", nullable=False,
-    )
-
-    with pytest.raises(ValueError, match="requires nullable"):
-        db.delete("products", 1)
-
-    # Failed delete restores both master and detail tables.
-    assert db["products"].get(1) is not None
-    assert len(db["items"].filter(product_id=1)) == 2
-
-
 def test_qbase_register_unregister_and_duplicate_names():
     db = QBase()
     db.register("products", make_products())
@@ -420,40 +338,6 @@ def test_qbase_register_unregister_and_duplicate_names():
     assert "products" not in db
 
 
-def test_cascade_delete_applies_rules_on_grandchildren():
-    def table(rows, cols):
-        return QTable({"columns": cols, "data": rows}, primary_key="id")
-
-    def build(grand_rule):
-        db = QBase({"p": table([[1]], ["id"]),
-                    "c": table([[10, 1]], ["id", "pid"]),
-                    "g": table([[100, 10]], ["id", "cid"])})
-        db.relate("p", "c", master_key="id", detail_key="pid", on_delete="cascade")
-        db.relate("c", "g", master_key="id", detail_key="cid", on_delete=grand_rule)
-        return db
-
-    db = build("cascade")
-    assert db.delete("p", 1)
-    assert (db["p"].nrows, db["c"].nrows, db["g"].nrows) == (0, 0, 0)
-    assert db.validate()["valid"]
-
-    db = build("restrict")
-    with pytest.raises(ValueError, match="referenced by g"):
-        db.delete("p", 1)
-    assert (db["p"].nrows, db["c"].nrows, db["g"].nrows) == (1, 1, 1)
-
-
-def test_cascade_delete_handles_self_reference():
-    tree = QTable({"columns": ["id", "parent"], "data": [[1, None], [2, 1], [3, 2], [4, None]]},
-                  primary_key="id")
-    db = QBase({"tree": tree})
-    db.relate("tree", "tree", master_key="id", detail_key="parent",
-              on_delete="cascade", nullable=True)
-
-    assert db.delete("tree", 1)
-    assert [r["id"] for r in tree.records(skip_blank=False)] == [4]
-
-
 def test_qbase_serializes_tables_and_relationships():
     db = QBase({"products": make_products(), "items": make_items()})
     db.relate("products", "items", master_key="id", detail_key="product_id")
@@ -466,17 +350,14 @@ def test_qbase_serializes_tables_and_relationships():
 
 def test_qbase_round_trip_keeps_schema_and_keys():
     db = QBase({"products": make_products(), "items": make_items()})
-    db.relate("products", "items", master_key="id", detail_key="product_id",
-              on_delete="cascade")
+    db.relate("products", "items", master_key="id", detail_key="product_id")
 
     copy = QBase(**db.to_dict())
 
     assert copy["products"].primary_key == ["id"]
     assert copy["products"].schema_dict()["price"]["min"] == 0
     assert copy.validate()["valid"]
-    assert copy.delete("products", 1)
-    assert copy["items"].nrows == 1
-    assert db["items"].nrows == 3
+    assert copy.relations[0].to_dict() == db.relations[0].to_dict()
 
 
 def test_relation_rejects_mismatched_composite_key_lengths():
@@ -496,7 +377,7 @@ def test_many_to_many_requires_a_junction_table():
 # Existing qCalc table validation exposed through QTable methods.
 
 
-def test_require_columns_normalizes_headers_and_updates_key_metadata():
+def test_assert_columns_normalizes_headers_and_updates_key_metadata():
     table = QTable(
         {"columns": [" ID ", " Product Name "], "data": [[1, "Desk"]]},
         primary_key=" ID ",
@@ -510,7 +391,7 @@ def test_require_columns_normalizes_headers_and_updates_key_metadata():
     assert table.get(1)["Product Name"] == "Desk"
 
 
-def test_require_unique_returns_canonical_values():
+def test_assert_unique_returns_canonical_values():
     table = QTable(
         {"columns": ["Code"], "data": [[" A "], ["B"]]}
     )
@@ -518,7 +399,7 @@ def test_require_unique_returns_canonical_values():
     assert table.assert_unique("Code") == ["A", "B"]
 
 
-def test_require_unique_detects_case_insensitive_duplicates():
+def test_assert_unique_detects_case_insensitive_duplicates():
     table = QTable(
         {"columns": ["Code"], "data": [["abc"], [" ABC "]]}
     )
@@ -527,7 +408,7 @@ def test_require_unique_detects_case_insensitive_duplicates():
         table.assert_unique("Code")
 
 
-def test_require_unique_pairs_returns_normalized_pairs():
+def test_assert_unique_pairs_returns_normalized_pairs():
     table = QTable(
         {"columns": ["From", "To"], "data": [["A", "B"], ["B", "C"]]}
     )
@@ -535,14 +416,14 @@ def test_require_unique_pairs_returns_normalized_pairs():
     assert table.assert_unique_pairs("From", "To") == {("a", "b"), ("b", "c")}
 
 
-def test_require_values_subset_checks_child_against_parent():
+def test_assert_foreign_key_checks_child_against_parent():
     parent = QTable({"columns": ["Code"], "data": [["A"], ["B"]]}, name="parent")
     child = QTable({"columns": ["Parent Code"], "data": [["A"], ["B"]]}, name="child")
 
     child.assert_foreign_key(parent, "Parent Code", "Code")
 
 
-def test_require_values_subset_rejects_unknown_child_value():
+def test_assert_foreign_key_rejects_unknown_child_value():
     parent = QTable({"columns": ["Code"], "data": [["A"]]}, name="parent")
     child = QTable({"columns": ["Parent Code"], "data": [["X"]]}, name="child")
 
@@ -550,7 +431,7 @@ def test_require_values_subset_rejects_unknown_child_value():
         child.assert_foreign_key(parent, "Parent Code", "Code")
 
 
-def test_require_complete_pair_grid():
+def test_assert_complete_cross_join():
     table = QTable({
         "columns": ["From", "To"],
         "data": [["A", "X"], ["A", "Y"], ["B", "X"], ["B", "Y"]],
@@ -561,7 +442,7 @@ def test_require_complete_pair_grid():
     ) is None
 
 
-def test_require_value_columns_normalizes_matrix_headers():
+def test_assert_columns_match_domain_normalizes_matrix_headers():
     master = QTable(
         {"columns": ["Location"], "data": [["North"], ["South"]]},
         name="locations",

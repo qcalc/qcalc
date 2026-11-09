@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
-from qcore import Qty, qtbl, read_table
+from qcore import Qty, qtbl, QTable
 
 __all__ = ['building_cost', 'building_cost__info']
 
@@ -90,24 +90,21 @@ def building_cost(plot_length='37 ft', plot_width='27 ft', floors=1, coverage='1
                   factors_table: qtbl = _default_factors_table(),
                   foundation_share='15 pct', foundation_increase_per_floor='20 pct',
                   contractor_markup='0 pct', contingency='5 pct', range_pct='15 pct'):
-    factors_map = read_table(
-        factors_table,
-        'factors_table',
-        ['Category', 'Key', 'Label', 'Factor'],
-        casts={
-            'Category': lambda v: _txt(v).lower(),
-            'Key': _txt,
-            'Label': _txt,
-            'Factor': _num,
-        },
-        key=['Category', 'Key'],
-        value=['Label', 'Factor'],
-    )
-    for category, key in factors_map:
+    factors_qt = QTable(factors_table, name='factors_table', schema={
+        'Category': {'cast': lambda v: _txt(v).lower()},
+        'Factor': {'cast': _num},
+    })
+    factors_qt.assert_columns(['Category', 'Key', 'Label', 'Factor'])
+    factors_qt.assert_unique_pairs('Category', 'Key')
+    factors_qt.validate(raise_exception=True)
+    factors_map = factors_qt.to_map(['Category', 'Key'], ['Label', 'Factor'])
+    for (category, key), (_, factor) in factors_map.items():
         if category not in {'quality', 'location', 'soil'}:
             raise ValueError(f'Invalid factors_table: Unknown category "{category}".')
         if not key:
             raise ValueError('Invalid factors_table: Key is empty.')
+        if not isinstance(factor, float):
+            raise ValueError(f'Invalid factors_table: Factor is empty for "{category}/{key}".')
 
     if ('quality', quality) not in factors_map:
         raise ValueError(f'Quality key "{quality}" not found in factors_table.')

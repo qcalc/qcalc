@@ -420,7 +420,6 @@ def facility_opt(
             matrix_reserved_cols=['Location', 'Demand'],
             require_master_in_matrix=True,
             require_matrix_in_master=True,
-            case_sensitive=False,
         )
         cost.columns = cost_qt.columns
         facility.columns = facility_qt.columns

@@ -10,7 +10,7 @@ import datetime
 from qcore import (
     # | Qty class and related functions
     Qty, QTable, QRelation, QBase,
-    qdf, qrecords, read_table, qkeymap, QList,
+    qdf, QList,
     qconvert, qdf_demo_data,
     QDateTime, today, now, spellnow,  # mod_datetime
     base_units, base_dims, unit_desc, prefixes,
@@ -92,7 +92,7 @@ __evacon__ = [
     'ai_prompt_field', 'br',  # qcor.mod_fields
     'iif', 'joinx', 'css2floats', 'css2ints', 'css2values', 'css2strs', 'vals2css', 'css2set', 'css2dict',
     'css2list',  # qutil.mod_basic
-    'np', 'qdf', 'qrecords', 'read_table', 'qkeymap',  # qapi.mod_qtbl
+    'np', 'qdf',  # qapi.mod_qtbl
     'qconvert', 'qdf_demo_data',
     'qtypes', 'qmodules', 'qsymbols', 'qsymstat', 'qsymhelp',  # qcore.mod_autil
     'QFile', 'qf2bio', 'dd_list',

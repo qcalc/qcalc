@@ -6,7 +6,7 @@ QTable stores ordinary Python lists/dicts in qtbl shape.  qdf remains the
 separate, restricted pandas computation facade.
 """
 
-from .qb_df_proxy import qkeymap, qdf
+from .qb_df_proxy import qdf
 from .qc_qty import Qty
 from .qf_anno import is_qtbl
 import qconst
@@ -40,6 +40,27 @@ def _fields(value):
     return [value] if isinstance(value, str) else list(value)
 
 
+_NAME_ALIASES = {'minimum': 'min', 'maximum': 'max', 'quantity': 'qty'}
+
+
+def _name_words(value):
+    """Split a column name into lowercase words, mapping common long forms to short ones."""
+    return [_NAME_ALIASES.get(w, w) for w in re.findall(r'[a-z0-9]+', str(value).casefold())]
+
+
+def _looks_like_alias(candidate, expected):
+    """Return True if ``candidate`` is a near-miss spelling of ``expected`` (not an exact match)."""
+    if str(candidate).strip().casefold() == str(expected).strip().casefold():
+        return False
+    c_words, e_words = _name_words(candidate), _name_words(expected)
+    c_text, e_text = ''.join(c_words), ''.join(e_words)
+    if not c_text or not e_text:
+        return False
+    key_words = [w for w in e_words if len(w) >= 2]
+    return (c_text.startswith(e_text) or e_text.startswith(c_text)
+            or bool(key_words) and all(w in c_words for w in key_words))
+
+
 def _blank(value):
     """Check if a value is considered blank (None or empty string)."""
     return value is None or (isinstance(value, str) and not value.strip())
@@ -70,10 +91,14 @@ class QTable:
     ``data`` accepts a qtbl dictionary, a list of row dictionaries, or a list
     of row lists (when ``columns`` is supplied).  A qtbl produced by
     ``to_dict(full=True)`` also restores its schema and key definitions.
+
+    Column names are always matched case-insensitively (as in most databases).
+    ``case_sensitive`` only controls how *values* are compared by the
+    ``assert_*`` checks (unique, foreign key, cross join, domain match).
     """
 
     def __init__(self, data=None, columns=None, schema=None, primary_key=None,
-                 unique=None, name=None, validate=False):
+                 unique=None, name=None, validate=False, case_sensitive=False):
         """Initialize a QTable instance with the given data, columns, schema, and constraints."""
         if isinstance(data, dict):
             # If the data is a dictionary, it should represent a qtbl with 'columns' and 'data' keys.
@@ -105,6 +130,7 @@ class QTable:
             data = [[row.get(col) for col in columns] for row in data]
 
         self.name = name or 'table'
+        self.case_sensitive = bool(case_sensitive)
         self.schema = deepcopy(schema or {})
         self.primary_key = _fields(primary_key) if primary_key is not None else []
         self.unique = _unique_specs(unique)
@@ -170,8 +196,8 @@ class QTable:
         return self.nrows
 
     def __iter__(self):
-        """Return an iterator over the table's records as dictionaries."""
-        return iter(self.records(skip_blank=False, skip_header=False, strip=False))
+        """Return an iterator over the table's raw records as dictionaries."""
+        return iter(self.select(skip_blank=False, skip_header=False, strip=False))
 
     def __repr__(self):
         """Return a string representation of the table."""
@@ -211,44 +237,57 @@ class QTable:
         idx = self._index(name)
         return [row[idx] for row in self._data]
 
-    def records(self, cols=None, skip_blank=True, skip_header=True, strip=True):
-        """Return the table as a list of dictionaries, optionally filtered by columns."""
-        cols = list(cols) if cols is not None else self.columns
-        indexes = [self._index(c) for c in cols]
+    def select(self, cols=None, where=None, *, skip_blank=True, skip_header=True,
+               strip=True, **criteria):
+        """Return records with a subset of columns and filtered rows (SQL SELECT ... WHERE).
+
+        Args:
+            cols: Columns to return, in the given order. Defaults to all columns.
+            where: Optional predicate called with the full record dictionary
+                (so it may use columns that are not selected); keep rows for
+                which it returns true.
+            skip_blank: Skip rows where all selected values are blank.
+            skip_header: Skip repeated header rows present in the table data.
+            strip: Trim leading/trailing spaces from string cell values.
+            **criteria: Equality conditions combined with AND.
+
+        Example:
+            table.select(['Name', 'Salary'], Dept='IT')
+            table.select(['Name'], where=lambda r: r['Salary'] >= 60)
+        """
+        cols = self.columns if cols is None else list(cols)
+        for col in cols + list(criteria):
+            self._index(col)
+        whole = cols == self._columns
         result = []
         for row in self._data:
-            rec = {}
-            for col, idx in zip(cols, indexes):
-                value = row[idx]
-                rec[col] = value.strip() if strip and isinstance(value, str) else value
-            if skip_blank and all(_blank(v) for v in rec.values()):
+            rec = {c: v.strip() if strip and isinstance(v, str) else v for c, v in zip(self._columns, row)}
+            picked = rec if whole else {c: rec[c] for c in cols}
+            if skip_blank and all(_blank(v) for v in picked.values()):
                 continue
-            if skip_header and all(str(rec[c]).strip().casefold() == str(c).strip().casefold() for c in cols):
+            if skip_header and all(str(picked[c]).strip().casefold() == str(c).strip().casefold() for c in cols):
                 continue
-            result.append(rec)
+            if all(rec[k] == v for k, v in criteria.items()) and (where is None or where(rec)):
+                result.append(picked)
         return result
 
-    def read(self, cols=None, casts=None, key=None, value=None, unique=True,
-             skip_blank=True, skip_header=True, strip=True):
-        """Read normalized records, optionally as a key/value mapping based on the primary key."""
-        rows = self.records(cols, skip_blank, skip_header, strip)
-        casts = casts or {}
-        for i, rec in enumerate(rows):
-            for col, caster in casts.items():
-                if col not in rec:
-                    raise KeyError(f'{self.name}: Unknown cast column: {col}')
-                try:
-                    rec[col] = caster(rec[col])
-                except Exception as exc:
-                    raise ValueError(f'{self.name}: Invalid value at row {i + 1}, column {col}: {exc}') from exc
-        if key is None and value is None:
-            return rows
-        if key is None or value is None:
-            raise ValueError(f'{self.name}: Both key and value must be provided for mapping output.')
-        try:
-            return qkeymap(rows, key, value, unique=unique)
-        except Exception as exc:
-            raise ValueError(f'{self.name}: {exc}') from exc
+    def to_map(self, key, value, unique=True):
+        """Return ``{key: value}`` built from the table rows (multiple fields form tuples).
+
+        Rows are read like ``select`` (blank and repeated header rows skipped).
+        With ``unique=True`` a duplicate key raises ``ValueError``.
+
+        Example:
+            table.to_map(['Category', 'Key'], ['Label', 'Factor'])
+        """
+        key_fields, value_fields = _fields(key), _fields(value)
+        out = {}
+        for rec in self.select(key_fields + value_fields):
+            map_key = _key([rec[k] for k in key_fields])
+            if unique and map_key in out:
+                raise ValueError(f'{self.name}: Duplicate key: {map_key}')
+            out[map_key] = _key([rec[v] for v in value_fields])
+        return out
 
     def get(self, key):
         """Return the record matching the given primary key, or None if not found."""
@@ -257,38 +296,24 @@ class QTable:
         wanted = _fields(key) if len(self.primary_key) > 1 else [key]
         if len(wanted) != len(self.primary_key):
             raise ValueError('Incorrect primary-key value')
-        for rec in self.records(skip_blank=False, skip_header=False, strip=False):
+        for rec in self:
             if _key([rec[c] for c in self.primary_key]) == _key(wanted):
                 return rec
         return None
 
-    def _check_criteria(self, criteria):
-        """Ensure that all keys in the criteria exist as columns."""
-        for k in criteria:
-            self._index(k)
-
     def find(self, **criteria):
-        """Return the first record matching the given criteria, or None if not found."""
-        self._check_criteria(criteria)
-        for rec in self.records(skip_blank=False, skip_header=False, strip=False):
-            if all(rec[k] == v for k, v in criteria.items()):
-                return rec
-        return None
+        """Return the first raw record matching the given criteria, or None if not found."""
+        rows = self.select(skip_blank=False, skip_header=False, strip=False, **criteria)
+        return rows[0] if rows else None
 
-    def filter(self, **criteria):
-        """Return all records matching the given criteria."""
-        self._check_criteria(criteria)
-        return [r for r in self.records(skip_blank=False, skip_header=False, strip=False)
-                if all(r[k] == v for k, v in criteria.items())]
-
-    def _prepare(self, record, base=None):
-        """Prepare a record for insertion or update, ensuring it conforms to the schema."""
+    def _prepare(self, record):
+        """Coerce and check one record against the schema; return the prepared record."""
         if not isinstance(record, dict):
             raise TypeError('A row must be a dictionary')
         unknown = set(record) - set(self._columns)
         if unknown:
             raise KeyError(f'{self.name}: Unknown column(s): {", ".join(map(str, unknown))}')
-        rec = dict(base or {c: None for c in self._columns})
+        rec = dict.fromkeys(self._columns)
         rec.update(record)
         for col, raw_spec in self.schema.items():
             spec = _spec(raw_spec)
@@ -330,7 +355,7 @@ class QTable:
                 raise ValueError(f'{self.name}: invalid value for {col}: {value!r}')
         return rec
 
-    def _check_keys(self, rows, ignore=None):
+    def _check_keys(self, rows):
         """Check for duplicate keys in the given rows based on primary and unique keys."""
         specs = ([self.primary_key] if self.primary_key else []) + self.unique
         for spec in specs:
@@ -370,112 +395,14 @@ class QTable:
             raise ValueError('; '.join(errors))
         return {'valid': not errors, 'errors': errors}
 
-    def _commit(self, rows):
-        """Commit the given rows to the table, ensuring key constraints are satisfied."""
-        self._check_keys(rows)
-        self._data = [[row[c] for c in self._columns] for row in rows]
-
-    def add(self, record):
-        """Add a single record to the table, ensuring key constraints are satisfied."""
-        rec = self._prepare(record)
-        rows = self.records(skip_blank=False, skip_header=False, strip=False) + [rec]
-        self._commit(rows)
-        return rec
-
-    def add_many(self, records):
-        """Add multiple records to the table, ensuring key constraints are satisfied."""
-        rows = self.records(skip_blank=False, skip_header=False, strip=False)
-        new_rows = [self._prepare(rec) for rec in records]
-        self._commit(rows + new_rows)
-        return new_rows
-
-    def update(self, key, changes):
-        """Update the record matching the given primary key with the specified changes."""
-        if not self.primary_key:
-            raise ValueError(f'{self.name}: no primary key is defined')
-        rows = self.records(skip_blank=False, skip_header=False, strip=False)
-        wanted = _fields(key) if len(self.primary_key) > 1 else [key]
-        for i, rec in enumerate(rows):
-            if _key([rec[c] for c in self.primary_key]) == _key(wanted):
-                rows[i] = self._prepare(changes, rec)
-                self._commit(rows)
-                return rows[i]
-        raise KeyError(f'{self.name}: record not found: {key!r}')
-
-    def delete(self, key):
-        """Delete the record matching the given primary key; return True if deleted, False if not found."""
-        if not self.primary_key:
-            raise ValueError(f'{self.name}: no primary key is defined')
-        wanted = _fields(key) if len(self.primary_key) > 1 else [key]
-        rows = self.records(skip_blank=False, skip_header=False, strip=False)
-        kept = [r for r in rows if _key([r[c] for c in self.primary_key]) != _key(wanted)]
-        if len(kept) == len(rows):
-            return False
-        self._commit(kept)
-        return True
-
-    def clear(self):
-        """Clear all records from the table."""
-        self._data = []
-
-    def _sync_validation_columns(self, payload, old_columns):
-        """Synchronize the table's columns with the canonical header names after validation."""
-        new_columns = list(payload["columns"])
-        if new_columns == old_columns:
-            return
-        rename = dict(zip(old_columns, new_columns))
-        self._columns = new_columns
-        self.schema = {rename.get(col, col): spec for col, spec in self.schema.items()}
-        self.primary_key = [rename.get(col, col) for col in self.primary_key]
-        self.unique = [[rename.get(col, col) for col in spec] for spec in self.unique]
-
     @staticmethod
     def _normalize_token(value):
         return str(value).strip().casefold()
 
-    @staticmethod
-    def _compact_token(value):
-        return ''.join(ch for ch in str(value).casefold() if ch.isalnum())
-
-    def _optional_name_words(self, value):
-        words = [w for w in re.split(r'[^a-z0-9]+', str(value).casefold()) if w]
-        alias_map = {
-            'minimum': 'min',
-            'min': 'min',
-            'maximum': 'max',
-            'max': 'max',
-            'quantity': 'qty',
-            'qty': 'qty',
-        }
-        return [alias_map.get(w, w) for w in words]
-
-    def _looks_like_optional_alias(self, candidate, optional_name):
-        candidate_norm = self._normalize_token(candidate)
-        optional_norm = self._normalize_token(optional_name)
-        if candidate_norm == optional_norm:
-            return False
-
-        candidate_compact = self._compact_token(candidate)
-        optional_compact = self._compact_token(optional_name)
-        if not candidate_compact or not optional_compact:
-            return False
-
-        if candidate_compact == optional_compact:
-            return True
-        if candidate_compact.startswith(optional_compact) or optional_compact.startswith(candidate_compact):
-            return True
-
-        c_words = self._optional_name_words(candidate)
-        o_words = self._optional_name_words(optional_name)
-        if not c_words or not o_words:
-            return False
-
-        for ow in o_words:
-            if len(ow) < 2:
-                continue
-            if not any(cw.startswith(ow[:3]) or ow.startswith(cw[:3]) for cw in c_words if len(cw) >= 2):
-                return False
-        return True
+    def _vkey(self, value):
+        """Return the comparison key for a cell value, honouring ``case_sensitive``."""
+        text = str(value).strip()
+        return text if self.case_sensitive else text.casefold()
 
     @staticmethod
     def _strict_table_input_enabled():
@@ -494,21 +421,24 @@ class QTable:
         return base_name.strip(), header_uom.strip()
 
     def _apply_column_renames(self, rename_map):
+        """Rename columns and keep the schema and key definitions in sync."""
         if not rename_map:
             return
-        old_columns = self.columns
-        payload = {'columns': [rename_map.get(col, col) for col in old_columns]}
-        self._sync_validation_columns(payload, old_columns)
+        rename = lambda cols: [rename_map.get(c, c) for c in cols]
+        self._columns = rename(self._columns)
+        self.schema = {rename_map.get(col, col): spec for col, spec in self.schema.items()}
+        self.primary_key = rename(self.primary_key)
+        self.unique = [rename(spec) for spec in self.unique]
 
     def assert_columns(self, required_cols, optional_cols=None,
-                        case_sensitive=False, columns_can_grow=True,
-                        required_col_uoms=None):
+                        columns_can_grow=True, required_col_uoms=None):
         """Validate table headers against a required/optional schema.
+
+        Header matching is always case-insensitive.
 
         Args:
             required_cols: Column names that must exist.
             optional_cols: Additional allowed columns (not mandatory).
-            case_sensitive: Whether header matching is case-sensitive.
             columns_can_grow: When False (with Strict Table Input mode enabled),
                 unknown columns are rejected.
             required_col_uoms: Optional ``{column: expected_uom}`` map to allow
@@ -524,7 +454,6 @@ class QTable:
             b) table.assert_columns(
                 required_cols=['Project', 'Budget'],
                 optional_cols=['Manager'],
-                case_sensitive=False,
                 columns_can_grow=True,
                 required_col_uoms={'Budget': 'USD'},
             )
@@ -549,7 +478,7 @@ class QTable:
             if has_uom:
                 unitized_cols.append(str(col))
 
-            base_key = base_name if case_sensitive else self._normalize_token(base_name)
+            base_key = self._normalize_token(base_name)
             if base_key in base_seen and base_seen[base_key] != col:
                 duplicate_bases.append((base_seen[base_key], col))
                 continue
@@ -603,21 +532,6 @@ class QTable:
                         f"expected unit '{expected_uom}' for '{base_name}'."
                     ) from e
 
-        actual_bases = [item['base'] for item in actual_meta]
-        if case_sensitive:
-            missing = [col for col in required_cols if col not in actual_bases]
-            if missing:
-                expected = ', '.join(expected_cols)
-                raise ValueError(
-                    f"{self.name} missing required column(s): {', '.join(missing)}. "
-                    f"Expected columns: {expected}."
-                )
-            return {
-                col: next(item['actual'] for item in actual_meta if item['base'] == col)
-                for col in expected_cols
-                if col in actual_bases
-            }
-
         lookup = {item['key']: item['actual'] for item in actual_meta}
         lookup_base = {item['key']: item['base'] for item in actual_meta}
 
@@ -639,7 +553,7 @@ class QTable:
                 if actual_key in expected_keys:
                     continue
                 for opt_col in optional_cols:
-                    if self._looks_like_optional_alias(lookup_base.get(actual_key, actual_col), opt_col):
+                    if _looks_like_alias(lookup_base.get(actual_key, actual_col), opt_col):
                         suspicious.append((actual_col, opt_col))
                         break
             if suspicious:
@@ -690,19 +604,16 @@ class QTable:
         self._apply_column_renames(rename_map)
         return resolved
 
-    def assert_unique(self, column_name, case_sensitive=False, ignore_blank=False):
+    def assert_unique(self, column_name, ignore_blank=False):
         """Ensure a column has unique values and return canonical values.
 
         Useful for key columns such as Project, Item, Worker, Shift, etc.
+        Values are compared per the table's ``case_sensitive`` setting.
 
         Example:
-            canonical_values = table.assert_unique(
-                column_name='Project',
-                case_sensitive=False,
-                ignore_blank=True,
-            )
+            canonical_values = table.assert_unique('Project', ignore_blank=True)
         """
-        resolved = self.assert_columns([column_name], case_sensitive=case_sensitive)
+        resolved = self.assert_columns([column_name])
         col = resolved.get(column_name, column_name)
         values = self.column(col)
 
@@ -713,7 +624,7 @@ class QTable:
             text = str(value).strip()
             if ignore_blank and text == '':
                 continue
-            key = text if case_sensitive else self._normalize_token(text)
+            key = self._vkey(text)
             if key in seen:
                 duplicates.append((seen[key], text))
             else:
@@ -726,20 +637,16 @@ class QTable:
 
         return [seen[key] for key in ordered_keys]
 
-    def assert_unique_pairs(self, left_col, right_col, case_sensitive=False):
+    def assert_unique_pairs(self, left_col, right_col):
         """Ensure each ``(left_col, right_col)`` combination appears at most once.
 
         Returns:
             Set of normalized pair keys suitable for downstream membership checks.
 
         Example:
-            table.assert_unique_pairs(
-                left_col='From',
-                right_col='To',
-                case_sensitive=False,
-            )
+            table.assert_unique_pairs('From', 'To')
         """
-        resolved = self.assert_columns([left_col, right_col], case_sensitive=case_sensitive)
+        resolved = self.assert_columns([left_col, right_col])
         left_name = resolved.get(left_col, left_col)
         right_name = resolved.get(right_col, right_col)
 
@@ -753,8 +660,8 @@ class QTable:
         for left_raw, right_raw in zip(left_values, right_values):
             left_text = str(left_raw).strip()
             right_text = str(right_raw).strip()
-            left_key = left_text if case_sensitive else self._normalize_token(left_text)
-            right_key = right_text if case_sensitive else self._normalize_token(right_text)
+            left_key = self._vkey(left_text)
+            right_key = self._vkey(right_text)
             key = (left_key, right_key)
             pair_keys.append(key)
             pair_display_by_key.setdefault(key, (left_text, right_text))
@@ -770,45 +677,38 @@ class QTable:
 
         return set(pair_keys)
 
-    def assert_foreign_key(self, parent, child_col, parent_col,
-                              case_sensitive=False):
+    def assert_foreign_key(self, parent, child_col, parent_col):
         """Ensure each non-blank child value exists in the parent value set.
 
         Use this for foreign-key style checks between two input tables.
+        Values are compared per this (child) table's ``case_sensitive`` setting.
 
         Example:
             child_table.assert_foreign_key(
                 parent=parent_table,
                 child_col='Project',
                 parent_col='Project',
-                case_sensitive=False,
             )
         """
-        child_resolved = self.assert_columns([child_col], case_sensitive=case_sensitive)
-        parent_resolved = parent.assert_columns([parent_col], case_sensitive=case_sensitive)
+        child_resolved = self.assert_columns([child_col])
+        parent_resolved = parent.assert_columns([parent_col])
         child_name = child_resolved.get(child_col, child_col)
         parent_name = parent_resolved.get(parent_col, parent_col)
 
-        parent_values = {
-            str(value).strip(): value
+        parent_keys = {
+            self._vkey(value)
             for value in parent.column(parent_name)
             if str(value).strip() != ''
         }
-        if case_sensitive:
-            parent_keys = set(parent_values.keys())
-            child_keys = [str(value).strip() for value in self.column(child_name) if str(value).strip() != '']
-        else:
-            parent_keys = {self._normalize_token(value) for value in parent_values.keys()}
-            child_keys = [
-                self._normalize_token(value)
-                for value in self.column(child_name)
-                if str(value).strip() != ''
-            ]
+        child_values = {
+            self._vkey(value): str(value).strip()
+            for value in self.column(child_name)
+            if str(value).strip() != ''
+        }
 
-        unknown = sorted({key for key in child_keys if key not in parent_keys})
+        unknown = sorted(key for key in child_values if key not in parent_keys)
         if unknown:
-            typed = {self._normalize_token(v): str(v).strip() for v in self.column(child_name)}
-            unknown_preview = ', '.join(typed.get(key, key) for key in unknown[:10])
+            unknown_preview = ', '.join(child_values[key] for key in unknown[:10])
             raise ValueError(
                 f"{self.name} '{child_name}' has value(s) not found in "
                 f"{parent.name} '{parent_name}': {unknown_preview}"
@@ -816,10 +716,10 @@ class QTable:
 
     def assert_complete_cross_join(self, left_col, right_col, left_values,
                                    right_values, left_label=None,
-                                   right_label=None, case_sensitive=False):
+                                   right_label=None):
         """Ensure the pair table contains the full Cartesian grid.
 
-        Specifically, every combination from ``left_values Ãƒâ€” right_values`` must
+        Specifically, every combination from ``left_values x right_values`` must
         exist exactly once in ``(left_col, right_col)``.
 
         Example:
@@ -830,19 +730,17 @@ class QTable:
                 right_values=destinations,
             )
         """
-        observed_pairs = self.assert_unique_pairs(left_col, right_col, case_sensitive=case_sensitive)
+        observed_pairs = self.assert_unique_pairs(left_col, right_col)
 
         left_lookup = {}
         for value in left_values:
             text = str(value).strip()
-            key = text if case_sensitive else self._normalize_token(text)
-            left_lookup[key] = text
+            left_lookup[self._vkey(text)] = text
 
         right_lookup = {}
         for value in right_values:
             text = str(value).strip()
-            key = text if case_sensitive else self._normalize_token(text)
-            right_lookup[key] = text
+            right_lookup[self._vkey(text)] = text
 
         missing = []
         for left_key, left_text in left_lookup.items():
@@ -861,13 +759,14 @@ class QTable:
     def assert_columns_match_domain(self, master, master_value_col,
                               matrix_reserved_cols=None,
                               require_master_in_matrix=True,
-                              require_matrix_in_master=True,
-                              case_sensitive=False):
+                              require_matrix_in_master=True):
         """Validate matrix value-columns against a master key list.
 
         Typical use: matrix table where dynamic columns represent entities listed
         as row values in a master table key column (for example cost matrix
-        columns vs facility master Location values).
+        columns vs facility master Location values). Column headers are compared
+        to the master values per this table's ``case_sensitive`` setting;
+        ``matrix_reserved_cols`` are fixed column names, matched case-insensitively.
 
         Returns:
             Dict containing canonical ``master_values`` and ``renamed_columns``
@@ -881,7 +780,7 @@ class QTable:
             )
         """
         matrix_reserved_cols = matrix_reserved_cols or []
-        master_resolved = master.assert_columns([master_value_col], case_sensitive=case_sensitive)
+        master_resolved = master.assert_columns([master_value_col])
         master_col_name = master_resolved.get(master_value_col, master_value_col)
 
         master_values = [
@@ -892,29 +791,26 @@ class QTable:
 
         master_lookup = {}
         for value in master_values:
-            key = value if case_sensitive else self._normalize_token(value)
+            key = self._vkey(value)
             if key in master_lookup and master_lookup[key] != value:
                 raise ValueError(
-                    f"Duplicate values in {master.name} '{master_col_name}' (case-insensitive): "
+                    f"Duplicate values in {master.name} '{master_col_name}': "
                     f"{master_lookup[key]}, {value}"
                 )
             master_lookup[key] = value
 
         matrix_columns = self.columns
-        reserved_keys = {
-            col if case_sensitive else self._normalize_token(col)
-            for col in matrix_reserved_cols
-        }
+        reserved_keys = {self._normalize_token(col) for col in matrix_reserved_cols}
 
         matrix_lookup = {}
         for col in matrix_columns:
             col_text = str(col).strip()
-            key = col_text if case_sensitive else self._normalize_token(col_text)
-            if key in reserved_keys:
+            if self._normalize_token(col_text) in reserved_keys:
                 continue
+            key = self._vkey(col_text)
             if key in matrix_lookup and matrix_lookup[key] != col:
                 raise ValueError(
-                    f"Duplicate value columns in {self.name} (case-insensitive): "
+                    f"Duplicate value columns in {self.name}: "
                     f"{matrix_lookup[key]}, {col}"
                 )
             matrix_lookup[key] = col

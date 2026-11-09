@@ -12,28 +12,24 @@ class QRelation:
     """A foreign-key relationship from a detail table to a master table."""
 
     def __init__(self, master, detail, master_key='id', detail_key=None,
-                 relation_type='one-to-many', on_delete='restrict', nullable=False):
+                 relation_type='one-to-many', nullable=False):
         self.master = master
         self.detail = detail
         self.master_key = _fields(master_key)
         self.detail_key = _fields(detail_key or master_key)
         self.relation_type = relation_type
-        self.on_delete = on_delete
         self.nullable = nullable
         if len(self.master_key) != len(self.detail_key):
             raise ValueError('Master and detail keys must have the same number of columns')
         if relation_type not in ('one-to-one', 'one-to-many', 'many-to-one'):
             raise ValueError('Use a junction table for many-to-many relationships')
-        if on_delete not in ('restrict', 'cascade', 'set_null'):
-            raise ValueError("on_delete must be 'restrict', 'cascade', or 'set_null'")
 
     def to_dict(self):
         """Return a dictionary representation of the relationship."""
         return {'master': self.master, 'detail': self.detail,
                 'master_key': self.master_key[0] if len(self.master_key) == 1 else self.master_key,
                 'detail_key': self.detail_key[0] if len(self.detail_key) == 1 else self.detail_key,
-                'relation_type': self.relation_type, 'on_delete': self.on_delete,
-                'nullable': self.nullable}
+                'relation_type': self.relation_type, 'nullable': self.nullable}
 
     def validate(self, db):
         """Validate the relationship against the given database, checking for key consistency and referential integrity."""
@@ -45,7 +41,7 @@ class QRelation:
             if col not in detail.columns:
                 raise ValueError(f'{detail.name}: relationship column not found: {col}')
         parent = set()
-        for i, row in enumerate(master.records(skip_blank=False, skip_header=False, strip=False), 1):
+        for i, row in enumerate(master, 1):
             vals = [row[c] for c in self.master_key]
             if any(_blank(v) for v in vals):
                 raise ValueError(f'{master.name}: blank master key at row {i}')
@@ -54,7 +50,7 @@ class QRelation:
                 raise ValueError(f'{master.name}: duplicate master key {k!r}')
             parent.add(k)
         seen = set()
-        for i, row in enumerate(detail.records(skip_blank=False, skip_header=False, strip=False)):
+        for i, row in enumerate(detail):
             vals = [row[c] for c in self.detail_key]
             if all(_blank(v) for v in vals) and self.nullable:
                 continue
@@ -156,54 +152,8 @@ class QBase:
         if relation is None:
             raise KeyError(f'No relationship: {master} -> {detail}')
         wanted = _fields(master_key) if len(relation.master_key) > 1 else [master_key]
-        return [row for row in self[detail].records(skip_blank=False, skip_header=False, strip=False)
+        return [row for row in self[detail]
                 if _key([row[c] for c in relation.detail_key]) == _key(wanted)]
-
-    def delete(self, table_name, key):
-        """Delete a master row, applying on-delete rules through every level of related tables."""
-        table = self[table_name]
-        record = table.get(key)
-        if record is None:
-            return False
-        snapshots = {name: t.data for name, t in self._tables.items()}
-        try:
-            self._apply_delete_rules(table_name, record, set())
-            table.delete(key)
-        except Exception:
-            for name, data in snapshots.items():
-                self._tables[name]._data = data
-            raise
-        return True
-
-    def _apply_delete_rules(self, table_name, record, visited):
-        """Restrict/cascade/set-null the rows that reference ``record`` in related tables."""
-        for i, relation in enumerate(self._relations):
-            if relation.master != table_name:
-                continue
-            master_key = _key([record[c] for c in relation.master_key])
-            if (i, master_key) in visited:
-                continue
-            visited.add((i, master_key))
-            children = self[relation.detail]
-            rows = children.records(skip_blank=False, skip_header=False, strip=False)
-            matches = [r for r in rows if _key([r[c] for c in relation.detail_key]) == master_key]
-            if not matches:
-                continue
-            if relation.on_delete == 'restrict':
-                raise ValueError(f'Cannot delete {table_name} {master_key!r}: referenced by {relation.detail}')
-            if relation.on_delete == 'cascade':
-                for match in matches:
-                    self._apply_delete_rules(relation.detail, match, visited)
-                rows = children.records(skip_blank=False, skip_header=False, strip=False)
-                children._commit([r for r in rows
-                                  if _key([r[c] for c in relation.detail_key]) != master_key])
-            else:
-                if not relation.nullable:
-                    raise ValueError(f'{relation.detail}: set_null requires nullable=True')
-                for row in rows:
-                    if _key([row[c] for c in relation.detail_key]) == master_key:
-                        row.update({c: None for c in relation.detail_key})
-                children._commit(rows)
 
     def to_dict(self):
         """Serialize tables (with schema and keys) and relationships."""

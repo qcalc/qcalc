@@ -102,7 +102,12 @@ e.g. you do not ever require "from qcore import Qty" statement for frontend calc
   `assert_columns`, `assert_unique`, `assert_foreign_key`,
   `assert_unique_pairs`, `assert_complete_cross_join`, and
   `assert_columns_match_domain`.
-
+- To read table data use `QTable.select(cols, where=None, **criteria)` (SQL-like
+  column subset and row filter; skips blank/repeated-header rows and trims text by
+  default), e.g. `t.select(['Name'], Dept='IT')`. `t.find(**criteria)` returns the
+  first matching record and `t.to_map(key, value)` builds a `{key: value}` dict.
+  Declare casts in the schema, e.g. `QTable(df, schema={'Qty': {'cast': float}})`
+  followed by `t.validate(raise_exception=True)`.
 ### 4.2 Backend Calculators
 - Backend calculators are typically under `qcalc/calculators/all/`.
 - Backend Extendended set of calculators may be under `qcalc/calculators/ext/` or supported subtrees.

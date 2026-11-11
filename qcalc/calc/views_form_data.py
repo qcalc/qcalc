@@ -68,7 +68,7 @@ def q11429_func_to_form_schema(request: HtmxHttpRequest, func_addr, func_id, cid
     if request.recall and QPref.getp1('memory') > 0:  # | recall and request is not None
         # | the fields a 'reload' trigger resets take their default values, not the remembered ones
         reset = ctx.extra.get('reset') or []
-        remembered = {k: v for k, v in (QMem.getf(func_id) or {}).items() if k not in reset}
+        remembered = {k: v for k, v in (QMem.getf(func_id) or {}).items() if k not in reset and k in fargs}
 
     # | start callback point __input (q11429, views_form_data.py, line 37)
     # | func__input(ctx)

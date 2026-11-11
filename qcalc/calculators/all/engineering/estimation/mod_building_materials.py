@@ -46,7 +46,6 @@ _ROWS = {
     'quick_bricks_sft': dict(low=8, typical=8.5, high=9),
     'quick_area_sft_sft': dict(formwork=3.0, plaster=3.5, paint=4.2, tiles=1.0),
     'quick_rmc_removed': dict(cement=0.67, sand=0.44, aggregate=1.0),
-    'quick_labour_share': dict(low=0.25, typical=0.30, high=0.35),  # share of the estimated cost
     # mandays per unit of finished work; only brickwork, concrete and steel have published sources
     'labour_skilled': dict(brickwork_m3=0.9, plaster_m2=0.12, screed_tile_m2=0.16, concrete_m3=0.2, pcc_m3=0.10,
                            formwork_m2=0.25, steel_tonne=0.10, paint_m2=0.04, soling_m2=0.05),
@@ -148,8 +147,6 @@ def _read_table(materials_table):
             raise ValueError(f'materials_table: {group} must satisfy 0 < low <= typical <= high.')
     if min(values.values()) < 0:
         raise ValueError('materials_table: values cannot be negative.')
-    if values[('quick_labour_share', 'high')] >= 1:
-        raise ValueError('materials_table: quick_labour_share must be below 1.')
     if any(values[('labour_rmc_scale', k)] > 1 for k in ('skilled', 'unskilled')):
         raise ValueError('materials_table: labour_rmc_scale values must be between 0 and 1.')
     return values
@@ -160,13 +157,13 @@ def _edited(values):
             if g in _ROWS and k in _ROWS[g] and abs(x - _ROWS[g][k]) > 1e-12]
 
 
-def building_materials(*, plot_length, plot_width, coverage, floors, soil, materials_table, method,
+def estimate_materials(*, plot_length, plot_width, coverage, floors, soil, materials_table, method,
                        structure_density, concrete_supply, mix, mix_ratio, seismic, include_base_works,
                        finishes, rooms, stairs, storey_height, brick_length, brick_width, brick_height,
                        ext_wall_thickness, int_wall_thickness, joint_thickness, masonry_mortar,
                        plaster_mortar, mortar_dry_factor, concrete_dry_factor, cement_bag_volume,
-                       brick_wastage, include_labour, labour_productivity, estimated_cost, currency):
-    """Return the result items (scalars and tables) for the materials section of building_cost."""
+                       brick_wastage, include_labour, labour_productivity):
+    """Return the result items (scalars and tables) of the building_materials calculator."""
     v = _read_table(materials_table)
     metric = _is_metric(plot_length)
     rmc = concrete_supply == 'ready_mix'
@@ -285,6 +282,7 @@ def building_materials(*, plot_length, plot_width, coverage, floors, soil, mater
     ordered = {n: x * (1 + w) for n, _, x, w in orders}
 
     result = {
+        'Footprint Area': cell('area', footprint), 'Total Built-up Area': cell('area', bua),
         'Concrete': cell('m3', src['Concrete']), 'Steel': cell('kg', ordered['Steel']),
         'Cement': cell('bag', ordered['Cement']), 'Sand': cell('vol', ordered['Sand']),
         'Gravel': cell('vol', ordered['Gravel']),
@@ -319,16 +317,9 @@ def building_materials(*, plot_length, plot_width, coverage, floors, soil, mater
     result['Intensity per Area'] = {
         'data': intensity, 'columns': ['Material'] + ['Quick'] * quick_on + ['Detailed'] * detailed_on}
 
-    if include_labour:
-        if detailed_on:
-            result['Labour by Trade'] = {'data': _labour_rows(detail, structure_density, cell),
-                                         'columns': ['Trade', 'Quantity', 'Skilled', 'Unskilled']}
-        if quick_on:
-            shares = [v[('quick_labour_share', b)] for b in ('low', 'typical', 'high')]
-            result['Quick Labour Cost'] = {
-                'data': [['Share of Estimated Cost'] + [f'{s * 100:g} %' for s in shares],
-                         ['Labour cost'] + [Qty(s * estimated_cost, currency) for s in shares]],
-                'columns': ['Basis', 'Low', 'Typical', 'High']}
+    if include_labour and detailed_on:
+        result['Labour by Trade'] = {'data': _labour_rows(detail, structure_density, cell),
+                                     'columns': ['Trade', 'Quantity', 'Skilled', 'Unskilled']}
 
     notes = ['Preliminary estimate; foundation type, structural design and local practice can change quantities by 20 pct or more.']
     if detailed_on and structure_density == 'light' and (floors > 2 or seismic == 'high' or soil == 'poor'):
@@ -336,6 +327,8 @@ def building_materials(*, plot_length, plot_width, coverage, floors, soil, mater
                      'and normal or good soil. Consider typical density and consult an engineer.')
     if both and flagged:
         notes.append(f'The two methods differ by more than {FLAG_PCT} pct on: {", ".join(flagged)}.')
+    if include_labour and not detailed_on:
+        notes.append('Labour is estimated by the Detailed method only; choose Detailed or Both methods to see it.')
     if include_labour and detailed_on:
         notes.append('Detailed labour counts the modelled trades only; earthwork, electrical, plumbing, doors and windows, '
                      'supervision and contractor overhead are not included. Price the mandays with the cost calculator.')

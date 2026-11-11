@@ -7,6 +7,8 @@ from qcore import Qty, qfl
 def ccwork__info():
     return {
         'title': 'Estimate Gravel, Cement and Sand for Plain Cement Concrete work',
+        'kins': 'brickwork, plaster',
+        'tags': 'construction, estimation',
         'schema': {
             'csg_ratio': {'label': 'Cement Sand Gravel Ratio'},
         },
@@ -54,6 +56,8 @@ def ccwork(work_thickness='3 inch', work_length='10.0 ft', work_width='15 inch',
 def brickwork__info():
     return {
         'title': 'Estimate Brick, Cement and Sand for Brickwork',
+        'kins': 'ccwork, plaster',
+        'tags': 'construction, estimation',
         'interactive': True,
         'schema': {
             'work_thickness': {
@@ -123,6 +127,8 @@ def brickwork(brick_length='9.5 inch', brick_width='4.5 inch', brick_height='2.7
 
 def plaster__info(): return {
     'title': 'Estimate Cement and Sand for Plaster work',
+    'kins': 'brickwork, ccwork',
+    'tags': 'construction, estimation',
     'schema': {
         'schema': {
             'cs_ratio': {'label': 'Cement Sand Ratio'},

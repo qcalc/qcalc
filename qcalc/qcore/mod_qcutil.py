@@ -23,10 +23,10 @@ def request_prefs():
     return request.pref if request is not None else thread_prefs()
 
 
-def qformat_q(qty: Qty | str, val_only=False) -> str:
+def qformat_q(qty: Qty | str, val_only=False, thousands_separator=None) -> str:
     if isinstance(qty, str):
         qty = Qty(qty)
-    vstr, ustr = qformat(qty.val, qty.unit)
+    vstr, ustr = qformat(qty.val, qty.unit, thousands_separator=thousands_separator)
     return f'{vstr} {ustr}' if not val_only else vstr
 
 
@@ -35,7 +35,7 @@ def qformat_v(val) -> str:
     return vstr
 
 
-def qformat(val, unit=None, pref=None) -> None | str | list[str]:
+def qformat(val, unit=None, pref=None, thousands_separator=None) -> None | str | list[str]:
     # | value and quantity formatter
     if val is None or (isinstance(val, float) and math.isnan(val)):
         return val if unit is None else [val, unit.name()]
@@ -75,7 +75,9 @@ def qformat(val, unit=None, pref=None) -> None | str | list[str]:
     if pref['ignore_decimal_format']:
         return str(val) if unit is None else [str(val), funame]
 
-    tsep = ',' if pref['thousands_separator'] else ''
+    if thousands_separator is None:
+        thousands_separator = pref['thousands_separator']
+    tsep = ',' if thousands_separator else ''
     if (int(val) == val and abs(val) <= 1e16) and not is_cur:
         fg = 'f'
         dec = 0

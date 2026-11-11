@@ -89,7 +89,8 @@ def cost__input(ctx):
     # probably it is better to restrict invoking __input() during GET only
     items = ctx.var_url('items')  # var_url data available only during GET
     if isinstance(items, pd.DataFrame):  # can't have if items, truth value of df is ambiguous
-        items['Quantity'] = items['Quantity'].apply(qformat_q)  # format data
+        # | no thousands separator: Quantity is read back by cost() and Qty() can't parse commas
+        items['Quantity'] = items['Quantity'].apply(lambda q: qformat_q(q, thousands_separator=False))
         return {
             'items': items,
         }

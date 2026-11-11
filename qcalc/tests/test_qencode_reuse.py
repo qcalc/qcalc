@@ -58,6 +58,15 @@ def test_step2_pack_value_handles_qty_datetime_and_dataframe():
     assert packed_df['data'] == [[1, 3], [2, 4]]
 
 
+def test_step2_pack_table_packs_qty_cells_and_round_trips():
+    df = pd.DataFrame({'a': [Qty('1234567.5 kg'), 2]})
+
+    packed = enc.step2_pack_value(df)
+
+    assert packed['data'][0][0] == {'__qcalc_type': 'qty', 'value': '1234567.5 kg'}
+    assert enc.step2_unpack_for_run(packed)['data'] == [['1234567.5 kg'], [2]]
+
+
 def test_step2_pack_value_shared_references_are_not_dropped():
     shared_list = [1, 2]
     shared_dict = {'k': 'v'}

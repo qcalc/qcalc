@@ -61,8 +61,8 @@ def amort(loan_amount: float = 100000.0, annual_interest_rate: float = 5.0, loan
     chart.legend_loc_best = 'upper center'
     chart.render_lines(**chdata, ylabel='Amount', title='Amortization')
 
-    for c in range(1, 8):
-        df[columns[c]] = df[columns[c]].apply('{:,.2f}'.format)
+    # for c in range(1, 8):
+    #     df[columns[c]] = df[columns[c]].apply('{:,.2f}'.format)
 
     return {
         "Amortization Schedule": df,

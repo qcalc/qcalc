@@ -13,6 +13,7 @@ import qsett
 qsett.init()
 
 from qcore import Qty, df_formatter, replace_cur, to_ucur
+from qcore.mod_qcutil import qformat_q
 from qutil import QThread
 
 
@@ -54,6 +55,19 @@ class TestDfFormatter(unittest.TestCase):
 
         self.assertEqual(df_formatter('1.23456'), '1.23456')
         self.assertEqual(df_formatter('1.23456', unit_hint='m'), '1.235 m')
+
+    def test_qformat_q_thousands_separator_override(self):
+        QThread.set_pref({
+            'decimal': 5,
+            'qty_decimal': 3,
+            'currency_decimal': 2,
+            'ignore_decimal_format': False,
+            'thousands_separator': True,
+        })
+
+        qty = Qty('1234567.5 kg')
+        self.assertEqual(qformat_q(qty), '1,234,567.5 kg')
+        self.assertEqual(qformat_q(qty, thousands_separator=False), '1234567.5 kg')
 
 
 class TestCurrencyPreferenceHelpers(unittest.TestCase):

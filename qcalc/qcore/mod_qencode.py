@@ -49,11 +49,11 @@ def _pack_table(df: pd.DataFrame):
     }
 
 
-def _pack_table_dict(value: dict):
+def _step2_pack_table(columns, rows, seen):
     return {
         '__qcalc_type': 'table',
-        'columns': value['columns'],
-        'data': value['data'],
+        'columns': columns,
+        'data': [[step2_pack_value(cell, seen) for cell in row] for row in rows],
     }
 
 
@@ -256,10 +256,10 @@ def step2_pack_value(value, _seen=None):
             _seen.discard(value_id)
 
     if isinstance(value, pd.DataFrame):
-        return _pack_table(value)
+        return _step2_pack_table([str(col) for col in value.columns], value.values.tolist(), _seen)
 
     if isinstance(value, dict) and {'columns', 'data'} <= value.keys():
-        return _pack_table_dict(value)
+        return _step2_pack_table(value['columns'], value['data'], _seen)
 
     if isinstance(value, (datetime.date, datetime.datetime, datetime.time)):
         return str(QDateTime(value))
@@ -294,7 +294,7 @@ def step2_unpack_for_run(value):
         if qtype == 'table':
             return {
                 'columns': value.get('columns', []),
-                'data': value.get('data', []),
+                'data': [[step2_unpack_for_run(cell) for cell in row] for row in value.get('data', [])],
             }
         return {key: step2_unpack_for_run(val) for key, val in value.items()}
 

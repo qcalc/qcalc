@@ -13,7 +13,7 @@ import qutil as ut
 from calc.templatetags.qfilter import field_root
 from qcore import (
     QChart, QImage, QMap, Qty, QDateTime,
-    df_formatter, is_qtbl, qformat, qchat,
+    is_qtbl, qformat, qchat,
     qhtml, qjson_dumps, qerror, qinfo,
     qpage, qwarn, qvstr, wrap_actions,
 )
@@ -209,7 +209,7 @@ def q1145_result_to_form_schema(request, func_id, cid, result, proper_dict):
                     process_result(value, join_title(name, str(i + 1)) if lnr > 1 else name)
                     i += 1
             elif all(isinstance(v, (float, Qty, int, str, bool, date, datetime, dt_time)) for v in result):
-                df = pd.DataFrame({ut.variable_to_title(name, proper_dict): [df_formatter(cell) for cell in result]})
+                df = pd.DataFrame({ut.variable_to_title(name, proper_dict): list(result)})
                 rs_item(request, name, df)
             else:
                 i = 0

@@ -2,11 +2,12 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 # Tests generated with AI assistance. Reviewed and validated by the author.
 
-import qsett
 
+import unittest
+
+import qsett  # noqa: F401  # ensures Django settings are configured
 from calc.templatetags.qfilter import field_root
 from qconst import TOK_INDEX_SEP, TOK_PART, TOK_PART_UOM, TOK_UOM
-
 
 qsett.init()
 
@@ -58,14 +59,47 @@ def test_field_root_gold_weight_india_regression_exact_names():
         assert field_root(name) == expected_root
 
 
-# SPDX-License-Identifier: MIT
-# Copyright (c) 2024-2026 Debasish C Saha
+def test_field_root_multi_digit_and_alphanumeric_part_index():
+    assert field_root(f"ratio") == "ratio"
+    assert field_root(f"ratio{TOK_INDEX_SEP}cement{TOK_PART}") == "ratio"
+    assert field_root(f"ratio{TOK_INDEX_SEP}gravel{TOK_PART}") == "ratio"
 
-import unittest
 
-import qsett  # noqa: F401  # ensures Django settings are configured
-from calc.templatetags.qfilter import field_root
-from qconst import TOK_INDEX_SEP, TOK_PART, TOK_PART_UOM, TOK_UOM
+def test_field_root_qdict_key_wins_over_suffix():
+    assert field_root("x--A") == "x"
+    assert field_root("x--A--B") == "x"
+    assert field_root(f"x--A{TOK_UOM}") == "x"
+    assert field_root(f"x--A{TOK_INDEX_SEP}1") == "x"
+
+
+def test_field_root_only_strips_trailing_suffix():
+    assert field_root(f"a{TOK_UOM}_b") == f"a{TOK_UOM}_b"
+    assert field_root(f"a{TOK_PART}_b") == f"a{TOK_PART}_b"
+    assert field_root(f"a{TOK_PART_UOM}_b") == f"a{TOK_PART_UOM}_b"
+    assert field_root(f"a{TOK_INDEX_SEP}1_b") == f"a{TOK_INDEX_SEP}1_b"
+
+
+def test_field_root_names_that_merely_resemble_suffixes_are_unchanged():
+    for name in ("part", "uom", "weight_party", "volume_uomx", "x_parts", "x_par", "x_1"):
+        assert field_root(name) == name
+
+
+def test_field_root_is_idempotent():
+    names = [
+        "x",
+        f"x{TOK_UOM}",
+        f"x{TOK_PART_UOM}",
+        f"x{TOK_INDEX_SEP}2{TOK_PART_UOM}",
+        f"x{TOK_INDEX_SEP}1",
+        "x--A",
+    ]
+
+    for name in names:
+        root = field_root(name)
+        assert field_root(root) == root
+
+
+
 
 
 class TestFieldRoot(unittest.TestCase):

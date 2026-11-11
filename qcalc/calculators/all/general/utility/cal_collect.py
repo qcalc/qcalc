@@ -212,11 +212,11 @@ def rates__info():
 
 
 def rates(rate_schedule: qtable = pd.DataFrame({
-    'Item': ['Brick', 'Sand', 'Cement'],
-    'Price': [10.0, 2000.0, 500.0],
-    'Currency': ['BDT', 'BDT', 'BDT'],
-    'Price Per': [1, 100, 1],
-    'Price Unit': ['ea', 'cft', 'bag']
+    'Item': ['Brick', 'Sand', 'Cement', 'Gravel', 'Steel', 'Skilled Labour', 'Unskilled Labour'],
+    'Price': [10.0, 20.0, 500.0, 200.0, 100.0, 1200, 1000],
+    'Currency': ['BDT', 'BDT', 'BDT', 'BDT', 'BDT', 'BDT', 'BDT'],
+    'Price Per': [1, 1, 1, 1, 1, 1, 1],
+    'Price Unit': ['ea', 'cft', 'bag', 'cft', 'kg', 'manday', 'manday']
 })):
     def calprice(row):
         uprice = float(row['Price'].replace(',', '')) / float(row['Price Per'].replace(',', ''))

@@ -53,7 +53,8 @@ TOK_RESULT_SUFFIX = '__r'
 TOK_RESULT_SUFFIX_PATTERN = re.compile(r'__r[a-z]?')
 TOK_LIST_INDEX_PATTERN = rf'{re.escape(TOK_INDEX_SEP)}\d+$'
 
-_token_part_with_optional_index = rf'(?:{re.escape(TOK_INDEX_SEP)}\d+)?{re.escape(TOK_PART)}'
+# _token_part_with_optional_index = rf'(?:{re.escape(TOK_INDEX_SEP)}\d+)?{re.escape(TOK_PART)}'
+_token_part_with_optional_index = rf'(?:{re.escape(TOK_INDEX_SEP)}[0-9a-zA-Z]+)?{re.escape(TOK_PART)}'
 FIELD_ROOT_SUFFIX_PATTERN = re.compile(
     rf'{_token_part_with_optional_index}(?:{re.escape(TOK_UOM)})?$|{re.escape(TOK_UOM)}$'
 )

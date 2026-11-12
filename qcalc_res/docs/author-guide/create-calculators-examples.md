@@ -104,6 +104,17 @@ def item_costs(items: qtbl = {
   * `'fixed_headers': ['Quantity']` locks only the header, the values remain editable. Use `True` to lock every column.
   * Column names match ignoring case and any `|unit` suffix. The default table in the function signature is the reference, and the server restores any locked header or value that is changed.
   * Tables with locked columns cannot be replaced by pasting or by loading a CSV/JSON file.
+* To limit or widen columns of an input table, add `'col_widths'` to the same `attrs`:
+  * `'col_widths': {'Group': 150, 'Label': {'max': 320, 'wrap': True}, 'Value': {'min': 90}}`.
+  * A whole number is the maximum width of that column in pixels. A dict may hold `min`, `max` and `width` (pixels) and `wrap` (`True` shows long text on several lines instead of cutting it off). Columns that are not listed keep the default of 60 to 320 pixels.
+  * Column names match like the lock options: ignoring case and any `|unit` suffix; a name that is not a column is ignored.
+  * Widths are display only: they do not lock anything and can be combined with `readonly_cols` and `fixed_headers`. A value that is not a positive whole number, or `min` greater than `max`, raises an error.
+* `'align': {'Value': 'right'}` in the same `attrs` aligns a column and its header (`left`, `center` or `right`).
+* To format output tables, add `out_schema` to `__info`, keyed by the result name:
+  * `'out_schema': {'Method Comparison': {'attrs': {'col_widths': {'Note': {'max': 260, 'wrap': True}}, 'align': {'Quantity': 'right'}, 'page_all': True}}}`.
+  * `col_widths` and `align` work as for input tables. `page_all` shows every row of that table without paging and overrides the calculator-wide `table_out_all` for it (`False` keeps paging although `table_out_all` is on).
+  * Numeric output columns are right-aligned automatically, header included: int/float columns, `|unit` columns, and columns where every non-empty cell is a number or number with a unit (`'399.6 bag'`, `'+39 %'`). Text, dates and booleans stay left. Use `'align': {'Year': 'left'}` to opt a column out. Input tables are not auto-aligned.
+  * The key is the result name as returned, for example `'Method Comparison'`; a nested result uses its joined title. Names of columns that are not in the table are ignored, so one entry can serve results whose columns vary. Any other `attrs` key raises an error.
 
 
 ## Example 4: Nested calculator, `qfunc`

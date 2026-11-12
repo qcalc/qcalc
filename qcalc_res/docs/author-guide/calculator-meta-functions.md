@@ -73,6 +73,7 @@ Following table lists down the optional elements or info keys of a metadata func
 | `desc` | string | Short explanation shown above the inputs. |
 | `calculate` | string | Caption for the calculation button. |
 | `schema` | dict | Per-input widget, choices, initial value, labels, and validation options. |
+| `out_schema` | dict | Per-result display options of output tables: `col_widths`, `align`, `page_all`, see [create-calculators-examples](create-calculators-examples.md). |
 | `autofill` | dict | Fill several inputs after a user chooses one value. |
 | `related` | dict | Build dependent selection lists, such as country -> state -> city. |
 | `showhide` | dict | Show or hide inputs when another input changes. |

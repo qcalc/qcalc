@@ -13,7 +13,6 @@ Typical uses:
 
 - Open another calculator with selected output values
 - Open a chart editor from an output chart
-- Open cost calculation (`cost`) from material quantities (e.g. `brickwork`, `ccwork`)
 - Open scenario analysis (`scenario`) from scenario comparison (`compare`)
 
 ---
@@ -86,29 +85,6 @@ For `step: 'run'`, selector mode picks source fields and auto-maps each picked f
 ```
 
 This is convenient when source field names already match target argument names after normalization.
-
-### C. Cost flow using run (`func: 'cost'`)
-
-
-```python
-'step2': [
-    {
-        'step': 'run',
-        'func': 'cost',
-        'caption': 'Calculate Cost of Materials',
-        'spec': '~Brick Work Volume'
-    }
-]
-```
-
-For `func: 'cost'`, qCalc treats `spec` as a selector over output fields, then prepares the `cost` calculator's `items` table automatically from the selected Qty outputs.
-
-Supported patterns:
-
-- `'~Some Field'` (exclude one field)
-- `'~Field A, ~Field B'` (exclude many fields)
-- `'*'` or empty spec to include all output fields
-- dict mapping still works if you explicitly provide `items` (for advanced/custom flows)
 
 Selector mode uses `specified_args()` behavior, including:
 - names (case-insensitive)
@@ -184,6 +160,5 @@ Before saving a step2 config:
 - `spec` matches intended mode:
   - dict for destination→source mapping
   - selector string/list for `specified_args()` style picking/filtering
-- if target is `cost`, use run-style with `func: 'cost'`
 
 ---

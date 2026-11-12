@@ -1,9 +1,10 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
+from calc import QCost
 from qcore import Qty, qtbl, QTable
 
-__all__ = ['building_cost', 'building_cost__info']
+__all__ = ['building_cost_quick', 'building_cost_quick__info']
 
 # Factors are kept outside the calculation so they can be tuned
 # without touching the logic. They are illustrative, not quotations.
@@ -41,10 +42,10 @@ def _num(value, unit='unit'):
         return Qty(text, unit).val
 
 
-def building_cost__info():
+def building_cost_quick__info():
     return {
         'title': 'Quick Building Cost Estimator',
-        'kins': 'building_materials',
+        'kins': 'building_cost_detailed',
         'tags': 'construction, estimation',
         'desc': (
             'Rough on-the-spot estimate of the construction cost of a one or multi-storied building. '
@@ -85,14 +86,14 @@ def building_cost__info():
             ],
         }],
         'step2': [
-            {'step': 'run', 'func': 'building_materials', 'caption': 'Estimate Materials',
+            {'step': 'run', 'func': 'building_cost_detailed', 'caption': 'Detailed Estimate',
              'spec': {'plot_length': 'plot_length', 'plot_width': 'plot_width', 'floors': 'floors',
                       'coverage': 'coverage', 'soil': 'soil'}},
         ],
     }
 
 
-def building_cost(plot_length='37 ft', plot_width='27 ft', floors=1, coverage='100 pct',
+def building_cost_quick(plot_length='37 ft', plot_width='27 ft', floors=1, coverage='100 pct',
                   base_rate='3000 BDT/sft', quality='standard', location='urban', soil='normal',
                   factors_table: qtbl = _default_factors_table(),
                   foundation_share='15 pct', foundation_increase_per_floor='20 pct',
@@ -137,8 +138,7 @@ def building_cost(plot_length='37 ft', plot_width='27 ft', floors=1, coverage='1
         superstructure = (total_area * rate * (1 - share) * factors_map[('quality', quality_key)][1]
                           * factors_map[('location', location)][1])
         subtotal = foundation + superstructure
-        markup_cost = subtotal * markup_v
-        contingency_cost = (subtotal + markup_cost) * contingency_v
+        markup_cost, contingency_cost = QCost.compound(subtotal, [markup_v, contingency_v])
         return foundation, superstructure, markup_cost, contingency_cost, subtotal + markup_cost + contingency_cost
 
     foundation, superstructure, markup_cost, contingency_cost, total = estimate(quality)

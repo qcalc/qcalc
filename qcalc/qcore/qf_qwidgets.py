@@ -7,11 +7,17 @@ from django.utils.safestring import mark_safe
 from django.forms import Widget
 import pandas as pd
 import json
+from itertools import count
 from .qd_df import resize_df
 from qcore.qf_anno import is_qtbl, wrap_actions, fullscreen_button
 from qconst import TOK_ROW, TOK_COL, TOK_TABLE_RESIZE, TOK_TABLE_ED, TOK_TABLE_UPDATE, TOK_ID_PREFIX, TOK_FIELD_SEP, \
     TBL_UOM_SEP
 import re
+
+
+def _base_name(column):
+    """A column name as authors write it in ``attrs``: without the ``|uom`` suffix, ignoring case."""
+    return str(column).split(TBL_UOM_SEP)[0].strip().casefold()
 
 
 def table_lock_indices(attrs, columns):
@@ -22,16 +28,99 @@ def table_lock_indices(attrs, columns):
     case and the ``|uom`` header suffix. Locked values also fix the rows.
     """
     attrs = attrs or {}
-    bases = [str(c).split(TBL_UOM_SEP)[0].strip().casefold() for c in columns]
+    bases = [_base_name(c) for c in columns]
 
     def pick(spec):
         if spec is True:
             return set(range(len(bases)))
-        names = {str(n).split(TBL_UOM_SEP)[0].strip().casefold() for n in (spec or [])}
+        names = {_base_name(n) for n in (spec or [])}
         return {i for i, b in enumerate(bases) if b in names}
 
     values = pick(attrs.get('readonly_cols'))
     return values | pick(attrs.get('fixed_headers')), values
+
+
+_COL_WIDTH_OPTIONS = {'min': 'tabulator-minwidth', 'max': 'tabulator-maxwidth', 'width': 'tabulator-width'}
+
+
+_ALIGNS = ('left', 'center', 'right')
+
+
+def table_column_options(attrs, columns, numeric=()):
+    """Return ``{column index: ' tabulator-... attributes'}`` for ``attrs['col_widths']`` and ``attrs['align']``.
+
+    ``col_widths={'Label': {'max': 360, 'wrap': True}, 'Value': {'min': 90}, 'Group': 150}``: a whole number is
+    the maximum width in pixels, a dict may hold ``min``, ``max`` and ``width`` (pixels) and ``wrap`` (show long
+    text on several lines). ``align={'Value': 'right'}`` sets the alignment (left, center or right) of the values
+    and the header. The positions in ``numeric`` are right-aligned unless ``align`` says otherwise.
+    Columns that are not listed keep the table default. Names match like the lock options; a name that is not a
+    column is ignored. Raises ValueError for a value that is not valid.
+    """
+    attrs = attrs or {}
+    bases = {_base_name(c): i for i, c in reversed(list(enumerate(columns)))}
+    options = _width_options(attrs.get('col_widths'), bases)
+    aligns = attrs.get('align')
+    if aligns and not isinstance(aligns, dict):
+        raise ValueError("attrs['align'] must be a dict of column name to left, center or right.")
+    by_index = {i: 'right' for i in numeric}
+    for name, align in (aligns or {}).items():
+        if align not in _ALIGNS:
+            raise ValueError(f"align['{name}'] must be one of {', '.join(_ALIGNS)}.")
+        if _base_name(name) in bases:
+            by_index[bases[_base_name(name)]] = align
+    for i, align in by_index.items():
+        options[i] = options.get(i, '') + f' tabulator-hozalign="{align}" tabulator-headerhozalign="{align}"'
+    return options
+
+
+_OUT_ATTRS = ('col_widths', 'align', 'page_all')
+
+
+def table_out_attrs(out_schema, *names):
+    """Return the ``attrs`` of the first of ``names`` found in ``out_schema`` ({result: {'attrs': {...}}}).
+
+    Raises ValueError for an attrs key that output tables do not support or a page_all that is not a bool.
+    """
+    entry = next((out_schema[n] for n in names if n in (out_schema or {})), None)
+    attrs = (entry or {}).get('attrs') or {}
+    unknown = set(attrs) - set(_OUT_ATTRS)
+    if unknown:
+        raise ValueError(f"out_schema attrs {sorted(unknown)} are not supported; use {', '.join(_OUT_ATTRS)}.")
+    if 'page_all' in attrs and not isinstance(attrs['page_all'], bool):
+        raise ValueError("out_schema attrs['page_all'] must be True or False.")
+    return attrs
+
+
+def style_table_headers(html, options):
+    """Add the ``table_column_options`` attributes to the header cells of a pandas table; the only ``<th>``."""
+    if not options:
+        return html
+    counter = count()
+    return re.sub(r'<th>', lambda _m: f'<th{options.get(next(counter), "")}>', html)
+
+
+def _width_options(specs, bases):
+    if not specs:
+        return {}
+    if not isinstance(specs, dict):
+        raise ValueError("attrs['col_widths'] must be a dict of column name to width.")
+    options = {}
+    for name, spec in specs.items():
+        spec = {'max': spec} if isinstance(spec, int) and not isinstance(spec, bool) else spec
+        if not isinstance(spec, dict) or not set(spec) <= {*_COL_WIDTH_OPTIONS, 'wrap'}:
+            raise ValueError(f"col_widths['{name}'] must be a whole number or a dict with min, max, width, wrap.")
+        for key in _COL_WIDTH_OPTIONS:
+            if key in spec and (not isinstance(spec[key], int) or isinstance(spec[key], bool) or spec[key] <= 0):
+                raise ValueError(f"col_widths['{name}']['{key}'] must be a positive whole number of pixels.")
+        if spec.get('min', 0) > spec.get('max', float('inf')):
+            raise ValueError(f"col_widths['{name}']: min cannot be greater than max.")
+        if _base_name(name) not in bases:
+            continue
+        text = ''.join(f' {attr}="{spec[key]}"' for key, attr in _COL_WIDTH_OPTIONS.items() if key in spec)
+        if spec.get('wrap'):
+            text += ' tabulator-formatter="textarea"'
+        options[bases[_base_name(name)]] = text
+    return options
 
 
 def table_payload(value):
@@ -470,7 +559,8 @@ class TabulatorWidget(Widget):
             f'<table data-interactive-ignore="true"{lock_attrs} ',
             1,
         )
-        if lock_headers:
+        widths = table_column_options(self.attrs, [str(c) for c in df.columns])
+        if lock_headers or widths:
             # | Tabulator reads tabulator-* attributes of <th> as column options; the header cells are the only <th>
             th_index = iter(range(len(df.columns)))
 
@@ -483,7 +573,7 @@ class TabulatorWidget(Widget):
                     opts += f' tabulator-editor="false" tabulator-cssclass="{cls}"'
                 elif i in lock_headers:
                     opts += ' tabulator-cssclass="q-col-fixed-head"'
-                return f'<th{opts}>'
+                return f'<th{opts}{widths.get(i, "")}>'
             html = re.sub(r'<th>', lock_th, html)
 
         # if mode == 'edit' and extra_cols == 0:

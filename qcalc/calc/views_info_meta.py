@@ -111,6 +111,7 @@ def q1141_read_func_meta(func_id, scope='qpots'):
         # where props are 'type', 'initial', 'choices', 'attr', 'widget', 'required', 'disabled',
         # 'label', 'label_suffix', 'help_text', 'error_messages', 'validators', 'localize'
         # 'attr':{'size':n, 'readonly':True, ...}
+        'out_schema': {},  # {"Result Name":{'attrs':{'col_widths':{}, 'align':{}, 'page_all':bool}}, ...} output tables
         # input interaction patterns
         'interactive': False,  # effective value is resolved per request (mod_prefs.resolve_effective_prefs)
         'autofill': {},  # {"arg1":{"fields":["autof1","autof2",...], "autofill":{"arg1v1":[v1,v2,...],...}}, ...}

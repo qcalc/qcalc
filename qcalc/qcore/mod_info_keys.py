@@ -63,6 +63,7 @@ INFO_KEYS = {
     'provides_data': _key('public'),
     'consumes_data': _key('public'),
     'schema': _key('public'),
+    'out_schema': _key('public'),
     'kins': _key('public'),
     'tags': _key('public'),
     'proper': _key('public'),

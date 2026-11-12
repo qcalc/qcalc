@@ -365,6 +365,8 @@ QCache = QCacheGen(alias=check_setting(settings.QSCHEMA_CACHE_ALIAS, "QSCHEMA_CA
 # | session specific user preferences and data - stay alive throughout the session
 QPref = QDBSession(prefix='pref', volatile=False, defa=qvars.qc_gpref)  # User Preferences
 QData = QSession(prefix='data', volatile=False)  # User Data e.g. rates etc.
+
+QRates = QDBSession(prefix='rates', volatile=False)  # User Schedule of Rates, kept in the account when logged in
 # | session_specific users temporary storage for uploaded files - can be cleared from temp()
 QTemp = QSession(prefix='temp', volatile=False)  # User Temporary files
 # | session_specific users collected results - cleared when?

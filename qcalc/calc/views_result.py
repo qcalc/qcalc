@@ -16,10 +16,11 @@ from qcore import (
     is_qtbl, qformat, qchat,
     qhtml, qjson_dumps, qerror, qinfo,
     qpage, qwarn, qvstr, wrap_actions,
+    table_column_options, table_out_attrs, style_table_headers,
 )
 from .mod_cache import QMem
 from .mod_cutil import keep_format
-from qcore import df2normalized
+from qcore import df2normalized, numeric_columns
 from .views_info_meta import _normalize_layout_blocks, resolve_static_side
 
 logger = logging.getLogger(__name__)
@@ -106,6 +107,7 @@ def q1145_result_to_form_schema(request, func_id, cid, result, proper_dict):
         elif isinstance(value, pd.DataFrame):
             request.json_doc['info']['loop'] = True
             table_id = f"{cid}_{name}"
+            numeric = numeric_columns(value)
             value = df2normalized(value, do_format=True)
             table_html = value.to_html(
                 table_id=table_id,
@@ -113,7 +115,11 @@ def q1145_result_to_form_schema(request, func_id, cid, result, proper_dict):
                 na_rep='None',
                 index=False
             )
-            if request.json_doc['info'].get('table_out_all'):
+            info = request.json_doc['info']
+            attrs = table_out_attrs(info.get('out_schema'), arg_name, name)
+            table_html = style_table_headers(
+                table_html, table_column_options(attrs, [str(c) for c in value.columns], numeric))
+            if attrs.get('page_all', info.get('table_out_all')):
                 table_html = table_html.replace('<table ', '<table data-page-all="true" ', 1)
             request.ojson_data[name] = qhtml(wrap_actions(table_html, 'table-wrap'))
             request.ojson_data_type.append('html')

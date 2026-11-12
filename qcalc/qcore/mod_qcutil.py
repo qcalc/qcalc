@@ -60,7 +60,7 @@ def qformat(val, unit=None, pref=None, thousands_separator=None) -> None | str |
         is_cur = 'C' in dim and 'C-' not in dim  # | e.g. km/USD is not a currency
 
         if has_cur:
-            val, funame = replace_UNC(val, unit.name(), pref_cur=pref.get('defa_currency', 'UNC'))
+            val, funame = unc2pref(val, unit.name(), pref_cur=pref.get('defa_currency', 'UNC'))
         else:
             funame = unit.name()
 
@@ -135,8 +135,8 @@ def df_formatter(var, unit_hint=None, val_only=False):
     return var  # preserve None
 
 
-def replace_cur(val, uname, cur='UNC', pref_cur: str | None = None):
-    """Replace a placeholder/source currency in a unit string with user preference.
+def cur2pref(val, uname, cur='UNC', pref_cur: str | None = None):
+    """Convert source currency in a unit string with the user's preferred currency.
 
     Args:
         val: Quantity numeric value.
@@ -165,9 +165,9 @@ def replace_cur(val, uname, cur='UNC', pref_cur: str | None = None):
     return cqty.val, cqty.uom
 
 
-def replace_UNC(val, uname, pref_cur: str | None = None):
-    """Replace ``UNC`` currency token with the user's preferred currency."""
-    return replace_cur(val, uname, 'UNC', pref_cur)
+def unc2pref(val, uname, pref_cur: str | None = None):
+    """Convert ``UNC`` currency token with the user's preferred currency."""
+    return cur2pref(val, uname, 'UNC', pref_cur)
 
 
 def to_ucur(qty: Qty | str, cur='UNC', pref_cur: str | None = None):
@@ -182,7 +182,7 @@ def to_ucur(qty: Qty | str, cur='UNC', pref_cur: str | None = None):
     dim = qty_obj.unit.dimension
     if 'C' not in dim:
         return qty
-    val, uname = replace_cur(qty_obj.val, qty_obj.uom, cur, pref_cur)
+    val, uname = cur2pref(qty_obj.val, qty_obj.uom, cur, pref_cur)
     if is_qty_obj:
         return Qty(val, uname)
     if val:

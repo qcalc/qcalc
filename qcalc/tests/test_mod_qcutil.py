@@ -12,7 +12,7 @@ import qsett
 
 qsett.init()
 
-from qcore import Qty, df_formatter, replace_cur, to_ucur
+from qcore import Qty, df_formatter, cur2pref, to_ucur
 from qcore.mod_qcutil import qformat_q
 from qutil import QThread
 
@@ -80,7 +80,7 @@ class TestCurrencyPreferenceHelpers(unittest.TestCase):
         self.assertTrue(to_ucur('@ft/BDT', 'bdt', pref_cur=pref_cur).endswith('@ft/EUR'))
 
         qty = Qty('@bdt/s')
-        self.assertEqual(replace_cur(qty.val, qty.uom, 'BDT', pref_cur=pref_cur)[1], 'EUR/s')
+        self.assertEqual(cur2pref(qty.val, qty.uom, 'BDT', pref_cur=pref_cur)[1], 'EUR/s')
 
 
 if __name__ == '__main__':

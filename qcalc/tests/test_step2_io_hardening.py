@@ -112,49 +112,6 @@ def test_q1_step2_run_unpacks_qty_as_string(monkeypatch):
     assert captured["fargs"]["target_arg"] == "2 kg"
 
 
-def test_q1_step2_run_cost_alias_works_with_cost_style_spec(monkeypatch):
-    captured = {}
-
-    def _fake_open_form(_request, fname, fargs, part):
-        captured.update({"fname": fname, "fargs": fargs, "part": part})
-        return HttpResponse("ok")
-
-    monkeypatch.setattr(views, "q1999_func_to_form", _fake_open_form)
-    monkeypatch.setattr(views_step2.QCals, "quick_find_func", lambda name: name)
-
-    request = _make_request(
-        query={
-            "step": "run",
-            "func": "cost",
-            "src_cid": "cid_run_cost",
-            "spec": "~skip_this",
-        }
-    )
-    QThread.set_req(request)
-    QIO.clear()
-    QIO.setp1(
-        "cid_run_cost",
-        {
-            "input": {},
-            "output": {
-                "mass": {"__qcalc_type": "qty", "value": "2 kg"},
-                "skip_this": {"__qcalc_type": "qty", "value": "3 kg"},
-                "price": {"__qcalc_type": "qty", "value": "12 USD"},
-                "label": "ignore",
-            },
-        },
-    )
-
-    response = views_step2.q1_step2(request, _fake_open_form)
-
-    assert response.status_code == 200
-    assert captured["fname"] == "cost"
-    assert captured["part"] == "1"
-    items = captured["fargs"]["items"]
-    assert list(items["Item"]) == ["mass"]
-    assert isinstance(items["Quantity"].iloc[0], Qty)
-
-
 def test_q1_step2_chart_works_with_packed_chart(monkeypatch):
     captured = {}
 

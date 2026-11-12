@@ -1,22 +1,25 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
+from calc import QCost
 from qcore import Qty, qfl
+
+# Outputs that are not priced by include_cost.
+CC_COST_SPEC = '~CC Work Volume'
+BRICK_COST_SPEC = '~Brick Work*'
+PLASTER_COST_SPEC = '~Plaster Work Area'
+COST_HELP = 'Price the quantities and mandays with your saved Schedule of Rates (illustrative rates are used until you save one).'
 
 
 def ccwork__info():
     return {
         'title': 'Estimate Gravel, Cement and Sand for Plain Cement Concrete work',
-        'kins': 'brickwork, plaster',
+        'kins': 'rates, brickwork, plaster',
         'tags': 'construction, estimation',
         'schema': {
             'csg_ratio': {'label': 'Cement Sand Gravel Ratio'},
+            'include_cost': {'help_text': COST_HELP},
         },
-        'step2': [
-            {'step': 'run', 'func': 'cost', 'caption': 'Calculate Cost of Materials',
-             'spec': '~CC Work Volume'
-             },
-        ],
         'inp1': 0.5,
     }
 
@@ -26,6 +29,7 @@ def ccwork(work_thickness='3 inch', work_length='10.0 ft', work_width='15 inch',
            mortar_dry_volume_factor=1.4, cement_bag_volume='1.25 ft**3/bag',
            skilled_labour_rate='10 cft/manday',
            unskilled_labour_rate='10 cft/manday',
+           include_cost=False,
            ):
     work_thickness_inch = Qty(work_thickness, 'inch').val  # inch
     work_length_inch = Qty(work_length, 'inch').val  # inch
@@ -43,7 +47,7 @@ def ccwork(work_thickness='3 inch', work_length='10.0 ft', work_width='15 inch',
     skilled_labour_manday = work_volume / skilled_labour_v
     unskilled_labour_manday = work_volume / unskilled_labour_v
 
-    return {
+    result = {
         'Cement': Qty(total_cement_volume, 'bag'),
         'Sand': Qty(total_sand_volume, 'inch^3').to('cft'),
         'Gravel': Qty(total_gravel_volume, 'inch^3').to('cft'),
@@ -51,12 +55,15 @@ def ccwork(work_thickness='3 inch', work_length='10.0 ft', work_width='15 inch',
         'Skilled Labour': Qty(skilled_labour_manday, 'manday'),
         'Unskilled Labour': Qty(unskilled_labour_manday, 'manday')
     }
+    if include_cost:
+        result.update(QCost.from_result(result, CC_COST_SPEC).results(per=result['CC Work Volume'], per_label='Volume'))
+    return result
 
 
 def brickwork__info():
     return {
         'title': 'Estimate Brick, Cement and Sand for Brickwork',
-        'kins': 'ccwork, plaster',
+        'kins': 'rates, ccwork, plaster',
         'tags': 'construction, estimation',
         'interactive': True,
         'schema': {
@@ -66,12 +73,8 @@ def brickwork__info():
                 'choices': {'1': '1/2 Brick', '2': '1 Brick', '3': '1.5 Bricks', '4': '2 Bricks'},
             },
             'cs_ratio': {'label': 'Cement Sand Ratio'},
+            'include_cost': {'help_text': COST_HELP},
         },
-        'step2': [
-            {'step': 'run', 'func': 'cost', 'caption': 'Calculate Cost of Materials',
-             'spec': '~Brick Work*'
-             },
-        ],
         'layout': 'tb',
         'inp1': 0.5,
     }
@@ -84,6 +87,7 @@ def brickwork(brick_length='9.5 inch', brick_width='4.5 inch', brick_height='2.7
               brick_wastage='5 pct',
               skilled_labour_rate='30 cft/manday',
               unskilled_labour_rate='20 cft/manday',
+              include_cost=False,
               ):
     brick_length_inch = Qty(brick_length, 'inch').val
     brick_width_inch = Qty(brick_width, 'inch').val
@@ -113,7 +117,7 @@ def brickwork(brick_length='9.5 inch', brick_width='4.5 inch', brick_height='2.7
     total_sand_volume_v = mortar_dry_volume_v * cs_ratio__sand_part / (cs_ratio + cs_ratio__sand_part)
     skilled_labour_nos_v = work_volume_v / skilled_labour_v
     unskilled_labour_nos_v = work_volume_v / unskilled_labour_v
-    return {
+    result = {
         'Brick': Qty(total_number_of_bricks_v, 'nos'),
         # | adding a unit will enable cost calculation in conv()
         'Cement': Qty(total_cement_volume_v, 'bag'),
@@ -123,23 +127,22 @@ def brickwork(brick_length='9.5 inch', brick_width='4.5 inch', brick_height='2.7
         'Skilled Labour': Qty(skilled_labour_nos_v, 'manday'),
         'Unskilled Labour': Qty(unskilled_labour_nos_v, 'manday')
     }
+    if include_cost:
+        result.update(QCost.from_result(result, BRICK_COST_SPEC).results(per=result['Brick Work Volume'], per_label='Volume'))
+    return result
 
 
 def plaster__info(): return {
     'title': 'Estimate Cement and Sand for Plaster work',
-    'kins': 'brickwork, ccwork',
+    'kins': 'rates, brickwork, ccwork',
     'tags': 'construction, estimation',
     'schema': {
         'schema': {
             'cs_ratio': {'label': 'Cement Sand Ratio'},
         },
         'work_side': {'type': 'radio', 'choices': {1: 'One Side', 2: 'Both Side'}},
+        'include_cost': {'help_text': COST_HELP},
     },
-    'step2': [
-        {'step': 'run', 'func': 'cost', 'caption': 'Calculate Cost of Materials',
-         'spec': '~Plaster Work Area'
-         },
-    ],
     'inp1': 0.5,
 }
 
@@ -148,7 +151,8 @@ def plaster(work_thickness='0.5 inch', work_length='12 ft', work_width='10 ft',
             work_side=2, cs_ratio: qfl = 1.0, cs_ration__sand_part=4.0,
             mortar_dry_volume_factor=1.5, cement_bag_volume='1.25 ft**3/bag',
             skilled_labour_rate='75 sft/manday',
-            unskilled_labour_rate='50 sft/manday'
+            unskilled_labour_rate='50 sft/manday',
+            include_cost=False
             ):
     work_thickness_inch = Qty(work_thickness, 'inch').val
     work_length_inch = Qty(work_length, 'inch').val
@@ -167,13 +171,16 @@ def plaster(work_thickness='0.5 inch', work_length='12 ft', work_width='10 ft',
     skilled_labour_manday = work_area / skilled_labour_v  # manday
     unskilled_labour_manday = work_area / unskilled_labour_v  # manday
 
-    return {
+    result = {
         'Cement': Qty(total_cement_volume, 'bag'),
         'Sand': Qty(total_sand_volume, 'inch^3').to('cft'),
         'Plaster Work Area': Qty(work_area, 'inch^2').to('sft'),
         'Skilled Labour': Qty(skilled_labour_manday, 'manday'),
         'Unskilled Labour': Qty(unskilled_labour_manday, 'manday')
     }
+    if include_cost:
+        result.update(QCost.from_result(result, PLASTER_COST_SPEC).results(per=result['Plaster Work Area'], per_label='Area'))
+    return result
 
 
 if __name__ == '__main__':

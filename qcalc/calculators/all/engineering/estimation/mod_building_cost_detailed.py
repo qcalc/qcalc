@@ -9,11 +9,9 @@ See qcalc_res/_docs_/building-materials-estimator-spec.md for the formulas and s
 from math import ceil, hypot, sqrt
 from types import SimpleNamespace
 
+from calc import QCost
 from qcore import Qty, QTable, qwarn
 
-SFT = 0.09290304  # m2 per sft
-CFT = 0.028316846592  # m3 per cft
-FT = 0.3048  # m per ft
 PRESETS = ['light', 'lean', 'typical', 'heavy']
 FLAG_PCT = 20
 FRAME = ('footing', 'column', 'beam', 'slab')
@@ -44,7 +42,7 @@ _ROWS = {
     'quick_sand_cft_sft': dict(low=1.1, typical=1.2, high=1.3),
     'quick_aggregate_cft_sft': dict(low=1.35, typical=1.45, high=1.6),
     'quick_bricks_sft': dict(low=8, typical=8.5, high=9),
-    'quick_area_sft_sft': dict(formwork=3.0, plaster=3.5, paint=4.2, tiles=1.0),
+    'quick_area_sft_sft': dict(formwork=3.0, plaster=4.0, paint=4.2, tiles=1.0),
     'quick_rmc_removed': dict(cement=0.67, sand=0.44, aggregate=1.0),
     # mandays per unit of finished work; only brickwork, concrete and steel have published sources
     'labour_skilled': dict(brickwork_m3=0.9, plaster_m2=0.12, screed_tile_m2=0.16, concrete_m3=0.2, pcc_m3=0.10,
@@ -78,11 +76,72 @@ _NOTES = {
 _KINDS = {'Cement': 'bag', 'Steel': 'kg', 'Concrete': 'm3', 'Sand': 'vol', 'Aggregate': 'vol', 'Bricks': 'nos',
           'Formwork': 'area', 'Plaster area': 'area', 'Paint area': 'area', 'Floor tile area': 'area'}
 
+# What each row means, for the Label column of the Coefficients table: (text, unit), {k} is the key in plain words.
+_GROUP_LABELS = {
+    'density': ('Frame concrete, {k}', 'm³ per sft of floor'),
+    'steel_scale': ('Frame steel scale, {k}', 'multiplier on member steel'),
+    'member_share': ('Share of frame concrete in {k}', 'fraction of total'),
+    'steel_kg_m3': ('Steel in {k}', 'kg per m³ of concrete'),
+    'formwork_m2_m3': ('Formwork for {k}', 'm² per m³ of concrete'),
+    'floor_scale': ('Concrete and steel on {k} floors', 'multiplier'),
+    'soil_scale': ('Footing concrete on {k} soil', 'multiplier'),
+    'seismic_steel': ('Steel in {k} seismic zone', 'multiplier'),
+    'steel_lap_wastage': ('Steel lap and wastage', 'fraction added'),
+    'mix_m10': ('M10 mix (used for PCC), {k}', 'parts by volume'),
+    'mix_m15': ('M15 mix, {k}', 'parts by volume'),
+    'mix_m20': ('M20 mix, {k}', 'parts by volume'),
+    'wastage': ('Wastage of {k}', 'fraction added'),
+    'quick_cement_bag_sft': ('Quick rule: cement, {k}', 'bags per sft'),
+    'quick_steel_kg_sft': ('Quick rule: steel, {k}', 'kg per sft'),
+    'quick_concrete_m3_sft': ('Quick rule: concrete, {k}', 'm³ per sft'),
+    'quick_sand_cft_sft': ('Quick rule: sand, {k}', 'cft per sft'),
+    'quick_aggregate_cft_sft': ('Quick rule: coarse aggregate, {k}', 'cft per sft'),
+    'quick_bricks_sft': ('Quick rule: bricks, {k}', 'pcs per sft'),
+    'quick_area_sft_sft': ('Quick rule: {k} area', 'sft per sft of floor'),
+    'quick_rmc_removed': ('Quick rule: {k} that is concrete', 'fraction, dropped for ready-mix'),
+    'labour_rmc_scale': ('Ready-mix: {k} labour on concrete', 'fraction of site-mix mandays'),
+}
+_ROW_LABELS = {  # rows whose key is not a plain word
+    ('pcc', 'thickness_mm'): ('PCC layer thickness', 'mm'),
+    ('pcc', 'footing_depth_m'): ('Average footing depth', 'm'),
+    ('pcc', 'footing_projection'): ('PCC width beyond the footing', 'multiplier on footing plan'),
+    ('geometry', 'opening_share'): ('Doors and windows', 'fraction of wall area'),
+    ('geometry', 'beam_slab_depth_ft'): ('Beam and slab depth taken off the wall height', 'ft'),
+    ('stair', 'width_m'): ('Stair width', 'm'),
+    ('stair', 'riser_m'): ('Stair riser height', 'm'),
+    ('stair', 'tread_m'): ('Stair tread width', 'm'),
+    ('stair', 'waist_m'): ('Stair waist slab thickness', 'm'),
+    ('stair', 'landing_count'): ('Mid-landings per stair', 'number'),
+    ('lintel', 'opening_height_m'): ('Average opening height', 'm'),
+    ('lintel', 'bearing_allowance'): ('Lintel length for bearing', 'multiplier on opening width'),
+    ('lintel', 'depth_m'): ('Lintel depth', 'm'),
+    ('finish', 'plaster_in'): ('Plaster thickness', 'inch'),
+    ('finish', 'screed_in'): ('Floor screed thickness', 'inch'),
+    ('finish', 'tiled_share'): ('Tiled part of the floor', 'fraction of floor area'),
+    ('finish', 'paint_coats'): ('Paint coats', 'number'),
+    ('finish', 'paint_sft_per_l'): ('Paint coverage', 'sft per litre per coat'),
+}
+_KEY_WORDS = {'1_2': '1-2', '3_4': '3-4', '5_6': '5-6', '7_plus': '7 or more', 'ready_mix': 'ready-mix'}
+_TRADE_UNITS = {'m3': 'm³', 'area': 'm²', 'tonne': 'tonne'}
+
+
+def _label(group, key):
+    if (group, key) in _ROW_LABELS:
+        text, unit = _ROW_LABELS[(group, key)]
+    elif group in ('labour_skilled', 'labour_unskilled'):
+        title, kind = _TRADES[key]
+        text = f'{group[7:].capitalize()} labour, {title if title.isupper() else title.lower()}'
+        unit = f'mandays per {_TRADE_UNITS[kind]}'
+    else:
+        text, unit = _GROUP_LABELS[group]
+        text = text.format(k=_KEY_WORDS.get(key, key))
+    return f'{text} ({unit})'
+
 
 def default_materials_table():
     return {
-        'columns': ['Group', 'Key', 'Label', 'Value'],
-        'data': [[group, key, f'{group} {key}'.replace('_', ' '), value]
+        'columns': ['Group', 'Key', 'Label', 'Value', 'Default'],
+        'data': [[group, key, _label(group, key), value, value]
                  for group, keys in _ROWS.items() for key, value in keys.items()],
     }
 
@@ -91,20 +150,17 @@ def _txt(value):
     return str(value).strip()
 
 
-def _num(value, unit='unit'):
+def _cell_num(value):
+    """A number from a table cell: Qty cannot read a plain numeric string such as '0.024' or '1,234.5'."""
     text = _txt(value).replace(',', '')
     try:
         return float(text)
-    except Exception:
-        return Qty(text, unit).val
+    except ValueError:
+        return Qty(text, 'unit').val
 
 
 def _is_metric(length):
-    try:
-        float(_txt(length))
-        return False
-    except ValueError:
-        return Qty(_txt(length)).uom in ('m', 'cm', 'mm', 'km')
+    return Qty(length).uom in ('m', 'cm', 'mm', 'km')
 
 
 def _ratio(value, label, parts=2):
@@ -129,9 +185,10 @@ def _read_table(materials_table):
         'Group': {'cast': lambda x: _txt(x).lower()},
         'Key': {'cast': lambda x: _txt(x).lower()},
         'Label': {'type': str, 'required': False},
-        'Value': {'cast': _num},
+        'Default': {'type': str, 'required': False},
+        'Value': {'cast': _cell_num},
     })
-    qt.assert_columns(['Group', 'Key', 'Label', 'Value'])
+    qt.assert_columns(['Group', 'Key', 'Value'], optional_cols=['Label', 'Default'])
     qt.assert_unique_pairs('Group', 'Key')
     qt.assert_in('Group', list(_ROWS))
     values = qt.to_map(['Group', 'Key'], 'Value')
@@ -157,13 +214,19 @@ def _edited(values):
             if g in _ROWS and k in _ROWS[g] and abs(x - _ROWS[g][k]) > 1e-12]
 
 
+def _out_of_range(values):
+    """Edited values outside 0.5x to 2x of the built-in default; a likely typo such as 0.45 -> 45."""
+    return [f'{g}/{k}: {_ROWS[g][k]:g} -> {x:g}' for (g, k), x in values.items()
+            if g in _ROWS and k in _ROWS[g] and _ROWS[g][k] > 0 and not 0.5 <= x / _ROWS[g][k] <= 2]
+
+
 def estimate_materials(*, plot_length, plot_width, coverage, floors, soil, materials_table, method,
                        structure_density, concrete_supply, mix, mix_ratio, seismic, include_base_works,
                        finishes, rooms, stairs, storey_height, brick_length, brick_width, brick_height,
                        ext_wall_thickness, int_wall_thickness, joint_thickness, masonry_mortar,
                        plaster_mortar, mortar_dry_factor, concrete_dry_factor, cement_bag_volume,
-                       brick_wastage, include_labour, labour_productivity):
-    """Return the result items (scalars and tables) of the building_materials calculator."""
+                       brick_wastage, include_labour, labour_productivity, include_cost=False):
+    """Return the result items (scalars and tables) of the building_cost_detailed calculator."""
     v = _read_table(materials_table)
     metric = _is_metric(plot_length)
     rmc = concrete_supply == 'ready_mix'
@@ -176,62 +239,66 @@ def estimate_materials(*, plot_length, plot_width, coverage, floors, soil, mater
     if rooms < 1:
         raise ValueError('Number of rooms per floor must be at least 1.')
 
-    length, width = _num(plot_length, 'ft'), _num(plot_width, 'ft')
-    footprint = length * width * _num(coverage, 'unit')
+    length, width = Qty(plot_length, 'm').val, Qty(plot_width, 'm').val
+    footprint = length * width * Qty(coverage, 'unit').val  # m2, the model works in SI units
     bua = footprint * floors
-    brick_waste = _num(brick_wastage, 'unit')
-    if not 0 <= brick_waste <= 0.5:
-        raise ValueError('Brick wastage must be between 0 and 50 pct.')
-    productivity = _num(labour_productivity, 'unit')
+    bua_sft = Qty(bua, 'm^2', 'ft^2').val  # the table coefficients are per sft
+    brick_waste = Qty(brick_wastage, 'unit').val
+    if not 0 <= brick_waste <= 0.25:
+        raise ValueError('Brick wastage must be between 0 and 25 pct.')
+    productivity = Qty(labour_productivity, 'unit').val
     if not 0 < productivity <= 2:
         raise ValueError('Labour productivity must be greater than 0 and at most 200 pct.')
     waste = {k: v[('wastage', k)] for k in ('cement', 'sand', 'aggregate', 'tiles', 'paint', 'ready_mix')}
     waste['bricks'] = brick_waste
     lap = v[('steel_lap_wastage', 'all')]
 
-    # Quick rule: coefficient x BUA, with the coefficient bands from the table
-    def band(group, factor=1.0):
-        return [v[(group, b)] * bua * factor for b in ('low', 'typical', 'high')]
+    # Quick rule: coefficient per sft x BUA in sft, then to SI units when the coefficient is not metric
+    def band(group, unit=None, si_unit=None):
+        values = [v[(group, b)] * bua_sft for b in ('low', 'typical', 'high')]
+        return [Qty(x, unit, si_unit).val for x in values] if unit else values
 
     quick = {'Cement': band('quick_cement_bag_sft'), 'Steel': band('quick_steel_kg_sft'),
-             'Concrete': band('quick_concrete_m3_sft'), 'Sand': band('quick_sand_cft_sft', CFT),
-             'Aggregate': band('quick_aggregate_cft_sft', CFT), 'Bricks': band('quick_bricks_sft')}
+             'Concrete': band('quick_concrete_m3_sft'), 'Sand': band('quick_sand_cft_sft', 'cft', 'm^3'),
+             'Aggregate': band('quick_aggregate_cft_sft', 'cft', 'm^3'), 'Bricks': band('quick_bricks_sft')}
     if rmc:  # the concrete share of cement, sand and aggregate is bought as ready-mix
         for name in ('Cement', 'Sand', 'Aggregate'):
             quick[name] = [x * (1 - v[('quick_rmc_removed', name.lower())]) for x in quick[name]]
-    area = {k: v[('quick_area_sft_sft', k)] * bua for k in ('formwork', 'plaster', 'paint', 'tiles')}
+    area = {k: Qty(v[('quick_area_sft_sft', k)] * bua_sft, 'ft^2', 'm^2').val
+            for k in ('formwork', 'plaster', 'paint', 'tiles')}
     quick.update({'Formwork': [area['formwork']] * 3, 'Plaster area': [area['plaster']] * 3,
                   'Paint area': [area['paint']] * 3, 'Floor tile area': [area['tiles']] * 3})
 
     detail = {}
     if detailed_on:
         g = SimpleNamespace(
-            length=length, width=width, footprint=footprint, bua=bua, floors=floors, rooms=rooms, soil=soil,
-            density=structure_density, seismic=seismic, rmc=rmc, base_works=include_base_works, finishes=finishes,
-            storey_ft=_positive(_num(storey_height, 'ft'), 'Storey height'),
-            brick=[_positive(_num(x, 'mm'), 'Brick size') for x in (brick_length, brick_width, brick_height)],
-            joint=_positive(_num(joint_thickness, 'mm'), 'Joint thickness'),
+            length=length, width=width, footprint=footprint, bua=bua, bua_sft=bua_sft, floors=floors, rooms=rooms,
+            soil=soil, density=structure_density, seismic=seismic, rmc=rmc, base_works=include_base_works,
+            finishes=finishes,
+            storey=_positive(Qty(storey_height, 'm').val, 'Storey height'),
+            brick=[_positive(Qty(x, 'm').val, 'Brick size') for x in (brick_length, brick_width, brick_height)],
+            joint=_positive(Qty(joint_thickness, 'm').val, 'Joint thickness'),
             ext_t=_txt(ext_wall_thickness).lower(), int_t=_txt(int_wall_thickness).lower(),
             stairs=_txt(stairs).lower(), mix=mix, mix_ratio=mix_ratio,
             masonry_ratio=_ratio(masonry_mortar, 'masonry_mortar'), plaster_ratio=_ratio(plaster_mortar, 'plaster_mortar'),
-            mortar_dry=_positive(_num(mortar_dry_factor), 'Mortar dry-volume factor'),
-            concrete_dry=_positive(_num(concrete_dry_factor), 'Concrete dry-volume factor'),
-            bag_m3=_positive(_num(cement_bag_volume, 'ft^3/bag'), 'Cement bag volume') * CFT,
+            mortar_dry=_positive(float(mortar_dry_factor), 'Mortar dry-volume factor'),
+            concrete_dry=_positive(float(concrete_dry_factor), 'Concrete dry-volume factor'),
+            bag_m3=_positive(Qty(cement_bag_volume, 'm^3/bag').val, 'Cement bag volume'),
             floor_key='1_2' if floors <= 2 else '3_4' if floors <= 4 else '5_6' if floors <= 6 else '7_plus',
             productivity=productivity,
         )
         if g.ext_t != 'auto':
-            g.ext_t = _positive(_num(ext_wall_thickness, 'm'), 'External wall thickness')
+            g.ext_t = _positive(Qty(ext_wall_thickness, 'm').val, 'External wall thickness')
         if g.int_t != 'auto':
-            g.int_t = _positive(_num(int_wall_thickness, 'm'), 'Internal wall thickness')
+            g.int_t = _positive(Qty(int_wall_thickness, 'm').val, 'Internal wall thickness')
         detail = _detailed(v, g)
 
-    # Result values in display units
+    # Result values in display units: SI for metric input, otherwise ft2 and cft
     def cell(kind, x):
         if kind == 'vol':
-            return Qty(x, 'm^3') if metric else Qty(x / CFT, 'cft')
+            return Qty(x, 'm^3') if metric else Qty(x, 'm^3').to('cft')
         if kind == 'area':
-            return Qty(x * SFT, 'm^2') if metric else Qty(x, 'ft^2')
+            return Qty(x, 'm^2') if metric else Qty(x, 'm^2').to('ft^2')
         if kind == 'nos':
             return Qty(round(x), 'nos')
         return Qty(x, {'m3': 'm^3'}.get(kind, kind))
@@ -277,7 +344,7 @@ def estimate_materials(*, plot_length, plot_width, coverage, floors, soil, mater
     if rmc:
         orders.append(('Ready-mix Concrete', 'vol', src['Concrete'], waste['ready_mix']))
     if finishes:
-        litres = src['Paint area'] * v[('finish', 'paint_coats')] / v[('finish', 'paint_sft_per_l')]
+        litres = Qty(src['Paint area'], 'm^2', 'ft^2').val * v[('finish', 'paint_coats')] / v[('finish', 'paint_sft_per_l')]
         orders += [('Floor Tiles', 'area', src['Floor tile area'], waste['tiles']), ('Paint', 'L', litres, waste['paint'])]
     ordered = {n: x * (1 + w) for n, _, x, w in orders}
 
@@ -303,7 +370,7 @@ def estimate_materials(*, plot_length, plot_width, coverage, floors, soil, mater
         result['Cement Sources'] = {'data': detail['cement_sources'], 'columns': ['Source', 'Bags']}
 
     # Intensity per unit of built-up area
-    per, unit = (bua * SFT, 'm^2') if metric else (bua, 'ft^2')
+    per, unit = (bua, 'm^2') if metric else (bua_sft, 'ft^2')
     vol_unit = 'm^3' if metric else 'cft'
     intensity = []
     for title, key, qk in (('Cement', 'Cement', 'bag'), ('Steel (net)', 'Steel', 'kg'), ('Concrete', 'Concrete', 'm^3'),
@@ -311,7 +378,7 @@ def estimate_materials(*, plot_length, plot_width, coverage, floors, soil, mater
         row = [title]
         for on, data in ((quick_on, quick), (detailed_on, detail.get('rows'))):
             if on:
-                x = data[key][1] / (CFT if qk == 'cft' else 1)
+                x = Qty(data[key][1], 'm^3', 'cft').val if qk == 'cft' else data[key][1]
                 row.append(Qty(x / per, f'{qk}/{unit}'))
         intensity.append(row)
     result['Intensity per Area'] = {
@@ -322,6 +389,13 @@ def estimate_materials(*, plot_length, plot_width, coverage, floors, soil, mater
                                      'columns': ['Trade', 'Quantity', 'Skilled', 'Unskilled']}
 
     notes = ['Preliminary estimate; foundation type, structural design and local practice can change quantities by 20 pct or more.']
+    if include_cost:
+        items = {n: cell(k, ordered[n]) for n, k, _, _ in orders if n != 'Brick soling'}
+        items['Brick'] = result['Brick']  # includes the soling bricks
+        items.update({n: result[n] for n in ('Skilled Labour', 'Unskilled Labour') if n in result})
+        cost = QCost()
+        cost.add_all(items)
+        result.update(cost.results(per=result['Total Built-up Area'], per_label='Area'))
     if detailed_on and structure_density == 'light' and (floors > 2 or seismic == 'high' or soil == 'poor'):
         notes.append('Light density is intended for 1-2 floor single-family houses with short spans, normal seismic zone '
                      'and normal or good soil. Consider typical density and consult an engineer.')
@@ -331,10 +405,14 @@ def estimate_materials(*, plot_length, plot_width, coverage, floors, soil, mater
         notes.append('Labour is estimated by the Detailed method only; choose Detailed or Both methods to see it.')
     if include_labour and detailed_on:
         notes.append('Detailed labour counts the modelled trades only; earthwork, electrical, plumbing, doors and windows, '
-                     'supervision and contractor overhead are not included. Price the mandays with the cost calculator.')
+                     'supervision and contractor overhead are not included. Tick Include cost to price the mandays.')
     edited = _edited(v)
     if edited:
         notes.append('Edited assumptions in materials_table: ' + '; '.join(edited[:8]) + (' ...' if len(edited) > 8 else ''))
+    far = _out_of_range(v)
+    if far:
+        notes.append('Check these coefficients: they are less than half or more than twice the Default in the '
+                     'Coefficients table: ' + '; '.join(far[:8]) + (' ...' if len(far) > 8 else ''))
     result['Notes'] = qwarn('\n'.join(f'- {x}' for x in notes))
     return result
 
@@ -342,7 +420,7 @@ def estimate_materials(*, plot_length, plot_width, coverage, floors, soil, mater
 def _labour_rows(detail, density, cell):
     """Rows of the Labour by Trade table: each trade, the total, and the totals of the neighbouring presets."""
     def qty(kind, x):
-        return Qty(x, 'm^3') if kind == 'm3' else Qty(x, 'tonne') if kind == 'tonne' else cell('area', x / SFT)
+        return Qty(x, 'm^3') if kind == 'm3' else Qty(x, 'tonne') if kind == 'tonne' else cell('area', x)
 
     trades = detail['labour'][density]
     rows = [[_TRADES[t][0], qty(_TRADES[t][1], q), Qty(sk, 'manday'), Qty(un, 'manday')]
@@ -358,9 +436,9 @@ def _labour_rows(detail, density, cell):
 
 
 def _detailed(v, g):
-    """Detailed method: derived quantities for the selected density and its two neighbours."""
+    """Detailed method: derived quantities for the selected density and its two neighbours (all lengths in m)."""
     perimeter = 2 * (g.length + g.width)
-    wall_h = g.storey_ft - v[('geometry', 'beam_slab_depth_ft')]
+    wall_h = g.storey - Qty(v[('geometry', 'beam_slab_depth_ft')], 'ft', 'm').val
     if wall_h <= 0:
         raise ValueError('Storey height must be greater than the beam and slab depth.')
     opening = v[('geometry', 'opening_share')]
@@ -372,14 +450,13 @@ def _detailed(v, g):
 
     # Masonry
     bl, bw, bh = g.brick
-    per_m3 = 1 / ((bl + g.joint) * (bw + g.joint) * (bh + g.joint) / 1e9)
-    mortar_wet = 1 - per_m3 * bl * bw * bh / 1e9
-    ext_t = (bl + g.joint) / 1000 if g.ext_t == 'auto' else g.ext_t
-    int_t = bw / 1000 if g.int_t == 'auto' else g.int_t
-    masonry_m3 = ext_net * SFT * ext_t + int_net * SFT * int_t
+    per_m3 = 1 / ((bl + g.joint) * (bw + g.joint) * (bh + g.joint))
+    mortar_wet = 1 - per_m3 * bl * bw * bh
+    ext_t = bw if g.ext_t == 'auto' else g.ext_t
+    int_t = bw if g.int_t == 'auto' else g.int_t
+    masonry_m3 = ext_net * ext_t + int_net * int_t
     bricks = masonry_m3 * per_m3
-    footprint_m2 = g.footprint * SFT
-    soling = footprint_m2 / ((bl + g.joint) / 1000 * (bw + g.joint) / 1000)
+    soling = g.footprint / ((bl + g.joint) * (bw + g.joint))
 
     def mortar(volume, ratio):  # dry mortar volume -> (bags, sand m3)
         cement, sand = ratio
@@ -388,23 +465,21 @@ def _detailed(v, g):
     cem_masonry, sand_masonry = mortar(masonry_m3 * mortar_wet * g.mortar_dry, g.masonry_ratio)
     cem_plaster = sand_plaster = cem_screed = sand_screed = plaster_area = tile_area = 0
     if g.finishes:
-        inch = 0.0254
         plaster_area = 2 * (ext_net + int_net) + g.bua
         tile_area = v[('finish', 'tiled_share')] * g.bua
         cem_plaster, sand_plaster = mortar(
-            plaster_area * SFT * v[('finish', 'plaster_in')] * inch * g.mortar_dry, g.plaster_ratio)
+            plaster_area * Qty(v[('finish', 'plaster_in')], 'inch', 'm').val * g.mortar_dry, g.plaster_ratio)
         cem_screed, sand_screed = mortar(
-            tile_area * SFT * v[('finish', 'screed_in')] * inch * g.mortar_dry, g.plaster_ratio)
+            tile_area * Qty(v[('finish', 'screed_in')], 'inch', 'm').val * g.mortar_dry, g.plaster_ratio)
 
     # Stairs: steps, waist slab and a mid-landing for each storey served
     st = {k: v[('stair', k)] for k in ('width_m', 'riser_m', 'tread_m', 'waist_m', 'landing_count')}
-    storey_m = g.storey_ft * FT
-    n_riser = max(2, ceil(round(storey_m / st['riser_m'], 6)))
+    n_riser = max(2, ceil(round(g.storey / st['riser_m'], 6)))
     run = (n_riser - 2) * st['tread_m']
-    per_storey = (st['width_m'] * n_riser * 0.5 * st['tread_m'] * storey_m / n_riser
-                  + st['width_m'] * hypot(run, storey_m) * st['waist_m']
+    per_storey = (st['width_m'] * n_riser * 0.5 * st['tread_m'] * g.storey / n_riser
+                  + st['width_m'] * hypot(run, g.storey) * st['waist_m']
                   + st['landing_count'] * st['width_m'] * 2 * st['width_m'] * st['waist_m'])
-    n_stairs = (1 if g.floors > 1 else 0) if g.stairs == 'auto' else int(_num(g.stairs))
+    n_stairs = (1 if g.floors > 1 else 0) if g.stairs == 'auto' else int(float(g.stairs))
     if n_stairs < 0:
         raise ValueError('Number of staircases cannot be negative.')
     conc_stair = n_stairs * g.floors * per_storey
@@ -413,7 +488,7 @@ def _detailed(v, g):
     li = {k: v[('lintel', k)] for k in ('opening_height_m', 'bearing_allowance', 'depth_m')}
 
     def lintel_length(gross):
-        return opening * gross * SFT / li['opening_height_m'] * li['bearing_allowance']
+        return opening * gross / li['opening_height_m'] * li['bearing_allowance']
 
     conc_lintel = (lintel_length(ext_gross) * ext_t + lintel_length(int_gross) * int_t) * li['depth_m']
 
@@ -432,7 +507,7 @@ def _detailed(v, g):
     low, high = PRESETS[max(order - 1, 0)], PRESETS[min(order + 1, len(PRESETS) - 1)]
     runs = {}
     for p in {low, g.density, high}:
-        frame = v[('density', p)] * g.bua * v[('floor_scale', g.floor_key)]
+        frame = v[('density', p)] * g.bua_sft * v[('floor_scale', g.floor_key)]
         vol = {m: frame * v[('member_share', m)] for m in FRAME}
         vol['footing'] *= v[('soil_scale', g.soil)]
         vol['stair'], vol['lintel'] = conc_stair, conc_lintel
@@ -445,15 +520,15 @@ def _detailed(v, g):
             cem_c, sand_c, agg_c = concrete(total, ratio)
         if g.base_works:
             pcc = (vol['footing'] / v[('pcc', 'footing_depth_m')] * v[('pcc', 'footing_projection')]
-                   + footprint_m2) * v[('pcc', 'thickness_mm')] / 1000
+                   + g.footprint) * Qty(v[('pcc', 'thickness_mm')], 'mm', 'm').val
             cem_p, sand_p, agg_p = concrete(pcc, pcc_ratio)
         sources = [['Concrete', cem_c], ['Masonry', cem_masonry], ['Plaster', cem_plaster],
                    ['Screed', cem_screed], ['PCC', cem_p]]
         # labour: quantity of each trade x mandays per unit, divided by the productivity factor
-        quantity = {'brickwork_m3': masonry_m3, 'plaster_m2': plaster_area * SFT, 'screed_tile_m2': tile_area * SFT,
+        quantity = {'brickwork_m3': masonry_m3, 'plaster_m2': plaster_area, 'screed_tile_m2': tile_area,
                     'concrete_m3': total, 'pcc_m3': pcc, 'formwork_m2': sum(form.values()),
-                    'steel_tonne': sum(steel.values()) / 1000, 'paint_m2': plaster_area * SFT,
-                    'soling_m2': footprint_m2 if g.base_works else 0}
+                    'steel_tonne': Qty(sum(steel.values()), 'kg', 'tonne').val, 'paint_m2': plaster_area,
+                    'soling_m2': g.footprint if g.base_works else 0}
         scale = {t: {'skilled': 1.0, 'unskilled': 1.0} for t in quantity}
         if g.rmc:
             scale['concrete_m3'] = {k: v[('labour_rmc_scale', k)] for k in ('skilled', 'unskilled')}
@@ -468,7 +543,7 @@ def _detailed(v, g):
         r = runs[p]
         return {'Cement': r['Cement'], 'Steel': sum(r['steel'].values()), 'Concrete': r['total'],
                 'Sand': r['Sand'], 'Aggregate': r['Aggregate'], 'Bricks': bricks,
-                'Formwork': sum(r['form'].values()) / SFT, 'Plaster area': plaster_area,
+                'Formwork': sum(r['form'].values()), 'Plaster area': plaster_area,
                 'Paint area': plaster_area, 'Floor tile area': tile_area}
 
     triple = [values(low), values(g.density), values(high)]

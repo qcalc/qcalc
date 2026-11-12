@@ -9,11 +9,14 @@ from calc import (
     QData,
     publish_shared_dataset,
     get_shared_dataset,
+    QCost,
+    default_rate_schedule,
+    save_rates,
+    load_rates,
 )
 import json
-from qutil import action_button, find_matched_variables, addcal_button, action_script
-from calculators.all.general.chart import pie_chart
-from qcore import qhtml, qtable, Qty, _unit_tree, qformat_q
+from qutil import action_button, addcal_button, action_script
+from qcore import qhtml, qtable, qformat_q
 
 SHARED_RATES_TYPE = 'item_rates'
 SHARED_RATES_KEY = 'rates_master'
@@ -122,24 +125,14 @@ def cost__modify(_ctx, arg_name, arg_value, _action):  # _action not used but re
                 rates = shared_record.get('payload') if isinstance(shared_record, dict) else None
 
         if isinstance(rates, pd.DataFrame):
-            item_key = items['Item'].str.strip().str.casefold()
-            rate_key = rates['Item'].str.strip().str.casefold()
-
-            merged_df = items.merge(
-                rates.assign(_item_key=rate_key),
-                left_on=item_key,
-                right_on='_item_key',
-                how='left'
-            )
-
-            items['Unit Cost'] = merged_df['Unit Cost_y'].fillna(items['Unit Cost'])
-
-            return items
-
-        elif rates is None:
+            qcost = QCost.from_unit_costs(rates)
+        else:  # new session: use the schedule saved in the account
+            qcost = QCost(use_defaults=False)
+        if not qcost.has_rates:
             raise Exception(
-                'No shared rates loaded. Open [Schedule of Rates], click [Load], then apply again.'
+                'No rates saved. Open [Schedule of Rates], click [Load], then apply again.'
             )
+        return qcost.fill_rates(items)
 
     return arg_value
 
@@ -147,6 +140,7 @@ def cost__modify(_ctx, arg_name, arg_value, _action):  # _action not used but re
 def cost__info():
     return {
         'title': 'Calculate Cost',
+        'kins': 'rates',
         'consumes_data': {
             'dataset_type': SHARED_RATES_TYPE,
             'dataset_key': SHARED_RATES_KEY,
@@ -158,7 +152,7 @@ def cost__info():
             # callback_button() # not good for scripting
         },
         'step2': [
-            {'step': 'chart', 'caption': 'Modify Chart', 'spec': {'field': 'Chart'}}
+            {'step': 'chart', 'caption': 'Modify Chart', 'spec': {'field': 'Cost Chart'}}
         ],
         'script': action_script(
             button_name='apply_rate',
@@ -177,31 +171,18 @@ def cost__info():
 
 
 def cost(items: qtable = pd.DataFrame({'Item': ['Brick'], 'Quantity': ['1000 nos'], 'Unit Cost': ['0.10 UNC/nos']})):
-    currecncy_used = find_matched_variables(items['Unit Cost'][0].lower(), _unit_tree['C'])[0]
-
-    def cal_cost(row) -> Qty:
-        row['Quantity'] = Qty(row['Quantity'])
-        row['Unit Cost'] = Qty(row['Unit Cost'])
-        item_cost = row['Quantity'] * row['Unit Cost']
-        item_cost = item_cost.to(currecncy_used)
-        return item_cost
-
-    items2 = items.copy()  # to keep the source dataframe unchanged
-    items2['Item Cost'] = items2.apply(cal_cost, axis=1)
-    total_cost = Qty(sum([c.val for c in items2['Item Cost']]), currecncy_used)
-    chart = pie_chart(labels=','.join(items2['Item']),
-                      values=','.join(items2['Item Cost'].apply(lambda q: str(q.val))),
-                      title="Cost Chart", show_pct=True)
+    qcost = QCost.from_frame(items)
+    items2 = qcost.frame(costs=True)
     # | apply formatting as a last action, because formatted values may have commas
-    items2['Quantity'] = items2['Quantity'].apply(qformat_q)
-    items2['Unit Cost'] = items2['Unit Cost'].apply(qformat_q)
-    items2['Item Cost'] = items2['Item Cost'].apply(qformat_q)
-    return {'Item Costs': items2, 'Total Cost': total_cost, 'Chart': chart['chart']}
+    for column in ('Quantity', 'Unit Cost', 'Item Cost'):
+        items2[column] = items2[column].apply(qformat_q)
+    return {'Item Costs': items2, 'Total Cost': qcost.total, 'Cost Chart': qcost.chart()}
 
 
 def rates__info():
     return {
         'title': 'Schedule of Rates',
+        'desc': 'Your rates are saved to your account when you click Load, so cost calculations can use them later.',
         'calculate': 'Load',
         'single_instance': True,
         'single_instance_key': 'rates_master',
@@ -212,22 +193,14 @@ def rates__info():
     }
 
 
-def rates(rate_schedule: qtable = pd.DataFrame({
-    'Item': ['Brick', 'Sand', 'Cement', 'Gravel', 'Steel', 'Skilled Labour', 'Unskilled Labour'],
-    'Price': [10.0, 20.0, 500.0, 200.0, 100.0, 1200, 1000],
-    'Currency': ['BDT', 'BDT', 'BDT', 'BDT', 'BDT', 'BDT', 'BDT'],
-    'Price Per': [1, 1, 1, 1, 1, 1, 1],
-    'Price Unit': ['ea', 'cft', 'bag', 'cft', 'kg', 'manday', 'manday']
-})):
-    def calprice(row):
-        uprice = float(row['Price'].replace(',', '')) / float(row['Price Per'].replace(',', ''))
-        p = f"{str(uprice)} {row['Currency']}/{row['Price Unit']}"
-        return Qty(p)
+def rates__input(_ctx):
+    saved = load_rates()
+    return {} if saved is None else {'rate_schedule': saved}
 
-    cost_schedule = pd.DataFrame({
-        'Item': rate_schedule['Item'],
-    })
-    cost_schedule['Unit Cost'] = rate_schedule.apply(calprice, axis=1)
+
+def rates(rate_schedule: qtable = default_rate_schedule()):
+    cost_schedule = QCost(schedule=rate_schedule).unit_costs()
+    save_rates(rate_schedule)
     publish_shared_dataset(
         dataset_type=SHARED_RATES_TYPE,
         dataset_key=SHARED_RATES_KEY,

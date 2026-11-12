@@ -304,19 +304,6 @@ def step2_unpack_for_run(value):
     return value
 
 
-def step2_unpack_for_cost(value):
-    if isinstance(value, Qty):
-        return value
-
-    if isinstance(value, dict) and value.get('__qcalc_type') == 'qty':
-        try:
-            return Qty(value.get('value', ''))
-        except Exception:
-            return None
-
-    return value
-
-
 def _api_number(value):
     """Return a JSON-safe float: NaN/inf become None, binary noise is trimmed to 12 significant digits."""
     if math.isnan(value) or math.isinf(value):

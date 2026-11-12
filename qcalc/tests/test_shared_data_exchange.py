@@ -13,15 +13,17 @@ from django.contrib.auth.models import AnonymousUser
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.test import RequestFactory
 
-from calc import QData
+from calc import QData, QCost, default_rate_schedule
 from calc.mod_hookctx import HookContext
 from calc.mod_shared_data import publish_shared_dataset, get_shared_dataset
+from calculators.all.engineering.estimation import building_cost_detailed, brickwork, ccwork, plaster
 from calculators.all.general.utility import (
     SHARED_RATES_KEY,
     SHARED_RATES_TYPE,
     cost__input,
     cost__modify,
     rates,
+    rates__input,
 )
 from calculators.all.analytics import (
     compare,
@@ -163,6 +165,80 @@ def test_cost_modify_falls_back_to_legacy_rates_and_backfills_shared_registry():
     shared = get_shared_dataset(dataset_type=SHARED_RATES_TYPE, dataset_key=SHARED_RATES_KEY)
     assert isinstance(shared, dict)
     assert shared.get('payload') is not None
+
+
+def test_saved_rates_survive_a_new_data_session_and_prefill_rates_input():
+    QThread.set_req(_make_request(method='post'))
+    QData.clear()
+    schedule = pd.DataFrame({'Item': ['Brick'], 'Price': ['12'], 'Currency': ['BDT'],
+                             'Price Per': ['1'], 'Price Unit': ['ea']})
+    rates(schedule)
+
+    QData.clear()  # shared dataset gone, the saved schedule remains
+    assert rates__input(HookContext())['rate_schedule'].loc[0, 'Price'] == '12'
+    items = pd.DataFrame({'Item': ['Brick'], 'Quantity': ['100 nos'], 'Unit Cost': ['0.10 UNC/nos']})
+    updated = cost__modify(HookContext(), 'items', items, _shared_action())
+    assert abs(updated.loc[0, 'Unit Cost'].val - 12.0) < 1e-9
+
+
+def test_qcost_prices_saved_rates_reports_missing_and_compounds_overheads():
+    QThread.set_req(_make_request(method='post'))
+    QData.clear()
+    rates(pd.DataFrame({'Item': ['Cement'], 'Price': ['500'], 'Currency': ['BDT'],
+                        'Price Per': ['1'], 'Price Unit': ['bag']}))
+
+    cost = QCost()
+    cost.add_all({'Cement': Qty(10, 'bag'), 'Gold': Qty(1, 'kg')})
+    cost.overhead('Markup', '10 pct')
+    cost.overhead('Contingency', '5 pct')
+
+    assert cost.missing == ['Gold'] and not cost.default
+    assert cost.total.val == pytest.approx(5000 * 1.1 * 1.05)  # contingency applies after markup
+    assert cost.rows()['data'][0][-1].endswith('%') and 'Cost Notes' in cost.results()
+
+
+def test_qcost_from_result_uses_a_spec_and_groups_mandays_as_labour():
+    QThread.set_req(_make_request(method='post'))
+    QData.clear()
+    result = {'Cement': Qty(10, 'bag'), 'Skilled Labour': Qty(2, 'manday'), 'Work Volume': Qty(5, 'cft'),
+              'Total': Qty(99, 'BDT'), 'Note': 'text'}
+
+    cost = QCost.from_result(result, '~Work Volume')  # default rates, Total (a currency) and text are never priced
+
+    assert [x.name for x in cost.lines] == ['Cement', 'Skilled Labour']
+    assert cost.group('Labour').val == pytest.approx(2 * 1200)
+    assert cost.results(per=result['Work Volume'], per_label='Volume')['Cost per Volume'].uom == 'BDT/cft'
+
+
+def test_estimation_calculators_can_price_their_own_outputs():
+    QThread.set_req(_make_request(method='post'))
+    QData.clear()
+    for calc in (brickwork, ccwork, plaster):
+        out = calc(include_cost=True)
+        assert out['Total Cost'].val == pytest.approx(out['Material Cost'].val + out['Labour Cost'].val)
+        assert 'Cost Breakdown' in out and 'Cost Notes' in out  # defaults used, so the user is told
+        assert 'Cost Chart' in out
+        assert 'Cost Notes' not in calc()  # off by default
+
+    cost = QCost.from_result({'Cement': Qty(10, 'bag'), 'Sand': Qty(5, 'cft')})
+    cost.overhead('Contingency', '5 pct')
+    assert 'Cost Chart' not in cost.results(chart=False)
+    out = cost.results()
+    assert out['Cost Chart'].chtype == 'pie_chart'  # reopenable with step2 Modify Chart
+    assert out['Cost Chart'].data['labels'] == 'Cement,Sand,Contingency'
+
+
+def test_building_cost_detailed_cost_is_a_normal_result_that_follows_rates():
+    QThread.set_req(_make_request(method='post'))
+    QData.clear()
+    out = building_cost_detailed(include_cost=True)
+    names = [row[0] for row in out['Cost Breakdown']['data']]
+    assert len(names) == len(set(names))  # Brick (with soling) is priced once
+    assert out['Total Cost'].val == pytest.approx(out['Material Cost'].val + out['Labour Cost'].val)
+    assert 'Cost Breakdown' in out and 'Cost per Area' in out
+
+    rates(default_rate_schedule().assign(Price=lambda d: d['Price'] * 2))
+    assert building_cost_detailed(include_cost=True)['Total Cost'].val == pytest.approx(2 * out['Total Cost'].val)
 
 
 def test_compare_publishes_shared_scenario_dataset():

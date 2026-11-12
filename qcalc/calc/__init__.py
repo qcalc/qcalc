@@ -20,6 +20,12 @@ from .mod_shared_data import (
     publish_shared_dataset,
     get_shared_dataset,
 )
+from .mod_cost import (
+    QCost,
+    default_rate_schedule,
+    save_rates,
+    load_rates,
+)
 from .mod_feasible_region import *
 from .mod_optima_core import *
 from .mod_optima_tables import *

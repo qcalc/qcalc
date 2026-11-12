@@ -205,6 +205,24 @@ _INFO_PROPERTY_SCHEMAS = {
     'remember': {'type': 'boolean'},
     'recall': {'type': 'boolean'},
     'table_out_all': {'type': 'boolean'},
+    'out_schema': {
+        'type': 'object',
+        'additionalProperties': {
+            'type': 'object',
+            'properties': {
+                'attrs': {
+                    'type': 'object',
+                    'properties': {
+                        'col_widths': {'type': 'object'},
+                        'align': {'type': 'object'},
+                        'page_all': {'type': 'boolean'},
+                    },
+                    'additionalProperties': False,
+                },
+            },
+            'additionalProperties': False,
+        },
+    },
     'api': {'type': 'boolean'},
     'fargs': {'type': 'object'},
 }

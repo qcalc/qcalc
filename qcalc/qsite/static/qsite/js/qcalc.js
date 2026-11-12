@@ -79,7 +79,9 @@ const QCALC_TOK_FIELD_SEP = '_';
             var requestedFunc = qcalcRequestedFunc(detail, event.target);
             if (requestedFunc) {
                 var existing = qcalcFindOpenSingleton(requestedFunc);
-                if (existing) {
+                // a request from inside the singleton's own card (e.g. its Refresh button) reloads it, not opens a second one
+                var fromOwnCard = existing && event.target && event.target.closest && existing.contains(event.target);
+                if (existing && !fromOwnCard) {
                     var existingCid = existing.dataset.qcalcCid || existing.id.replace(QCALC_TOK_CARD_PREFIX, '');
                     jumpTo(existingCid);
                     event.preventDefault();

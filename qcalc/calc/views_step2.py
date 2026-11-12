@@ -9,11 +9,10 @@ This module owns:
 """
 
 import json
-import pandas as pd
 from django.http import JsonResponse
 import qutil as ut
-from qcore import Qty, QChart, step2_pack_value, step2_unpack_for_run, step2_unpack_for_cost
-from qutil import HtmxHttpRequest, QThread
+from qcore import QChart, step2_pack_value, step2_unpack_for_run
+from qutil import HtmxHttpRequest
 from calc import QIO
 from .mod_qcals import QCals
 from qcore import QEncoderBase
@@ -68,31 +67,6 @@ def _step2_select_keys(mapping, spec, *, empty_spec='*'):
     return ut.specified_args(list(mapping.keys()), spec, empty_spec=empty_spec)
 
 
-def _step2_prepare_cost_items(output_map, spec):
-    output = output_map.copy() if isinstance(output_map, dict) else {}
-    selected_keys = _step2_select_keys(output, spec, empty_spec='*')
-    output = {key: output[key] for key in selected_keys if key in output}
-
-    keys = [key for key in output.keys()]
-    for key in keys:
-        qval = step2_unpack_for_cost(output[key])
-        if not isinstance(qval, Qty):
-            _ = output.pop(key)
-            continue
-
-        output[key] = qval
-        dim = qval.unit.dimension
-        if 'C' in dim:
-            _ = output.pop(key)
-
-    if not output:
-        return None
-
-    user_curnc = QThread.get_pref('defa_currency', 'USD')
-    ucost = ['1.00 ' + user_curnc + '/' + q.uom for q in output.values()]
-    return pd.DataFrame({'Item': output.keys(), 'Quantity': output.values(), 'Unit Cost': ucost})
-
-
 def q1_step2(request: HtmxHttpRequest, open_func=None):
     """Execute Step2 action for a calculator card."""
     if open_func is None:
@@ -139,13 +113,6 @@ def q1_step2(request: HtmxHttpRequest, open_func=None):
                     )
                 fargs[arg_key] = io[src_key]
                 mapped_from[arg_key] = src_key
-
-        # Allow step='run', func='cost' to use selector filtering + Qty-to-items behavior.
-        if ff == 'cost' and 'items' not in fargs:
-            items_df = _step2_prepare_cost_items(output, fspec)
-            if items_df is None:
-                return ut.show_modal(request, "Next Step", 'Error (S2): No suitable Qty found to calculate cost')
-            fargs['items'] = items_df
 
         return open_func(request, fname=ff, fargs=fargs, part='1')
 

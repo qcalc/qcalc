@@ -1,11 +1,16 @@
+from calc import QCost
 from qcore import Qty
 
+# Breakdown and volume outputs are not priced by include_cost.
+COLUMN_COST_SPEC = '~Longitudinal steel, ~Stirrup steel, ~Concrete volume'
+COST_HELP = 'Price the quantities with your saved Schedule of Rates (illustrative rates are used until you save one).'
 
-def rcc_column_materials__info():
+
+def rcc_column__info():
     return {
         'title': 'RCC Column Material Requirement',
         'desc': (
-            'Estimate reinforcement steel, concrete, sand and khoa for an RCC column. '
+            'Estimate reinforcement steel, cement, sand and gravel (khoa) for an RCC column. '
             'Concrete is based on a 1:1.5:3 nominal mix with a dry-volume factor of 1.54. '
             'Longitudinal bars and stirrups are included in the steel quantity. '
             'Nominal concrete cover is 40 mm and each stirrup includes 10 bar diameters '
@@ -18,11 +23,12 @@ def rcc_column_materials__info():
                 'initial': 8,
                 'label': 'Number of longitudinal bars',
             },
+            'include_cost': {'help_text': COST_HELP},
         },
     }
 
 
-def rcc_column_materials(
+def rcc_column(
     column_length='3 m',
     column_width='300 mm',
     column_depth='300 mm',
@@ -30,6 +36,8 @@ def rcc_column_materials(
     bar_size='16 mm',
     stirrup_spacing='150 mm',
     stirrup_size='8 mm',
+    cement_bag_volume='1.25 ft**3/bag',
+    include_cost=False,
 ):
     # ---------------------------------------------------------
     # Column dimensions
@@ -58,19 +66,12 @@ def rcc_column_materials(
     # structural detailing and was not supplied as an input.
     # ---------------------------------------------------------
 
-    longitudinal_length = (
-        length * int(number_of_bars)
-    )
+    longitudinal_length = length * int(number_of_bars)
 
     # Steel density = 7850 kg/m3
     bar_area = 3.141592653589793 * bar_dia ** 2 / 4
-    longitudinal_volume = (
-        bar_area * longitudinal_length
-    )
-
-    longitudinal_weight = (
-        longitudinal_volume * Qty('7850 kg/m3')
-    )
+    longitudinal_volume = bar_area * longitudinal_length
+    longitudinal_weight = longitudinal_volume * Qty('7850 kg/m3')
 
     # ---------------------------------------------------------
     # Stirrup dimensions
@@ -79,72 +80,28 @@ def rcc_column_materials(
     # dimensions, cover and stirrup diameter.
     # ---------------------------------------------------------
 
-    stirrup_width = (
-        width
-        - 2 * cover
-        - stirrup_dia
-    )
-
-    stirrup_depth = (
-        depth
-        - 2 * cover
-        - stirrup_dia
-    )
+    stirrup_width = width - 2 * cover - stirrup_dia
+    stirrup_depth = depth - 2 * cover - stirrup_dia
 
     # 2 horizontal + 2 vertical legs + 20d hook allowance
-    stirrup_length = (
-        2 * stirrup_width
-        + 2 * stirrup_depth
-        + 20 * stirrup_dia
-    )
+    stirrup_length = 2 * stirrup_width + 2 * stirrup_depth + 20 * stirrup_dia
 
     # Number of stirrups, including both ends.
-    number_of_stirrups = (
-        int(length / spacing) + 1
-    )
+    number_of_stirrups = int(length / spacing) + 1
 
-    total_stirrup_length = (
-        stirrup_length * number_of_stirrups
-    )
-
-    stirrup_area = (
-        3.141592653589793
-        * stirrup_dia ** 2
-        / 4
-    )
-
-    stirrup_volume = (
-        stirrup_area * total_stirrup_length
-    )
-
-    stirrup_weight = (
-        stirrup_volume * Qty('7850 kg/m3')
-    )
-
-    total_steel = (
-        longitudinal_weight + stirrup_weight
-    )
+    total_stirrup_length = stirrup_length * number_of_stirrups
+    stirrup_area = 3.141592653589793 * stirrup_dia ** 2 / 4
+    stirrup_volume = stirrup_area * total_stirrup_length
+    stirrup_weight = stirrup_volume * Qty('7850 kg/m3')
+    total_steel = longitudinal_weight + stirrup_weight
 
     # ---------------------------------------------------------
-    # Gross concrete volume
+    # Concrete volume = gross volume - reinforcement volume
     # ---------------------------------------------------------
 
-    gross_concrete_volume = (
-        length * width * depth
-    )
-
-    # ---------------------------------------------------------
-    # Reinforcement volume
-    # ---------------------------------------------------------
-
-    reinforcement_volume = (
-        longitudinal_volume + stirrup_volume
-    )
-
-    # Net concrete volume
-    concrete_volume = (
-        gross_concrete_volume - reinforcement_volume
-    )
+    gross_concrete_volume = length * width * depth
+    reinforcement_volume = longitudinal_volume + stirrup_volume
+    concrete_volume = gross_concrete_volume - reinforcement_volume
 
     # ---------------------------------------------------------
     # Concrete ingredients
@@ -155,24 +112,24 @@ def rcc_column_materials(
     # Total proportion = 5.5
     # ---------------------------------------------------------
 
-    dry_volume = (
-        concrete_volume * 1.54
-    )
+    dry_volume = concrete_volume * 1.54
+    cement_volume = dry_volume * 1 / 5.5
+    sand_volume = dry_volume * 1.5 / 5.5
+    gravel_volume = dry_volume * 3 / 5.5
+    cement_bags = cement_volume.val / Qty(cement_bag_volume, 'm**3/bag').val
 
-    sand_volume = (
-        dry_volume * 1.5 / 5.5
-    )
-
-    khoa_volume = (
-        dry_volume * 3 / 5.5
-    )
-
-    return {
+    # Output names match the Schedule of Rates items, so the quantities can be priced.
+    result = {
+        'Steel': Qty(total_steel, 'kg'),
+        'Cement': Qty(cement_bags, 'bag'),
+        'Sand': Qty(sand_volume, 'm3'),
+        'Gravel': Qty(gravel_volume, 'm3'),
+        'Concrete volume': Qty(concrete_volume, 'm3'),
         'Longitudinal steel': Qty(longitudinal_weight, 'kg'),
         'Stirrup steel': Qty(stirrup_weight, 'kg'),
-        'Total reinforcement steel': Qty(total_steel, 'kg'),
-        'Concrete volume': Qty(concrete_volume, 'm3'),
-        'Sand': Qty(sand_volume, 'm3'),
-        'Khoa': Qty(khoa_volume, 'm3'),
         'Number of stirrups': number_of_stirrups,
     }
+    if include_cost:
+        result.update(QCost.from_result(result, COLUMN_COST_SPEC).results(
+            per=result['Concrete volume'], per_label='Volume'))
+    return result

@@ -2,6 +2,8 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 import io
+import numbers
+import re
 
 import pandas as pd
 
@@ -10,6 +12,10 @@ from qutil.mod_url import fetch_url
 from .qc_qty import Qty, str_to_qty
 from .qf_anno import as_qtable
 from .mod_qcutil import df_formatter
+
+_BLANK_CELLS = {'', '-', '--', '—', '–', 'none', 'nan', 'n/a', 'na'}
+# a number, optionally followed by one unit word such as '%', 'bag' or 'm^3/ft^2'
+_NUMERIC_TEXT = re.compile(r'^[+\-−]?(\d[\d,]*)?\.?\d+([eE][+-]?\d+)?(\s*(%|[^\W\d][\w/^.*·-]*))?$')
 
 
 def df2qtbl(df):
@@ -138,6 +144,41 @@ def cell_count(value) -> int:
             return cell_count
 
     return 0
+
+
+def _numeric_cell(value):
+    """True for a number or quantity, None for an empty placeholder, False for anything else."""
+    if isinstance(value, bool):
+        return False
+    if isinstance(value, (Qty, numbers.Real)):
+        return True
+    if isinstance(value, str):
+        text = value.strip()
+        if text.casefold() in _BLANK_CELLS:
+            return None
+        return bool(_NUMERIC_TEXT.match(text))
+    return None if value is None or value is pd.NA or value is pd.NaT else False
+
+
+def numeric_columns(df) -> list:
+    """Return the positions of the columns of a DataFrame that hold numbers, for right-alignment.
+
+    A column counts when its dtype is int/float (not bool), or when every non-empty cell is a number, a
+    Qty, or text such as ``'399.6 bag'``, ``'1,234'`` or ``'+39 %'``, with at least one real value. Empty
+    placeholders (None, NaN, '', '-') are ignored. Text, dates and booleans are not numeric.
+    """
+    positions = []
+    for i in range(df.shape[1]):
+        column = df.iloc[:, i]
+        if pd.api.types.is_bool_dtype(column):
+            continue
+        if pd.api.types.is_numeric_dtype(column):
+            positions.append(i)
+            continue
+        kinds = [_numeric_cell(v) for v in column]
+        if all(k is not False for k in kinds) and any(kinds):
+            positions.append(i)
+    return positions
 
 
 def df2normalized(df, do_format: bool = False) -> pd.DataFrame:

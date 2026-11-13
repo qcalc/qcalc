@@ -7,7 +7,7 @@ import math
 import cmath
 from numbers import Number
 
-from sympy import Eq, log as sympy_log, symbols, solve, sympify
+from sympy import Eq, log as sympy_log, symbols, solve as sympy_solve, sympify
 from sympy.abc import _clash1
 
 from qcore import Qty, isMeasureQuantity, UnitRegistry
@@ -60,26 +60,8 @@ _SYMPY_LOCALS.update({
 })
 
 
-def _normalize_equation_text(left: str, right: str):
-    return to_python_expr(left), to_python_expr(right)
-
-
-def _to_equation(left_expr: str, right_expr: str):
-    left_expr = sympify(left_expr, locals=_SYMPY_LOCALS)
-    right_expr = sympify(right_expr, locals=_SYMPY_LOCALS)
-    return Eq(left_expr, right_expr)
-
-
 def _is_unit_symbol_name(name: str) -> bool:
     return UnitRegistry.is_uom(name)
-
-
-def _unit_symbol_names_in_equation(eq) -> set[str]:
-    return {
-        str(sym)
-        for sym in eq.free_symbols
-        if _is_unit_symbol_name(str(sym))
-    }
 
 
 def _symbol_assumption_flags(domain):
@@ -89,51 +71,6 @@ def _symbol_assumption_flags(domain):
     if not isinstance(assumptions, dict):
         return {}
     return {k: bool(v) for k, v in assumptions.items() if isinstance(k, str)}
-
-
-def _get_unknown_symbol(
-    eq,
-    unknown,
-    domain,
-    known_names=None,
-    units_in_expression=False,
-):
-    known_names = set(known_names or ())
-    if unknown:
-        assumption_flags = _symbol_assumption_flags(domain)
-        return symbols(unknown, **assumption_flags)
-
-    remaining = sorted((str(sym) for sym in eq.free_symbols if str(sym) not in known_names))
-    remaining_units = sorted(name for name in remaining if _is_unit_symbol_name(name))
-    remaining_symbols = [name for name in remaining if name not in remaining_units]
-
-    interpreted_symbols = remaining_symbols if units_in_expression else remaining
-    interpreted_units = remaining_units if units_in_expression else []
-
-    if len(interpreted_symbols) != 1:
-        detected_unit_like = sorted(name for name in remaining if _is_unit_symbol_name(name))
-        if detected_unit_like and not units_in_expression:
-            raise ValueError(
-                "Could not infer a single unknown symbol. "
-                f"Interpreted symbols: {', '.join(interpreted_symbols) if interpreted_symbols else '(none)'}. "
-                f"Detected unit-like symbols: {', '.join(detected_unit_like)}. "
-                "If these are units in the equation text, enable units_in_expression."
-            )
-
-        if units_in_expression:
-            raise ValueError(
-                "Could not infer a single unknown symbol. "
-                f"Interpreted symbols: {', '.join(interpreted_symbols) if interpreted_symbols else '(none)'}. "
-                f"Interpreted units: {', '.join(interpreted_units) if interpreted_units else '(none)'}. "
-                "Provide known_values so exactly one symbol remains unsolved."
-            )
-
-        raise ValueError(
-            "Could not infer a single unknown symbol. "
-            f"Interpreted symbols: {', '.join(interpreted_symbols) if interpreted_symbols else '(none)'}. "
-            "Provide known_values so exactly one symbol remains unsolved."
-        )
-    return symbols(interpreted_symbols[0], **_symbol_assumption_flags(domain))
 
 
 def _unit_hint_from_domain(unknown_name, domain):
@@ -177,12 +114,12 @@ def _parse_value(raw):
 
 
 def _normalize_values(values):
-    values = values or {}
+    """Return (known values, unit hints, whether any value is a Qty)."""
     solved_values = {}
     unit_hints = {}
     qty_present = False
 
-    for key, raw in values.items():
+    for key, raw in (values or {}).items():
         value, kind, hint = _parse_value(raw)
         if kind == "hint":
             unit_hints[key] = hint
@@ -196,59 +133,7 @@ def _normalize_values(values):
     return solved_values, unit_hints, qty_present
 
 
-def _is_qty_value(value):
-    return isMeasureQuantity(value)
-
-
-def _is_qty_mode(method, qty_present, unit_hints, domain, unknown_name):
-    if method == "scalar":
-        return False
-    if method == "qty":
-        return True
-    if qty_present or unit_hints:
-        return True
-    return False
-
-
-def _eval_sympy_expression(expr, value_namespace, units_in_expression=False):
-    eval_namespace = {name: value_namespace[name] for name in value_namespace}
-    if units_in_expression:
-        for name in set(expr.free_symbols):
-            symbol_name = str(name)
-            if symbol_name not in eval_namespace and _is_unit_symbol_name(symbol_name):
-                eval_namespace[symbol_name] = Qty(1, symbol_name)
-    expr_text = str(expr)
-    return QCals.safe_eval(expr_text, gdict=_EVAL_GLOBALS, ldict=eval_namespace)
-
-
-def _result_with_status(unknown_name, mode, solved_values, normalized_equation=None):
-    result = {
-        "status": "ok",
-        "mode": mode,
-        "unknown": unknown_name,
-        "solution_count": len(solved_values),
-        "solutions": solved_values,
-        "unit": None,
-    }
-    if normalized_equation is not None:
-        result["normalized_equation"] = normalized_equation
-    qty_values = [v for v in solved_values if isMeasureQuantity(v)]
-    if len(qty_values) == len(solved_values) and qty_values:
-        first_uom = qty_values[0].uom
-        if all(v.uom == first_uom for v in qty_values):
-            result["unit"] = first_uom
-    return result
-
-
-def solve_equation(
-    left,
-    right,
-    unknown=None,
-    values=None,
-    domain=None,
-    method="auto",
-    units_in_expression=False,
-):
+class QEquationSolver:
     """
     Solve an equation for one unknown with scalar-fast and unit-aware routes.
 
@@ -258,9 +143,6 @@ def solve_equation(
         Left and right equation expressions as text.
     unknown:
         Symbol name to solve for. If omitted, must be inferable uniquely.
-    values:
-        Dict of known symbol values. Values may be scalar numbers, `Qty`,
-        quantity strings (e.g. "3 ft"), or unit hints (e.g. "kPa", "@kPa").
     domain:
         Optional domain metadata. Supported forms:
         - "kPa" (unit hint for unknown)
@@ -268,116 +150,173 @@ def solve_equation(
         - {"units": {"P": "kPa"}}
         - {"P": "kPa"}
         - {"assumptions": {"real": True, "positive": True}}
+    values:
+        Dict of known symbol values. Values may be scalar numbers, `Qty`,
+        quantity strings (e.g. "3 ft"), or unit hints (e.g. "kPa", "@kPa").
     method:
         "auto", "scalar", or "qty".
     units_in_expression:
         If True, treat known unit tokens appearing directly in `left`/`right`
         (e.g. 12ft^2) as units. If False (default), they are treated as symbols.
+
+    Construction parses and validates the inputs; `solve()` returns the result.
     """
-    if method not in {"auto", "scalar", "qty"}:
-        raise ValueError("method must be one of: 'auto', 'scalar', 'qty'.")
 
-    normalized_left, normalized_right = _normalize_equation_text(left, right)
-    eq = _to_equation(normalized_left, normalized_right)
-    normalized_values, unit_hints, qty_present = _normalize_values(values)
-    unknown_symbol = _get_unknown_symbol(
-        eq=eq,
-        unknown=unknown,
-        domain=domain,
-        known_names=normalized_values.keys(),
-        units_in_expression=units_in_expression,
-    )
-    unknown_name = str(unknown_symbol)
+    def __init__(
+        self,
+        left,
+        right,
+        unknown=None,
+        domain=None,
+        values=None,
+        method="auto",
+        units_in_expression=False,
+    ):
+        if method not in {"auto", "scalar", "qty"}:
+            raise ValueError("method must be one of: 'auto', 'scalar', 'qty'.")
 
-    qty_mode = _is_qty_mode(
-        method=method,
-        qty_present=qty_present,
-        unit_hints=unit_hints,
-        domain=domain,
-        unknown_name=unknown_name,
-    )
-    unit_symbols_present = units_in_expression and _unit_symbol_names_in_equation(eq)
-    if unit_symbols_present:
-        qty_mode = True
-    mode = "qty" if qty_mode else "scalar"
-
-    if unknown_name in normalized_values:
-        raise ValueError(
-            f"Unknown '{unknown_name}' was provided in values. "
-            "Provide known values only."
+        self.domain = domain
+        self.units_in_expression = units_in_expression
+        self.left = to_python_expr(left)
+        self.right = to_python_expr(right)
+        self.eq = Eq(
+            sympify(self.left, locals=_SYMPY_LOCALS),
+            sympify(self.right, locals=_SYMPY_LOCALS),
         )
+        self.values, self.unit_hints, qty_present = _normalize_values(values)
+        self.unknown_symbol = self._infer_unknown(unknown)
+        self.unknown = str(self.unknown_symbol)
+        self.mode = self._resolve_mode(method, qty_present)
 
-    known_subs = {}
-    for name, value in normalized_values.items():
-        if mode == "scalar" and _is_qty_value(value):
+        if self.unknown in self.values:
             raise ValueError(
-                "Scalar solve path received Qty input. Use method='auto' or method='qty'."
+                f"Unknown '{self.unknown}' was provided in values. "
+                "Provide known values only."
             )
-        if mode == "qty" and _is_qty_value(value):
-            continue
-        known_subs[symbols(name)] = value
 
-    reduced_eq = eq.subs(known_subs)
-    solutions = solve(reduced_eq, unknown_symbol)
-    if not solutions:
-        raise ValueError("No solution found for the given equation and inputs.")
-
-    unit_hint = unit_hints.get(unknown_name) or _unit_hint_from_domain(unknown_name, domain)
-
-    if mode == "scalar" and unit_hint:
-        raise ValueError(
-            "result_unit requires quantity context (known_values with units or units_in_expression)."
+        self.unit_hint = (
+            self.unit_hints.get(self.unknown)
+            or _unit_hint_from_domain(self.unknown, domain)
         )
 
-    solved_values = []
+    def solve(self):
+        solutions = sympy_solve(self.eq.subs(self._known_subs()), self.unknown_symbol)
+        if not solutions:
+            raise ValueError("No solution found for the given equation and inputs.")
 
-    if mode == "scalar":
-        for solution in solutions:
-            value = solution.evalf() if hasattr(solution, "evalf") else solution
-            if getattr(value, "is_number", False):
-                if getattr(value, "is_real", None):
-                    value = float(value)
-                else:
-                    value = complex(value)
-            solved_values.append(value)
+        if self.mode == "scalar":
+            if self.unit_hint:
+                raise ValueError(
+                    "result_unit requires quantity context (known_values with units or units_in_expression)."
+                )
+            return self._result([self._scalar_solution(s) for s in solutions])
 
-        return _result_with_status(
-            unknown_name=unknown_name,
-            mode=mode,
-            solved_values=solved_values,
-            normalized_equation=f'{normalized_left} = {normalized_right}',
+        return self._result([self._qty_solution(s) for s in solutions])
+
+    def _infer_unknown(self, unknown):
+        assumptions = _symbol_assumption_flags(self.domain)
+        if unknown:
+            return symbols(unknown, **assumptions)
+
+        remaining = sorted(
+            str(sym) for sym in self.eq.free_symbols if str(sym) not in self.values
         )
+        units = [name for name in remaining if _is_unit_symbol_name(name)]
+        names = [name for name in remaining if name not in units]
 
-    for solution in solutions:
-        qty_solution_value = _eval_sympy_expression(
-            solution,
-            normalized_values,
-            units_in_expression=units_in_expression,
+        interpreted_symbols = names if self.units_in_expression else remaining
+        if len(interpreted_symbols) == 1:
+            return symbols(interpreted_symbols[0], **assumptions)
+
+        message = (
+            "Could not infer a single unknown symbol. "
+            f"Interpreted symbols: {', '.join(interpreted_symbols) or '(none)'}. "
         )
-        if isinstance(qty_solution_value, Number):
-            if isinstance(qty_solution_value, complex) and unit_hint is not None:
+        if self.units_in_expression:
+            message += (
+                f"Interpreted units: {', '.join(units) or '(none)'}. "
+                "Provide known_values so exactly one symbol remains unsolved."
+            )
+        elif units:
+            message += (
+                f"Detected unit-like symbols: {', '.join(units)}. "
+                "If these are units in the equation text, enable units_in_expression."
+            )
+        else:
+            message += "Provide known_values so exactly one symbol remains unsolved."
+        raise ValueError(message)
+
+    def _resolve_mode(self, method, qty_present):
+        if self.units_in_expression and any(
+            _is_unit_symbol_name(str(sym)) for sym in self.eq.free_symbols
+        ):
+            return "qty"
+        if method == "auto":
+            return "qty" if qty_present or self.unit_hints else "scalar"
+        return method
+
+    def _known_subs(self):
+        subs = {}
+        for name, value in self.values.items():
+            if isMeasureQuantity(value):
+                if self.mode == "scalar":
+                    raise ValueError(
+                        "Scalar solve path received Qty input. Use method='auto' or method='qty'."
+                    )
+                continue
+            subs[symbols(name)] = value
+        return subs
+
+    @staticmethod
+    def _scalar_solution(solution):
+        value = solution.evalf() if hasattr(solution, "evalf") else solution
+        if getattr(value, "is_number", False):
+            value = float(value) if getattr(value, "is_real", None) else complex(value)
+        return value
+
+    def _qty_solution(self, solution):
+        namespace = dict(self.values)
+        if self.units_in_expression:
+            for sym in solution.free_symbols:
+                name = str(sym)
+                if name not in namespace and _is_unit_symbol_name(name):
+                    namespace[name] = Qty(1, name)
+        value = QCals.safe_eval(str(solution), gdict=_EVAL_GLOBALS, ldict=namespace)
+
+        if isinstance(value, Number):
+            if isinstance(value, complex) and self.unit_hint is not None:
                 raise ValueError(
                     "Complex-valued solution cannot be converted to Qty with result unit. "
                     "Remove result_unit or constrain the equation to real solutions."
                 )
-            if unit_hint is not None:
+            if self.unit_hint is not None:
                 raise ValueError(
                     "result_unit can only be applied to unit-bearing solutions. "
                     "This solution is dimensionless."
                 )
-        elif not isMeasureQuantity(qty_solution_value):
+        elif not isMeasureQuantity(value):
             raise TypeError(
                 "Qty solve path produced a non-quantity result. "
                 "Use method='scalar' or provide unit-compatible inputs."
             )
 
-        if isMeasureQuantity(qty_solution_value) and unit_hint:
-            qty_solution_value = Qty(qty_solution_value, unit_hint)
-        solved_values.append(qty_solution_value)
+        if isMeasureQuantity(value) and self.unit_hint:
+            value = Qty(value, self.unit_hint)
+        return value
 
-    return _result_with_status(
-        unknown_name=unknown_name,
-        mode=mode,
-        solved_values=solved_values,
-        normalized_equation=f'{normalized_left} = {normalized_right}',
-    )
+    def _result(self, solved_values):
+        result = {
+            "status": "ok",
+            "mode": self.mode,
+            "unknown": self.unknown,
+            "solution_count": len(solved_values),
+            "solutions": solved_values,
+            "unit": None,
+            "normalized_equation": f'{self.left} = {self.right}',
+        }
+        qty_values = [v for v in solved_values if isMeasureQuantity(v)]
+        if qty_values and len(qty_values) == len(solved_values):
+            first_uom = qty_values[0].uom
+            if all(v.uom == first_uom for v in qty_values):
+                result["unit"] = first_uom
+        return result

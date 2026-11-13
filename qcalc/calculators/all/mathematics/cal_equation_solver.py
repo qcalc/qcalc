@@ -3,7 +3,7 @@
 
 import pandas as pd
 
-from calc import solve_equation
+from calc import QEquationSolver
 from qcore import qlist, qtext, qhtml
 from qutil import md2html
 
@@ -83,15 +83,13 @@ def equation_solver(
     if unit_text != "":
         domain = {"unit": unit_text}
 
-    result = solve_equation(
+    result = QEquationSolver(
         left=left,
         right=right,
-        unknown=None,
         values=known_values_map,
         domain=domain,
-        method="auto",
         units_in_expression=units_in_expression,
-    )
+    ).solve()
 
     return {
         "Equation": qhtml(md2html(f"$${result['normalized_equation'].replace("**", "^")}$$", in_container=True)),

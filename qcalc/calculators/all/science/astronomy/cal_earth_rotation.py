@@ -6,7 +6,7 @@ from calculators.all.general.map import geo_location
 from qcore import Qty, qfunc, QGeo, qhtml
 from math import fmod, radians, degrees, sqrt, ceil, acos
 from .cal_coord import *
-from qcore import nzv, qc_tzinfo, julian_date, j2iso, QDateTime
+from qcore import nzv, QTimezone, QDateTime
 
 
 class EarthRotation:
@@ -23,8 +23,8 @@ class EarthRotation:
         self.longitude_deg = Qty(longitude, 'deg').val
         self.elevation_ft = Qty(elevation, 'ft').val
         self.local_date = on_date
-        self.tz_info = qc_tzinfo(time_zone)
-        self.jul_date = julian_date(self.local_date)
+        self.tz_info = QTimezone.from_name(time_zone)
+        self.jul_date = QDateTime.julian_date(self.local_date)
         self.m_solar_time = self.mean_solar_time()
         self.solar_m_anomaly = self.solar_mean_anomaly()
 
@@ -84,8 +84,8 @@ class EarthRotation:
         omega0_deg = self.hour_angle()
         jrise = J_transit - omega0_deg / 360.0
         jset = J_transit + omega0_deg / 360.0
-        sunrise = j2iso(jrise, self.tz_info)
-        sunset = j2iso(jset, self.tz_info)
+        sunrise = QDateTime.j2iso(jrise, self.tz_info)
+        sunset = QDateTime.j2iso(jset, self.tz_info)
         day_length_hr = omega0_deg * 24.0 / 180.0
         night_length_hr = 24 - day_length_hr
         return sunrise, sunset, day_length_hr, night_length_hr
@@ -119,7 +119,7 @@ def jday__info(): return {'title': 'Calculate Julian Day Number'}
 
 
 def jday(on_date=date.today()):
-    jday = julian_date(on_date)
+    jday = QDateTime.julian_date(on_date)
     return {"Julian Day Number": jday}
 
 

@@ -4,7 +4,7 @@
 import json
 import re
 from datetime import date, datetime, time as dt_time
-from qcore.qd_datetime import QDateTime
+from .qd_datetime import QDateTime
 
 
 def to_bool(value) -> bool:

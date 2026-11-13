@@ -2,7 +2,7 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 import math
-from qcore import Qty, qfunc, QDateTime, qc_datetime_to_str
+from qcore import Qty, qfunc, QDateTime
 from datetime import timedelta
 from calculators.all.science.astronomy import sunrise
 
@@ -199,8 +199,8 @@ def golden_hours(sun_rise: qfunc = sunrise):
         "location": sun_rise['location'], "time_zone": sun_rise['time_zone'],
         "sunrise": sun_rise['sunrise'], "sunset": sun_rise['sunset'],
         "day_length": sun_rise['day_length'], "night_length": sun_rise['night_length'],
-        "magic_hour_morning": f'{qc_datetime_to_str(magic_hour_start_morning)} - {qc_datetime_to_str(magic_hour_end_morning)}',
-        "golden_hour_morning": f'{qc_datetime_to_str(golden_hour_start_morning)} - {qc_datetime_to_str(golden_hour_end_morning)}',
-        "golden_hour_evening": f'{qc_datetime_to_str(golden_hour_start_evening)} - {qc_datetime_to_str(golden_hour_end_evening)}',
-        "magic_hour_evening": f'{qc_datetime_to_str(magic_hour_start_evening)} - {qc_datetime_to_str(magic_hour_end_evening)}'
+        "magic_hour_morning": f'{QDateTime.to_str(magic_hour_start_morning)} - {QDateTime.to_str(magic_hour_end_morning)}',
+        "golden_hour_morning": f'{QDateTime.to_str(golden_hour_start_morning)} - {QDateTime.to_str(golden_hour_end_morning)}',
+        "golden_hour_evening": f'{QDateTime.to_str(golden_hour_start_evening)} - {QDateTime.to_str(golden_hour_end_evening)}',
+        "magic_hour_evening": f'{QDateTime.to_str(magic_hour_start_evening)} - {QDateTime.to_str(magic_hour_end_evening)}'
     }

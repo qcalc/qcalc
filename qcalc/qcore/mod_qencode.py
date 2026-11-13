@@ -2,7 +2,7 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 import pandas as pd
-from .qd_datetime import QDateTime, qc_str_to_datetime
+from .qd_datetime import QDateTime
 from .qc_qty import Qty
 from .mod_qfile import QFile
 from django.core.serializers.json import DjangoJSONEncoder
@@ -219,7 +219,7 @@ def _deserialize_common_profile(value, policy):
         return out
 
     if isinstance(value, str):
-        dt = qc_str_to_datetime(value)
+        dt = QDateTime.qc_str_to_datetime(value)
         return dt if dt else value
 
     return value

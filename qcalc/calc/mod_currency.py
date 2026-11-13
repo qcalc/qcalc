@@ -6,7 +6,7 @@ import json
 import urllib.request
 from django.conf import settings
 from qutil import makeid, check_setting, load_json
-from qcore import is_obsolete, timestamp_to_date, timestamp_to_dt
+from qcore import QDateTime
 from qcore import UnitRegistry
 import logging
 
@@ -125,7 +125,7 @@ class CurrencyLoader:
                                 j_list_old = load_json(latest_json_path)
                                 _, _, success_old = self._check_response(j_list_old)
                                 if success_old:
-                                    backup_date = timestamp_to_date(j_list_old[self.config["timestamp_key"]])
+                                    backup_date = QDateTime.timestamp_to_date(j_list_old[self.config["timestamp_key"]])
                                     backup_path = latest_json_path.replace(".json",
                                                                            f"-backup-{backup_date}-{makeid()}.json")
                                     os.rename(latest_json_path, backup_path)
@@ -155,7 +155,7 @@ class CurrencyLoader:
                 logger.error(">>> CRF: " + j_list.get("error", {}).get("info", "Unknown error"))
             obsolete = (
                 success
-                and is_obsolete(j_list[self.config["timestamp_key"]], self.interval_secs)
+                and QDateTime.is_obsolete(j_list[self.config["timestamp_key"]], self.interval_secs)
             )
 
         else:
@@ -165,7 +165,7 @@ class CurrencyLoader:
                 logger.error(">>> CRE: " + j_list.get("error", {}).get("info", "Unknown error"))
             obsolete = (
                 success
-                and is_obsolete(j_list[self.config["timestamp_key"]], self.interval_secs)
+                and QDateTime.is_obsolete(j_list[self.config["timestamp_key"]], self.interval_secs)
             )
 
         return False, obsolete, success
@@ -182,4 +182,4 @@ class CurrencyLoader:
         return update_msg
 
     def cur_as_of(self):
-        return timestamp_to_dt(self.timestamp())
+        return QDateTime.timestamp_to_dt(self.timestamp())

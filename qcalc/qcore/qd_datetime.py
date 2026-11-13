@@ -17,12 +17,57 @@ QC_DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S %z'
 ISO_8601_DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%S%z'  # not used
 
 
+# Kept here (not in qd_data) because qd_data imports this module; moving it there needs a circular/lazy import.
 def is_number(value: str) -> bool:
     try:
         float(value)
         return True
     except (ValueError, TypeError):
         return False
+
+
+class QTimezone:
+    """Timezone resolvers."""
+
+    @staticmethod
+    def from_offset(time_zone: str) -> None | timezone:
+        # both 'UTC+06:00' and '+06:00' are valid
+        if not time_zone:
+            return None
+        value = time_zone.strip()
+        if value == 'UTC':
+            return timezone.utc
+
+        match = qconst.TIMEZONE_PATTERN.match(value)
+        if match:
+            offset_text = match.group(1)
+            sign = 1 if offset_text[0] == "+" else -1
+
+            # Remove any existing colon to standardize the string to 4 digits
+            digits = offset_text[1:].replace(":", "")
+            hours = int(digits[:2])
+            minutes = int(digits[2:])
+
+            return timezone(sign * timedelta(hours=hours, minutes=minutes))
+
+        return None
+
+    @staticmethod
+    def from_latlng(latitude: float, longitude: float):
+        # returns the IANA timezone name, e.g. 'Asia/Dhaka'
+        return TimezoneFinder().timezone_at(lat=latitude, lng=longitude)
+
+    @staticmethod
+    def from_name(time_zone: str) -> None | tzinfo:
+        # time_zone: python timezone string e.g. 'Asia/Dhaka', 'Europe/London'
+        value = time_zone.strip()
+        if value.upper() == "UTC":
+            return timezone.utc
+
+        try:
+            return pytz.timezone(value)  # return tzinfo
+        except Exception:
+            return None
 
 
 class QDateTime:
@@ -113,8 +158,20 @@ class QDateTime:
         except (ValueError, OverflowError, TypeError):
             self.dt_value = None
 
+    @staticmethod
+    def to_str(dtime: datetime | date | dt_time | None) -> str:  # qc date/time format
+        if dtime is None:
+            return "Invalid date"
+
+        if not isinstance(dtime, datetime):
+            return dtime.isoformat()
+
+        if dtime.tzinfo is None or dtime.utcoffset() is None:
+            return dtime.strftime('%Y-%m-%d %H:%M:%S')
+        return dtime.strftime(QC_DATETIME_FORMAT)
+
     def __str__(self):
-        return qc_datetime_to_str(self.dt_value)
+        return self.to_str(self.dt_value)
 
     def spell(self) -> str:
         dt = self.date_time
@@ -189,6 +246,58 @@ class QDateTime:
             return self.dt_value.strftime('%a' if short else '%A')
         return None
 
+    @classmethod
+    def qc_str_to_datetime(cls, sdatetime_iso_qc: str):  # risk
+        return cls(sdatetime_iso_qc).val
+
+    @classmethod
+    def qc_str_to_date_and_time(cls, sdatetime_iso_qc: str):  # risk
+        return cls(sdatetime_iso_qc).date_time
+
+    @classmethod
+    def is_str_date(cls, sdatetime_iso_qc: str) -> bool:  # risk
+        return cls(sdatetime_iso_qc).is_date
+
+    @staticmethod
+    def timestamp_to_dt(timestamp: float) -> str:
+        """Convert a timestamp to a datetime string in YYYY-MM-DD HH:MM:SS UTC+0000 format."""
+        return QDateTime.to_str(datetime.fromtimestamp(timestamp, tz=timezone.utc))
+
+    @staticmethod
+    def timestamp_to_date(timestamp: float) -> str:
+        """Convert a timestamp to a date string in YYYY-MM-DD."""
+        return QDateTime.to_str(datetime.fromtimestamp(timestamp, tz=timezone.utc))[:10]
+
+    @staticmethod
+    def is_obsolete(past_timestamp: float, delta_secs: float = 86400.0):
+        """Check if a past timestamp is obsolete based on the current time and a delta in seconds."""
+        cur_datetime = datetime.now()
+        past_datetime = datetime.fromtimestamp(past_timestamp)
+        return past_datetime + timedelta(seconds=delta_secs) < cur_datetime
+
+    @staticmethod
+    def j2ts(jdy: float):
+        # julian date/day to timestamp
+        return (jdy - 2440587.5) * 86400
+
+    @staticmethod
+    def julian_date(local_date: date):
+        """ Julian day numbers are a system of counting days since a specific day (January 1, 4713, BC) """
+        if isinstance(local_date, datetime):
+            local_date = local_date.date()
+
+        # Use an epoch-independent conversion so dates before 1970 work on every platform.
+        return local_date.toordinal() + 1721424.5
+
+    @staticmethod
+    def ts2iso(time_stamp, tz: tzinfo):
+        dt = datetime.fromtimestamp(time_stamp, tz)
+        return QDateTime.to_str(dt)  # | time upto sec
+
+    @classmethod
+    def j2iso(cls, jdy: float, tz: tzinfo):
+        return cls.ts2iso(cls.j2ts(jdy), tz)
+
     @property
     def val(self) -> None | date | datetime | dt_time:
         return self.dt_value  # DateTime or None
@@ -219,18 +328,6 @@ class QDateTime:
         return isinstance(self.dt_value, dt_time)
 
 
-# -------------------------------------
-
-def qc_datetime_to_str(dtime: datetime | date | dt_time | None):  # qc date/time format
-    if dtime is None:
-        return "Invalid date"
-
-    if not isinstance(dtime, datetime):
-        return dtime.isoformat()
-
-    if dtime.tzinfo is None or dtime.utcoffset() is None:
-        return dtime.strftime('%Y-%m-%d %H:%M:%S')
-    return dtime.strftime(QC_DATETIME_FORMAT)
 
 
 def today() -> QDateTime:
@@ -266,105 +363,10 @@ def now(tz: str | None = None) -> QDateTime:
     if re.fullmatch(r"[+-]\d{2}:?\d{2}", value):
         candidate = f"UTC{value}"
 
-    tz_value = qc_timezone(candidate)
+    tz_value = QTimezone.from_offset(candidate)
     if tz_value is None:
         raise ValueError("Timezone must be 'UTC', '+HHMM', or '+HH:MM' format")
     return QDateTime(datetime.now(tz=tz_value))
-
-
-def qc_str_to_datetime(sdatetime_iso_qc: str):  # risk
-    return QDateTime(sdatetime_iso_qc).val
-
-
-def qc_str_to_date_and_time(sdatetime_iso_qc: str):  # risk
-    return QDateTime(sdatetime_iso_qc).date_time
-
-
-def is_str_date(sdatetime_iso_qc: str) -> bool:  # risk
-    return QDateTime(sdatetime_iso_qc).is_date
-
-
-def is_obsolete(past_timestamp: float, delta_secs: float = 86400.0):
-    """Check if a past timestamp is obsolete based on the current time and a delta in seconds."""
-    cur_datetime = datetime.now()
-    past_datetime = datetime.fromtimestamp(past_timestamp)
-    return past_datetime + timedelta(seconds=delta_secs) < cur_datetime
-
-
-def timestamp_to_dt(timestamp: float) -> str:
-    """Convert a timestamp to a datetime string in YYYY-MM-DD HH:MM:SS UTC+0000 format."""
-    return qc_datetime_to_str(datetime.fromtimestamp(timestamp, tz=timezone.utc))
-
-
-def timestamp_to_date(timestamp: float) -> str:
-    """Convert a timestamp to a date string in YYYY-MM-DD."""
-    return qc_datetime_to_str(datetime.fromtimestamp(timestamp, tz=timezone.utc))[:10]
-
-
-def qc_timezone_ll(latitude: float, longitude: float):
-    tf = TimezoneFinder()
-    return tf.timezone_at(lat=latitude, lng=longitude)
-
-
-def qc_timezone(time_zone: str) -> None | timezone:
-    if not time_zone:
-        return None
-    value = time_zone.strip()
-    if value == 'UTC':
-        return timezone.utc
-
-    match = qconst.TIMEZONE_PATTERN.match(value)  # both 'UTC+06:00' and '+06:00' are valid
-
-    if match:
-        offset_text = match.group(1)
-        sign = 1 if offset_text[0] == "+" else -1
-
-        # Remove any existing colon to standardize the string to 4 digits
-        digits = offset_text[1:].replace(":", "")
-        hours = int(digits[:2])
-        minutes = int(digits[2:])
-
-        return timezone(sign * timedelta(hours=hours, minutes=minutes))
-
-    return None
-
-
-def qc_tzinfo(time_zone: str) -> None | tzinfo:
-    # time_zone: python timezone string e.g. 'Asia/Dhaka', 'Europe/London'
-    value = time_zone.strip()
-    if value.upper() == "UTC":
-        return timezone.utc
-
-    try:
-        return pytz.timezone(value)  # return tzinfo
-    except Exception:
-        pass
-
-
-def julian_date(local_date: date):
-    """ Julian day numbers are a system of counting days since a specific day (January 1, 4713, BC) """
-    if isinstance(local_date, datetime):
-        local_date = local_date.date()
-
-    # Use an epoch-independent conversion so dates before 1970 work on every platform.
-    jdate = local_date.toordinal() + 1721424.5
-    # lprint(f'julian_date={jdate}')
-    return jdate
-
-
-def j2ts(jdy: float):
-    # julian date/day to timestamp
-    return (jdy - 2440587.5) * 86400
-
-
-def ts2iso(time_stamp, tz: tzinfo):
-    dt = datetime.fromtimestamp(time_stamp, tz)
-    return qc_datetime_to_str(dt)  # | time upto sec
-
-
-def j2iso(jdy: float, tz: tzinfo):
-    time_stamp = j2ts(jdy)
-    return ts2iso(time_stamp, tz)
 
 
 if __name__ == '__main__':

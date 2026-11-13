@@ -5,7 +5,7 @@ from geopy.geocoders import Nominatim
 from django.template.loader import render_to_string
 import json
 from qutil import format_address, makeid
-from .qd_datetime import qc_timezone_ll
+from .qd_datetime import QTimezone
 import math
 import requests
 
@@ -28,7 +28,7 @@ class QGeo:
         return f'{self.address}: {round(self.latitude, 3)}, {round(self.longitude, 3)}'
 
     def timezone(self):
-        return qc_timezone_ll(self.latitude, self.longitude)
+        return QTimezone.from_latlng(self.latitude, self.longitude)
 
     @classmethod
     def from_str(cls, s):

@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from qcore import qc_datetime_to_str, qc_str_to_date_and_time, qc_timezone
+from qcore import QDateTime, QTimezone
 from calc import StdJson
 
 
@@ -7,7 +7,7 @@ def cdtime__info():
     return {
         'title': 'Convert Date Time Around the World',
         'schema': {
-            'date_time': {'type': str, 'initial': qc_datetime_to_str(datetime.now(timezone.utc))},
+            'date_time': {'type': str, 'initial': QDateTime.to_str(datetime.now(timezone.utc))},
             'time_zone': {'type': 'qsel2', 'choices': StdJson.timezones},
         }
     }
@@ -15,14 +15,14 @@ def cdtime__info():
 
 def cdtime(date_time: str, time_zone):
     default_datetime = (date_time is None or date_time == '')
-    tz = qc_timezone(time_zone)
+    tz = QTimezone.from_offset(time_zone)
     dtz_remark = "Time Zone OK" if tz is not None else "Unknown Time Zone"
     tz = tz or timezone.utc
 
     if default_datetime:
         translated_date_time_tz = datetime.now(tz)
     else:
-        translated_date_time_tz = qc_str_to_date_and_time(date_time)
+        translated_date_time_tz = QDateTime.qc_str_to_date_and_time(date_time)
         if translated_date_time_tz is not None:
             # FIX: If the parsed time has no timezone, assume it's UTC (or your preferred source tz)
             if translated_date_time_tz.tzinfo is None:
@@ -38,5 +38,5 @@ def cdtime(date_time: str, time_zone):
     else:
         dtz_remark += "; Date Time OK"
 
-    result = qc_datetime_to_str(translated_date_time_tz)
+    result = QDateTime.to_str(translated_date_time_tz)
     return {"Converted Date Time": result, "Remark": dtz_remark}

@@ -6,7 +6,7 @@ from datetime import date, timedelta
 
 import pytest
 
-from qcore import QDateTime, is_str_date, is_number, julian_date, now, today
+from qcore import QDateTime, is_number, now, today
 
 
 def test_qdatetime():
@@ -26,7 +26,7 @@ def test_qdatetime():
     assert QDateTime('21-jul-23').is_date
     assert not QDateTime('xx.05.2023').is_date
     assert QDateTime('2023-07-21').is_date  # iso
-    assert is_str_date('2023-01-01')
+    assert QDateTime.is_str_date('2023-01-01')
 
     assert not QDateTime('20230721').is_date
     assert not QDateTime('20230721').is_time
@@ -45,8 +45,8 @@ def test_qdatetime():
     assert QDateTime('2024-09-23 18:06:30 UTC+06:00').is_datetime
     assert QDateTime('2024-09-23 18:06:30 UTC').is_datetime
 
-    # assert qc_str_to_datetime('2023-01-01').dt_value.is_date
-    assert is_str_date('2023-01-01')
+    # assert QDateTime.qc_str_to_datetime('2023-01-01').dt_value.is_date
+    assert QDateTime.is_str_date('2023-01-01')
 
     qnum = QDateTime('20230721')
     assert not qnum.is_date
@@ -86,7 +86,7 @@ def test_qdatetime():
     assert a.is_date
     assert str(a) == '2024-09-23'
 
-    assert julian_date(date(1967, 7, 1)) == 2439672.5
+    assert QDateTime.julian_date(date(1967, 7, 1)) == 2439672.5
 
     b = QDateTime('18:06')
     assert b.is_time

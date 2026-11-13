@@ -145,8 +145,9 @@ def _add_all_units(_add_unit, find_unit):
     _add_unit('bph', 'bpm/60', 'beats per hour')
     _add_unit('N', 'm*kg/s**2', 'newton')
     _add_unit('Pa', 'N/m**2', 'pascal')
-    _add_unit('J', 'N*m', 'joule')
-    _add_unit('W', 'J/s', 'watt')
+    # _add_unit('J', 'N*m', 'joule')  # j is used for complex number deb@14.11.26
+    _add_unit('joule', 'N*m', 'joule') # '3joule' will not be accepted in console (as 3j is a complex number), write '3 joule' instead
+    _add_unit('W', 'joule/s', 'watt')
     _add_unit('kW', '1000*W', 'kilowatt')
     _add_unit('MW', '1000*kW', 'megawatt')
     _add_unit('Clm', 's*A', 'coulomb')
@@ -166,8 +167,8 @@ def _add_all_units(_add_unit, find_unit):
     _add_unit('lm', 'cd*sr', 'lumen')
     _add_unit('lx', 'lm/m**2', 'lux')
     _add_unit('Bq', '1/s', 'becquerel')
-    _add_unit('Gy', 'J/kg', 'gray')
-    _add_unit('Sv', 'J/kg', 'sievert')
+    _add_unit('Gy', 'joule/kg', 'gray')
+    _add_unit('Sv', 'joule/kg', 'sievert')
 
     # Fundamental constants
     # https://en.wikipedia.org/wiki/List_of_physical_constants#Table_of_physical_constants
@@ -176,13 +177,13 @@ def _add_all_units(_add_unit, find_unit):
               '#1 of 7 SI Defining constants', "universal physical constant")
     _add_unit('c', '299792458*m/s', 'speed of light in vacuum',
               '#2 of 7 SI Defining constants', "universal physical constant")
-    _add_unit('hplanck', '6.62607015e-34*J*s', 'planck constant',
+    _add_unit('hplanck', '6.62607015e-34*joule*s', 'planck constant',
               '#3 of 7 SI Defining constants', "universal physical constant")
     _add_unit('hbar', 'hplanck/(2*pi)', 'reduced planck constant',
               'also called Dirac constant', "physical constant")
     _add_unit('ec', '1.602176634e-19*Clm', 'electron charge',
               '#4 of 7 SI Defining constants', "universal physical constant")
-    _add_unit('k_B', '1.380649e-23*J/K', 'boltzmann constant',
+    _add_unit('k_B', '1.380649e-23*joule/K', 'boltzmann constant',
               '#5 of 7 SI Defining constants', "universal physical constant")
     _add_unit('Nav', '6.02214076e23/mol', 'avogadro constant',
               '#6 of 7 SI Defining constants', "universal physical constant")
@@ -239,11 +240,11 @@ def _add_all_units(_add_unit, find_unit):
     _add_unit('mr_pe', 'm_p/m_e', 'proton to electron mass ratio',
               'approx. 1836.15267342', "physical constant")
 
-    _add_unit('mu_B', '9.274010065729e-24*J/Ts', 'bohr magneton',
+    _add_unit('mu_B', '9.274010065729e-24*joule/Ts', 'bohr magneton',
               '', 'physical constant')
     _add_unit('Ryd', '10973731.56815712/m', 'rydberg constant',
               '', "physical constant")
-    _add_unit('Rg', '8.31446261815324*J/mol/K', 'molar gas constant',
+    _add_unit('Rg', '8.31446261815324*joule/mol/K', 'molar gas constant',
               '', "physical constant")
     _add_unit('m_a', '1.6605390689252e-27*kg', 'atomic mass constant',
               '', "physical constant")
@@ -624,17 +625,17 @@ def _add_all_units(_add_unit, find_unit):
 
     # Energy units
 
-    _add_unit('erg', '1.e-7*J', '', 'CGS unit of energy')
+    _add_unit('erg', '1.e-7*joule', '', 'CGS unit of energy')
     _add_unit('eV', 'ec*V', 'electron volt')
     _add_unit('Hartree', 'm_e*ec**4/16/pi**2/eps0**2/hbar**2', '', 'Wavenumbers/inverse cm')
     _add_unit('Ken', 'k_B*K', 'kelvin as energy')
-    _add_unit('cal', '4.184*J', 'thermochemical calorie')
+    _add_unit('cal', '4.184*joule', 'thermochemical calorie')
     _add_unit('kcal', '1000*cal', 'thermochemical kilocalorie')
-    _add_unit('kJ', '1000*J', 'kilojule')
+    _add_unit('kJ', '1000*joule', 'kilojule')
     _add_unit('Calorie', '1*kcal', 'nutrition calorie', 'Energy in nutrition and exercise, 1 Calorie = 1000 cal')
-    _add_unit('calInt', '4.1868*J', 'international calorie')
+    _add_unit('calInt', '4.1868*joule', 'international calorie')
     _add_unit('kcalInt', '1000*calInt', 'international kilocalorie')
-    _add_unit('Btu', '1055.05585262*J', 'british thermal unit')
+    _add_unit('Btu', '1055.05585262*joule', 'british thermal unit')
 
     _add_unit('Btu39F', MeasureUnit('Btu39F', 1059.67, [2, 1, -2, 0, 0, 0, 0, 0, 0, 0]), '')
     _add_unit('Btu59F', MeasureUnit('Btu59F', 1054.8, [2, 1, -2, 0, 0, 0, 0, 0, 0, 0]), '')

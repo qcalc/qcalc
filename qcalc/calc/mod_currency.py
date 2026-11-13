@@ -7,7 +7,7 @@ import urllib.request
 from django.conf import settings
 from qutil import makeid, check_setting, load_json
 from qcore import is_obsolete, timestamp_to_date, timestamp_to_dt
-from qcore import add_currencies
+from qcore import UnitRegistry
 import logging
 
 logger = logging.getLogger(__name__)
@@ -174,7 +174,7 @@ class CurrencyLoader:
         cl, success = self.load_currency(update_now=update_now)
         if success:
             self.currency_list.update(cl)  # update the global list
-            add_currencies(self.rates(), self.base(), self.currency_desc)
+            UnitRegistry._add_currencies(self.rates(), self.base(), self.currency_desc)
             update_msg = f"Currency {"updated" if update_now else "loaded"} as of: {self.cur_as_of()}"
         else:
             update_msg = f">>> UC: Could not {"update" if update_now else "load"} currency"

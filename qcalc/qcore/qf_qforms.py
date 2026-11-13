@@ -3,6 +3,7 @@
 
 from django.template.defaultfilters import filesizeformat
 from django.utils.html import format_html
+from .qc_units import UnitRegistry
 from .qc_qty import *
 from .qf_qfields import *
 from qutil import fchoices, variable_to_title
@@ -219,8 +220,8 @@ class QFieldHandler:
         # In subset mode the list may carry an extra default unit (e.g. 'roti' for gold), so
         # lists of one lmt can differ. Each distinct list gets its own datalist id; reusing one
         # id for several datalists makes the client collect every option once per datalist.
-        lmt = unit2lmt(uname)
-        ulist = lmt2ulist(lmt, subset=self.uom_subset, default_uname=uname)
+        lmt = UnitRegistry.dimension(uname)
+        ulist = UnitRegistry.by_dimension(lmt, subset=self.uom_subset, default_uname=uname)
         cache_key = (lmt, tuple(u[0] for u in ulist))
         list_exists = cache_key in self.list_added
         if not list_exists:

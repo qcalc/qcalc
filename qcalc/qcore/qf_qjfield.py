@@ -7,7 +7,7 @@ import qutil as ut
 from qvars import qc_gpref as gs
 from .qd_datetime import QDateTime
 import pandas as pd
-from .qc_qty import str_type, Qty
+from .qc_qty import Qty
 from qconst import TOK_UOM, TOK_PART, TOK_PART_UOM, TOK_INDEX_SEP
 
 
@@ -355,7 +355,7 @@ class QJField:  # 11422
     def _str2type(self, value):
         value = value.strip()
         # | if string length is >96 it will quickly return as a non-qty string
-        otype, sunit, ln = str_type(value)
+        otype, sunit, ln = Qty.kind(value)
         uom_interface = 'uom2' if gs['uom_v2'] else 'uom'
         if otype == 'uom':
             self._str2uom(value, uom_interface)

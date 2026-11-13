@@ -1,16 +1,13 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
-import re
 import json
 from functools import lru_cache
+from types import MappingProxyType
 from .qd_basic import css2strs
-from qutil import to_python_expr, to_user_expr
-from .qc_mbase import _fps_names, _cgs_names, _base_categories, powers_to_bname_lmt, _unit_operators
-from .qc_munit import isMeasureUnit
-from .qc_units import _unit_table, _unit_info, _base_names, _unit_tree, unit_desc, safe_eval_unit
-from .qc_mquantity import MeasureQuantity as MQty, find_unit
-from .qc_units_subset import UNITS_SUBSET_KEYS
+from .qc_mbase import _base_names, _fps_names, _cgs_names, _base_categories, powers_to_bname_lmt, _unit_operators
+from .qc_units import UnitRegistry, RegistryMeta
+from .qc_mquantity import MeasureQuantity as MQty
 
 
 def _decode_qty(jso):
@@ -41,14 +38,14 @@ class Qty(MQty):
             if arg_cnt == 3:  # | d) or e)
                 super().__init__(*args[:arg_cnt - 1])
             elif arg_cnt == 2:  # | f)
-                qty_str, ln = compose_qty(args[0])
+                qty_str, ln = self.compose(args[0])
                 super().__init__(qty_str)
             temp = self.to(tounit)
             self.value = temp.value
             self.unit = temp.unit
         else:  # | 1 or 2 args i.e. val or val, uom_str or qty_str, (a) or (b) or (c) or unknown
             if isinstance(args[0], str):  # | c)
-                qty_str, ln = compose_qty(args[0])
+                qty_str, ln = self.compose(args[0])
                 # print('composed qty:', qty_str)
                 super().__init__(qty_str)
             elif arg_cnt == 2 and isinstance(args[0], self.__class__) and isinstance(args[1], str):  # | h)
@@ -137,221 +134,74 @@ class Qty(MQty):
         cgs_name, lmt = powers_to_bname_lmt(self.unit.powers, _cgs_names)
         return self.in_units_of(cgs_name)
 
+    @staticmethod
+    def compose2(qstrs_wwo_comma):
+        qstrs = css2strs(qstrs_wwo_comma)
+        qty_obj = None
+        ln = len(qstrs)
 
-def compose_qty2(qstrs_wwo_comma):
-    qstrs = css2strs(qstrs_wwo_comma)
-    qty_obj = None
-    ln = len(qstrs)
+        try:
+            for qstr in qstrs:
+                pq_obj = MQty(qstr)
+                if pq_obj.value is not None:
+                    qty_obj = pq_obj if qty_obj is None else qty_obj + pq_obj
+        except:
+            ln = 0
 
-    try:
-        for qstr in qstrs:
-            pq_obj = MQty(qstr)
-            if pq_obj.value is not None:
-                qty_obj = pq_obj if qty_obj is None else qty_obj + pq_obj
-    except:
-        ln = 0
+        return str(qty_obj) if qty_obj is not None else '', ln
 
-    return str(qty_obj) if qty_obj is not None else '', ln
+    @staticmethod
+    def compose(qstrs_wwo_comma):
+        """``(text, count)`` of the sum of comma separated quantities, e.g. '1ft, 6 inch' -> ('1.5 ft', 2)."""
+        qstrs = css2strs(qstrs_wwo_comma)
+        ln = len(qstrs)
+        qty_str = ''
+        try:
+            if ln == 0:
+                return '', 0
+            qty_str = qstrs[0]
+            if ln > 1:
+                var_qt = MQty(qstrs[0])
+                for i in range(1, ln):
+                    var_qt2 = MQty(qstrs[i])
+                    if var_qt.value is None:
+                        var_qt = var_qt2
+                    elif var_qt2.value is not None:
+                        var_qt += var_qt2
+                qty_str = str(var_qt)
+        except Exception:
+            ln = 0
+        return qty_str, ln
 
+    @classmethod
+    def parse(cls, snum_unit: str):
+        """The Qty of a text such as '3.5 ft', or None when it is not one."""
+        try:
+            return cls(snum_unit)
+        except:
+            return None
 
-def compose_qty(qstrs_wwo_comma):
-    qstrs = css2strs(qstrs_wwo_comma)
-    ln = len(qstrs)
-    qty_str = ''
-    try:
-        if ln == 0:
-            return '', 0
-        qty_str = qstrs[0]
-        if ln > 1:
-            var_qt = MQty(qstrs[0])
-            for i in range(1, ln):
-                var_qt2 = MQty(qstrs[i])
-                if var_qt.value is None:
-                    var_qt = var_qt2
-                elif var_qt2.value is not None:
-                    var_qt += var_qt2
-            qty_str = str(var_qt)
-    except Exception:
-        ln = 0
-    return qty_str, ln
+    @classmethod
+    def is_valid(cls, snum_unit: str) -> bool:
+        return cls.parse(snum_unit) is not None
 
-
-def str_to_named_uom(uname):
-    unit = None
-    try:
-        unit = _unit_table[uname]
-    except:
-        pass
-    return unit
-
-
-def is_str_named_uom(uname):
-    return str_to_named_uom(uname) is not None
-
-
-def str_to_uom(uname: str):
-    unit = None
-    try:
-        unit = safe_eval_unit(uname, _unit_table)
-        unit = unit if isMeasureUnit(unit) else None
-    except:
-        pass
-    return unit
-
-
-def is_str_uom(uname: str) -> bool:
-    return str_to_uom(uname) is not None
-
-
-def str_to_qty(snum_unit: str):
-    q = None
-    try:
-        q = Qty(snum_unit)
-    except:
-        pass
-    return q
-
-
-def is_str_qty(snum_unit: str) -> bool:
-    return str_to_qty(snum_unit) is not None
-
-
-def calc_unit(sunit):
-    return to_python_expr(sunit)
-
-
-def disp_unit(sunit):
-    return to_user_expr(sunit)
-
-
-def read_unit(sunit):
-    # sunit = "g*ft/s^2/m^3"
-    sunit = sunit.lower()  # convert to lowercase, used _unit_info[var]
-    pun = find_unit(sunit)  # find_unit will also convert to lowercase
-    sunit = disp_unit(sunit)
-    s = sunit
-
-    def rep(op):
-        nonlocal s
-        s = s.replace(op, ' ' + op + ' ')
-        return s
-
-    for op in _unit_operators:
-        rep(op)
-    s = f' {s} '
-    w = s
-    vars_ = (re.findall('[_a-z][_a-z0-9]*', sunit, re.I))
-    for var in vars_:
-        s = s.replace(' ' + var + ' ', _unit_info[var]['long_name'].replace(' ', '-'))  # lowercase
-        w = w.replace(' ' + var + ' ', _unit_info[var]['proper_name'].replace(' ', '-'))  # propercase
-    # trim spaces
-    s = s.replace(' ', '')
-    w = w.replace(' ', '')
-    return {"Read as": s, "Write as": w, "Category": pun.category, "Dimension": pun.dimension, "Quantity": pun.base_qty}
-
-
-@lru_cache(maxsize=4096)
-def str_type(sunit):
-    if len(sunit) > 96:  # @26.03.24 anything that long most possibly is not a unit
+    @staticmethod
+    @lru_cache(maxsize=4096)
+    def kind(sunit):
+        """``(kind, text, count)`` where kind is 'uom' ('ft'), 'qty' ('3.5 ft', '12h,45min,30s') or 'text'."""
+        if len(sunit) > 96:  # @26.03.24 anything that long most possibly is not a unit
+            return 'text', sunit, 0
+        if UnitRegistry.is_uom(sunit):
+            return 'uom', sunit, 0  # only uom e.g. 'ft'
+        if Qty.is_valid(sunit):  # ln=1
+            return 'qty', sunit, 1  # single part e.g. '3.5 ft'
+        qty_str, ln = Qty.compose(sunit)
+        if qty_str != '' and ln > 1:
+            return 'qty', qty_str, ln  # 2,3,4 multipart e.g. '12h,45min,30s'
         return 'text', sunit, 0
-    if str_to_uom(sunit) is not None:
-        return 'uom', sunit, 0  # only uom e.g. 'ft'
-    if str_to_qty(sunit) is not None:  # ln=1
-        return 'qty', sunit, 1  # single part e.g. '3.5 ft'
-    qty_str, ln = compose_qty(sunit)
-    if qty_str != '' and ln > 1:
-        return 'qty', qty_str, ln  # 2,3,4 multipart e.g. '12h,45min,30s'
-    return 'text', sunit, 0
 
 
-def unit2lmt(uname):
-    lmt = None
-    if uname is not None:
-        unit1 = find_unit(uname)
-        lmt = unit1.dimension
-    return lmt
-
-
-def lmt2cat(lmt):
-    if lmt in _base_categories:
-        categ = _base_categories[lmt] + f' ({lmt})'
-    else:
-        categ = lmt
-    return categ
-
-
-def lmt2ulist(lmt, subset=False, default_uname=None):
-    tmp = []
-    if lmt is not None:  # @ft output  @11.09.23
-        # there are some lmt e.g. LT for which there are no member units
-        # so _unit_tree[lmt] will raise exception, better to use _unit_tree.get(lmt,[])
-        lmt_key = lmt.upper()
-        ulist = _unit_tree.get(lmt_key, [])
-
-        if subset:
-            allowed = UNITS_SUBSET_KEYS.get(lmt_key)
-            if allowed is not None:
-                # Use precomputed normalized subset keys directly so delayed unit-registry
-                # loading (for example currencies) still shows configured subset entries.
-                ulist = list(allowed)
-            if default_uname:
-                try:
-                    normalized_default = default_uname.lower()
-                    default_lmt = unit2lmt(default_uname)
-                    if default_lmt and default_lmt.upper() == lmt_key and normalized_default not in ulist:
-                        ulist = [normalized_default] + ulist
-                except Exception:
-                    pass
-
-        for uname in ulist:
-            info = _unit_info.get(uname)
-            if info is None:
-                tmp.append((uname, uname))
-            else:
-                tmp.append((uname, f"{info['proper_name']} ({info['long_name']})"))
-    return tmp
-
-
-def lmt2qlist(lmt):
-    tmp = []
-    if lmt is not None:
-        qlist = _qty_tree.get(lmt.upper(), [])
-        for qname in qlist:
-            tmp.append((qname, f"{_qty_info[qname]['description']} ({qname})"))
-    return tmp
-
-
-# _qty_table Example: {'q0001': MeasureUnit(384000000,'km'), ...}
-# _qty_table = {}  # _qty_table['W']=_qty_info['W']['qty']
-
-# _qty_info Example: {'q0001': {'base_qty': '384000000 m',
-# 'description': 'The average distance between the Earth and the Moon', 'dimension': 'L'}}
-_qty_info = {}
-
-# _qty_tree Example: {'L': ['q0001']}
-_qty_tree = {}
-
-
-def _add_qty(name, qty_str: str, description):
-    if name in _qty_info:  # _qty_table:
-        raise KeyError(f'Error (PQO): Qty {name} already defined')
-
-    qty = Qty(qty_str)
-    # _qty_table[name] = qty
-    _qty_info[name] = {
-        "description": description,
-        "qty": qty,
-        "base_qty": qty.unit.base_qty,
-        "dimension": qty.unit.dimension
-    }
-    dim = qty.unit.dimension  # unit.dimension will be assigned to '0' for unitless entity
-    assert dim in _base_categories
-    if dim not in _qty_tree:
-        _qty_tree[dim] = []
-    _qty_tree[dim].append(name)
-
-
-def add_quantities():
+def _add_all_quantities(_add_qty):
     _add_qty('l_earth_moon', '384000 km', 'Average distance between the Earth and the Moon')
     _add_qty('a_earth', '4.543e9 yr', 'Age of Earth')
     _add_qty('r_earth', '6378100 m', 'Nominal Earth equatorial radius')
@@ -379,54 +229,91 @@ def add_quantities():
     _add_qty('m_glucose', '180.15588 g/mol', 'molar mass of glucose (C6H12O6)')
 
 
-def qx(qcode):  # q() extended
-    # return _qty_table[qcode.lower()]
-    return _qty_info[qcode.lower()]['qty']
+class QtyRegistry(metaclass=RegistryMeta):
+    """The named quantities (e.g. 'th_hair'), filled once by ``_load()``. Everything is class level.
 
+    ``info`` and ``tree`` are read-only views and only the ``_`` methods change the registry,
+    see RegistryMeta in qc_units for the reason.
+    """
 
-def _base_categ_mlist():
-    return [(k, v) for k, v in _base_categories.items()]  # if k in _unit_tree
+    # _info example: {'q0001': {'base_qty': '384000000 m',
+    # 'description': 'The average distance between the Earth and the Moon', 'dimension': 'L'}}
+    _info = {}
 
+    # _tree example: {'L': ('q0001',)}
+    _tree = {}
 
-def qxi(qcode):  # extended q() info
-    return _qty_info[qcode.lower()]
+    @classmethod
+    def _add(cls, name, qty_str: str, description):
+        if name in cls._info:
+            raise KeyError(f'Error (PQO): Qty {name} already defined')
 
+        qty = Qty(qty_str)
+        cls._info[name] = MappingProxyType({
+            "description": description,
+            "qty": qty,
+            "base_qty": qty.unit.base_qty,
+            "dimension": qty.unit.dimension
+        })
+        dim = qty.unit.dimension  # unit.dimension will be assigned to '0' for unitless entity
+        assert dim in _base_categories
+        cls._tree[dim] = (*cls._tree.get(dim, ()), name)
 
-def qty_desc(sname):  # deb@04.06.24
-    if sname in _qty_info:
-        lname = _qty_info[sname]['description']
-        bqty = _qty_info[sname]['base_qty']
-        # category = _unit_info[sname]['category']
-        category = ''
-        lmt = '[' + _qty_info[sname]['dimension'] + ']'
+    @classmethod
+    def _load(cls):
+        _add_all_quantities(cls._add)
 
-        lname_categ = ', '.join(filter(None, [lname, category, lmt]))
-        lname_categ = '(' + lname_categ + ')' if lname_categ != '' else ''
-        qtydesc = '%s %s: 1 %s = %s' % (sname, lname_categ, sname, bqty)
-    else:
-        qtydesc = f'qty {sname}: not found'
-    return qtydesc
+    @classmethod
+    def get(cls, qcode):  # q() extended
+        return cls.info[qcode.lower()]['qty']
 
+    @classmethod
+    def entry(cls, qcode):  # extended q() info
+        return cls.info[qcode.lower()]
 
-def search_unit_result(sterm):
-    if any(op in sterm for op in _unit_operators):
-        try:
-            unit = find_unit(sterm)
-            sterm = '[' + unit.dimension + ']'
-        except (Exception,):
-            pass
+    @classmethod
+    def by_dimension(cls, lmt):
+        """``[(name, title), ...]`` of the named quantities of a dimension."""
+        tmp = []
+        if lmt is not None:
+            for qname in cls.tree.get(lmt.upper(), []):
+                tmp.append((qname, f"{cls.info[qname]['description']} ({qname})"))
+        return tmp
 
-    sterm = sterm.lower()  # lowercase
-    matches = []
-    if len(sterm) > 0:
-        for name in _unit_info:
-            udesc = unit_desc(name)
-            if sterm in udesc.lower():
-                matches.append((name, udesc))
-        for name in _qty_info:
-            qdesc = qty_desc(name)
-            if sterm in qdesc.lower():
-                matches.append((name, qdesc))
-    else:
+    @classmethod
+    def desc(cls, sname):  # deb@04.06.24
+        if sname in cls.info:
+            lname = cls.info[sname]['description']
+            bqty = cls.info[sname]['base_qty']
+            category = ''
+            lmt = '[' + cls.info[sname]['dimension'] + ']'
+
+            lname_categ = ', '.join(filter(None, [lname, category, lmt]))
+            lname_categ = '(' + lname_categ + ')' if lname_categ != '' else ''
+            qtydesc = '%s %s: 1 %s = %s' % (sname, lname_categ, sname, bqty)
+        else:
+            qtydesc = f'qty {sname}: not found'
+        return qtydesc
+
+    @classmethod
+    def search(cls, sterm):
+        """Up to 100 ``(name, description)`` of the units and named quantities whose description has ``sterm``."""
+        if any(op in sterm for op in _unit_operators):
+            try:
+                unit = UnitRegistry.find(sterm)
+                sterm = '[' + unit.dimension + ']'
+            except (Exception,):
+                pass
+
+        sterm = sterm.lower()  # lowercase
         matches = []
-    return matches[0:100]
+        if len(sterm) > 0:
+            for name in UnitRegistry.info:
+                udesc = UnitRegistry.desc(name)
+                if sterm in udesc.lower():
+                    matches.append((name, udesc))
+            for name in cls.info:
+                qdesc = cls.desc(name)
+                if sterm in qdesc.lower():
+                    matches.append((name, qdesc))
+        return matches[0:100]

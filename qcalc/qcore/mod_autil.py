@@ -5,8 +5,8 @@ import numpy as _np
 import pandas as _pd
 import inspect
 from qutil.mod_basic import css2strs
-from .qc_units import _unit_table
-from .qc_qty import _qty_info
+from .qc_units import UnitRegistry
+from .qc_qty import QtyRegistry
 import fnmatch
 
 
@@ -59,10 +59,10 @@ def qsymbols(scope='api', name_filter=None):
     # | remarks from: mod_qcals.py
     # | all qfunc_dict items except admin and demo cals, will eventually include pylib_dict and calc_dict
     # |     when create_standard_cataog_from_packages() are executed
-    # | all _unit_table items that includes units and currencies
+    # | all UnitRegistry.table items that includes units and currencies
     # | all formal api items from __evacon__
     # | all auxiliary functions (qcalc/python) from make_symbol_table
-    # | qsymbols = (qfunc_dict - admin cals - demo cals)  + _unit_table + _qty_info + __evacon__ + make_symbols_table
+    # | qsymbols = (qfunc_dict - admin cals - demo cals)  + UnitRegistry.table + QtyRegistry.info + __evacon__ + make_symbols_table
     # | qfunc_dict = (all calculators + auxiliaries) + (pylib_dict + calc_dict)
 
     names = set()
@@ -89,19 +89,19 @@ def qsymbols(scope='api', name_filter=None):
     if 'unit' in scope_names or 'all' in scope_names:
         names |= {
             name
-            for name, unit in _unit_table.items()
+            for name, unit in UnitRegistry.table.items()
             if unit.dimension != 'C'
         }
     if 'cur' in scope_names or 'all' in scope_names:
         names |= {
             name
-            for name, unit in _unit_table.items()
+            for name, unit in UnitRegistry.table.items()
             if unit.dimension == 'C'
         }
     if 'qty' in scope_names or 'all' in scope_names:
         names |= {
             name
-            for name in _qty_info
+            for name in QtyRegistry.info
         }
     entries = []
     for name in names:

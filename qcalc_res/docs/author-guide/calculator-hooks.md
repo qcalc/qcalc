@@ -100,9 +100,9 @@ def conv2__info():
     return {
         'schema': {
             'quantity': {  # changing it rebuilds the form, the fields in reload follow the new quantity
-                'type': 'choice', 'choices': _base_categ_mlist(), 'initial': 'L',
+                'type': 'choice', 'choices': UnitRegistry.categories(), 'initial': 'L',
             },
-            'from_unit': {'type': 'multiplechoice', 'choices': lmt2ulist('L')},  # fallback
+            'from_unit': {'type': 'multiplechoice', 'choices': UnitRegistry.by_dimension('L')},  # fallback
         },
         'reload': {'quantity': {'fields': ['from_unit', 'to_units']}},
     }
@@ -111,7 +111,7 @@ def conv2__info():
 def conv2__schema(ctx):
     # the posted value when the form is submitted, else the value the form starts with
     lmt = ctx.posted('quantity') or ctx.resolved('quantity', 'L')
-    return {'from_unit': {'choices': lmt2ulist(lmt)}}
+    return {'from_unit': {'choices': UnitRegistry.by_dimension(lmt)}}
 ```
 
 - `ctx.resolved('quantity')` is the value the form starts with: the function default, the remembered value or the 

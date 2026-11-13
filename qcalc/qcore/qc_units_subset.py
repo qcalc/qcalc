@@ -7,10 +7,8 @@ Source: qcore.qc_units
 Goal: keep a compact but representative unit vocabulary for calculators.
 """
 
-from qcore.qc_units import _unit_info
-
-# Compact dictionary keyed by LMT/dimension strings (same style as _unit_tree keys).
-# This allows direct filtering by unit.dimension and lmt2ulist(lmt)-style flows.
+# Compact dictionary keyed by LMT/dimension strings (same style as UnitRegistry.tree keys).
+# This allows direct filtering by unit.dimension and UnitRegistry.by_dimension(lmt)-style flows.
 _units_subset = {
     "0": ["unit", "ea", "pair", "dozen", "pct", "ppm"],  # unitless
     "T": ["s", "sec", "min", "h", "hr", "d", "wk", "mo", "yr", "manhr", "manday", "manmo", "manyr"],  # time and labour

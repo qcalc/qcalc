@@ -1,4 +1,4 @@
-__version__ = "v1.6.07.701-rc"  # @2026.11.09
+__version__ = "v1.6.08.703-rc"  # @2026.11.13
 __author__ = "Debasish C Saha"
 __version_info__ = tuple(
     [
@@ -7,13 +7,13 @@ __version_info__ = tuple(
     ]
 )
 
-STATIC_VERSION = '1.6.07.02'
+STATIC_VERSION = '1.6.08.01'
 sitemap_lastmod = {
-    "page": "2024-10-30",
-    "doc": "2026-10-30",
-    "cal": "2026-10-30",
-    "help": "2026-10-30",
-    "cat": "2026-10-30",
-    "qty": "2026-10-30",
+    "page": "2024-11-13",
+    "doc": "2026-11-13",
+    "cal": "2026-11-13",
+    "help": "2026-11-13",
+    "cat": "2026-11-13",
+    "qty": "2026-11-13",
 }
 

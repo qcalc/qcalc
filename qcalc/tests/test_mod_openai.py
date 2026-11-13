@@ -53,7 +53,7 @@ def fake_openai(monkeypatch):
     client = SimpleNamespace(responses=Responses())
     monkeypatch.setattr(mo.openai, 'BadRequestError', FakeBadRequest)
     monkeypatch.setattr(mo.openai, 'OpenAI', lambda **_kwargs: client)
-    monkeypatch.setattr(mo, 'get_effective_api_key', lambda _user, _provider: 'key')
+    monkeypatch.setattr(mo.ProviderApiKey, 'effective', lambda _self: 'key')
     monkeypatch.setattr(mo.QPref, 'getp1', lambda _key, _default: 'any-model')
     return state
 
@@ -117,7 +117,7 @@ def test_model_not_found_has_actionable_message(monkeypatch):
 
     monkeypatch.setattr(mo.openai, 'NotFoundError', ModelNotFoundError)
     monkeypatch.setattr(mo.openai, 'OpenAI', lambda **_kwargs: SimpleNamespace(responses=Responses()))
-    monkeypatch.setattr(mo, 'get_effective_api_key', lambda _user, _provider: 'key')
+    monkeypatch.setattr(mo.ProviderApiKey, 'effective', lambda _self: 'key')
     monkeypatch.setattr(mo.QPref, 'getp1', lambda _key, _default: 'wrong-model')
 
     with pytest.raises(ValueError, match='wrong-model.*User Preferences'):

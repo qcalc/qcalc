@@ -12,19 +12,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from qcore import (
     Qty,
-    find_unit,
-    compose_qty,
+    UnitRegistry,
     isMeasureQuantity,
     isMeasureUnit,
-    is_str_named_uom,
-    is_str_qty,
-    is_str_uom,
     load_qty,
-    read_unit,
-    str_type,
 )
 from qcore.qc_mquantity import MeasureQuantity
-from qcore.qc_qty import compose_qty2, str_to_named_uom, str_to_uom
 
 
 GOLDEN_PATH = Path(__file__).resolve().parent / "golden_qty_snapshot.json"
@@ -73,9 +66,9 @@ def _compute_golden_snapshot():
 
     for case in qty_cases:
         raw = case["input"]
-        kind, str_type_value, str_type_ln = str_type(raw)
-        composed, compose_ln = compose_qty(raw)
-        composed2, compose2_ln = compose_qty2(raw)
+        kind, str_type_value, str_type_ln = Qty.kind(raw)
+        composed, compose_ln = Qty.compose(raw)
+        composed2, compose2_ln = Qty.compose2(raw)
 
         entry = {
             "id": case["id"],
@@ -107,7 +100,7 @@ def _compute_golden_snapshot():
         out["qty_cases"].append(entry)
 
     for sunit in read_unit_cases:
-        info = read_unit(sunit)
+        info = UnitRegistry.read(sunit)
         out["read_unit_cases"].append(
             {
                 "input": sunit,
@@ -200,7 +193,7 @@ class TestMeasureQuantityCompatibility(unittest.TestCase):
 
 class TestQtyCompatibility(unittest.TestCase):
     def test_qty_constructor_variants(self):
-        unit_yd = find_unit("yd")
+        unit_yd = UnitRegistry.find("yd")
 
         q_a = Qty(1, "yd")
         q_b = Qty(1, unit_yd)
@@ -270,34 +263,34 @@ class TestQtyCompatibility(unittest.TestCase):
         self.assertEqual(q_none.val, 0.0)
 
     def test_string_parsers_and_classifiers(self):
-        self.assertTrue(isMeasureUnit(find_unit("ft")))
-        self.assertTrue(is_str_uom("ft/s"))
-        self.assertTrue(is_str_named_uom("ft"))
-        self.assertFalse(is_str_named_uom("ft/s"))
+        self.assertTrue(isMeasureUnit(UnitRegistry.find("ft")))
+        self.assertTrue(UnitRegistry.is_uom("ft/s"))
+        self.assertTrue(UnitRegistry.is_named("ft"))
+        self.assertFalse(UnitRegistry.is_named("ft/s"))
 
-        self.assertIsNotNone(str_to_uom("ft/s"))
-        self.assertIsNotNone(str_to_named_uom("ft"))
+        self.assertIsNotNone(UnitRegistry.parse("ft/s"))
+        self.assertIsNotNone(UnitRegistry.named("ft"))
 
-        qty_str, ln = compose_qty("1ft, 6 inch")
+        qty_str, ln = Qty.compose("1ft, 6 inch")
         self.assertGreaterEqual(ln, 2)
-        self.assertTrue(is_str_qty(qty_str))
+        self.assertTrue(Qty.is_valid(qty_str))
 
-        qty_str2, ln2 = compose_qty2("1ft, 6 inch")
+        qty_str2, ln2 = Qty.compose2("1ft, 6 inch")
         self.assertGreaterEqual(ln2, 2)
-        self.assertTrue(is_str_qty(qty_str2))
+        self.assertTrue(Qty.is_valid(qty_str2))
 
-        kind, _, ln3 = str_type("1ft, 6 inch")
+        kind, _, ln3 = Qty.kind("1ft, 6 inch")
         self.assertEqual(kind, "qty")
         self.assertGreaterEqual(ln3, 1)
 
-        kind_u, _, _ = str_type("ft")
+        kind_u, _, _ = Qty.kind("ft")
         self.assertEqual(kind_u, "uom")
 
-        kind_t, _, _ = str_type("this is plain text")
+        kind_t, _, _ = Qty.kind("this is plain text")
         self.assertEqual(kind_t, "text")
 
     def test_read_unit_shape_and_content(self):
-        result = read_unit("kg*ft/s^2/m^3")
+        result = UnitRegistry.read("kg*ft/s^2/m^3")
         self.assertIn("Read as", result)
         self.assertIn("Write as", result)
         self.assertIn("Category", result)

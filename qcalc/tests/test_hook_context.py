@@ -357,7 +357,7 @@ def test_conv2_short_catalog_lists_only_quantities_with_more_than_two_units():
 
     assert 'LT' in full and 'LT' not in short
     assert 0 < len(short) < len(full)
-    assert all(len(cal_conv.lmt2ulist(q)) > 2 for q in short)
+    assert all(len(cal_conv.UnitRegistry.by_dimension(q)) > 2 for q in short)
 
 
 def test_conv2_short_catalog_has_only_the_unit_to_unit_mode():

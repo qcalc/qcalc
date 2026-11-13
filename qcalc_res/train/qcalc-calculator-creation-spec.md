@@ -71,12 +71,11 @@ e.g. you do not ever require "from qcore import Qty" statement for frontend calc
 - For tabular input and out put do not use `qtable` annotation, use `qtbl` instead. Within the body of the function do not use DataFrame. Instead use qdf() and related helper functions.
 - Following functions and classes are globally exposed and do not require any import statement:
 
-    Qty or q, QDateTime or qdt, DotDict or dd,
+    Qty or q, QDateTime or qdt, DotDict or dd, UnitRegistry, QtyRegistry,
     datetime (for datetime.datetime), date (for datetime.date), time (for datetime.time),
-    timedelta (for datetime.timedelta), timezone (for datetime.timezone), qx, qxi,
+    timedelta (for datetime.timedelta), timezone (for datetime.timezone),
 
-    is_qty, is_unit, base_units, base_dims, unit_desc, prefixes, unit2lmt,
-    lmt_desc, str_type, read_unit, lmt2cat, lmt2ulist, lmt2qlist, find_unit, is_str_qty,
+    is_qty, is_unit, base_dims, prefixes, lmt_desc,
     minimum,
     table_columns_validator,
     qformat_q, qformat_v, to_ucur,

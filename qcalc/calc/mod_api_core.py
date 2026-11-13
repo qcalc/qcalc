@@ -18,7 +18,7 @@ from qcore import to_bool
 from qvars import qc_gpref as gs
 from .mod_mfunc import func_meta, q0164_execute_qfunc
 from .mod_qcals import QCals
-from .mod_api_quota import consume_api_quota, ApiQuotaExceeded
+from .quota.mod_qcalc_quota import QCalcApiQuota, ApiQuotaExceeded
 
 logger = logging.getLogger(__name__)
 
@@ -203,7 +203,7 @@ def decode_inputs(addr, raw) -> dict:
 def enforce_quota(api_key) -> None:
     """Count one run against the key's rate limits; raises ApiError 429 when a limit is reached."""
     try:
-        consume_api_quota(api_key)
+        QCalcApiQuota.consume(api_key)
     except ApiQuotaExceeded as e:
         raise ApiError('rate_limited', str(e), 429, headers={'Retry-After': str(e.retry_after)})
 

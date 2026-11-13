@@ -6,12 +6,12 @@ import openai
 from types import SimpleNamespace
 from typing import Any
 from .mod_qcals import QCals
-from qcore import _base_categ_s2d, _base_categories, _unit_info
+from qcore import _base_categ_s2d, _base_categories, UnitRegistry
 import inspect
 import qconst
 from .mod_cache import QMyCal, QPref
 from qutil import fid2owner, user_name, md2html, QThread, is_loggedin
-from .mod_credentials import get_effective_api_key
+from .quota.mod_prov_key import ProviderApiKey
 
 DEFAULT_OPENAI_MODEL = 'gpt-5.4-mini'
 OPENAI_MODEL_CHOICES = [
@@ -85,7 +85,7 @@ def create_openai_chat_completion(messages, max_tokens=None):
     is retried, so new models work without per-model configuration.
     """
     model = get_openai_model()
-    api_key = get_effective_api_key(_current_user(), 'openai')
+    api_key = ProviderApiKey(_current_user(), 'openai').effective()
     client = openai.OpenAI(api_key=api_key)
 
     params: dict[str, Any] = {'model': model, 'input': messages}
@@ -237,7 +237,7 @@ def qty_desc(qty_slug: str = 'length'):
 
 
 def unit_desc(unit_name: str = 'ft'):
-    uinfo = _unit_info[unit_name]
+    uinfo = UnitRegistry.info[unit_name]
     prompt = f"""
     please describe physical unit "{unit_name}" within 170 characters.
     In case you need more information about "{unit_name}" please take note of the follwoing:

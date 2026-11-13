@@ -1,13 +1,16 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
-from qcore.qc_mbase import _base_names, _conv_names, lmt_desc, dim_to_bname, _prefixes
-from qcore.qc_munit import MeasureUnit, isMeasureUnit
-from qutil import iif, to_python_expr
+import re
 import ast
 import operator
 import numpy as np
 from functools import lru_cache
+from types import MappingProxyType
+from qcore.qc_mbase import _base_names, _conv_names, _base_categories, _unit_operators, lmt_desc, dim_to_bname, _prefixes
+from qcore.qc_munit import MeasureUnit, isMeasureUnit
+from qcore.qc_units_subset import UNITS_SUBSET_KEYS
+from qutil import iif, to_python_expr, to_user_expr
 
 _BIN_OPS = {
     ast.Add: operator.add,
@@ -66,15 +69,6 @@ def safe_eval_unit(expr: str, table: dict, extra: dict | None = None):
     return ev(tree)
 
 
-@lru_cache(maxsize=4096)
-def _find_unit_cached(name: str):
-    return safe_eval_unit(name, _unit_table)
-
-
-def _clone_unit(unit: MeasureUnit) -> MeasureUnit:
-    return MeasureUnit(dict(unit.names), unit.factor, list(unit.powers), unit.offset)
-
-
 _base_units = [
     ('m', MeasureUnit('m', 1., [1, 0, 0, 0, 0, 0, 0, 0, 0, 0]), 'meter'),
     ('g', MeasureUnit('g', 0.001, [0, 1, 0, 0, 0, 0, 0, 0, 0, 0]), 'gram'),
@@ -113,14 +107,14 @@ _unitless = [
 ]
 
 
-def _add_unitless():
+def _add_unitless(_add_unit):
     for unitless in _prefixes + _unitless:
         _add_unit(
             unitless[0], MeasureUnit(unitless[0], unitless[1],
                                      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]), unitless[2], '', 'Unitless')
 
 
-def _add_all_units():
+def _add_all_units(_add_unit, find_unit):
     # Unitless
 
     _add_unit('unit', MeasureUnit('unit', 1, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]), 'single unit')
@@ -740,7 +734,7 @@ def _add_all_units():
     del kelvin
 
 
-def _add_all_extra_units():
+def _add_all_extra_units(_add_unit):
     _add_unit('abcoulomb', MeasureUnit('abcoulomb', 10, [0, 0, 1, 1, 0, 0, 0, 0, 0, 0]), '')
     _add_unit('coulomb', MeasureUnit('coulomb', 1, [0, 0, 1, 1, 0, 0, 0, 0, 0, 0]), 'coulomb')
     _add_unit('fdy', MeasureUnit('fdy', 96485.31, [0, 0, 1, 1, 0, 0, 0, 0, 0, 0]), 'faraday')
@@ -803,178 +797,284 @@ def _add_all_extra_units():
     _add_unit('upole', MeasureUnit('upole', 0.0000001256637, [2, 1, -2, -1, 0, 0, 0, 0, 0, 0]), 'unit pole')
 
 
-_units_loaded = False
+class RegistryMeta(type):
+    """Read-only views of the registry data.
+
+    Calculators can reach the registries through qapi, and the sandbox (qutil.mod_code_security) blocks every attribute
+    that starts with an underscore. So the data is kept in underscore attributes and only these immutable views are
+    public: sandboxed code can look units up but cannot add, change or clear them. The code that fills the registries
+    (the ``_add*`` and ``_load`` methods) is private for the same reason.
+    """
+
+    @property
+    def info(cls):
+        return MappingProxyType(cls._info)
+
+    @property
+    def tree(cls):
+        return MappingProxyType(cls._tree)
 
 
-def add_measurement_units():
-    global _units_loaded
-    if _units_loaded:
-        return
-    _add_all_extra_units()
-    _add_all_units()
-    _add_unitless()
-    _units_loaded = True
-    # add_currencies(curlist)  # cannot call it here as curlist is required
+class UnitRegistryMeta(RegistryMeta):
+    @property
+    def table(cls):
+        return MappingProxyType(cls._table)
 
 
-# _unit_table Example: {'m': MeasureUnit(1.0,'m'), ...}
-_unit_table = {}
+class UnitRegistry(metaclass=UnitRegistryMeta):
+    """The measurement units, filled once by ``_load()``. Everything is class level, e.g. ``UnitRegistry.find('ft/s')``.
 
-# _unit_info Example: {'m': {'proper_name': 'm', 'long_name': 'meter', 'base_qty': '1.0 m',
-# 'comment': 'Base Unit', 'category': 'Length, Wavelength', 'dimension': 'L'},...}
-_unit_info = {}
+    ``table``, ``info`` and ``tree`` are read-only views (see RegistryMeta); only the ``_`` methods change the registry.
+    """
 
-# _unit_tree Example: 'LMT-2': ['dyn', 'gf', 'kgf', 'kip', 'kn', 'kp', 'lbf', 'n', 'ozf', 'pdl', 'tf'],
-_unit_tree = {}
+    # _table example: {'m': MeasureUnit(1.0,'m'), ...}
+    _table = {}
+
+    # _info example: {'m': {'proper_name': 'm', 'long_name': 'meter', 'base_qty': '1.0 m',
+    # 'comment': 'Base Unit', 'category': 'Length, Wavelength', 'dimension': 'L'},...}
+    _info = {}
+
+    # _tree example: 'LMT-2': ('dyn', 'gf', 'kgf', 'kip', 'kn', 'kp', 'lbf', 'n', 'ozf', 'pdl', 'tf'),
+    _tree = {}
+
+    _loaded = False
+    _alt_currency = {'TRY': 'TRL', 'CUP': 'CPS', 'ALL': 'LEK'}  # Turkish Lira, Cuban Peso, Albanian Lek
+
+    @staticmethod
+    @lru_cache(maxsize=4096)
+    def _eval(name: str):
+        return safe_eval_unit(name, UnitRegistry._table)
+
+    @staticmethod
+    def _clone(unit: MeasureUnit) -> MeasureUnit:
+        return MeasureUnit(dict(unit.names), unit.factor, list(unit.powers), unit.offset)
+
+    @classmethod
+    def _add(cls, name, unit_or_str, long_name='', comment='', category=''):
+        proper_name = name
+        name = name.lower()  # dup check
+
+        if name in cls._table:
+            error = False
+            if category != 'C':
+                # category 'C' will be replaced with unit category name
+                error = True
+            elif cls._table[name].dimension != 'C':
+                error = True
+
+            if error:
+                raise KeyError(f'Error (AU): Unit {name} already defined')
+
+        if isinstance(unit_or_str, str):  # it is a string e.g. '3*ft'
+            unit_or_str = unit_or_str.lower()  # dup check
+            unit = safe_eval_unit(unit_or_str, cls._table, {'pi': np.pi})
+        else:  # it is a MeasureUnit(...)
+            unit = unit_or_str
+
+        unit.set_name(proper_name)
+        cls._table[name] = unit
+        if long_name == '':
+            long_name = proper_name
+        if unit.dimension == '':
+            unit.category = category
+        cls._info[name] = MappingProxyType({
+            "proper_name": proper_name,
+            "long_name": long_name,
+            "base_qty": unit.base_qty,
+            "comment": comment,
+            "category": unit.category,
+            "dimension": unit.dimension
+        })
+        id_ = unit.dimension  # unit.dimension will be assigned to '0' for unitless entity
+        members = cls._tree.get(id_, ())
+        if name not in members:  # currency refresh re-adds existing names; only the rate should change
+            cls._tree[id_] = (*members, name)
+        cls._eval.cache_clear()
+
+    @classmethod
+    def _load(cls):
+        """Add the built-in units; later calls do nothing. Currencies are added later by ``_add_currencies``."""
+        if cls._loaded:
+            return
+        for unit in _base_units:
+            cls._add(unit[0], unit[1], unit[2], 'Base Unit')
+        _add_all_extra_units(cls._add)
+        _add_all_units(cls._add, cls.find)
+        _add_unitless(cls._add)
+        cls._loaded = True
+
+    @classmethod
+    def _add_currencies(cls, rates, base, curdesc):
+        _usd = rates["USD"]
+        factr = 1.0
+        if base != _usd:
+            factr = _usd
+        for key, val in rates.items():
+            if key != 'USD':
+                if key in cls._alt_currency:  # rename turkish lira, as eval('try') will raise exception deb@23.11.23
+                    key = cls._alt_currency[key]
+                cls._add(key, MeasureUnit(key, factr / val, [0, 0, 0, 0, 0, 0, 0, 0, 0, 1]),
+                         curdesc.get(key, ''), '', 'C')
+                # Category 'C' will help update the rates on subsequent run while qCalc is running
+        # currencies are added after units are added, sort the tree members
+        for lmt in cls._tree:
+            cls._tree[lmt] = tuple(sorted(cls._tree[lmt]))
+        assert (len(cls._table) == len(set(cls._table.keys())))
+
+    @staticmethod
+    def base_units():
+        return [bu[0] for bu in _base_units]
+
+    @classmethod
+    def find(cls, unit) -> MeasureUnit:
+        """The unit (a copy) of a unit text such as 'kg*m/s^2'; a unit object is returned as is."""
+        if isinstance(unit, str):
+            unit = unit.lower()  # lowercase
+            name = to_python_expr(unit.strip())
+            unit = cls._eval(name)
+            if isMeasureUnit(unit):
+                unit = cls._clone(unit)
+
+        if not isMeasureUnit(unit):
+            raise TypeError(f'Error (MQ): {str(unit)} is not an unit')
+        return unit
+
+    @classmethod
+    def parse(cls, uname: str):
+        """The unit of a unit expression such as 'ft/s', or None when it is not one."""
+        try:
+            unit = safe_eval_unit(uname, cls._table)
+            return unit if isMeasureUnit(unit) else None
+        except Exception:
+            return None
+
+    @classmethod
+    def is_uom(cls, uname: str) -> bool:
+        return cls.parse(uname) is not None
+
+    @classmethod
+    def named(cls, uname):
+        """The unit registered under exactly this name (e.g. 'ft', not 'ft/s'), or None."""
+        try:
+            return cls._table[uname]
+        except Exception:
+            return None
+
+    @classmethod
+    def is_named(cls, uname) -> bool:
+        return cls.named(uname) is not None
+
+    @classmethod
+    def dimension(cls, uname):
+        return None if uname is None else cls.find(uname).dimension
+
+    @staticmethod
+    def category(lmt):
+        return _base_categories[lmt] + f' ({lmt})' if lmt in _base_categories else lmt
+
+    @staticmethod
+    def categories():
+        return list(_base_categories.items())
+
+    @classmethod
+    def by_dimension(cls, lmt, subset=False, default_uname=None):
+        """``[(name, title), ...]`` of the units of a dimension; ``subset`` limits them to the compact subset."""
+        tmp = []
+        if lmt is not None:  # @ft output  @11.09.23
+            # there are some lmt e.g. LT for which there are no member units, so use tree.get(lmt, ())
+            lmt_key = lmt.upper()
+            ulist = list(cls.tree.get(lmt_key, ()))
+
+            if subset:
+                allowed = UNITS_SUBSET_KEYS.get(lmt_key)
+                if allowed is not None:
+                    # Use precomputed normalized subset keys directly so delayed unit-registry
+                    # loading (for example currencies) still shows configured subset entries.
+                    ulist = list(allowed)
+                if default_uname:
+                    try:
+                        normalized_default = default_uname.lower()
+                        default_lmt = cls.dimension(default_uname)
+                        if default_lmt and default_lmt.upper() == lmt_key and normalized_default not in ulist:
+                            ulist = [normalized_default] + ulist
+                    except Exception:
+                        pass
+
+            for uname in ulist:
+                info = cls.info.get(uname)
+                if info is None:
+                    tmp.append((uname, uname))
+                else:
+                    tmp.append((uname, f"{info['proper_name']} ({info['long_name']})"))
+        return tmp
+
+    @classmethod
+    def catalog(cls, dim):
+        dim_title = lmt_desc(dim)
+        categ_items = []
+        bname = dim_to_bname(dim, _base_names)
+        bname_url = bname.replace('/', '!')
+        cname = dim_to_bname(dim, _conv_names)
+        cname_url = cname.replace('/', '!')
+        if dim in cls.tree:
+            for name in cls.tree[dim]:
+                categ_items.append((cls.info[name]['proper_name'], cname_url, cls.desc(name)))
+        categ_items.sort()
+        categ_items.insert(0, (bname_url, cname_url, dim_title +
+                               ': Base Uom: ' + bname + ' [' + dim + ']'))
+        return categ_items
+
+    @classmethod
+    def desc(cls, sname):  # deb@19.08.23
+        if sname in cls.info:
+            pname = cls.info[sname]['proper_name']
+            long_name = cls.info[sname]['long_name']
+            bqty = cls.info[sname]['base_qty']
+            comment = cls.info[sname]['comment']
+            comment = iif(comment != '', f' ({comment});', ';')
+            category = cls.info[sname]['category']
+            lmt = '[' + cls.info[sname]['dimension'] + ']'  # [] to enable exact search
+
+            lname = long_name if long_name != sname else ''
+            lname_categ = ', '.join(filter(None, [lname, category, lmt]))
+            lname_categ = '(' + lname_categ + ')' if lname_categ != '' else ''
+            unitdesc = '%s %s: 1 %s = %s%s' % (pname, lname_categ, pname, bqty, comment)
+        else:
+            unitdesc = f'unit {sname}: not found'
+        return unitdesc
+
+    @classmethod
+    def short_desc(cls, sname):  # deb@29.06.24
+        if sname in cls.info:
+            pname = cls.info[sname]['proper_name']
+            bqty = cls.info[sname]['base_qty']
+            comment = cls.info[sname]['comment']
+            comment = iif(comment != '', f' ({comment});', ';')
+            unitdesc = '1 %s = %s%s' % (pname, bqty, comment)
+        else:
+            unitdesc = f'unit {sname}: not found'
+        return unitdesc
+
+    @classmethod
+    def read(cls, sunit):
+        """How a unit expression reads and is written in words, e.g. 'kg*ft/s^2/m^3'."""
+        sunit = sunit.lower()  # convert to lowercase, used info[var]
+        pun = cls.find(sunit)  # find will also convert to lowercase
+        sunit = to_user_expr(sunit)
+        s = sunit
+        for op in _unit_operators:
+            s = s.replace(op, ' ' + op + ' ')
+        s = f' {s} '
+        w = s
+        for var in re.findall('[_a-z][_a-z0-9]*', sunit, re.I):
+            s = s.replace(' ' + var + ' ', cls.info[var]['long_name'].replace(' ', '-'))  # lowercase
+            w = w.replace(' ' + var + ' ', cls.info[var]['proper_name'].replace(' ', '-'))  # propercase
+        # trim spaces
+        s = s.replace(' ', '')
+        w = w.replace(' ', '')
+        return {"Read as": s, "Write as": w, "Category": pun.category, "Dimension": pun.dimension,
+                "Quantity": pun.base_qty}
 
 
-def _add_unit(name, unit_or_str, long_name='', comment='', category=''):
-    proper_name = name
-    name = name.lower()  # dup check
-
-    if name in _unit_table:
-        error = False
-        if category != 'C':
-            # category 'C' will be replaced with unit category name
-            error = True
-        elif _unit_table[name].dimension != 'C':
-            error = True
-
-        if error:
-            raise KeyError(f'Error (AU): Unit {name} already defined')
-
-    if isinstance(unit_or_str, str):  # it is a string e.g. '3*ft'
-        unit_or_str = unit_or_str.lower()  # dup check
-        unit = safe_eval_unit(unit_or_str, _unit_table, {'pi': np.pi})
-    else:  # it is a MeasureUnit(...)
-        unit = unit_or_str
-
-    # dup unit.set_name(name)
-    unit.set_name(proper_name)
-    _unit_table[name] = unit
-    if long_name == '':
-        long_name = proper_name
-    # _unit_info.append((name, long_name, unit.bname, comment))
-    if unit.dimension == '':
-        unit.category = category
-    _unit_info[name] = {
-        "proper_name": proper_name,
-        "long_name": long_name,
-        "base_qty": unit.base_qty,
-        "comment": comment,
-        "category": unit.category,
-        "dimension": unit.dimension
-    }
-    id_ = unit.dimension  # unit.dimension will be assigned to '0' for unitless entity
-    members = _unit_tree.setdefault(id_, [])
-    if name not in members:  # currency refresh re-adds existing names; only the rate should change
-        members.append(name)
-    _find_unit_cached.cache_clear()
-
-
-def _add_base_units():
-    for unit in _base_units:
-        # _unit_table[unit[0]] = unit[1]
-        _add_unit(unit[0], unit[1], unit[2], 'Base Unit')
-
-
-# runs unconditionally at module level, but only on first import.
-_add_base_units()
-
-
-def unit_desc(sname):  # deb@19.08.23
-    if sname in _unit_info:
-        pname = _unit_info[sname]['proper_name']
-        long_name = _unit_info[sname]['long_name']
-        bqty = _unit_info[sname]['base_qty']
-        comment = _unit_info[sname]['comment']
-        comment = iif(comment != '', f' ({comment});', ';')
-        category = _unit_info[sname]['category']
-        lmt = '[' + _unit_info[sname]['dimension'] + ']'  # [] to enable exact search
-
-        lname = long_name if long_name != sname else ''
-        lname_categ = ', '.join(filter(None, [lname, category, lmt]))
-        lname_categ = '(' + lname_categ + ')' if lname_categ != '' else ''
-        unitdesc = '%s %s: 1 %s = %s%s' % (pname, lname_categ, pname, bqty, comment)
-    else:
-        unitdesc = f'unit {sname}: not found'
-    return unitdesc
-
-
-def unit_short_desc(sname):  # deb@29.06.24
-    if sname in _unit_info:
-        pname = _unit_info[sname]['proper_name']
-        bqty = _unit_info[sname]['base_qty']
-        comment = _unit_info[sname]['comment']
-        comment = iif(comment != '', f' ({comment});', ';')
-        unitdesc = '1 %s = %s%s' % (pname, bqty, comment)
-    else:
-        unitdesc = f'unit {sname}: not found'
-    return unitdesc
-
-
-def find_unit(unit) -> MeasureUnit:
-    if isinstance(unit, str):
-        unit = unit.lower()  # lowercase
-        name = to_python_expr(unit.strip())
-        unit = _find_unit_cached(name)
-        if isMeasureUnit(unit):
-            unit = _clone_unit(unit)
-
-    if not isMeasureUnit(unit):
-        raise TypeError(f'Error (MQ): {str(unit)} is not an unit')
-    return unit
-
-
-# Initialize the registry once the helper functions are available.
-# runs at module level on first import, but has an additional internal guard (_units_loaded)
-# that prevents re-execution even if some code calls it again explicitly later.
-add_measurement_units()
-
-
-def lmt2catalog(dim):
-    dim_title = lmt_desc(dim)
-    categ_items = []
-    bname = dim_to_bname(dim, _base_names)
-    bname_url = bname.replace('/', '!')
-    cname = dim_to_bname(dim, _conv_names)
-    cname_url = cname.replace('/', '!')
-    if dim in _unit_tree:
-        for name in _unit_tree[dim]:
-            categ_items.append((_unit_info[name]['proper_name'], cname_url, unit_desc(name)))
-    categ_items.sort()
-    categ_items.insert(0, (bname_url, cname_url, dim_title +
-                           ': Base Uom: ' + bname + ' [' + dim + ']'))
-    return categ_items
-
-
-altcur = {'TRY': 'TRL', 'CUP': 'CPS', 'ALL': 'LEK'}
-
-
-# Turkish Lira, Cuban Peso, Albanian Lek
-
-def add_currencies(rates, base, curdesc):
-    _usd = rates["USD"]
-    factr = 1.0
-    if base != _usd:
-        factr = _usd
-    for key, val in rates.items():
-        if key != 'USD':
-            if key in altcur:  # rename turkish lira, as eval('try') will raise exception deb@23.11.23
-                key = altcur[key]
-            _add_unit(key, MeasureUnit(key, factr / val, [0, 0, 0, 0, 0, 0, 0, 0, 0, 1]),
-                      curdesc.get(key, ''), '', 'C')
-            # Category 'C' will help update the rates on subsequent run while qCalc is running
-        # print(key)
-    # currencies are added after units are added, sort qtree[lmt]'s
-    for lmt in _unit_tree.keys():
-        _unit_tree[lmt].sort()
-    assert (len(_unit_table) == len(set(_unit_table.keys())))
-
-
-def base_units():
-    return [bu[0] for bu in _base_units]
-
-
-if __name__ == '__main__':
-    _add_all_units()
+# runs at module level on first import; _load() has an internal guard against running twice
+UnitRegistry._load()

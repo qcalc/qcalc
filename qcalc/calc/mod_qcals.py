@@ -15,8 +15,7 @@ from qutil import variable_to_title, TreeNode, \
 from qvars import qc_gpref as gs, qfunc_info, qty_categ_info, unit_info, qfunc_categ_info
 import bisect
 from .mod_redis import redis_publish_action
-from qcore import _unit_table, Qty, _base_categories, _unit_tree, _unit_info, \
-    unit_short_desc, _base_categ_d2s, _qty_tree, _qty_info, lmt_desc, dim_to_bname, _base_names
+from qcore import Qty, UnitRegistry, QtyRegistry, _base_categories, _base_categ_d2s, lmt_desc, dim_to_bname, _base_names
 from asteval import make_symbol_table
 from .mod_cache import QMeta, QMyCal
 import qapi
@@ -446,20 +445,20 @@ class QCals:
 
         # | all qfunc_dict items except admin and demo cals, will eventually include pylib_dict (qlib_dict + calc_dict)
         # |     when create_standard_cataog_from_packages() are executed
-        # | all _unit_table items that includes units and currencies
+        # | all UnitRegistry.table items that includes units and currencies
         # | all formal api items from __evacon__
         # | all auxiliary functions (qcalc/python) from make_symbol_table
-        # | qsymbols = (qfunc_dict - admin cals - demo cals)  + _unit_table + _qty_info + __evacon__ + make_symbols_table
+        # | qsymbols = (qfunc_dict - admin cals - demo cals)  + UnitRegistry.table + QtyRegistry.info + __evacon__ + make_symbols_table
         # | qfunc_dict = (all calculators + auxiliaries) + (qlib_dict + calc_dict)
 
         # create and validate symbol table for eval()
-        assert len(set(cls.qfunc_dict).intersection(_unit_table)) == 0
+        assert len(set(cls.qfunc_dict).intersection(UnitRegistry.table)) == 0
         qsyms = cls.qfunc_dict.copy()
         # deb@05.09.24 - exclude admin and test calculators from symbol list
         excluded_syms = set(cls.qc_admin_list).union(cls.qc_demo_list)
         qsyms = {key: qsyms[key] for key in qsyms if key not in excluded_syms}
-        qsyms.update({k: Qty(1, v) for k, v in _unit_table.items()})
-        qsyms.update({k: _qty_info[k]['qty'] for k in _qty_info})
+        qsyms.update({k: Qty(1, v) for k, v in UnitRegistry.table.items()})
+        qsyms.update({k: v['qty'] for k, v in QtyRegistry.info.items()})
         qsyms.update({name: getattr(qapi, name) for name in qapi.__evacon__})
 
         # | ic(set(cls.qsymbol_dict).intersection(make_symbol_table(use_numpy=False)))  # 'min'
@@ -513,21 +512,18 @@ class QCals:
             else:
                 node_comp.add_child(child)
 
-            if dim not in _unit_tree:
-                _unit_tree[dim] = []
-
-            for uname in _unit_tree[dim]:
+            for uname in UnitRegistry.tree.get(dim, ()):
                 cur_node, flag = cls.qty_root.add_node_if_not_found(parent_id=slug, nid=uname, name=uname)
                 if not cur_node:
                     logger.error(f'>>> CCQ: Error processing {uname}')
                 if flag == 0:  # newly added node
-                    cur_node.title = _unit_info[uname]['long_name']
-                    # | unit_short_desc end with a semicolon
-                    cur_node.desc = unit_short_desc(uname) + ' ' + unit_info.get(uname, {}).get('desc', '')
+                    cur_node.title = UnitRegistry.info[uname]['long_name']
+                    # | short_desc ends with a semicolon
+                    cur_node.desc = UnitRegistry.short_desc(uname) + ' ' + unit_info.get(uname, {}).get('desc', '')
                     cur_node.is_leaf = True
                     cur_node.node_type = 'u'
 
-            if len(dim) > 1:  # len(_unit_tree[dim]) == 0:
+            if len(dim) > 1:  # len(UnitRegistry.tree[dim]) == 0:
                 name = dim_to_bname(dim, _base_names)
                 gchild = TreeNode(nid=name, name=name,
                                   title=f'({slug} base)'.replace('-', ' '),
@@ -535,7 +531,7 @@ class QCals:
                                   is_leaf=True, node_type='u')
                 child.add_child(gchild)
 
-        for dim in _qty_tree:
+        for dim in QtyRegistry.tree:
             slug = _base_categ_d2s[dim]
             title = lmt_desc(dim)
             name = f"{slug}_objects"
@@ -545,12 +541,12 @@ class QCals:
             parent = node_obj
             parent.add_child(child)
 
-            for qname in _qty_tree[dim]:
+            for qname in QtyRegistry.tree[dim]:
                 cur_node, flag = cls.qty_root.add_node_if_not_found(parent_id=f"{slug}_objects", nid=qname, name=qname)
                 if not cur_node:
                     logger.error(f'>>> CCQ: Error processing {qname}')
                 if flag == 0:  # newly added node
-                    cur_node.title = _qty_info[qname]['description']
+                    cur_node.title = QtyRegistry.info[qname]['description']
                     cur_node.desc = ''
                     cur_node.is_leaf = True
                     cur_node.node_type = 'q'

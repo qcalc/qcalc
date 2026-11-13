@@ -2,7 +2,7 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 from qutil import replace_words, QThread
-from qcore.qc_qty import Qty, str_to_qty
+from qcore.qc_qty import Qty
 import math
 import numbers
 from qvars import qc_gpref as gs
@@ -118,7 +118,7 @@ def df_formatter(var, unit_hint=None, val_only=False):
         return f"{qformat_v(real)}{sign}{qformat_v(abs(imag))}j"
 
     if isinstance(var, str):
-        qty = str_to_qty(var.strip())
+        qty = Qty.parse(var.strip())
         if qty is not None:
             if unit_hint:
                 qty = Qty(qty, unit_hint)

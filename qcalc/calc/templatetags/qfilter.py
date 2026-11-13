@@ -3,7 +3,7 @@
 
 from django import template
 
-from qcore import qhtml, _unit_table, qjson_dumps, _qty_info, find_unit, qpretty_json
+from qcore import qhtml, UnitRegistry, QtyRegistry, qjson_dumps, qpretty_json
 from qutil import href_url, is_debug, user_name, user_process, hx_target, fid2owner
 from django.utils.safestring import mark_safe
 from qutil import page_link, iif, qaddr, cal_link, calurl, encode_url_param
@@ -345,13 +345,13 @@ def deslash(uname_xpr, conv=0):
     if conv == 0:
         return replace_slash(uname_xpr)
     else:
-        if uname_xpr in _unit_table:
-            return replace_slash(_unit_table[uname_xpr].conv_name)
-        if uname_xpr in _qty_info:
-            return replace_slash(_qty_info[uname_xpr]['qty'].unit.conv_name)
+        if uname_xpr in UnitRegistry.table:
+            return replace_slash(UnitRegistry.table[uname_xpr].conv_name)
+        if uname_xpr in QtyRegistry.info:
+            return replace_slash(QtyRegistry.info[uname_xpr]['qty'].unit.conv_name)
 
         try:
-            unit = find_unit(uname_xpr)
+            unit = UnitRegistry.find(uname_xpr)
             return replace_slash(unit.conv_name)
         except Exception:
             pass

@@ -70,7 +70,7 @@ INFO_KEYS = {
     'remember': _key('public'),
     'recall': _key('public'),
     'table_out_all': _key('public'),
-    'api': _key('public', override=False),  # read by qapi (mod_api_core)
+    'api': _key('public', override=False),  # read by the REST API (mod_api_core)
     'fargs': _key('public', override=False),  # read by mod_mfunc (COMBINE_FINF)
     # legacy
     'inp1': _key('legacy'),

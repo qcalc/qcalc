@@ -7,12 +7,13 @@ import qsett
 qsett.init()
 
 import pytest
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import connection
 
-import calc.mod_api_quota as aq
-import calc.mod_cred_quota as cq
-from calc.mod_api_keys import authenticate_api_key, list_api_keys
+from calc.quota.mod_qcalc_quota import QCalcApiQuota
+from calc.quota.mod_quota import QuotaCounter
+from calc.quota.mod_qcalc_key import QCalcApiKey
 from calculators.all.general.user import cal_ucache as cu
 from qutil import QThread
 
@@ -28,10 +29,10 @@ def access_db():
 
 @pytest.fixture
 def me(monkeypatch):
-    cq._usage().all().delete()
-    monkeypatch.setattr(aq, "_PURGE_PROBABILITY", 0)
+    QuotaCounter.rows().all().delete()
+    monkeypatch.setattr(QuotaCounter, "PURGE_PROBABILITY", 0)
     user, _ = get_user_model().objects.get_or_create(username="calc_user")
-    for key in list_api_keys(user):
+    for key in QCalcApiKey.list(user):
         key.delete()
 
     class Req:
@@ -84,7 +85,7 @@ def test_create_shows_key_once_and_it_authenticates(me):
     row = listing["My API Keys"]["data"][0]
     assert row[0] == "spreadsheet" and row[1].endswith("_...") and row[2] == "Active" and row[4] == "Never"
 
-    assert authenticate_api_key(raw).user == me
+    assert QCalcApiKey.authenticate(raw).user == me
     assert cu.api_access()["My API Keys"]["data"][0][4] != "Never"  # first use is recorded
 
 
@@ -106,7 +107,7 @@ def test_revoke_then_delete_by_prefix(me):
     out = cu.api_access("revoke", prefix=prefix)
     assert "can no longer be used" in out["Revoked"]
     assert out["My API Keys"]["data"][0][2] == "Revoked"
-    assert authenticate_api_key(raw) is None
+    assert QCalcApiKey.authenticate(raw) is None
 
     out = cu.api_access("delete", prefix=prefix)
     assert prefix in out["Deleted"] and out["My API Keys"]["data"] == []
@@ -120,8 +121,8 @@ def test_unknown_prefix_and_unsupported_action(me):
 
 
 def test_status_shows_runs_used_against_limits(me, monkeypatch):
-    monkeypatch.setattr(aq.settings, "QCALC_API_KEY_QUOTA", "key_day=5,key_month=50,user_day=0", raising=False)
+    monkeypatch.setattr(settings, "QCALC_API_KEY_QUOTA", "key_day=5,key_month=50,user_day=0", raising=False)
     cu.api_access("create", name="counted")
-    aq.consume_api_quota(list_api_keys(me)[0])
+    QCalcApiQuota.consume(QCalcApiKey.list(me)[0])
     row = cu.api_access()["My API Keys"]["data"][0]
     assert row[5] == "1 / 5" and row[6] == "1 / 50"

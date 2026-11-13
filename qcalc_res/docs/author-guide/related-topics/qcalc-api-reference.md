@@ -8,14 +8,12 @@ This document summarizes calculator-facing symbols exposed by qCalc, with practi
 
 | Symbol | Kind | What it does | Example |
 |---|---|---|---|
-| `Qty` (alias: `q`) | class | Quantity object with value + unit and unit-aware math | `d = Qty("10 m"); t = Qty("2 s"); v = d / t` |
-| `qx`, `qxi` | function | Special Quantity  | `qx("th_hair")`, `qxi("th_hair")` |
+| `Qty` (alias: `q`) | class | Quantity object with value + unit and unit-aware math. Also parses text: `Qty.parse("3.5 kg")` (None if invalid), `Qty.is_valid(text)`, `Qty.compose("1ft, 6 inch")`, `Qty.kind(text)` (`'uom'`, `'qty'` or `'text'`) | `d = Qty("10 m"); t = Qty("2 s"); v = d / t` |
+| `UnitRegistry` | class | The built-in units. `find(text)`, `parse(text)`, `is_uom(text)`, `named(name)`, `dimension(text)`, `by_dimension(dim)`, `category(dim)`, `categories()`, `desc(name)`, `read(text)`, `base_units()`; read-only data `table`, `info`, `tree` (the registry cannot be changed from a calculator) | `UnitRegistry.by_dimension(UnitRegistry.dimension("km"))`, `UnitRegistry.find("meter")` |
+| `QtyRegistry` | class | The special (named) quantities. `get(code)`, `entry(code)`, `by_dimension(dim)`, `desc(code)`, `search(term)` | `QtyRegistry.get("th_hair")`, `QtyRegistry.entry("th_hair")` |
 | `is_qty`, `is_unit` | function | Checks whether value is quantity/unit | `if is_qty(x): ...` |
-| `base_units`, `base_dims`, `prefixes` | data | Built-in unit/dimension dictionaries and prefixes | `base_units["m"]` |
-| `unit_desc`, `lmt_desc` | function | Human-readable unit / limit-category description | `unit_desc("kg")` |
-| `unit2lmt`, `lmt2cat`, `lmt2ulist`, `lmt2qlist` | function | Unit-category and compatible-unit lookups | `lmt2ulist(unit2lmt("km"))` |
-| `find_unit`, `read_unit` | function | Search/resolve unit definitions | `find_unit("meter")` |
-| `is_str_qty`, `str_type` | function | Quantity-string check and string type info | `is_str_qty("3.5 kg")` |
+| `base_dims`, `prefixes` | data | Built-in dimension dictionaries and prefixes | `base_dims()` |
+| `lmt_desc` | function | Human-readable limit-category description | `lmt_desc("L")` |
 
 ---
 

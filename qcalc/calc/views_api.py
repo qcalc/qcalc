@@ -13,7 +13,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 import qutil as ut
 from .mod_api_core import ApiError, list_calculators, get_schema, run_calculator, enforce_quota
-from .mod_api_keys import authenticate_api_key
+from .quota.mod_qcalc_key import QCalcApiKey
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +56,7 @@ def api_view(*methods):
                     raise ApiError('method_not_allowed', f"Use {' or '.join(methods)}", 405,
                                    headers={'Allow': ', '.join(methods)})
 
-                key = authenticate_api_key(_bearer_token(request))
+                key = QCalcApiKey.authenticate(_bearer_token(request))
                 if key is None:
                     raise ApiError('unauthorized', 'A valid API key is required (Authorization: Bearer <key>)', 401)
 

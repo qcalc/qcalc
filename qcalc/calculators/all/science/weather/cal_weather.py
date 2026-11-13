@@ -9,7 +9,7 @@ from datetime import datetime, timezone, timedelta
 import requests
 
 from calc import check_setting
-from calc.mod_credentials import get_effective_api_key
+from calc.quota.mod_prov_key import ProviderApiKey
 from calculators.all.general.map import geo_location
 
 
@@ -184,7 +184,7 @@ def weather(location: qfunc = geo_location, show_data=False):
     user = req.user if req is not None and is_loggedin(req) else None
 
     def get_weather_data(lat, lng):
-        api_key = get_effective_api_key(user, 'openweather')
+        api_key = ProviderApiKey(user, 'openweather').effective()
         api_url = check_setting(settings.OPENW_API_URL, "OPENW_API_URL", optional=False)
         params = {
             "lat": lat,

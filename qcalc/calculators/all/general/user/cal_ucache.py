@@ -3,16 +3,9 @@
 
 from calc import QPref, QMem
 from calc import QData, QTemp, QKeep, QSave, QIO, QRam, QMeta, QMyCal, QFav, QOpenAIChat, QMyCalAI
-from calc.mod_credentials import (
-    provider_choices,
-    has_user_api_key,
-    get_user_api_key_suffix,
-    has_system_api_key,
-    set_user_api_key,
-    delete_user_api_key,
-)
-from calc.mod_api_keys import ApiKeyError, create_api_key, list_api_keys, revoke_api_key, delete_api_key
-from calc.mod_api_quota import api_limits, key_usage
+from calc.quota.mod_prov_key import ProviderApiKey
+from calc.quota.mod_qcalc_key import ApiKeyError, QCalcApiKey
+from calc.quota.mod_qcalc_quota import QCalcApiQuota
 from django.conf import settings
 import logging
 import qconst
@@ -300,7 +293,7 @@ def api_keys__info():
             },
             'provider': {
                 'type': 'choice',
-                'choices': provider_choices(),
+                'choices': ProviderApiKey.choices(),
                 'help_text': 'Select the provider for this key.',
             },
             'api_key': {
@@ -341,9 +334,9 @@ def api_keys(action='status', provider='openai', api_key: qtext = ''):
         QPref.setp1('personal_api_keys_active', False)
 
     if action == 'set':
-        set_user_api_key(req.user, provider, api_key)
+        ProviderApiKey(req.user, provider).set(api_key)
     elif action == 'delete':
-        delete_user_api_key(req.user, provider)
+        ProviderApiKey(req.user, provider).delete()
     elif action not in ['status', 'activate', 'inactivate']:
         raise Exception(f'Unsupported action: {action}')
 
@@ -351,9 +344,10 @@ def api_keys(action='status', provider='openai', api_key: qtext = ''):
         'Personal API Keys Active': 'Yes' if personal_api_keys_active else 'No',
     }
     if action in ['status', 'set', 'delete']:
+        pkey = ProviderApiKey(req.user, provider)
         personal_key_status = 'Not configured'
-        if has_user_api_key(req.user, provider):
-            key_suffix4 = get_user_api_key_suffix(req.user, provider)
+        if pkey.has():
+            key_suffix4 = pkey.suffix()
             if key_suffix4 != '':
                 personal_key_status = f'Configured (…{key_suffix4})'
             else:
@@ -361,7 +355,7 @@ def api_keys(action='status', provider='openai', api_key: qtext = ''):
         resp.update({
             'Provider': provider,
             'Personal Key': personal_key_status,
-            'System Fallback': 'Configured' if has_system_api_key(provider) else 'Not configured',
+            'System Fallback': 'Configured' if pkey.has_system() else 'Not configured',
         })
     return resp
 
@@ -409,9 +403,9 @@ def api_access__info():
 
 
 def _api_key_table(user):
-    keys = list_api_keys(user)
-    usage = key_usage([k.pk for k in keys])
-    limits = api_limits()
+    keys = QCalcApiKey.list(user)
+    usage = QCalcApiQuota.key_usage([k.pk for k in keys])
+    limits = QCalcApiQuota.limits()
 
     def fmt_used(used, limit):
         return f'{used} / {limit}' if limit else f'{used}'
@@ -438,16 +432,16 @@ def api_access(action='status', name='', prefix=''):
     resp = {}
     try:
         if action == 'create':
-            _record, raw_key = create_api_key(user, name, max_active=settings.QCALC_API_KEYS_MAX_PER_USER)
+            _record, raw_key = QCalcApiKey.create(user, name, max_active=settings.QCALC_API_KEYS_MAX_PER_USER)
             resp['New API Key'] = qinfo(raw_key)
             resp['Important'] = qwarn('Copy this key now. It is shown only once and cannot be recovered.')
             logger.note('API: key created | user=%s | prefix=%s', user.username, _record.prefix)
         elif action == 'revoke':
-            record = revoke_api_key(user, prefix)
+            record = QCalcApiKey.revoke(user, prefix)
             resp['Revoked'] = f"'{record.name}' (qck_{record.prefix}_...) can no longer be used"
             logger.note('API: key revoked | user=%s | prefix=%s', user.username, record.prefix)
         elif action == 'delete':
-            record = delete_api_key(user, prefix)
+            record = QCalcApiKey.delete(user, prefix)
             resp['Deleted'] = f"'{record.name}' (qck_{record.prefix}_...)"
             logger.note('API: key deleted | user=%s | prefix=%s', user.username, record.prefix)
         elif action != 'status':
@@ -455,7 +449,7 @@ def api_access(action='status', name='', prefix=''):
     except ApiKeyError as e:
         raise Exception(str(e))
 
-    limits = api_limits()
+    limits = QCalcApiQuota.limits()
     resp['My API Keys'] = _api_key_table(user)
     resp['Limits per key'] = (
         f"{limits.get('key_day') or 'unlimited'} runs/day, {limits.get('key_month') or 'unlimited'} runs/month; "

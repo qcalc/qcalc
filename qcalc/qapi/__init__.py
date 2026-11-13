@@ -10,13 +10,12 @@ import datetime
 from qcore import (
     # | Qty class and related functions
     Qty, QTable, QRelation, QBase,
+    UnitRegistry, QtyRegistry,
     qdf, QList,
     qconvert, qdf_demo_data,
     QDateTime, today, now, spellnow,  # mod_datetime
-    base_units, base_dims, unit_desc, prefixes,
-    unit2lmt, lmt_desc, str_type,
-    lmt2cat, lmt2ulist, lmt2qlist, find_unit, is_str_qty, qx, qxi,
-    isMeasureUnit as is_unit, isMeasureQuantity as is_qty, read_unit,
+    base_dims, prefixes, lmt_desc,
+    isMeasureUnit as is_unit, isMeasureQuantity as is_qty,
     # | Keep the following annotations
     qchar, qcode, qdate, qdict, qdatetime, qemail, qchat, qfl, qfile, qfunc, qhide,
     qhidex, qhtml, qin, qimage, qlist, qpage, qread, qregex, qsel2, qtbl, qtc,
@@ -83,9 +82,8 @@ __qtypes__ = [
 # for eva(), mycal() and console
 __evacon__ = [
     'datetime',
-    'Qty', 'qx', 'qxi', 'QDateTime', 'DotDict', 'QTable', 'QRelation', 'QBase', 'QList',  # qcore
-    'is_qty', 'is_unit', 'base_units', 'base_dims', 'unit_desc', 'prefixes', 'unit2lmt',  # qcore
-    'lmt_desc', 'str_type', 'read_unit', 'lmt2cat', 'lmt2ulist', 'lmt2qlist', 'find_unit', 'is_str_qty',  # qcore
+    'Qty', 'UnitRegistry', 'QtyRegistry', 'QDateTime', 'DotDict', 'QTable', 'QRelation', 'QBase', 'QList',  # qcore
+    'is_qty', 'is_unit', 'base_dims', 'prefixes', 'lmt_desc',  # qcore
     'minimum',  # this file
     'table_columns_validator',
     'qformat_q', 'qformat_v', 'to_ucur',  # qcore.mod_qcutil

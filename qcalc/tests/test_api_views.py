@@ -13,8 +13,10 @@ import qvars
 from django.test import RequestFactory
 
 from calc import views_api
-from calc.mod_api_keys import authenticate_api_key
+from calc.quota.mod_qcalc_key import QCalcApiKey
 from qutil.timed_thread import QThread
+
+_real_authenticate = QCalcApiKey.authenticate  # the autouse fixture replaces the class attribute
 
 
 class _FakeUser:
@@ -26,8 +28,8 @@ class _FakeUser:
 def _api_env(monkeypatch):
     monkeypatch.setattr(qvars, 'super_user', type('_FakeUser', (), {'username': 'super'})())
     monkeypatch.setattr(
-        views_api, 'authenticate_api_key',
-        lambda raw: type('_Key', (), {'user': _FakeUser()})() if raw == 'good-key' else None,
+        QCalcApiKey, 'authenticate',
+        staticmethod(lambda raw: type('_Key', (), {'user': _FakeUser()})() if raw == 'good-key' else None),
     )
     monkeypatch.setattr(views_api, 'enforce_quota', lambda key: None)
     QThread.set_req(None)
@@ -193,7 +195,7 @@ def test_get_run_counts_against_the_rate_limit(monkeypatch):
 
 def test_malformed_keys_are_rejected_without_a_database_lookup():
     for raw in ('', 'abc', 'qck_only', 'other_prefix_secret'):
-        assert authenticate_api_key(raw) is None
+        assert _real_authenticate(raw) is None
 
 
 def test_routes_are_registered_ahead_of_catch_all():

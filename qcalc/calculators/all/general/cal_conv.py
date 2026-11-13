@@ -1,9 +1,7 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
-from qcore import _unit_tree, qx, qxi, to_ucur
-from qcore import read_unit, lmt2ulist, lmt2cat, _unit_info, _base_categ_mlist, lmt2qlist, dim_to_bname, _base_names, \
-    _conv_names
+from qcore import UnitRegistry, QtyRegistry, to_ucur, dim_to_bname, _base_names, _conv_names
 from qutil import css2strs, list2table, find_matched_variables, cal_link, calurl
 from calc import QCals
 import itertools
@@ -17,15 +15,15 @@ def convert_list(ulist):
     links = []
     for upair in plist:
         parameters = f'value/1/from_unit/{upair[0]}/convert_to_units/{upair[1]}/unit_cost/-/---/'
-        uname0 = upair[0] + ' (' + _unit_info[upair[0]]['long_name'] + ')'
-        uname1 = upair[1] + ' (' + _unit_info[upair[1]]['long_name'] + ')'
+        uname0 = upair[0] + ' (' + UnitRegistry.info[upair[0]]['long_name'] + ')'
+        uname1 = upair[1] + ' (' + UnitRegistry.info[upair[1]]['long_name'] + ')'
         caption = f"Convert {uname0} to {uname1}"
         links.append(cal_link(calurl('conv', parameters), caption, target='a'))
     return links
 
 
 def _conv2_ulist(lmt):
-    ulist = lmt2ulist(lmt)
+    ulist = UnitRegistry.by_dimension(lmt)
     if not ulist and len(lmt) > 1:  # | composite dimension without units, same default as the qty catalog
         ulist = []
         for names, label in ((_base_names, 'primary base'), (_conv_names, 'secondary base')):
@@ -49,14 +47,14 @@ def _conv2_mode_list(qlist):
 def _conv2_categ_list(catalog):
     # | the short catalog keeps only the quantities which have more than 2 units
     if catalog == 'short':
-        return [(k, v) for k, v in _base_categ_mlist() if len(lmt2ulist(k)) > 2]
-    return _base_categ_mlist()
+        return [(k, v) for k, v in UnitRegistry.categories() if len(UnitRegistry.by_dimension(k)) > 2]
+    return UnitRegistry.categories()
 
 
 def conv2__info():
     lmt = 'L'
-    ulist = lmt2ulist(lmt)
-    qlist = lmt2qlist(lmt)
+    ulist = UnitRegistry.by_dimension(lmt)
+    qlist = QtyRegistry.by_dimension(lmt)
     mode_list = _conv2_mode_list(qlist)
 
     return {
@@ -68,7 +66,7 @@ def conv2__info():
             },
             'quantity': {
                 # | 'type':'qsel2' wouldn't trigger the reload, because select2 changes the element properties at runtime
-                'type': 'choice', 'choices': _base_categ_mlist(),
+                'type': 'choice', 'choices': UnitRegistry.categories(),
                 'initial': lmt,
             },
             'value': {'help_text': amount_help_text},
@@ -147,7 +145,7 @@ def conv2__schema(ctx):
     catalog = _conv2_catalog(ctx)
     lmt = _conv2_lmt(ctx)
     ulist = _conv2_ulist(lmt)
-    qlist = lmt2qlist(lmt)
+    qlist = QtyRegistry.by_dimension(lmt)
     # | the short catalog has no mode to choose, a hidden 'mode' keeps the value 'u2u' and the showhide init
     mode = {'type': 'qhide', 'choices': {'u2u': 'Unit -> Unit'}} if catalog == 'short' else \
         {'type': 'choice', 'choices': _conv2_mode_list(qlist)}
@@ -165,7 +163,7 @@ def conv2__input(ctx):
     # | default selections must be valid for the selected quantity
     lmt = _conv2_lmt(ctx)
     ulist = _conv2_ulist(lmt)
-    qlist = lmt2qlist(lmt)
+    qlist = QtyRegistry.by_dimension(lmt)
     inp = {'unit_cost': to_ucur('@UNC/ft')}
     if lmt == 'L':  # | explicit, because fargs may carry values set by a previous quantity
         inp.update(from_unit=['ft'], to_units=['m'], from_qty='l_earth_moon', to_qty='')
@@ -200,21 +198,21 @@ def conv2(quantity='L', mode='u2u', value: qtexta = '1.0', from_unit=['ft'], fro
         unit_cost = '@UNC/ft'
         from_unit_ = from_unit[0]
         qfrom = Qty(value, from_unit_)
-        converted_value = qfrom / qx(to_qty)
+        converted_value = qfrom / QtyRegistry.get(to_qty)
     elif mode == 'q2u':
         from_unit = []
         from_unit_ = ''
         to_qty = ''
         unit_cost = '@UNC/ft'
-        qfrom = value * qx(from_qty)
+        qfrom = value * QtyRegistry.get(from_qty)
         converted_value = qfrom.to_units(to_units)
     elif mode == 'q2q':
         from_unit = []
         from_unit_ = ''
         to_units = []
         unit_cost = '@UNC/ft'
-        qfrom = value * qx(from_qty)
-        converted_value = qfrom / qx(to_qty)
+        qfrom = value * QtyRegistry.get(from_qty)
+        converted_value = qfrom / QtyRegistry.get(to_qty)
 
     category = qfrom.category()
     expressed_value = 'n/a'
@@ -224,7 +222,7 @@ def conv2(quantity='L', mode='u2u', value: qtexta = '1.0', from_unit=['ft'], fro
         total_cost = None
     else:
         qvalue = Qty(value, from_unit[0])
-        cur_used = find_matched_variables(unit_cost.uom.lower(), _unit_tree['C'])[0]
+        cur_used = find_matched_variables(unit_cost.uom.lower(), UnitRegistry.tree['C'])[0]
         total_cost = Qty(unit_cost * qvalue).to(cur_used)
     return conv_output(value, from_unit_, to_units_, [], converted_value,
                        expressed_value, category, total_cost, from_qty, to_qty)
@@ -234,25 +232,25 @@ def conv_output(value, from_unit, inunits: list, xinunits: list, converted_value
                 expressed_value, category, total_cost, from_qty='', to_qty=''):
     etc = ', etc.' if len(inunits) > 1 or len(xinunits) > 1 else ''
     if from_qty == '':
-        ruf = read_unit(from_unit if from_unit != '' else 'unit')
+        ruf = UnitRegistry.read(from_unit if from_unit != '' else 'unit')
         ruf_out = f'{value} {ruf.get("Write as")} ({ruf.get("Read as")})'
     else:
         if value == 1:
-            ruf_out = f'{qxi(from_qty)['description']} ({from_qty})'
+            ruf_out = f'{QtyRegistry.entry(from_qty)['description']} ({from_qty})'
         else:
-            ruf_out = f'{value} times {qxi(from_qty)['description']} ({from_qty})'
+            ruf_out = f'{value} times {QtyRegistry.entry(from_qty)['description']} ({from_qty})'
 
     if to_qty == '':
         to_unit = (inunits[0] if len(inunits) > 0 else '') or (
             xinunits[0] if len(xinunits) > 0 else '') or from_unit
         rut_out = ''
         if to_unit != '':
-            rut = read_unit(to_unit)
+            rut = UnitRegistry.read(to_unit)
             rut_out = f'{rut.get("Write as")} ({rut.get("Read as")}){etc}'
         elif from_qty != '':
-            rut_out = f'{qxi(from_qty)['description']} ({from_qty})'
+            rut_out = f'{QtyRegistry.entry(from_qty)['description']} ({from_qty})'
     else:
-        rut_out = f'{qxi(to_qty)['description']} ({to_qty})'
+        rut_out = f'{QtyRegistry.entry(to_qty)['description']} ({to_qty})'
 
     result = {
         'Conversion of': qhtml(f'{category}'),
@@ -327,7 +325,7 @@ def conv(value: qtexta = '1.0',
     if from_unit != '':
         qvalue = Qty(value, from_unit)
     elif from_qty != '':
-        qvalue = value * qx(from_qty)
+        qvalue = value * QtyRegistry.get(from_qty)
     else:
         qvalue = Qty(value, 'unit')
     converted_value = qvalue
@@ -338,14 +336,14 @@ def conv(value: qtexta = '1.0',
     if convert_to_units != '':
         if convert_to_units == 'all':
             lmt = category.split(':')[0]
-            if lmt in _unit_tree:
-                inunits = [name for name in _unit_tree[lmt]]
+            if lmt in UnitRegistry.tree:
+                inunits = [name for name in UnitRegistry.tree[lmt]]
         else:
             inunits = css2strs(convert_to_units)
         converted_value = qvalue.to_units(inunits)
 
     if convert_to_qty != '':
-        qty = qx(convert_to_qty)
+        qty = QtyRegistry.get(convert_to_qty)
         converted_value = qvalue / qty
         inunits = []
 
@@ -359,7 +357,7 @@ def conv(value: qtexta = '1.0',
     if unit_cost.val is None:
         total_cost = None
     else:
-        cur_used = find_matched_variables(unit_cost.uom.lower(), _unit_tree['C'])[0]
+        cur_used = find_matched_variables(unit_cost.uom.lower(), UnitRegistry.tree['C'])[0]
         total_cost = Qty(unit_cost * qvalue).to(cur_used)
     return conv_output(value, from_unit, inunits, xinunits,
                        converted_value, expressed_value, category, total_cost,

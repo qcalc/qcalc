@@ -129,7 +129,7 @@ class TestDf2UnitNormalized(unittest.TestCase):
         'Set QCALC_RUN_BENCHMARKS=1 to run benchmark tests.',
     )
     def test_benchmark_df2normalized_vs_baseline(self):
-        from qcore import as_qtable, Qty, is_str_qty
+        from qcore import as_qtable, Qty
 
         def baseline_df2normalized(df):
             local_df = as_qtable(df)
@@ -144,7 +144,7 @@ class TestDf2UnitNormalized(unittest.TestCase):
                 def _to_qty(value):
                     if isinstance(value, Qty):
                         return value
-                    if isinstance(value, str) and is_str_qty(value.strip()):
+                    if isinstance(value, str) and Qty.is_valid(value.strip()):
                         return Qty(value.strip())
                     return None
 

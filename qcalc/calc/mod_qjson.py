@@ -2,11 +2,11 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 import sys
-from qcore import add_measurement_units, add_quantities
+from qcore import UnitRegistry, QtyRegistry
 from qvars import qfunc_info, qty_categ_info, unit_info, qfunc_categ_info
 from qutil import load_json
 from .mod_currency import CurrencyLoader
-from .mod_cred_quota import load_provider_quotas
+from .quota.mod_prov_quota import ProviderApiQuota
 import logging
 
 logger = logging.getLogger(__name__)
@@ -69,11 +69,11 @@ class StdJson:
         cls.texts = load_json("texts.json")
         cls.themes = load_json("themes.json")
         cls.timezones = load_json("timezones.json")
-        load_provider_quotas()
+        ProviderApiQuota.load()
 
-        add_measurement_units()
+        UnitRegistry._load()
         logger.info('*** Units added')
-        add_quantities()
+        QtyRegistry._load()
         logger.info('*** Quantities added')
         msg = cur_loader.update_currency()
         logger.info(f'*** {msg}')

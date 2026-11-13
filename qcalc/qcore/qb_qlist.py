@@ -2,7 +2,7 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 import operator
-from .qc_qty import str_to_qty
+from .qc_qty import Qty
 from .qd_data import str2val
 
 __all__ = ['QList', 'qconvert']
@@ -19,7 +19,7 @@ def qconvert(x):
     if not isinstance(x, str):
         return x
 
-    q = str_to_qty(x)
+    q = Qty.parse(x)
     if q is not None:
         return q
 

@@ -4,8 +4,32 @@
 
 import pytest
 
-from qcore import Qty, find_unit, is_str_uom
-from qcore.qc_units import _unit_table
+from qcore import Qty, UnitRegistry, QtyRegistry
+from qutil.mod_code_security import validate_expression_security, UnsafeCodeError
+
+
+@pytest.mark.parametrize("code", [
+    "UnitRegistry._add('zzz', '1*m')",
+    "UnitRegistry._load()",
+    "UnitRegistry._table.clear()",
+    "UnitRegistry._add_currencies({}, 1, {})",
+    "QtyRegistry._add('zzz', '1 m', '')",
+    "QtyRegistry._info.clear()",
+])
+def test_sandbox_cannot_reach_registry_mutators(code):
+    with pytest.raises(UnsafeCodeError):
+        validate_expression_security(code)
+
+
+def test_registry_data_is_read_only():
+    with pytest.raises(TypeError):
+        UnitRegistry.table['zzz'] = UnitRegistry.table['m']
+    with pytest.raises(TypeError):
+        UnitRegistry.info['m']['long_name'] = 'x'
+    with pytest.raises(TypeError):
+        QtyRegistry.info['th_hair'] = None
+    assert isinstance(UnitRegistry.tree['L'], tuple)
+    assert 'zzz' not in UnitRegistry.table
 
 
 @pytest.mark.parametrize("expr", [
@@ -22,9 +46,9 @@ from qcore.qc_units import _unit_table
 ])
 def test_unit_expr_injection_rejected(expr):
     with pytest.raises(Exception):
-        find_unit(expr)
-    assert not is_str_uom(expr)
-    assert '__builtins__' not in _unit_table
+        UnitRegistry.find(expr)
+    assert not UnitRegistry.is_uom(expr)
+    assert '__builtins__' not in UnitRegistry.table
 
 
 def test_injection_via_qty_string_rejected():
@@ -33,8 +57,8 @@ def test_injection_via_qty_string_rejected():
 
 
 def test_valid_unit_exprs_still_work():
-    assert find_unit('kg*m/s^2').dimension == 'LMT-2'
-    assert find_unit('m**-1').dimension == 'L-1'
-    assert find_unit('m^0.5').powers[0] == 0.5
+    assert UnitRegistry.find('kg*m/s^2').dimension == 'LMT-2'
+    assert UnitRegistry.find('m**-1').dimension == 'L-1'
+    assert UnitRegistry.find('m^0.5').powers[0] == 0.5
     assert Qty('5 ft').unit.dimension == 'L'
-    assert is_str_uom('ft/s')
+    assert UnitRegistry.is_uom('ft/s')

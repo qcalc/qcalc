@@ -10,12 +10,8 @@ from .qc_mbase import _base_categories, _base_categ_list, _base_categ_list2, _ba
     lmt_desc, base_dims, prefixes
 from .qc_mquantity import isMeasureQuantity
 from .qc_munit import MeasureUnit as Unit, isMeasureUnit
-from .qc_qty import Qty, str_type, is_str_qty, is_str_uom, load_qty, \
-    compose_qty, is_str_named_uom, str_to_qty, str_to_named_uom, _base_categ_mlist, \
-    read_unit, disp_unit, calc_unit, unit2lmt, lmt2ulist, lmt2cat, lmt2qlist, \
-    qx, qxi, _qty_info, _qty_tree, add_quantities, search_unit_result
-from .qc_units import add_measurement_units, find_unit, add_currencies, lmt2catalog, _unit_table, _unit_info,\
-    _unit_tree, unit_desc, unit_short_desc, base_units
+from .qc_qty import Qty, QtyRegistry, load_qty
+from .qc_units import UnitRegistry
 from .qc_units_subset import *
 
 from .qd_basic import *

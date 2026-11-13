@@ -11,7 +11,7 @@ import qconst
 
 from qcore.qc_mbase import _base_names
 from qcore.qc_munit import _format_power_expression, isMeasureUnit
-from qcore.qc_units import find_unit, _unit_table
+from qcore.qc_units import UnitRegistry
 
 
 class MeasureQuantity:
@@ -24,7 +24,7 @@ class MeasureQuantity:
             if isMeasureUnit(args[1]):
                 self.unit = args[1]
             else:
-                self.unit = find_unit(args[1])
+                self.unit = UnitRegistry.find(args[1])
         elif len(args) == 1 and not isinstance(args[0], str):  # deb@17.11.23, Qty
             self.value = args[0].value
             self.unit = args[0].unit
@@ -32,16 +32,16 @@ class MeasureQuantity:
             s = args[0].strip()
             if s[0] == '@':  # deb@11.08.23, # is not suitable in API call
                 self.value = None
-                self.unit = find_unit(s[1:])
+                self.unit = UnitRegistry.find(s[1:])
             elif s[0:5] == 'None ':  # deb@11.08.23
                 self.value = None
-                self.unit = find_unit(s[5:])
+                self.unit = UnitRegistry.find(s[5:])
             else:
                 match = self._number.match(s)
                 if match is None:
                     raise TypeError('Error (MQ): No number found')
                 self.value = float(match.group(0))  # not locale.atof: pattern is ASCII digits only, '.' decimal
-                self.unit = find_unit(s[len(match.group(0)):])
+                self.unit = UnitRegistry.find(s[len(match.group(0)):])
 
     def __str__(self):
         return str(self.value) + ' ' + self.unit.name()
@@ -175,7 +175,7 @@ class MeasureQuantity:
 
     def to(self, unit):
         if isinstance(unit, str):  # deb@04.04.24
-            unit = find_unit(unit)
+            unit = UnitRegistry.find(unit)
         if self.value is not None:  # deb@13.10.23, 04.04.24
             value = _convert_value(self.value, self.unit, unit)
         else:
@@ -183,7 +183,7 @@ class MeasureQuantity:
         return self.__class__(value, unit)  # deb@04.04.24
 
     def in_units_of(self, *units):
-        units = list(map(find_unit, units))
+        units = list(map(UnitRegistry.find, units))
         if len(units) == 1:
             unit = units[0]
             value = _convert_value(self.value, self.unit, unit)
@@ -217,7 +217,7 @@ class MeasureQuantity:
         return self.__class__(new_value, formatted)
 
     def is_compatible(self, unit):
-        unit = find_unit(unit)
+        unit = UnitRegistry.find(unit)
         return self.unit.is_compatible(unit)
 
     def sqrt(self):
@@ -225,17 +225,17 @@ class MeasureQuantity:
 
     def sin(self):
         if self.unit.is_angle():
-            return np.sin(self.value * self.unit.conversion_factor_to(_unit_table['rad']))
+            return np.sin(self.value * self.unit.conversion_factor_to(UnitRegistry.table['rad']))
         raise TypeError('Error (MQ): Argument of sin must be an angle')
 
     def cos(self):
         if self.unit.is_angle():
-            return np.cos(self.value * self.unit.conversion_factor_to(_unit_table['rad']))
+            return np.cos(self.value * self.unit.conversion_factor_to(UnitRegistry.table['rad']))
         raise TypeError('Error (MQ): Argument of cos must be an angle')
 
     def tan(self):
         if self.unit.is_angle():
-            return np.tan(self.value * self.unit.conversion_factor_to(_unit_table['rad']))
+            return np.tan(self.value * self.unit.conversion_factor_to(UnitRegistry.table['rad']))
         raise TypeError('Error (MQ): Argument of tan must be an angle')
 
 

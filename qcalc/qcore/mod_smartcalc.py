@@ -1,5 +1,5 @@
 # source: https://stackoverflow.com/questions/56482639/design-pattern-for-relational-and-optional-parameters
-from .qc_qty import Qty, str_type
+from .qc_qty import Qty
 from qutil import css2strs
 
 
@@ -11,7 +11,7 @@ class SmartCalc:
             if v is not None:
                 if isinstance(v, str):
                     value = v.strip()
-                    otype, sunit, ln = str_type(value)
+                    otype, sunit, ln = Qty.kind(value)
                     if otype == 'qty':
                         qt = Qty(sunit)
                         if qt.val is not None:

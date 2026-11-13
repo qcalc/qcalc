@@ -10,7 +10,7 @@ from numbers import Number
 from sympy import Eq, log as sympy_log, symbols, solve, sympify
 from sympy.abc import _clash1
 
-from qcore import Qty, isMeasureQuantity, is_str_uom, str_type
+from qcore import Qty, isMeasureQuantity, UnitRegistry
 from qutil import to_python_expr
 from calc.mod_qcals import QCals
 
@@ -71,7 +71,7 @@ def _to_equation(left_expr: str, right_expr: str):
 
 
 def _is_unit_symbol_name(name: str) -> bool:
-    return is_str_uom(name)
+    return UnitRegistry.is_uom(name)
 
 
 def _unit_symbol_names_in_equation(eq) -> set[str]:
@@ -164,7 +164,7 @@ def _parse_value(raw):
         text = raw.strip()
         if text == "":
             raise ValueError("Empty value string is not allowed.")
-        otype, normalized, _ = str_type(text)
+        otype, normalized, _ = Qty.kind(text)
         if otype == "qty":
             return Qty(normalized), "qty", None
         if otype == "uom":

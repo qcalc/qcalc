@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand, CommandError
 
-from calc.mod_api_keys import create_api_key
+from calc.quota.mod_qcalc_key import QCalcApiKey
 
 
 class Command(BaseCommand):
@@ -18,6 +18,6 @@ class Command(BaseCommand):
         except user_model.DoesNotExist:
             raise CommandError(f"User '{options['username']}' not found")
 
-        record, raw_key = create_api_key(user, options['name'])
+        record, raw_key = QCalcApiKey.create(user, options['name'])
         self.stdout.write(self.style.SUCCESS(f'API key {record.prefix} created for {user}'))
         self.stdout.write(raw_key)

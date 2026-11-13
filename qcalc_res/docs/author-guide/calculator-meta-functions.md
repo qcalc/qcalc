@@ -416,7 +416,7 @@ and `anyof`, `reload` is a key of the `__info()` dictionary, not of the `schema`
 def conv2__info():
     return {
         'schema': {
-            'quantity': {'type': 'choice', 'choices': _base_categ_mlist(), 'initial': 'L'},
+            'quantity': {'type': 'choice', 'choices': UnitRegistry.categories(), 'initial': 'L'},
         },
         'reload': {
             'quantity': {'fields': ['from_unit', 'to_units']},  # fields that depend on the quantity

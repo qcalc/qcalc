@@ -8,19 +8,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from qcore import (
-    Qty,
-    _unit_table,
-    find_unit,
-    calc_unit,
-    compose_qty,
-    is_str_named_uom,
-    is_str_qty,
-    is_str_uom,
-    load_qty,
-    read_unit,
-    str_type,
-)
+from qcore import Qty, UnitRegistry, load_qty
+from qutil import to_python_expr
 
 
 class TestHigherLevelCalculatorSmoke(unittest.TestCase):
@@ -40,19 +29,19 @@ class TestHigherLevelCalculatorSmoke(unittest.TestCase):
         self.assertEqual(total.uom, "m")
 
     def test_parsing_and_string_helpers(self):
-        qty_str, ln = compose_qty("1ft, 6 inch")
+        qty_str, ln = Qty.compose("1ft, 6 inch")
         self.assertGreaterEqual(ln, 2)
-        self.assertTrue(is_str_qty(qty_str))
-        self.assertTrue(is_str_uom("ft/s"))
-        self.assertTrue(is_str_named_uom("ft"))
-        self.assertFalse(is_str_named_uom("ft/s"))
+        self.assertTrue(Qty.is_valid(qty_str))
+        self.assertTrue(UnitRegistry.is_uom("ft/s"))
+        self.assertTrue(UnitRegistry.is_named("ft"))
+        self.assertFalse(UnitRegistry.is_named("ft/s"))
 
-        kind, _, ln2 = str_type("1ft, 6 inch")
+        kind, _, ln2 = Qty.kind("1ft, 6 inch")
         self.assertEqual(kind, "qty")
         self.assertGreaterEqual(ln2, 1)
 
     def test_read_unit_and_json_round_trip(self):
-        info = read_unit("kg*ft/s^2/m^3")
+        info = UnitRegistry.read("kg*ft/s^2/m^3")
         self.assertIn("Read as", info)
         self.assertIn("Write as", info)
         self.assertIn("Dimension", info)
@@ -64,19 +53,19 @@ class TestHigherLevelCalculatorSmoke(unittest.TestCase):
         self.assertAlmostEqual(loaded.val, 12.35)
         self.assertEqual(loaded.uom, "ft")
 
-    def test_unit_registry_and_calc_unit_preprocessor(self):
-        unit = find_unit("deg")
+    def test_unit_registry_and_expression_preprocessor(self):
+        unit = UnitRegistry.find("deg")
         self.assertTrue(unit is not None)
-        self.assertEqual(calc_unit("m/s"), "m/s")
-        self.assertEqual(calc_unit("1*km"), "1*km")
+        self.assertEqual(to_python_expr("m/s"), "m/s")
+        self.assertEqual(to_python_expr("1*km"), "1*km")
 
     def test_failed_unit_lookup_does_not_mutate_registry(self):
-        before = _unit_table.copy()
+        before = UnitRegistry.table.copy()
 
         with self.assertRaises(NameError):
-            find_unit("definitely_not_a_unit")
+            UnitRegistry.find("definitely_not_a_unit")
 
-        self.assertEqual(_unit_table, before)
+        self.assertEqual(UnitRegistry.table, before)
 
 
 if __name__ == "__main__":

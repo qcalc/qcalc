@@ -4,7 +4,7 @@
 from .qf_qwidgets import *
 from django.forms import Field, CharField, ChoiceField
 from .qc_munit import isMeasureUnit
-from .qc_units import find_unit
+from .qc_units import UnitRegistry
 from django.core.exceptions import ValidationError
 
 
@@ -57,9 +57,9 @@ class UomField(ChoiceEditField):
         self.default = field_meta['initial'] or 'm'
 
     def to_python(self, value):
-        defa_unit = find_unit(self.default)
+        defa_unit = UnitRegistry.find(self.default)
         try:
-            input_unit = find_unit(value)
+            input_unit = UnitRegistry.find(value)
         except Exception as e:
             raise ValidationError(str(e))
         if not defa_unit.is_compatible(input_unit):
@@ -77,11 +77,11 @@ class UomxField(ChoiceEditField):
         self.default = field_meta['initial'] or 'm'
 
     def to_python(self, value):
-        defa_unit = find_unit(self.default)
+        defa_unit = UnitRegistry.find(self.default)
         if not isMeasureUnit(defa_unit):
             raise ValidationError(self.error_messages['invalid'], code='invalid')
         try:
-            input_unit = find_unit(value)
+            input_unit = UnitRegistry.find(value)
         except Exception as e:
             raise ValidationError(str(e))
         if not isMeasureUnit(input_unit):
@@ -156,9 +156,9 @@ class Uom2Field(ChoiceEditField2):
         self.default = kwargs['initial'] or 'm'
 
     def to_python(self, value):
-        defa_unit = find_unit(self.default)
+        defa_unit = UnitRegistry.find(self.default)
         try:
-            input_unit = find_unit(value)
+            input_unit = UnitRegistry.find(value)
         except Exception as e:
             raise ValidationError(str(e))
         if not defa_unit.is_compatible(input_unit):

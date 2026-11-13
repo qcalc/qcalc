@@ -9,7 +9,7 @@ import pandas as pd
 
 import qconst
 from qutil.mod_url import fetch_url
-from .qc_qty import Qty, str_to_qty
+from .qc_qty import Qty
 from .qf_anno import as_qtable
 from .mod_qcutil import df_formatter
 
@@ -211,7 +211,7 @@ def df2normalized(df, do_format: bool = False) -> pd.DataFrame:
             if isinstance(value, Qty):
                 return value
             if isinstance(value, str):
-                return str_to_qty(value.strip())
+                return Qty.parse(value.strip())
             return None
 
         # pre-check all values: convert only when the whole non-empty column is Qty

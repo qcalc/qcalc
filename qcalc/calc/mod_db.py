@@ -57,8 +57,7 @@ class QDBTable:
             object_id=self.prefix,
             item_id=item_id,
             variant_id=variant_id,
-            description=desc,
-            defaults={'item': prepare_for_json(data)}
+            defaults={'description': desc, 'item': prepare_for_json(data)}
         )
         return variant_id
 

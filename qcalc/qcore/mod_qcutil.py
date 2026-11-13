@@ -23,168 +23,147 @@ def request_prefs():
     return request.pref if request is not None else thread_prefs()
 
 
-def qformat_q(qty: Qty | str, val_only=False, thousands_separator=None) -> str:
-    if isinstance(qty, str):
-        qty = Qty(qty)
-    vstr, ustr = qformat(qty.val, qty.unit, thousands_separator=thousands_separator)
-    return f'{vstr} {ustr}' if not val_only else vstr
+class QCurrency:
+    """Converts currency tokens in units to one preferred currency.
+
+    ``pref_cur`` defaults to the user's ``defa_currency`` from ``thread_prefs()``,
+    which is read once per instance. Create instances per request, not at import.
+    """
+
+    def __init__(self, pref_cur: str | None = None):
+        # thread_prefs() gives a safe default in request and non-request paths.
+        self.pref_cur = pref_cur if pref_cur is not None else thread_prefs().get('defa_currency', 'UNC')
+
+    def convert(self, val, uname, cur='UNC'):
+        """Return ``(value, unit_name)`` with ``cur`` replaced by the preferred currency."""
+        if self.pref_cur == cur:
+            return val, uname
+        # | case-insensitive replacement of curency uom with preferred currency
+        uname2 = replace_words(uname, [cur], self.pref_cur, False)
+        cqty = Qty(val, uname, uname2)
+        return cqty.val, cqty.uom
+
+    def to_ucur(self, qty: Qty | str, cur='UNC'):
+        """Convert currency token of a ``Qty`` (returns ``Qty``) or quantity string (returns str).
+
+        Non-currency dimensions are returned unchanged.
+        """
+        is_qty_obj = isinstance(qty, Qty)
+        qty_obj = qty if is_qty_obj else Qty(qty)
+        if 'C' not in qty_obj.unit.dimension:
+            return qty
+        val, uname = self.convert(qty_obj.val, qty_obj.uom, cur)
+        if is_qty_obj:
+            return Qty(val, uname)
+        return f'{val} {uname}' if val else f'@{uname}'
 
 
-def qformat_v(val) -> str:
-    vstr = qformat(val)
-    return vstr
+class QFormatter:
+    """Value/quantity formatter bound to one set of preferences.
 
+    ``pref`` defaults to ``thread_prefs()``. It is merged with global defaults once,
+    since some call paths set only a subset of preferences.
+    """
 
-def qformat(val, unit=None, pref=None, thousands_separator=None) -> None | str | list[str]:
-    # | value and quantity formatter
-    if val is None or (isinstance(val, float) and math.isnan(val)):
-        return val if unit is None else [val, unit.name()]
+    def __init__(self, pref=None):
+        if pref is None:
+            pref = thread_prefs()
+        self.pref = {**gs, **pref} if isinstance(pref, dict) else gs
+        self.currency = QCurrency(self.pref.get('defa_currency', 'UNC'))
 
-    # qformat() is used from request and non-request execution paths;
-    # thread_prefs() keeps the fallback safe when no HTTP request is active.
-    if pref is None:
-        pref = thread_prefs()
+    def format(self, val, unit=None, thousands_separator=None) -> None | str | list[str]:
+        """Format a value (returns str) or a value with unit (returns ``[value, unit_name]``)."""
+        if val is None or (isinstance(val, float) and math.isnan(val)):
+            return val if unit is None else [val, unit.name()]
 
-    # Some call paths set only a subset of preferences in thread-local storage.
-    # Merge with global defaults so formatter keys are always available.
-    if isinstance(pref, dict):
-        pref = {**gs, **pref}
-    else:
-        pref = gs
+        pref = self.pref
+        is_cur = False
+        funame = ''
+        if unit is not None:
+            dim = unit.dimension
+            has_cur = 'C' in dim  # | e.g. km/USD
+            is_cur = 'C' in dim and 'C-' not in dim  # | e.g. km/USD is not a currency
 
-    is_cur = False
-    funame = ''
-    if unit is not None:
-        dim = unit.dimension
-        has_cur = 'C' in dim  # | e.g. km/USD
-        is_cur = 'C' in dim and 'C-' not in dim  # | e.g. km/USD is not a currency
+            if has_cur:
+                val, funame = self.currency.convert(val, unit.name())
+            else:
+                funame = unit.name()
 
-        if has_cur:
-            val, funame = unc2pref(val, unit.name(), pref_cur=pref.get('defa_currency', 'UNC'))
+            dec = pref['currency_decimal'] if is_cur else pref['qty_decimal']
         else:
-            funame = unit.name()
+            dec = pref['decimal']
 
-        dec = pref['currency_decimal'] if is_cur else pref['qty_decimal']
-    else:
-        dec = pref['decimal']
+        if isinstance(val, (int, float)) and not math.isfinite(val):
+            sval = 'inf' if val > 0 else '-inf'
+            return sval if unit is None else [sval, funame]
 
-    if isinstance(val, (int, float)) and not math.isfinite(val):
-        sval = 'inf' if val > 0 else '-inf'
-        return sval if unit is None else [sval, funame]
+        if pref['ignore_decimal_format']:
+            return str(val) if unit is None else [str(val), funame]
 
-    if pref['ignore_decimal_format']:
-        return str(val) if unit is None else [str(val), funame]
+        if thousands_separator is None:
+            thousands_separator = pref['thousands_separator']
+        tsep = ',' if thousands_separator else ''
+        if (int(val) == val and abs(val) <= 1e16) and not is_cur:
+            fg = 'f'
+            dec = 0
+        elif (max(pref['exponent_threshold_min'], 10 ** -dec) < abs(val) < pref['exponent_threshold_max']) or is_cur:
+            fg = 'f'
+        elif 1e-16 <= abs(val) <= 1e16:
+            fg = 'e'
+        else:
+            fg = 'g'
+            dec = dec + 1
 
-    if thousands_separator is None:
-        thousands_separator = pref['thousands_separator']
-    tsep = ',' if thousands_separator else ''
-    if (int(val) == val and abs(val) <= 1e16) and not is_cur:
-        fg = 'f'
-        dec = 0
-    elif (max(pref['exponent_threshold_min'], 10 ** -dec) < abs(val) < pref['exponent_threshold_max']) or is_cur:
-        fg = 'f'
-    elif 1e-16 <= abs(val) <= 1e16:
-        fg = 'e'
-    else:
-        fg = 'g'
-        dec = dec + 1
+        fv = '{:{tsep}.{dec}{fg}}'.format(val, tsep=tsep, dec=dec, fg=fg)
+        if '.' in fv:
+            if fg == 'f':
+                fv = fv.rstrip('0').rstrip('.')
+            elif fg == 'e':
+                base, exponent = fv.split('e')
+                base = base.rstrip('0').rstrip('.')
+                fv = f"{base}e{exponent}"
+        return fv if unit is None else [fv, funame]
 
-    fv = '{:{tsep}.{dec}{fg}}'.format(val, tsep=tsep, dec=dec, fg=fg)
-    if '.' in fv:
-        if fg == 'f':
-            fv = fv.rstrip('0').rstrip('.')
-        elif fg == 'e':
-            base, exponent = fv.split('e')
-            base = base.rstrip('0').rstrip('.')
-            fv = f"{base}e{exponent}"
-    return fv if unit is None else [fv, funame]
+    def value(self, val) -> str:
+        return self.format(val)
 
+    def qty(self, qty: Qty | str, val_only=False, thousands_separator=None) -> str:
+        if isinstance(qty, str):
+            qty = Qty(qty)
+        vstr, ustr = self.format(qty.val, qty.unit, thousands_separator)
+        return f'{vstr} {ustr}' if not val_only else vstr
 
-def df_formatter(var, unit_hint=None, val_only=False):
-    if isinstance(var, Qty):
-        return qformat_q(var, val_only=val_only)
+    def df(self, var, unit_hint=None, val_only=False):
+        """Format any dataframe cell: Qty, complex, quantity string, number; others unchanged."""
+        if isinstance(var, Qty):
+            return self.qty(var, val_only=val_only)
 
-    if isinstance(var, numbers.Complex) and not isinstance(var, numbers.Real):
-        real = float(var.real)
-        imag = float(var.imag)
-        tol = 1e-12
+        if isinstance(var, numbers.Complex) and not isinstance(var, numbers.Real):
+            real = float(var.real)
+            imag = float(var.imag)
+            tol = 1e-12
 
-        if abs(real) <= tol:
-            return f"{qformat_v(imag)}j"
-        if abs(imag) <= tol:
-            return qformat_v(real)
+            if abs(real) <= tol:
+                return f"{self.value(imag)}j"
+            if abs(imag) <= tol:
+                return self.value(real)
 
-        sign = '+' if imag >= 0 else '-'
-        return f"{qformat_v(real)}{sign}{qformat_v(abs(imag))}j"
+            sign = '+' if imag >= 0 else '-'
+            return f"{self.value(real)}{sign}{self.value(abs(imag))}j"
 
-    if isinstance(var, str):
-        qty = Qty.parse(var.strip())
-        if qty is not None:
+        if isinstance(var, str):
+            qty = Qty.parse(var.strip())
+            if qty is not None:
+                if unit_hint:
+                    qty = Qty(qty, unit_hint)
+                return self.qty(qty, val_only=val_only)
+            try:
+                var = float(var.strip())
+            except Exception:
+                return var
+
+        if isinstance(var, numbers.Real) and not isinstance(var, bool):
             if unit_hint:
-                qty = Qty(qty, unit_hint)
-            return qformat_q(qty, val_only=val_only)
-        try:
-            var = float(var.strip())
-        except Exception:
-            return var
-
-    if isinstance(var, numbers.Real) and not isinstance(var, bool):
-        if unit_hint:
-            return qformat_q(Qty(var, unit_hint), val_only=val_only)
-        return qformat_v(var)
-    return var  # preserve None
-
-
-def cur2pref(val, uname, cur='UNC', pref_cur: str | None = None):
-    """Convert source currency in a unit string with the user's preferred currency.
-
-    Args:
-        val: Quantity numeric value.
-        uname: Source unit string that may contain currency unit ``cur``.
-        cur: Currency unit to replace (default ``'UNC'``).
-        pref_cur: Optional preferred currency code (e.g. ``"EUR"``).
-            When omitted, ``thread_prefs()`` is used.
-
-    Returns:
-        A ``(value, unit_name)`` tuple converted to the preferred currency unit.
-        If preferred currency equals ``cur``, returns the input ``(val, uname)``.
-    """
-    if pref_cur is None:
-        # This helper is used from request and non-request paths; thread_prefs()
-        # provides a safe default currency preference in both contexts.
-        pref = thread_prefs()
-        mycur = pref.get('defa_currency', 'UNC')
-    else:
-        mycur = pref_cur
-
-    if mycur == cur:
-        return val, uname
-    # | case-insensitive replacement of curency uom with preferred currency
-    uname2 = replace_words(uname, [cur], mycur, False)
-    cqty = Qty(val, uname, uname2)
-    return cqty.val, cqty.uom
-
-
-def unc2pref(val, uname, pref_cur: str | None = None):
-    """Convert ``UNC`` currency token with the user's preferred currency."""
-    return cur2pref(val, uname, 'UNC', pref_cur)
-
-
-def to_ucur(qty: Qty | str, cur='UNC', pref_cur: str | None = None):
-    """Convert currency token to preferred currency for Qty or quantity strings.
-
-    If ``qty`` is a ``Qty`` object, returns a ``Qty``.
-    If ``qty`` is a quantity string, returns a quantity string.
-    Non-currency dimensions are returned unchanged.
-    """
-    is_qty_obj = isinstance(qty, Qty)
-    qty_obj = qty if is_qty_obj else Qty(qty)
-    dim = qty_obj.unit.dimension
-    if 'C' not in dim:
-        return qty
-    val, uname = cur2pref(qty_obj.val, qty_obj.uom, cur, pref_cur)
-    if is_qty_obj:
-        return Qty(val, uname)
-    if val:
-        return f'{val} {uname}'
-    return f'@{uname}'
+                return self.qty(Qty(var, unit_hint), val_only=val_only)
+            return self.value(var)
+        return var  # preserve None

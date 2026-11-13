@@ -12,8 +12,7 @@ import qsett
 
 qsett.init()
 
-from qcore import Qty, df_formatter, cur2pref, to_ucur
-from qcore.mod_qcutil import qformat_q
+from qcore import Qty, QFormatter, QCurrency
 from qutil import QThread
 
 
@@ -28,9 +27,10 @@ class TestDfFormatter(unittest.TestCase):
         })
 
         value = 1.23456
-        self.assertEqual(df_formatter(value), '1.23456')
-        self.assertEqual(df_formatter(value, unit_hint='m'), '1.235 m')
-        self.assertEqual(df_formatter(value, unit_hint='m', val_only=True), '1.235')
+        fmt = QFormatter()
+        self.assertEqual(fmt.df(value), '1.23456')
+        self.assertEqual(fmt.df(value, unit_hint='m'), '1.235 m')
+        self.assertEqual(fmt.df(value, unit_hint='m', val_only=True), '1.235')
 
     def test_formats_qty_strings(self):
         QThread.set_pref({
@@ -41,8 +41,9 @@ class TestDfFormatter(unittest.TestCase):
             'thousands_separator': False,
         })
 
-        self.assertEqual(df_formatter('76.1234 deg'), '76.123 deg')
-        self.assertEqual(df_formatter('65.1234 ft', val_only=True), '65.123')
+        fmt = QFormatter()
+        self.assertEqual(fmt.df('76.1234 deg'), '76.123 deg')
+        self.assertEqual(fmt.df('65.1234 ft', val_only=True), '65.123')
 
     def test_formats_numeric_strings_with_and_without_unit_hint(self):
         QThread.set_pref({
@@ -53,8 +54,9 @@ class TestDfFormatter(unittest.TestCase):
             'thousands_separator': False,
         })
 
-        self.assertEqual(df_formatter('1.23456'), '1.23456')
-        self.assertEqual(df_formatter('1.23456', unit_hint='m'), '1.235 m')
+        fmt = QFormatter()
+        self.assertEqual(fmt.df('1.23456'), '1.23456')
+        self.assertEqual(fmt.df('1.23456', unit_hint='m'), '1.235 m')
 
     def test_qformat_q_thousands_separator_override(self):
         QThread.set_pref({
@@ -66,21 +68,22 @@ class TestDfFormatter(unittest.TestCase):
         })
 
         qty = Qty('1234567.5 kg')
-        self.assertEqual(qformat_q(qty), '1,234,567.5 kg')
-        self.assertEqual(qformat_q(qty, thousands_separator=False), '1234567.5 kg')
+        fmt = QFormatter()
+        self.assertEqual(fmt.qty(qty), '1,234,567.5 kg')
+        self.assertEqual(fmt.qty(qty, thousands_separator=False), '1234567.5 kg')
 
 
 class TestCurrencyPreferenceHelpers(unittest.TestCase):
     def test_currency_replacement_uses_preference(self):
-        pref_cur = 'EUR'
+        cur = QCurrency('EUR')
         qtystr = '120km/inr'
 
-        self.assertTrue(to_ucur(qtystr, 'INR', pref_cur=pref_cur).endswith('km/EUR'))
-        self.assertEqual(to_ucur(Qty(qtystr), 'INR', pref_cur=pref_cur).uom, 'km/EUR')
-        self.assertTrue(to_ucur('@ft/BDT', 'bdt', pref_cur=pref_cur).endswith('@ft/EUR'))
+        self.assertTrue(cur.to_ucur(qtystr, 'INR').endswith('km/EUR'))
+        self.assertEqual(cur.to_ucur(Qty(qtystr), 'INR').uom, 'km/EUR')
+        self.assertTrue(cur.to_ucur('@ft/BDT', 'bdt').endswith('@ft/EUR'))
 
         qty = Qty('@bdt/s')
-        self.assertEqual(cur2pref(qty.val, qty.uom, 'BDT', pref_cur=pref_cur)[1], 'EUR/s')
+        self.assertEqual(cur.convert(qty.val, qty.uom, 'BDT')[1], 'EUR/s')
 
 
 if __name__ == '__main__':

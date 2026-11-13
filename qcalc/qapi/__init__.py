@@ -26,7 +26,7 @@ from qcore import (
     QImage, qf2img, nparray_to_bio,
     QChart, QGeo, QMap, SmartCalc,
     table_columns_validator,
-    qformat_q, qformat_v, to_ucur,
+    QFormatter, QCurrency,
     ai_prompt_field, br,
     qsymbols, qsymstat, qsymhelp,
     csv2qtbl, np2qtbl,  # qd_df, qd_np
@@ -86,7 +86,7 @@ __evacon__ = [
     'is_qty', 'is_unit', 'base_dims', 'prefixes', 'lmt_desc',  # qcore
     'minimum',  # this file
     'table_columns_validator',
-    'qformat_q', 'qformat_v', 'to_ucur',  # qcore.mod_qcutil
+    'QFormatter', 'QCurrency',  # qcore.mod_qcutil
     'ai_prompt_field', 'br',  # qcor.mod_fields
     'iif', 'joinx', 'css2floats', 'css2ints', 'css2values', 'css2strs', 'vals2css', 'css2set', 'css2dict',
     'css2list',  # qutil.mod_basic

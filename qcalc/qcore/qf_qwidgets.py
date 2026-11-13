@@ -528,7 +528,7 @@ class TabulatorWidget(Widget):
         row = len(df)
         col = len(df.columns) - extra_cols
 
-        # df = df.apply(lambda col: col.map(df_formatter))  # dont apply format for table-in
+        # df = df.apply(lambda col: col.map(QFormatter().df))  # dont apply format for table-in
         html = df.to_html(
             table_id=f"{self.cid}_{name}",
             classes=f'table table-responsive table-in {self.cid}',  # display, class=hidden

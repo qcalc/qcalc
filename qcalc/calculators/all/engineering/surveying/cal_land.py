@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
-from qcore import Qty, qtable, qformat_q, quom2, qhtml, qfunc, as_qtable
+from qcore import Qty, qtable, QFormatter, quom2, qhtml, qfunc, as_qtable
 import pandas as pd
 from qcore import QChart
 from calculators.all.mathematics.geometry import triangle
@@ -84,7 +84,7 @@ def irg_land(coordinates: qtable = pd.DataFrame(
     area = Qty(0.5 * abs(asum), result_length_unit + '^2', result_area_unit)
     perimeter = Qty(psum, result_length_unit)
     edges['Length'] = [Qty(a, result_length_unit) for a in arms]
-    edges['Length'] = edges['Length'].apply(qformat_q)
+    edges['Length'] = edges['Length'].apply(QFormatter().qty)
     return {
         'Area': area,
         'Coordinate unit': qhtml(f'{result_length_unit}'),

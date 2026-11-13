@@ -16,7 +16,7 @@ from calc import (
 )
 import json
 from qutil import action_button, addcal_button, action_script
-from qcore import qhtml, qtable, qformat_q
+from qcore import qhtml, qtable, QFormatter
 
 SHARED_RATES_TYPE = 'item_rates'
 SHARED_RATES_KEY = 'rates_master'
@@ -93,7 +93,7 @@ def cost__input(ctx):
     items = ctx.var_url('items')  # var_url data available only during GET
     if isinstance(items, pd.DataFrame):  # can't have if items, truth value of df is ambiguous
         # | no thousands separator: Quantity is read back by cost() and Qty() can't parse commas
-        items['Quantity'] = items['Quantity'].apply(lambda q: qformat_q(q, thousands_separator=False))
+        items['Quantity'] = items['Quantity'].apply(lambda q: QFormatter().qty(q, thousands_separator=False))
         return {
             'items': items,
         }
@@ -174,8 +174,9 @@ def cost(items: qtable = pd.DataFrame({'Item': ['Brick'], 'Quantity': ['1000 nos
     qcost = QCost.from_frame(items)
     items2 = qcost.frame(costs=True)
     # | apply formatting as a last action, because formatted values may have commas
+    fmt = QFormatter()
     for column in ('Quantity', 'Unit Cost', 'Item Cost'):
-        items2[column] = items2[column].apply(qformat_q)
+        items2[column] = items2[column].apply(fmt.qty)
     return {'Item Costs': items2, 'Total Cost': qcost.total, 'Cost Chart': qcost.chart()}
 
 

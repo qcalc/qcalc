@@ -13,7 +13,7 @@ import qutil as ut
 from calc.templatetags.qfilter import field_root
 from qcore import (
     QChart, QImage, QMap, Qty, QDateTime,
-    is_qtbl, qformat, qchat,
+    is_qtbl, QFormatter, qchat,
     qhtml, qjson_dumps, qerror, qinfo,
     qpage, qwarn, qvstr, wrap_actions,
     TableAttrs,
@@ -41,6 +41,7 @@ def q1146_result_transfer(request, sfunc):
 
 def q1145_result_to_form_schema(request, func_id, cid, result, proper_dict):
     us = request.pref  # User's Request Pref
+    fmt = QFormatter(us)
     request.ojson_schema = []  # schema for form
     request.ojson_data = {}  # data for form
     request.ojson_doc = {
@@ -98,7 +99,7 @@ def q1145_result_to_form_schema(request, func_id, cid, result, proper_dict):
         name = ut.title_to_variable(arg_name, qconst.TOK_RESULT_SUFFIX)
         if isinstance(value, Qty):
             request.json_doc['info']['cost'] = True
-            fv, fuom = qformat(value.val, value.unit, pref=us)
+            fv, fuom = fmt.format(value.val, value.unit)
             request.ojson_data[name] = fv
             request.ojson_data_type.append('oval-q')
             request.ojson_data[name + '_uom'] = fuom
@@ -168,11 +169,11 @@ def q1145_result_to_form_schema(request, func_id, cid, result, proper_dict):
             )))
             request.ojson_data_type.append('html')
         elif isinstance(value, float):
-            request.ojson_data[name] = qformat(value, pref=us)
+            request.ojson_data[name] = fmt.value(value)
             request.ojson_data_type.append('char')
             request.json_doc['info']['loop'] = True
         elif isinstance(value, int):
-            request.ojson_data[name] = qformat(value, pref=us)
+            request.ojson_data[name] = fmt.value(value)
             request.ojson_data_type.append('char')
             request.json_doc['info']['loop'] = True
         elif isinstance(value, qvstr):

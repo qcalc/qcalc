@@ -2,7 +2,7 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 import pandas as pd
-from qcore import qtable, qformat_q, as_qtable
+from qcore import qtable, QFormatter, as_qtable
 from calculators.all.finance import circ, npv, irrn
 
 
@@ -73,5 +73,5 @@ def prjrank(
     })
     if bestprj > -1:
         df._set_value(bestprj, 'Rank', 'Best')
-    df['IRR'] = df['IRR'].apply(qformat_q)
+    df['IRR'] = df['IRR'].apply(QFormatter().qty)
     return {'Ranking': df}

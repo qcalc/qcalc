@@ -11,7 +11,7 @@ import qconst
 from qutil.mod_url import fetch_url
 from .qc_qty import Qty
 from .qf_anno import as_qtable
-from .mod_qcutil import df_formatter
+from .mod_qcutil import QFormatter
 
 _BLANK_CELLS = {'', '-', '--', '—', '–', 'none', 'nan', 'n/a', 'na'}
 # a number, optionally followed by one unit word such as '%', 'bag' or 'm^3/ft^2'
@@ -199,6 +199,7 @@ def df2normalized(df, do_format: bool = False) -> pd.DataFrame:
 
     normalized_df = df.copy()
     rename_map = {}
+    fmt = QFormatter()
 
     for col in obj_cols:
         col_unit = ''
@@ -237,12 +238,12 @@ def df2normalized(df, do_format: bool = False) -> pd.DataFrame:
 
         if not (can_convert and has_qty):
             if do_format:
-                normalized_df[col] = normalized_df[col].map(df_formatter)
+                normalized_df[col] = normalized_df[col].map(fmt.df)
             continue
 
         if do_format:
             values = [
-                None if value is None else df_formatter(qty_values[i].val, unit_hint=col_unit, val_only=True)
+                None if value is None else fmt.df(qty_values[i].val, unit_hint=col_unit, val_only=True)
                 for i, value in enumerate(col_values)
             ]
         else:
@@ -262,6 +263,6 @@ def df2normalized(df, do_format: bool = False) -> pd.DataFrame:
         obj_cols_set = set(obj_cols)
         for col in normalized_df.columns:
             if col not in obj_cols_set:
-                normalized_df[col] = normalized_df[col].map(df_formatter)
+                normalized_df[col] = normalized_df[col].map(fmt.df)
 
     return normalized_df

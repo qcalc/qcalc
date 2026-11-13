@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
-from qcore import UnitRegistry, QtyRegistry, to_ucur, dim_to_bname, _base_names, _conv_names
+from qcore import UnitRegistry, QtyRegistry, QCurrency, dim_to_bname, _base_names, _conv_names
 from qutil import css2strs, list2table, find_matched_variables, cal_link, calurl
 from calc import QCals
 import itertools
@@ -164,7 +164,7 @@ def conv2__input(ctx):
     lmt = _conv2_lmt(ctx)
     ulist = _conv2_ulist(lmt)
     qlist = QtyRegistry.by_dimension(lmt)
-    inp = {'unit_cost': to_ucur('@UNC/ft')}
+    inp = {'unit_cost': QCurrency().to_ucur('@UNC/ft')}
     if lmt == 'L':  # | explicit, because fargs may carry values set by a previous quantity
         inp.update(from_unit=['ft'], to_units=['m'], from_qty='l_earth_moon', to_qty='')
         return inp

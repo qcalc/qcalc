@@ -78,7 +78,7 @@ e.g. you do not ever require "from qcore import Qty" statement for frontend calc
     is_qty, is_unit, base_dims, prefixes, lmt_desc,
     minimum,
     table_columns_validator,
-    qformat_q, qformat_v, to_ucur,
+    QFormatter, QCurrency,
     iif, joinx, css2floats, css2ints, css2values, css2strs, vals2css, css2set,
     np, qdf, QList,
     qconvert, qdf_demo_data,

@@ -14,11 +14,13 @@ from django.core.exceptions import ValidationError
 
 from qcore import Qty, numeric_columns
 from qcore.qf_qfields import TabulatorField
-from qcore.qf_qwidgets import (
-    TabulatorWidget, style_table_headers, table_column_options, table_lock_indices, table_out_attrs,
-)
+from qcore.qf_qwidgets import TabulatorWidget, TableAttrs
 
 BASE = {"columns": ["Item", "Price|USD", "Qty"], "data": [["a", 1, 2], ["b", 3, 4]]}
+
+
+def _opts(attrs, numeric=()):
+    return TableAttrs(attrs, BASE["columns"]).column_options(numeric)
 
 
 def _field(**attrs):
@@ -32,14 +34,14 @@ def _post(columns, data):
 
 
 def test_lock_indices_match_base_name_and_ignore_case_and_uom():
-    headers, values = table_lock_indices({"readonly_cols": ["item"], "fixed_headers": ["PRICE"]}, BASE["columns"])
+    headers, values = TableAttrs({"readonly_cols": ["item"], "fixed_headers": ["PRICE"]}, BASE["columns"]).locks
 
     assert values == {0}
     assert headers == {0, 1}
 
 
 def test_lock_indices_true_locks_every_column():
-    headers, values = table_lock_indices({"fixed_headers": True}, BASE["columns"])
+    headers, values = TableAttrs({"fixed_headers": True}, BASE["columns"]).locks
 
     assert headers == {0, 1, 2}
     assert values == set()
@@ -122,37 +124,36 @@ def test_widget_resize_cannot_change_rows_or_drop_locked_columns():
 # --- column widths: attrs['col_widths']
 
 def test_column_options_whole_number_is_the_maximum_width():
-    assert table_column_options({"col_widths": {"Item": 150}}, BASE["columns"]) == {0: ' tabulator-maxwidth="150"'}
+    assert _opts({"col_widths": {"Item": 150}}) == {0: ' tabulator-maxwidth="150"'}
 
 
 def test_column_options_dict_gives_min_max_width_and_wrap():
-    options = table_column_options(
-        {"col_widths": {"Item": {"min": 80, "max": 200, "width": 120, "wrap": True}}}, BASE["columns"])
+    options = _opts({"col_widths": {"Item": {"min": 80, "max": 200, "width": 120, "wrap": True}}})
 
     assert options == {0: ' tabulator-minwidth="80" tabulator-maxwidth="200" tabulator-width="120"'
                           ' tabulator-formatter="textarea"'}
 
 
 def test_column_options_match_base_name_ignoring_case_and_uom_and_skip_unknown_columns():
-    options = table_column_options({"col_widths": {"PRICE": {"min": 70}, "missing": 40}}, BASE["columns"])
+    options = _opts({"col_widths": {"PRICE": {"min": 70}, "missing": 40}})
 
     assert options == {1: ' tabulator-minwidth="70"'}
 
 
 def test_column_options_empty_without_the_attribute():
-    assert table_column_options({}, BASE["columns"]) == {}
-    assert table_column_options(None, BASE["columns"]) == {}
+    assert _opts({}) == {}
+    assert _opts(None) == {}
 
 
 @pytest.mark.parametrize("spec", [0, -5, 1.5, True, "wide", {"max": 0}, {"min": "a"}, {"color": 1}, {"min": 200, "max": 100}, [100]])
 def test_column_options_reject_invalid_values(spec):
     with pytest.raises(ValueError):
-        table_column_options({"col_widths": {"Item": spec}}, BASE["columns"])
+        _opts({"col_widths": {"Item": spec}})
 
 
 def test_column_options_reject_a_col_widths_that_is_not_a_dict():
     with pytest.raises(ValueError):
-        table_column_options({"col_widths": ["Item"]}, BASE["columns"])
+        _opts({"col_widths": ["Item"]})
 
 
 def test_widget_adds_width_options_to_the_header_cells_only_for_listed_columns():
@@ -195,20 +196,18 @@ def test_widths_do_not_make_the_field_restore_or_lock_posted_values():
 # --- output tables: attrs['align'], out_schema
 
 def test_column_options_align_combines_with_widths_and_validates():
-    options = table_column_options(
-        {"col_widths": {"Price": 80}, "align": {"price": "right", "Item": "center", "missing": "left"}},
-        BASE["columns"])
+    options = _opts({"col_widths": {"Price": 80}, "align": {"price": "right", "Item": "center", "missing": "left"}})
 
     right = 'tabulator-hozalign="right" tabulator-headerhozalign="right"'
     assert options == {0: ' tabulator-hozalign="center" tabulator-headerhozalign="center"',
                        1: f' tabulator-maxwidth="80" {right}'}
     for bad in ({"Item": "middle"}, ["Item"]):
         with pytest.raises(ValueError):
-            table_column_options({"align": bad}, BASE["columns"])
+            _opts({"align": bad})
 
 
 def test_column_options_numeric_positions_are_right_aligned_unless_the_author_says_otherwise():
-    options = table_column_options({"align": {"Qty": "left"}}, BASE["columns"], numeric=[1, 2])
+    options = _opts({"align": {"Qty": "left"}}, numeric=[1, 2])
 
     assert options == {1: ' tabulator-hozalign="right" tabulator-headerhozalign="right"',
                        2: ' tabulator-hozalign="left" tabulator-headerhozalign="left"'}
@@ -227,18 +226,20 @@ def test_numeric_columns_detects_numbers_quantities_and_numeric_text_only():
 
 def test_style_table_headers_tags_only_listed_header_cells():
     html = "<table><thead><tr><th>A</th><th>B</th></tr></thead><tbody><tr><td>1</td><td>2</td></tr></tbody></table>"
+    style = lambda attrs: TableAttrs(attrs, ["A", "B"]).style_headers(html)
 
-    assert style_table_headers(html, {1: ' tabulator-hozalign="right"'}) == html.replace(
-        "<th>B</th>", '<th tabulator-hozalign="right">B</th>')
-    assert style_table_headers(html, {}) == html
+    assert style({"align": {"B": "right"}}) == html.replace(
+        "<th>B</th>", '<th tabulator-hozalign="right" tabulator-headerhozalign="right">B</th>')
+    assert style({}) == html
 
 
 def test_out_attrs_find_the_result_by_title_or_variable_name_and_validate():
     schema = {"Method Comparison": {"attrs": {"page_all": True, "align": {"A": "right"}}}}
+    out = lambda sch, *names: TableAttrs.for_output(sch, names, ["A"]).attrs
 
-    assert table_out_attrs(schema, "Method Comparison", "method_comparison") == schema["Method Comparison"]["attrs"]
-    assert table_out_attrs(schema, "other", "method_comparison") == {}
-    assert table_out_attrs(None, "x") == {}
+    assert out(schema, "Method Comparison", "method_comparison") == schema["Method Comparison"]["attrs"]
+    assert out(schema, "other", "method_comparison") == {}
+    assert out(None, "x") == {}
     for bad in ({"attrs": {"readonly_cols": True}}, {"attrs": {"page_all": 1}}):
         with pytest.raises(ValueError):
-            table_out_attrs({"x": bad}, "x")
+            out({"x": bad}, "x")

@@ -8,6 +8,7 @@ from django.forms import Widget
 import pandas as pd
 import json
 from itertools import count
+from functools import cached_property
 from .qd_df import resize_df
 from qcore.qf_anno import is_qtbl, wrap_actions, fullscreen_button
 from qconst import TOK_ROW, TOK_COL, TOK_TABLE_RESIZE, TOK_TABLE_ED, TOK_TABLE_UPDATE, TOK_ID_PREFIX, TOK_FIELD_SEP, \
@@ -15,152 +16,134 @@ from qconst import TOK_ROW, TOK_COL, TOK_TABLE_RESIZE, TOK_TABLE_ED, TOK_TABLE_U
 import re
 
 
-def _base_name(column):
-    """A column name as authors write it in ``attrs``: without the ``|uom`` suffix, ignoring case."""
-    return str(column).split(TBL_UOM_SEP)[0].strip().casefold()
-
-
-def table_lock_indices(attrs, columns):
-    """Return (header_locked, value_locked) column index sets for an input table.
-
-    ``attrs['readonly_cols']`` locks header and values, ``attrs['fixed_headers']`` locks only the header;
-    either may be a list of column names or True for every column. Names match on the base name, ignoring
-    case and the ``|uom`` header suffix. Locked values also fix the rows.
-    """
-    attrs = attrs or {}
-    bases = [_base_name(c) for c in columns]
-
-    def pick(spec):
-        if spec is True:
-            return set(range(len(bases)))
-        names = {_base_name(n) for n in (spec or [])}
-        return {i for i, b in enumerate(bases) if b in names}
-
-    values = pick(attrs.get('readonly_cols'))
-    return values | pick(attrs.get('fixed_headers')), values
-
-
 _COL_WIDTH_OPTIONS = {'min': 'tabulator-minwidth', 'max': 'tabulator-maxwidth', 'width': 'tabulator-width'}
-
-
 _ALIGNS = ('left', 'center', 'right')
-
-
-def table_column_options(attrs, columns, numeric=()):
-    """Return ``{column index: ' tabulator-... attributes'}`` for ``attrs['col_widths']`` and ``attrs['align']``.
-
-    ``col_widths={'Label': {'max': 360, 'wrap': True}, 'Value': {'min': 90}, 'Group': 150}``: a whole number is
-    the maximum width in pixels, a dict may hold ``min``, ``max`` and ``width`` (pixels) and ``wrap`` (show long
-    text on several lines). ``align={'Value': 'right'}`` sets the alignment (left, center or right) of the values
-    and the header. The positions in ``numeric`` are right-aligned unless ``align`` says otherwise.
-    Columns that are not listed keep the table default. Names match like the lock options; a name that is not a
-    column is ignored. Raises ValueError for a value that is not valid.
-    """
-    attrs = attrs or {}
-    bases = {_base_name(c): i for i, c in reversed(list(enumerate(columns)))}
-    options = _width_options(attrs.get('col_widths'), bases)
-    aligns = attrs.get('align')
-    if aligns and not isinstance(aligns, dict):
-        raise ValueError("attrs['align'] must be a dict of column name to left, center or right.")
-    by_index = {i: 'right' for i in numeric}
-    for name, align in (aligns or {}).items():
-        if align not in _ALIGNS:
-            raise ValueError(f"align['{name}'] must be one of {', '.join(_ALIGNS)}.")
-        if _base_name(name) in bases:
-            by_index[bases[_base_name(name)]] = align
-    for i, align in by_index.items():
-        options[i] = options.get(i, '') + f' tabulator-hozalign="{align}" tabulator-headerhozalign="{align}"'
-    return options
-
-
 _OUT_ATTRS = ('col_widths', 'align', 'page_all')
 
 
-def table_out_attrs(out_schema, *names):
-    """Return the ``attrs`` of the first of ``names`` found in ``out_schema`` ({result: {'attrs': {...}}}).
+class TableAttrs:
+    """The author ``attrs`` of a table (locks, column widths and alignment, output options) over its columns.
 
-    Raises ValueError for an attrs key that output tables do not support or a page_all that is not a bool.
+    Column names in ``attrs`` match on the base name, ignoring case and the ``|uom`` header suffix; a name that
+    is not a column is ignored.
     """
-    entry = next((out_schema[n] for n in names if n in (out_schema or {})), None)
-    attrs = (entry or {}).get('attrs') or {}
-    unknown = set(attrs) - set(_OUT_ATTRS)
-    if unknown:
-        raise ValueError(f"out_schema attrs {sorted(unknown)} are not supported; use {', '.join(_OUT_ATTRS)}.")
-    if 'page_all' in attrs and not isinstance(attrs['page_all'], bool):
-        raise ValueError("out_schema attrs['page_all'] must be True or False.")
-    return attrs
 
+    def __init__(self, attrs, columns):
+        self.attrs = attrs or {}
+        self.bases = [self._base(c) for c in columns]
+        self._first = {b: i for i, b in reversed(list(enumerate(self.bases)))}
 
-def style_table_headers(html, options):
-    """Add the ``table_column_options`` attributes to the header cells of a pandas table; the only ``<th>``."""
-    if not options:
-        return html
-    counter = count()
-    return re.sub(r'<th>', lambda _m: f'<th{options.get(next(counter), "")}>', html)
+    @staticmethod
+    def _base(name):
+        return str(name).split(TBL_UOM_SEP)[0].strip().casefold()
 
+    @classmethod
+    def for_output(cls, out_schema, names, columns):
+        """The validated attrs of the first of ``names`` found in ``out_schema`` ({result: {'attrs': {...}}})."""
+        entry = next((out_schema[n] for n in names if n in (out_schema or {})), None)
+        return cls((entry or {}).get('attrs'), columns).validate_out()
 
-def _width_options(specs, bases):
-    if not specs:
-        return {}
-    if not isinstance(specs, dict):
-        raise ValueError("attrs['col_widths'] must be a dict of column name to width.")
-    options = {}
-    for name, spec in specs.items():
-        spec = {'max': spec} if isinstance(spec, int) and not isinstance(spec, bool) else spec
-        if not isinstance(spec, dict) or not set(spec) <= {*_COL_WIDTH_OPTIONS, 'wrap'}:
-            raise ValueError(f"col_widths['{name}'] must be a whole number or a dict with min, max, width, wrap.")
-        for key in _COL_WIDTH_OPTIONS:
-            if key in spec and (not isinstance(spec[key], int) or isinstance(spec[key], bool) or spec[key] <= 0):
-                raise ValueError(f"col_widths['{name}']['{key}'] must be a positive whole number of pixels.")
-        if spec.get('min', 0) > spec.get('max', float('inf')):
-            raise ValueError(f"col_widths['{name}']: min cannot be greater than max.")
-        if _base_name(name) not in bases:
-            continue
-        text = ''.join(f' {attr}="{spec[key]}"' for key, attr in _COL_WIDTH_OPTIONS.items() if key in spec)
-        if spec.get('wrap'):
-            text += ' tabulator-formatter="textarea"'
-        options[bases[_base_name(name)]] = text
-    return options
+    def validate_out(self):
+        """Raise ValueError for an attrs key that output tables do not support or a page_all that is not a bool."""
+        unknown = set(self.attrs) - set(_OUT_ATTRS)
+        if unknown:
+            raise ValueError(f"out_schema attrs {sorted(unknown)} are not supported; use {', '.join(_OUT_ATTRS)}.")
+        if 'page_all' in self.attrs and not isinstance(self.attrs['page_all'], bool):
+            raise ValueError("out_schema attrs['page_all'] must be True or False.")
+        return self
 
+    @cached_property
+    def locks(self):
+        """(header_locked, value_locked) column index sets of an input table.
 
-def table_payload(value):
-    """Return a ``{'columns', 'data', ...}`` dict from a posted JSON string, DataFrame or qtbl, else None."""
-    if isinstance(value, str):
-        try:
-            value = json.loads(value)
-        except ValueError:
-            return None
-    if isinstance(value, list) and value and all(isinstance(r, dict) for r in value):
-        value = pd.DataFrame(value)
-    if isinstance(value, pd.DataFrame):
-        return {'columns': [str(c) for c in value.columns],
-                'data': [["" if pd.isna(c) else c for c in row] for row in value.values.tolist()]}
-    if is_qtbl(value):
-        return dict(value, columns=list(value['columns']), data=[list(r) for r in value['data']])
-    return None
+        ``attrs['readonly_cols']`` locks header and values, ``attrs['fixed_headers']`` locks only the header;
+        either may be a list of column names or True for every column. Locked values also fix the rows.
+        """
+        def pick(spec):
+            if spec is True:
+                return set(range(len(self.bases)))
+            names = {self._base(n) for n in (spec or [])}
+            return {i for i, b in enumerate(self.bases) if b in names}
 
+        values = pick(self.attrs.get('readonly_cols'))
+        return values | pick(self.attrs.get('fixed_headers')), values
 
-def enforce_table_locks(posted, baseline, attrs):
-    """Restore locked headers and values of a posted table from its baseline (the field's initial table).
+    def column_options(self, numeric=()):
+        """Return ``{column index: ' tabulator-... attributes'}`` for ``attrs['col_widths']`` and ``attrs['align']``.
 
-    Raises ValueError when a locked column was removed, or rows were added or deleted while values are locked.
-    """
-    headers, values = table_lock_indices(attrs, baseline['columns'])
-    if not headers:
-        return posted
-    columns = list(posted['columns'])
-    data = [list(r) for r in posted['data']]
-    if max(headers) >= len(columns):
-        raise ValueError('Locked columns cannot be removed.')
-    if values and len(data) != len(baseline['data']):
-        raise ValueError('Rows cannot be added or deleted in a table with locked values.')
-    for i in headers:
-        columns[i] = baseline['columns'][i]
-    for i in values:
-        for row, base_row in zip(data, baseline['data']):
-            row.extend([""] * (i + 1 - len(row)))
-            row[i] = base_row[i]
-    return dict(posted, columns=columns, data=data)
+        ``col_widths={'Label': {'max': 360, 'wrap': True}, 'Value': {'min': 90}, 'Group': 150}``: a whole number is
+        the maximum width in pixels, a dict may hold ``min``, ``max`` and ``width`` (pixels) and ``wrap`` (show long
+        text on several lines). ``align={'Value': 'right'}`` sets the alignment (left, center or right) of the
+        values and the header. The positions in ``numeric`` are right-aligned unless ``align`` says otherwise.
+        Columns that are not listed keep the table default. Raises ValueError for a value that is not valid.
+        """
+        options = self._width_options(self.attrs.get('col_widths'))
+        aligns = self.attrs.get('align')
+        if aligns and not isinstance(aligns, dict):
+            raise ValueError("attrs['align'] must be a dict of column name to left, center or right.")
+        by_index = {i: 'right' for i in numeric}
+        for name, align in (aligns or {}).items():
+            if align not in _ALIGNS:
+                raise ValueError(f"align['{name}'] must be one of {', '.join(_ALIGNS)}.")
+            if self._base(name) in self._first:
+                by_index[self._first[self._base(name)]] = align
+        for i, align in by_index.items():
+            options[i] = options.get(i, '') + f' tabulator-hozalign="{align}" tabulator-headerhozalign="{align}"'
+        return options
+
+    def style_headers(self, html, numeric=()):
+        """Add the ``column_options`` attributes to the header cells of a pandas table; the only ``<th>``."""
+        options = self.column_options(numeric)
+        if not options:
+            return html
+        counter = count()
+        return re.sub(r'<th>', lambda _m: f'<th{options.get(next(counter), "")}>', html)
+
+    def _width_options(self, specs):
+        if not specs:
+            return {}
+        if not isinstance(specs, dict):
+            raise ValueError("attrs['col_widths'] must be a dict of column name to width.")
+        options = {}
+        for name, spec in specs.items():
+            spec = {'max': spec} if isinstance(spec, int) and not isinstance(spec, bool) else spec
+            if not isinstance(spec, dict) or not set(spec) <= {*_COL_WIDTH_OPTIONS, 'wrap'}:
+                raise ValueError(f"col_widths['{name}'] must be a whole number or a dict with min, max, width, wrap.")
+            for key in _COL_WIDTH_OPTIONS:
+                if key in spec and (not isinstance(spec[key], int) or isinstance(spec[key], bool) or spec[key] <= 0):
+                    raise ValueError(f"col_widths['{name}']['{key}'] must be a positive whole number of pixels.")
+            if spec.get('min', 0) > spec.get('max', float('inf')):
+                raise ValueError(f"col_widths['{name}']: min cannot be greater than max.")
+            if self._base(name) not in self._first:
+                continue
+            text = ''.join(f' {attr}="{spec[key]}"' for key, attr in _COL_WIDTH_OPTIONS.items() if key in spec)
+            if spec.get('wrap'):
+                text += ' tabulator-formatter="textarea"'
+            options[self._first[self._base(name)]] = text
+        return options
+
+    def enforce(self, posted, baseline):
+        """Restore locked headers and values of a posted table from its baseline (the field's initial table).
+
+        The columns of this object must be the baseline's. Raises ValueError when a locked column was removed,
+        or rows were added or deleted while values are locked.
+        """
+        headers, values = self.locks
+        if not headers:
+            return posted
+        columns = list(posted['columns'])
+        data = [list(r) for r in posted['data']]
+        if max(headers) >= len(columns):
+            raise ValueError('Locked columns cannot be removed.')
+        if values and len(data) != len(baseline['data']):
+            raise ValueError('Rows cannot be added or deleted in a table with locked values.')
+        for i in headers:
+            columns[i] = baseline['columns'][i]
+        for i in values:
+            for row, base_row in zip(data, baseline['data']):
+                row.extend([""] * (i + 1 - len(row)))
+                row[i] = base_row[i]
+        return dict(posted, columns=columns, data=data)
 
 
 class ButtonWidget(Widget):
@@ -515,7 +498,8 @@ class TabulatorWidget(Widget):
             # print('mode in data', mode)
 
         mode = mode if self.class_ == '' else ('edit' if self.class_ == 'table-in' else 'display')
-        lock_headers, lock_values = table_lock_indices(self.attrs, [str(c) for c in df.columns])
+        table_attrs = TableAttrs(self.attrs, df.columns)
+        lock_headers, lock_values = table_attrs.locks
         # print('mode, class_', mode, self.class_)
         extra_cols = 0  # if "Edit" in df.columns else 0  # before resizing
         # if self.mode == 'edit':
@@ -559,7 +543,7 @@ class TabulatorWidget(Widget):
             f'<table data-interactive-ignore="true"{lock_attrs} ',
             1,
         )
-        widths = table_column_options(self.attrs, [str(c) for c in df.columns])
+        widths = table_attrs.column_options()
         if lock_headers or widths:
             # | Tabulator reads tabulator-* attributes of <th> as column options; the header cells are the only <th>
             th_index = iter(range(len(df.columns)))

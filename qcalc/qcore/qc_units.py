@@ -807,6 +807,10 @@ class RegistryMeta(type):
     """
 
     @property
+    def table(cls):  # only the unit registry has a table
+        return MappingProxyType(cls._table)
+
+    @property
     def info(cls):
         return MappingProxyType(cls._info)
 
@@ -815,13 +819,7 @@ class RegistryMeta(type):
         return MappingProxyType(cls._tree)
 
 
-class UnitRegistryMeta(RegistryMeta):
-    @property
-    def table(cls):
-        return MappingProxyType(cls._table)
-
-
-class UnitRegistry(metaclass=UnitRegistryMeta):
+class UnitRegistry(metaclass=RegistryMeta):
     """The measurement units, filled once by ``_load()``. Everything is class level, e.g. ``UnitRegistry.find('ft/s')``.
 
     ``table``, ``info`` and ``tree`` are read-only views (see RegistryMeta); only the ``_`` methods change the registry.

@@ -63,7 +63,7 @@ def minimum(*args, key=None):
 
 
 qlib_dict = {
-    'q': Qty, 'qdt': QDateTime, 'dd': DotDict,
+    'q': Qty, 'ureg': UnitRegistry, 'qreg': QtyRegistry, 'qdt': QDateTime, 'dd': DotDict,
     # | 'datetime': datetime.datetime, 'date': datetime.date, 'time': datetime.time,
     # | 'timedelta': datetime.timedelta, 'timezone': datetime.timezone,
     # | 'call': QCals.addr, (circular)

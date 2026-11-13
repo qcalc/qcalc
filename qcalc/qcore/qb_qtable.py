@@ -11,6 +11,7 @@ from .qc_qty import Qty
 from .qd_data import is_empty_cell as _blank
 from .qf_anno import is_qtbl
 import qconst
+import json
 import re
 from copy import deepcopy
 import pandas as pd
@@ -943,3 +944,20 @@ class QTable:
         calculators cannot call it; they use ``to_qdf()`` instead.
         """
         return pd.DataFrame(self.data, columns=self.columns)
+
+    @staticmethod
+    def payload(value):
+        """Return a ``{'columns', 'data', ...}`` dict from a posted JSON string, DataFrame or qtbl, else None."""
+        if isinstance(value, str):
+            try:
+                value = json.loads(value)
+            except ValueError:
+                return None
+        if isinstance(value, list) and value and all(isinstance(r, dict) for r in value):
+            value = pd.DataFrame(value)
+        if isinstance(value, pd.DataFrame):
+            return {'columns': [str(c) for c in value.columns],
+                    'data': [["" if pd.isna(c) else c for c in row] for row in value.values.tolist()]}
+        if is_qtbl(value):
+            return dict(value, columns=list(value['columns']), data=[list(r) for r in value['data']])
+        return None

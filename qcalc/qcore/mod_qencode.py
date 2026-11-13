@@ -17,16 +17,21 @@ import numpy as np
 
 _UNSERIALIZED = object()
 
+_TAG = '__qcalc_type'
+_LEGACY_FRAME_TAG = '__shared_kind'  # | shared-data frames saved before the 'frame' profile used this tag
+_CHART_RUNTIME_KEYS = {'chart', 'fig', 'ax'}
+
 API_COMPACT_MAX_ROWS = 20
 # | most specific first; all of these are str subclasses
 _API_MESSAGE_TYPES = ((qerror, 'error'), (qwarn, 'warning'), (qinfo, 'info'), (qhtml, 'html'), (qchat, 'html'))
+_TEXT_KINDS = {kind for _, kind in _API_MESSAGE_TYPES} | {'file', 'image'}
 
-_SERIALIZE_POLICIES = {
+# | json: lossy, one level, unknown objects are left to the JSON encoder; variant: recursive, strict, round-trips
+_PLAIN_POLICIES = {
     'json': {
         'recursive': False,
         'q_object_mode': 'string',
         'unknown_mode': 'sentinel',
-        'cycle_mode': 'sentinel',
         'allow_type_name': True,
         'allow_user': True,
     },
@@ -34,150 +39,25 @@ _SERIALIZE_POLICIES = {
         'recursive': True,
         'q_object_mode': 'none',
         'unknown_mode': 'raise',
-        'cycle_mode': 'raise',
         'allow_type_name': False,
         'allow_user': False,
     },
 }
+# | tagged profiles keep tables, quantities and charts as ``__qcalc_type`` objects
+_TAGGED_PROFILES = {'step2', 'api'}
+# | 'frame' only turns DataFrames into tagged tables and back, everything else passes through untouched
+_PROFILES = set(_PLAIN_POLICIES) | _TAGGED_PROFILES | {'frame'}
 
 
-def _pack_table(df: pd.DataFrame):
-    return {
-        '__qcalc_type': 'table',
-        'columns': [str(col) for col in df.columns],
-        'data': df.values.tolist(),
-    }
-
-
-def _step2_pack_table(columns, rows, seen):
-    return {
-        '__qcalc_type': 'table',
-        'columns': columns,
-        'data': [[step2_pack_value(cell, seen) for cell in row] for row in rows],
-    }
-
-
-class QEncoderBase(DjangoJSONEncoder):
-
-    def default(self, obj):
-        encoded = serialize_value(obj, profile='json')
-        if encoded is not _UNSERIALIZED:
-            return encoded
-
-        try:
-            return super().default(obj)
-        except Exception as e:
-            return str(e)  # | don't return e (exception)
-
-
-def serialize_value(value, profile='json', _seen=None):
-    if profile == 'step2':
-        return step2_pack_value(value, _seen)
-
-    if profile == 'api':
-        return api_pack_value(value, _seen=_seen)
-
-    policy = _SERIALIZE_POLICIES.get(profile)
-    if policy is not None:
-        return _serialize_common_profile(value, policy, _seen)
-
-    raise ValueError(f'Unsupported profile: {profile}')
-
-
-def deserialize_value(value, profile='variant'):
-    if profile == 'step2':
-        return step2_unpack_for_run(value)
-
-    if profile == 'api':
-        return api_unpack_value(value)
-
-    policy = _SERIALIZE_POLICIES.get(profile)
-    if policy is not None:
-        return _deserialize_common_profile(value, policy)
-
-    raise ValueError(f'Unsupported profile: {profile}')
-
-
-def _serialize_common_profile(value, policy, _seen=None):
-    if _seen is None:
-        _seen = set()
-
-    if policy.get('recursive') and isinstance(value, dict):
-        value_id = id(value)
-        if value_id in _seen:
-            cycle_mode = policy.get('cycle_mode', 'raise')
-            if cycle_mode == 'none':
-                return None
-            if cycle_mode == 'sentinel':
-                return _UNSERIALIZED
-            raise ValueError('Cyclic reference detected while serializing dict')
-
-        _seen.add(value_id)
-        try:
-            return {key: _serialize_common_profile(val, policy, _seen) for key, val in value.items()}
-        finally:
-            _seen.discard(value_id)
-
-    if policy.get('recursive') and isinstance(value, list):
-        value_id = id(value)
-        if value_id in _seen:
-            cycle_mode = policy.get('cycle_mode', 'raise')
-            if cycle_mode == 'none':
-                return None
-            if cycle_mode == 'sentinel':
-                return _UNSERIALIZED
-            raise ValueError('Cyclic reference detected while serializing list')
-
-        _seen.add(value_id)
-        try:
-            return [_serialize_common_profile(item, policy, _seen) for item in value]
-        finally:
-            _seen.discard(value_id)
-
-    if isinstance(value, pd.DataFrame):
-        return _pack_table(value)
-
-    if isinstance(value, (datetime.date, datetime.time, datetime.datetime)):
-        return str(QDateTime(value))
-
-    if isinstance(value, QDateTime):
-        return str(value)
-
-    if isinstance(value, Qty):
-        return str(value)
-
-    if isinstance(value, decimal.Decimal):
-        return float(value)
-
-    if isinstance(value, datetime.timedelta):
-        return value.total_seconds()
-
-    if isinstance(value, (QFile, QImage, QChart)):
-        q_object_mode = policy.get('q_object_mode', 'string')
-        if q_object_mode == 'string':
-            return str(value)
-        if q_object_mode == 'none':
-            return None
-
-    if policy.get('allow_type_name') and isinstance(value, type):
-        return value.__name__
-
-    if policy.get('allow_user'):
-        from qsite.users.models import User  # Lazy import
-        if isinstance(value, User):
-            return str(value)
-
-    if isinstance(value, (str, int, float, bool)):
-        return value
-
-    if value is None:
+def _api_number(value):
+    """Return a JSON-safe float: NaN/inf become None, binary noise is trimmed to 12 significant digits."""
+    if math.isnan(value) or math.isinf(value):
         return None
+    return float(f'{value:.12g}')
 
-    unknown_mode = policy.get('unknown_mode', 'raise')
-    if unknown_mode == 'sentinel':
-        return _UNSERIALIZED
 
-    raise ValueError(f"Unsupported type: {type(value)}")
+def _datetime_str(value):
+    return str(value) if isinstance(value, QDateTime) else str(QDateTime(value))
 
 
 def _looks_like_legacy_dataframe_records(value):
@@ -200,240 +80,311 @@ def _looks_like_legacy_dataframe_records(value):
     return True
 
 
-def _deserialize_common_profile(value, policy):
-    if policy.get('recursive') and isinstance(value, dict):
-        if value.get('__qcalc_type') == 'table':
-            return pd.DataFrame(
-                data=value.get('data', []),
-                columns=value.get('columns', []),
-            )
-        return {key: _deserialize_common_profile(val, policy) for key, val in value.items()}
+class QSerializer:
+    """Converts calculator values to and from JSON-safe structures for one named profile.
 
-    if policy.get('recursive') and isinstance(value, list):
-        out = [_deserialize_common_profile(item, policy) for item in value]
-        if _looks_like_legacy_dataframe_records(out):
-            try:
-                return pd.DataFrame(out)
-            except ValueError:
+    Profiles: ``json`` (encoder fallback), ``variant`` (saved inputs), ``step2`` (cached step-2 I/O), ``api``
+    (strict API output; ``compact`` truncates tables to ``max_rows`` and omits chart data for LLM tool output) and
+    ``frame`` (DataFrames only, used by shared datasets and rates).
+
+    ``serialize``/``deserialize`` are the entry points; ``pack``/``unpack`` are the recursive workers. Tables share
+    one tagged shape, ``{'__qcalc_type': 'table', 'columns': [...], 'data': [[...]]}``, in every profile.
+    """
+
+    def __init__(self, profile='json', compact=False, max_rows=API_COMPACT_MAX_ROWS):
+        if profile not in _PROFILES:
+            raise ValueError(f'Unsupported profile: {profile}')
+        self.profile = profile
+        self.compact = compact
+        self.max_rows = max_rows
+        self._policy = _PLAIN_POLICIES.get(profile, {})
+        self._tagged = profile in _TAGGED_PROFILES
+
+    def serialize(self, value, _seen=None):
+        return self.pack(value, set() if _seen is None else _seen)
+
+    def deserialize(self, value):
+        return self.unpack(value)
+
+    def pack(self, value, seen):
+        if self._policy:
+            return self._pack_plain(value, seen)
+        return getattr(self, f'_pack_{self.profile}')(value, seen)
+
+    def unpack(self, value):
+        if self._tagged:
+            return self._unpack_tagged(value)
+        if self.profile == 'frame':
+            frame = self._as_frame(value)
+            return value if frame is None else frame
+        return self._unpack_plain(value)
+
+    # | shared helpers
+
+    def _pack_children(self, value, seen):
+        # | seen holds only the containers being packed right now, so a value shared in two places is packed twice
+        value_id = id(value)
+        if value_id in seen:
+            if self._policy:
+                raise ValueError(f'Cyclic reference detected while serializing {type(value).__name__}')
+            return None
+
+        seen.add(value_id)
+        try:
+            if isinstance(value, dict):
+                return {(str(key) if self._tagged else key): self.pack(val, seen) for key, val in value.items()}
+            return [self.pack(item, seen) for item in value]
+        finally:
+            seen.discard(value_id)
+
+    def _pack_table(self, columns, rows, seen):
+        rows = list(rows)
+        total = len(rows)
+        truncated = self.compact and total > self.max_rows
+        if truncated:
+            rows = rows[:self.max_rows]
+        table = {
+            _TAG: 'table',
+            'columns': [str(col) for col in columns],
+            'data': [[self.pack(cell, seen) for cell in row] for row in rows] if self._tagged else rows,
+        }
+        if truncated:
+            table['truncated'] = True
+            table['total_rows'] = total
+        return table
+
+    @staticmethod
+    def _table_parts(value):
+        """(columns, rows) of a DataFrame or of a ``{'columns', 'data'}`` dict, otherwise None."""
+        if isinstance(value, pd.DataFrame):
+            return value.columns, value.values.tolist()
+        if isinstance(value, dict) and {'columns', 'data'} <= value.keys():
+            return value['columns'], value['data']
+        return None
+
+    def _pack_chart(self, chart, seen):
+        if self.compact:
+            return {_TAG: 'chart', 'chtype': chart.chtype, 'omitted': True}
+        data = chart.data if isinstance(chart.data, dict) else {}
+        data = {key: val for key, val in data.items() if key not in _CHART_RUNTIME_KEYS}
+        return {_TAG: 'chart', 'chtype': chart.chtype, 'data': self.pack(data, seen)}
+
+    @staticmethod
+    def _as_frame(value):
+        if isinstance(value, dict) and (value.get(_TAG) == 'table' or value.get(_LEGACY_FRAME_TAG) == 'dataframe'):
+            return pd.DataFrame(data=value.get('data', []), columns=value.get('columns', []))
+        return None
+
+    # | json / variant
+
+    def _pack_plain(self, value, seen):
+        policy = self._policy
+        if policy['recursive'] and isinstance(value, (dict, list)):
+            return self._pack_children(value, seen)
+
+        if isinstance(value, pd.DataFrame):
+            return self._pack_table(*self._table_parts(value), seen)
+
+        if isinstance(value, (datetime.date, datetime.time, datetime.datetime,         QDateTime)):
+            return _datetime_str(value)
+
+        if isinstance(value, Qty):
+            return str(value)
+
+        if isinstance(value, decimal.Decimal):
+            return float(value)
+
+        if isinstance(value, datetime.timedelta):
+            return value.total_seconds()
+
+        if isinstance(value, (QFile, QImage, QChart)):
+            return str(value) if policy['q_object_mode'] == 'string' else None
+
+        if policy['allow_type_name'] and isinstance(value, type):
+            return value.__name__
+
+        if policy['allow_user']:
+            from qsite.users.models import User  # Lazy import
+            if isinstance(value, User):
+                return str(value)
+
+        if isinstance(value, (str, int, float, bool)) or value is None:
+            return value
+
+        if policy['unknown_mode'] == 'sentinel':
+            return _UNSERIALIZED
+
+        raise ValueError(f"Unsupported type: {type(value)}")
+
+    def _unpack_plain(self, value):
+        if self._policy['recursive']:
+            if isinstance(value, dict):
+                frame = self._as_frame(value)
+                if frame is not None:
+                    return frame
+                return {key: self._unpack_plain(val) for key, val in value.items()}
+
+            if isinstance(value, list):
+                out = [self._unpack_plain(item) for item in value]
+                if _looks_like_legacy_dataframe_records(out):
+                    try:
+                        return pd.DataFrame(out)
+                    except ValueError:
+                        return out
                 return out
-        return out
 
-    if isinstance(value, str):
-        dt = QDateTime.qc_str_to_datetime(value)
-        return dt if dt else value
+        if isinstance(value, str):
+            dt = QDateTime.qc_str_to_datetime(value)
+            return dt if dt else value
 
-    return value
+        return value
+
+    # | frame
+
+    def _pack_frame(self, value, seen):
+        if isinstance(value, pd.DataFrame):
+            return self._pack_table(*self._table_parts(value), seen)
+        return value
+
+    # | step2
+
+    def _pack_step2(self, value, seen):
+        if isinstance(value, Qty):
+            return {_TAG: 'qty', 'value': str(value)}
+
+        if isinstance(value, QChart):
+            return self._pack_chart(value, seen)
+
+        parts = self._table_parts(value)
+        if parts:
+            return self._pack_table(*parts, seen)
+
+        if isinstance(value, (datetime.date, datetime.datetime, datetime.time)):
+            return _datetime_str(value)
+
+        if isinstance(value, (dict, list, tuple, set)):
+            return self._pack_children(value, seen)
+
+        if isinstance(value, (str, int, float, bool)) or value is None:
+            return value
+
+        return str(value)
+
+    # | api: unlike step2 every nested cell is packed, quantities keep number and unit apart, NaN/inf never escape
+
+    def _pack_api(self, value, seen):
+        if value is None or isinstance(value, bool):
+            return value
+
+        for message_type, kind in _API_MESSAGE_TYPES:
+            if isinstance(value, message_type):
+                return {_TAG: kind, 'text': str(value)}
+
+        if isinstance(value, str):
+            return str(value)
+
+        if isinstance(value, int):
+            return int(value)
+
+        if isinstance(value, float):
+            return _api_number(float(value))
+
+        if isinstance(value, np.generic):
+            return self.pack(value.item(), seen)
+
+        if isinstance(value, Qty):
+            number = value.val
+            return {
+                _TAG: 'qty',
+                'value': _api_number(float(number)) if isinstance(number, (int, float)) else number,
+                'unit': value.uom,
+                'text': str(value),
+            }
+
+        if isinstance(value, decimal.Decimal):
+            return _api_number(float(value))
+
+        if isinstance(value, datetime.timedelta):
+            return value.total_seconds()
+
+        if isinstance(value, (datetime.date, datetime.time, datetime.datetime, QDateTime)):
+            return _datetime_str(value)
+
+        if isinstance(value, QChart):
+            return self._pack_chart(value, seen)
+
+        if isinstance(value, (QFile, QImage)):
+            return {_TAG: 'image' if isinstance(value, QImage) else 'file', 'text': str(value)}
+
+        parts = self._table_parts(value)
+        if parts:
+            return self._pack_table(*parts, seen)
+
+        if isinstance(value, (dict, list, tuple, set)):
+            return self._pack_children(value, seen)
+
+        return str(value)
+
+    # | step2 / api inputs: tagged quantities become 'value unit' strings and tables become {'columns', 'data'}
+    # | dicts, the same shapes calculators already accept
+
+    def _unpack_tagged(self, value):
+        if isinstance(value, dict):
+            kind = value.get(_TAG)
+            if kind == 'qty':
+                return value.get('text') or f"{value.get('value', '')} {value.get('unit', '')}".strip()
+            if kind == 'table':
+                return {
+                    'columns': list(value.get('columns', [])),
+                    'data': [[self._unpack_tagged(cell) for cell in row] for row in value.get('data', [])],
+                }
+            if kind in _TEXT_KINDS:
+                return value.get('text', '')
+            if kind == 'chart':
+                return self._unpack_tagged(value.get('data', {}))
+            return {key: self._unpack_tagged(val) for key, val in value.items()}
+
+        if isinstance(value, list):
+            return [self._unpack_tagged(item) for item in value]
+
+        return value
+
+
+def serialize_value(value, profile='json', _seen=None):
+    return QSerializer(profile).serialize(value, _seen)
+
+
+def deserialize_value(value, profile='variant'):
+    return QSerializer(profile).deserialize(value)
 
 
 def step2_pack_value(value, _seen=None):
-    if _seen is None:
-        _seen = set()
-
-    value_id = id(value)
-    if value_id in _seen:
-        return None
-
-    if isinstance(value, Qty):
-        return {'__qcalc_type': 'qty', 'value': str(value)}
-
-    if isinstance(value, QChart):
-        # _seen only tracks containers currently being packed (cycle detection),
-        # so a value shared in two places is packed twice instead of becoming None
-        _seen.add(value_id)
-        try:
-            chart_data = value.data or {}
-            if isinstance(chart_data, dict):
-                chart_data = {
-                    key: val for key, val in chart_data.items()
-                    if key not in {'chart', 'fig', 'ax'}
-                }
-            return {
-                '__qcalc_type': 'chart',
-                'chtype': value.chtype,
-                'data': step2_pack_value(chart_data, _seen),
-            }
-        finally:
-            _seen.discard(value_id)
-
-    if isinstance(value, pd.DataFrame):
-        return _step2_pack_table([str(col) for col in value.columns], value.values.tolist(), _seen)
-
-    if isinstance(value, dict) and {'columns', 'data'} <= value.keys():
-        return _step2_pack_table(value['columns'], value['data'], _seen)
-
-    if isinstance(value, (datetime.date, datetime.datetime, datetime.time)):
-        return str(QDateTime(value))
-
-    if isinstance(value, dict):
-        _seen.add(value_id)
-        try:
-            return {str(key): step2_pack_value(val, _seen) for key, val in value.items()}
-        finally:
-            _seen.discard(value_id)
-
-    if isinstance(value, (list, tuple, set)):
-        _seen.add(value_id)
-        try:
-            return [step2_pack_value(item, _seen) for item in value]
-        finally:
-            _seen.discard(value_id)
-
-    if isinstance(value, (str, int, float, bool)) or value is None:
-        return value
-
-    return str(value)
+    return QSerializer('step2').serialize(value, _seen)
 
 
 def step2_unpack_for_run(value):
-    if isinstance(value, dict):
-        qtype = value.get('__qcalc_type')
-        if qtype == 'qty':
-            return value.get('value', '')
-        if qtype == 'chart':
-            return step2_unpack_for_run(value.get('data', {}))
-        if qtype == 'table':
-            return {
-                'columns': value.get('columns', []),
-                'data': [[step2_unpack_for_run(cell) for cell in row] for row in value.get('data', [])],
-            }
-        return {key: step2_unpack_for_run(val) for key, val in value.items()}
-
-    if isinstance(value, list):
-        return [step2_unpack_for_run(item) for item in value]
-
-    return value
-
-
-def _api_number(value):
-    """Return a JSON-safe float: NaN/inf become None, binary noise is trimmed to 12 significant digits."""
-    if math.isnan(value) or math.isinf(value):
-        return None
-    return float(f'{value:.12g}')
-
-
-def _api_table(columns, rows, compact, max_rows, seen):
-    rows = list(rows)
-    total = len(rows)
-    truncated = compact and total > max_rows
-    if truncated:
-        rows = rows[:max_rows]
-    table = {
-        '__qcalc_type': 'table',
-        'columns': [str(col) for col in columns],
-        'data': [[api_pack_value(cell, compact, max_rows, seen) for cell in row] for row in rows],
-    }
-    if truncated:
-        table['truncated'] = True
-        table['total_rows'] = total
-    return table
+    return QSerializer('step2').deserialize(value)
 
 
 def api_pack_value(value, compact=False, max_rows=API_COMPACT_MAX_ROWS, _seen=None):
-    """Pack a calculator result into strict JSON with tagged ``__qcalc_type`` objects.
-
-    Unlike the 'json' and 'step2' profiles every nested table cell is packed, quantities keep their number and
-    unit separately, and NaN/inf never reach the output. ``compact`` truncates tables to ``max_rows`` rows and
-    omits chart data, which keeps results small enough for LLM tool output.
-    """
-    if _seen is None:
-        _seen = set()
-
-    if value is None or isinstance(value, bool):
-        return value
-
-    for message_type, kind in _API_MESSAGE_TYPES:
-        if isinstance(value, message_type):
-            return {'__qcalc_type': kind, 'text': str(value)}
-
-    if isinstance(value, str):
-        return str(value)
-
-    if isinstance(value, int):
-        return int(value)
-
-    if isinstance(value, float):
-        return _api_number(float(value))
-
-    if isinstance(value, np.generic):
-        return api_pack_value(value.item(), compact, max_rows, _seen)
-
-    if isinstance(value, Qty):
-        number = value.val
-        return {
-            '__qcalc_type': 'qty',
-            'value': _api_number(float(number)) if isinstance(number, (int, float)) else number,
-            'unit': value.uom,
-            'text': str(value),
-        }
-
-    if isinstance(value, decimal.Decimal):
-        return _api_number(float(value))
-
-    if isinstance(value, datetime.timedelta):
-        return value.total_seconds()
-
-    if isinstance(value, (datetime.date, datetime.time, datetime.datetime, QDateTime)):
-        return str(QDateTime(value)) if not isinstance(value, QDateTime) else str(value)
-
-    if isinstance(value, QChart):
-        if compact:
-            return {'__qcalc_type': 'chart', 'chtype': value.chtype, 'omitted': True}
-        chart_data = value.data if isinstance(value.data, dict) else {}
-        chart_data = {key: val for key, val in chart_data.items() if key not in {'chart', 'fig', 'ax'}}
-        return {
-            '__qcalc_type': 'chart',
-            'chtype': value.chtype,
-            'data': api_pack_value(chart_data, compact, max_rows, _seen),
-        }
-
-    if isinstance(value, (QFile, QImage)):
-        return {'__qcalc_type': 'image' if isinstance(value, QImage) else 'file', 'text': str(value)}
-
-    if isinstance(value, pd.DataFrame):
-        return _api_table(value.columns, value.values.tolist(), compact, max_rows, _seen)
-
-    if isinstance(value, dict) and {'columns', 'data'} <= value.keys():
-        return _api_table(value['columns'], value['data'], compact, max_rows, _seen)
-
-    if isinstance(value, (dict, list, tuple, set)):
-        value_id = id(value)
-        if value_id in _seen:
-            return None
-        _seen.add(value_id)
-        try:
-            if isinstance(value, dict):
-                return {str(key): api_pack_value(val, compact, max_rows, _seen) for key, val in value.items()}
-            return [api_pack_value(item, compact, max_rows, _seen) for item in value]
-        finally:
-            _seen.discard(value_id)
-
-    return str(value)
+    return QSerializer('api', compact, max_rows).serialize(value, _seen)
 
 
 def api_unpack_value(value):
-    """Reverse of :func:`api_pack_value` for inputs: tagged quantities become ``'value unit'`` strings and tables
-    become ``{'columns', 'data'}`` dicts, the same shapes calculators already accept."""
-    if isinstance(value, dict):
-        qtype = value.get('__qcalc_type')
-        if qtype == 'qty':
-            if value.get('text'):
-                return value['text']
-            return f"{value.get('value', '')} {value.get('unit', '')}".strip()
-        if qtype == 'table':
-            return {
-                'columns': list(value.get('columns', [])),
-                'data': [[api_unpack_value(cell) for cell in row] for row in value.get('data', [])],
-            }
-        if qtype in {'error', 'warning', 'info', 'html', 'file', 'image'}:
-            return value.get('text', '')
-        if qtype == 'chart':
-            return api_unpack_value(value.get('data', {}))
-        return {key: api_unpack_value(val) for key, val in value.items()}
+    return QSerializer('api').deserialize(value)
 
-    if isinstance(value, list):
-        return [api_unpack_value(item) for item in value]
 
-    return value
+class QEncoderBase(DjangoJSONEncoder):
+
+    def default(self, obj):
+        encoded = serialize_value(obj, profile='json')
+        if encoded is not _UNSERIALIZED:
+            return encoded
+
+        try:
+            return super().default(obj)
+        except Exception as e:
+            return str(e)  # | don't return e (exception)
 
 
 class QEncoderShort(QEncoderBase):

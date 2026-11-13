@@ -20,13 +20,13 @@ from types import SimpleNamespace
 
 import pandas as pd
 
-from qcore import Qty, qwarn
+from qcore import Qty, qwarn, QSerializer
 from qutil import specified_args
 from .mod_cache import QRates
-from .mod_shared_data import _pack_payload, _unpack_payload
 
 SCHEDULE_COLUMNS = ['Item', 'Price', 'Currency', 'Price Per', 'Price Unit']
 _SLOT = 'schedule'
+_FRAMES = QSerializer('frame')
 _EMPTY = pd.DataFrame(columns=SCHEDULE_COLUMNS)
 
 
@@ -44,11 +44,11 @@ def default_rate_schedule() -> pd.DataFrame:
 
 def save_rates(schedule: pd.DataFrame) -> None:
     """Save the schedule to the user's account (to the session for anonymous users)."""
-    QRates.setp1(_SLOT, _pack_payload(schedule[SCHEDULE_COLUMNS].astype(str)))
+    QRates.setp1(_SLOT, _FRAMES.serialize(schedule[SCHEDULE_COLUMNS].astype(str)))
 
 
 def load_rates() -> pd.DataFrame | None:
-    saved = _unpack_payload(QRates.getp1(_SLOT))
+    saved = _FRAMES.deserialize(QRates.getp1(_SLOT))
     return saved if isinstance(saved, pd.DataFrame) else None
 
 

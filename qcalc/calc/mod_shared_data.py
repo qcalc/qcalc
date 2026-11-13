@@ -3,25 +3,10 @@
 
 from __future__ import annotations
 
-import pandas as pd
-
+from qcore import QSerializer
 from .mod_cache import QData
 
-
-def _pack_payload(payload):
-    if isinstance(payload, pd.DataFrame):
-        return {
-            '__shared_kind': 'dataframe',
-            'columns': [str(col) for col in payload.columns],
-            'data': payload.values.tolist(),
-        }
-    return payload
-
-
-def _unpack_payload(payload):
-    if isinstance(payload, dict) and payload.get('__shared_kind') == 'dataframe':
-        return pd.DataFrame(payload.get('data', []), columns=payload.get('columns', []))
-    return payload
+_FRAMES = QSerializer('frame')
 
 
 def _dataset_slot(dataset_key: str) -> str:
@@ -50,7 +35,7 @@ def publish_shared_dataset(
         'dataset_type': dataset_type,
         'producer_func': producer_func,
         'schema_info': schema_info or {},
-        'payload': _pack_payload(payload),
+        'payload': _FRAMES.serialize(payload),
     }
 
     QData.setp1(_dataset_slot(dataset_key), record)
@@ -91,5 +76,5 @@ def get_shared_dataset(dataset_type: str = '', dataset_key: str = '') -> dict | 
         return None
 
     out = record.copy()
-    out['payload'] = _unpack_payload(out.get('payload'))
+    out['payload'] = _FRAMES.deserialize(out.get('payload'))
     return out

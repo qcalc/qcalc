@@ -29,17 +29,33 @@ def test_qencoderbase_default_uses_shared_serialize_value(monkeypatch):
     assert out is marker
 
 
-def test_serialize_value_step2_profile_delegates_to_step2_packer(monkeypatch):
-    marker = {'ok': True}
+def test_serialize_value_step2_profile_matches_step2_packer():
+    assert enc.serialize_value({'x': Qty('2 kg')}, profile='step2') == enc.step2_pack_value({'x': Qty('2 kg')})
+    assert enc.QSerializer('step2').serialize({'x': 1}) == {'x': 1}
 
-    def _fake_pack(value, _seen=None):
-        assert value == {'x': 1}
-        return marker
 
-    monkeypatch.setattr(enc, 'step2_pack_value', _fake_pack)
+def test_qserializer_rejects_unknown_profile():
+    with pytest.raises(ValueError, match='Unsupported profile'):
+        enc.QSerializer('nope')
 
-    out = enc.serialize_value({'x': 1}, profile='step2')
-    assert out is marker
+
+def test_frame_profile_round_trips_dataframes_only():
+    df = pd.DataFrame({'B': ['2026-01-02'], 'A': ['x']})
+    serializer = enc.QSerializer('frame')
+
+    packed = serializer.serialize(df)
+    restored = serializer.deserialize(packed)
+
+    assert packed == {'__qcalc_type': 'table', 'columns': ['B', 'A'], 'data': [['2026-01-02', 'x']]}
+    assert restored.equals(df)
+    assert serializer.serialize({'columns': ['A'], 'data': [[1]]}) == {'columns': ['A'], 'data': [[1]]}
+    assert serializer.deserialize({'columns': ['A'], 'data': [[1]]}) == {'columns': ['A'], 'data': [[1]]}
+
+
+def test_frame_profile_reads_legacy_shared_kind_tag():
+    legacy = {'__shared_kind': 'dataframe', 'columns': ['A'], 'data': [[1]]}
+
+    assert enc.QSerializer('frame').deserialize(legacy).equals(pd.DataFrame({'A': [1]}))
 
 
 def test_step2_pack_value_handles_qty_datetime_and_dataframe():
@@ -193,16 +209,9 @@ def test_reverse_prepare_for_json_uses_variant_deserialize(monkeypatch):
     assert enc.reverse_prepare_for_json({'x': 1}) is marker
 
 
-def test_deserialize_value_step2_profile_delegates_to_step2_unpack(monkeypatch):
-    marker = {'run': 1}
-
-    def _fake_unpack(value):
-        assert value == {'x': 1}
-        return marker
-
-    monkeypatch.setattr(enc, 'step2_unpack_for_run', _fake_unpack)
-    out = enc.deserialize_value({'x': 1}, profile='step2')
-    assert out is marker
+def test_deserialize_value_step2_profile_unpacks_tagged_values():
+    out = enc.deserialize_value({'x': {'__qcalc_type': 'qty', 'value': '2 kg'}}, profile='step2')
+    assert out == {'x': '2 kg'}
 
 
 def test_prepare_for_json_variant_detects_cycles():

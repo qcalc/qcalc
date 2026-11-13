@@ -11,7 +11,7 @@ import catalog.views
 from .mod_ucals import get_uc_list
 from .mod_mfunc import get_fhelp
 from .views_form_data import *
-from .mod_layout_dynamic import has_dynamic_layout, build_layout_plan
+from .mod_layout_dynamic import has_dynamic_layout, QLayoutPlanner
 from .mod_prefs import (
     apply_persistent_request_prefs,
     resolve_effective_prefs,
@@ -585,11 +585,11 @@ def q1149_func_to_form_context(request: HtmxHttpRequest, func_id, cid, var_url_k
         output_ctx = request.context['output']
         input_form = input_ctx.get('form') if isinstance(input_ctx, dict) else getattr(input_ctx, 'form', None)
         output_form = output_ctx.get('form') if isinstance(output_ctx, dict) else getattr(output_ctx, 'form', None)
-        request.context['layout_plan'] = build_layout_plan(
+        request.context['layout_plan'] = QLayoutPlanner(
             request.json_doc['info'],
             input_form,
             output_form,
-        )
+        ).plan()
     input_id = request.input_id
     request.context['func_id'] = func_id
     request.context['input_id'] = input_id

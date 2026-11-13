@@ -6,7 +6,7 @@ import qsett
 
 qsett.init()
 
-from calc.mod_layout_dynamic import build_layout_plan
+from calc.mod_layout_dynamic import QLayoutPlanner
 from calc.views_info_meta import _normalize_layout_blocks
 
 
@@ -33,7 +33,7 @@ def test_dynamic_layout_keeps_empty_tab_specs_empty_not_all_fields():
     }
     output_form = _FakeForm(spec_source)
 
-    plan = build_layout_plan(info, input_form=None, output_form=output_form)
+    plan = QLayoutPlanner(info, input_form=None, output_form=output_form).plan()
 
     tabs = plan['output']['blocks'][0]['tabs']
     assert [tab['title'] for tab in tabs] == ['Present']
@@ -53,7 +53,7 @@ def test_dynamic_layout_keeps_empty_field_specs_empty_not_all_fields():
     }
     output_form = _FakeForm(spec_source)
 
-    plan = build_layout_plan(info, input_form=None, output_form=output_form)
+    plan = QLayoutPlanner(info, input_form=None, output_form=output_form).plan()
 
     assert len(plan['output']['blocks']) == 1
     assert plan['output']['blocks'][0]['fields'] == ['summary__r']

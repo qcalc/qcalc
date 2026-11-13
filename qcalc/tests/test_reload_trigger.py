@@ -107,12 +107,12 @@ def test_a_quantity_in_the_fields_list_resets_its_value_and_all_its_unit_inputs(
 
 
 def test_the_fields_of_a_nested_calculator_are_prefixed_by_the_info_flattening():
-    from calc.mod_mfunc import flatten_finfo
+    from calc.mod_mfunc import QFuncInfo
     from qconst import DICT_CLASS_FUNC
 
     info = {'child': {DICT_CLASS_FUNC: 'child', 'reload': {'quantity': {'fields': ['total']}}}}
 
-    assert flatten_finfo(info)['reload'] == {'child--quantity': {'fields': ['child--total']}}
+    assert QFuncInfo(info).flat['reload'] == {'child--quantity': {'fields': ['child--total']}} == {'child--quantity': {'fields': ['child--total']}}
 
 
 # what the server does with the posted command ----------------------------------------------------------------------

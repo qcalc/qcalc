@@ -8,7 +8,7 @@ from qcore import csv2df, cell_count
 from qcore import qhidex, qtable, qtbl, QFile, qlist_types, QFieldHandler, QEncoderBase, QJField, convert_to_type, \
     qinfo, qerror, qwarn
 import json
-from .mod_mfunc import func_meta, COMBINE_FINF, qfunc, q0164_execute_qfunc
+from .mod_mfunc import func_meta, COMBINE_FINF, qfunc, q0164_execute_qfunc, QFuncArgs
 from .mod_hookctx import HookContext
 import pandas as pd
 from qvars import qc_gpref as gs
@@ -527,7 +527,7 @@ def q11449_form_data_postprocess_and_run(request, func_id):  # cid
                     command_meta_callback = QCals.addr(command_meta_func)  # (ctx, func_kwargs)
                     q11441_data_for_function(request)
                     arg_dict2run = request.json_d4f.copy()
-                    func_kwargs = q0162_dictify_fargs(arg_dict2run)
+                    func_kwargs = QFuncArgs(flat=arg_dict2run).nested
                     result = command_meta_callback(request.hook_ctx, func_kwargs)
                 else:
                     result = qerror(f'{command_meta_func}: not found')
@@ -725,7 +725,7 @@ def q11442_func_call_by_name(request: HtmxHttpRequest, func_id, arg_dict=None): 
     arg_dict2run = arg_dict.copy()
 
     try:
-        unflat_args = q0162_dictify_fargs(arg_dict2run)
+        unflat_args = QFuncArgs(flat=arg_dict2run).nested
         # *******
         q11441b_update_req_pref(request)
         # QPref.getp() is Session Pref

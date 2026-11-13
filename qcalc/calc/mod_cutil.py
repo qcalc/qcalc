@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 import qconst
-from .mod_mfunc import q0162_dictify_fargs
+from .mod_mfunc import QFuncArgs
 from .mod_qcals import QCals
 from django.conf import settings
 from qcore import Qty, complex_input_xpr, complex_input_url, QDateTime
@@ -121,8 +121,8 @@ def _plain_fxpr_value(value):
 
 
 def fxpr_from_json(func_id, json_data, json_data_type, forced=False):
-    json_data_copy = q0162_dictify_fargs(json_data)
-    json_data_type_copy = q0162_dictify_fargs(json_data_type)
+    json_data_copy = QFuncArgs(flat=json_data).nested
+    json_data_type_copy = QFuncArgs(flat=json_data_type).nested
     # print('1', json_data_copy)
     # print('2', json_data_type_copy)
 

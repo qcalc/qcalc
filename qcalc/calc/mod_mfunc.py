@@ -3,6 +3,7 @@
 
 from .mod_qcals import QCals
 from qcore import qfunc, qdict
+import copy
 import inspect
 from qconst import (
     COMBINE_FINF,
@@ -27,9 +28,9 @@ logger = logging.getLogger(__name__)
 
 def func_meta(func_addr, func_id):
     fargs, fanns, finfs = get_fdef(func_addr, func_id)
-    flat_fargs = flatten_fargs(fargs)
-    flat_fanns = flatten_fargs(fanns)
-    flat_finfs = flatten_finfo(finfs)
+    flat_fargs = QFuncArgs(fargs).flat
+    flat_fanns = QFuncArgs(fanns).flat
+    flat_finfs = QFuncInfo(finfs).flat
 
     # Override flat_fargs with values from 'fargs' in flat_finfs
     if 'fargs' in flat_finfs:
@@ -97,94 +98,105 @@ def q0164_execute_qfunc(func_id, unflat_args: dict, timeout, pref, request):
     # return result
 
 
-def q0162_dictify_fargs(flat_func_args: dict) -> dict:
-    unflat_dict = {}
-    for arg, val in flat_func_args.items():
-        spnames = arg.split(DICT_KEY_SEP)
-        n = len(spnames)
-        if n >= 2:
-            unflat = unflat_dict
-            for i in range(0, n - 1, 1):
-                sqfunc = spnames[i]
-                # print(sqfunc)
-                if sqfunc not in unflat:
-                    # print(sqfunc, unflat, spnames[n - 2], spnames[n - 1], val)
-                    unflat[sqfunc] = {}
-                unflat = unflat[sqfunc]
-            unflat[spnames[n - 1]] = val
-        else:
-            unflat_dict[arg] = val
-    return unflat_dict
+class QFuncArgs:
+    """A function's arguments in both shapes: `.nested` (chained qfunc/qdict args as sub-dicts)
+    and `.flat` (one level, keys joined by DICT_KEY_SEP). Each is derived lazily from the other."""
 
+    def __init__(self, nested: dict = None, *, flat: dict = None):
+        self._nested = nested
+        self._flat = flat
 
-def flatten_fargs(func_args: dict, prefix='') -> dict:
-    flat_dict = {}
-    for arg, val in func_args.items():
-        # | only qfunc/qdict chained args are sentinel-tagged by get_fdef() and
-        # | meant to be split into subfields here - a plain dict (e.g. a qtbl default) must
-        # | stay a single opaque field value
-        if isinstance(val, dict) and next(iter(val), None) in (DICT_CLASS_FUNC, DICT_CLASS_PLAIN):
-            sqfunc = arg if prefix == '' else prefix + DICT_KEY_SEP + arg
-            flat_dict.update(flatten_fargs(val, prefix=sqfunc))
-        else:
-            if prefix == '':
-                flat_dict[arg] = val
+    @property
+    def nested(self) -> dict:
+        if self._nested is None:
+            self._nested = self._unflatten(self._flat)
+        return self._nested
+
+    @property
+    def flat(self) -> dict:
+        if self._flat is None:
+            self._flat = self._flatten(self._nested)
+        return self._flat
+
+    @staticmethod
+    def _unflatten(flat: dict) -> dict:
+        nested = {}
+        for arg, val in flat.items():
+            *parents, name = arg.split(DICT_KEY_SEP)
+            node = nested
+            for parent in parents:
+                node = node.setdefault(parent, {})
+            node[name] = val
+        return nested
+
+    def _flatten(self, nested: dict, prefix='') -> dict:
+        flat = {}
+        for arg, val in nested.items():
+            # | only qfunc/qdict chained args are sentinel-tagged by get_fdef() and
+            # | meant to be split into subfields here - a plain dict (e.g. a qtbl default) must
+            # | stay a single opaque field value
+            if isinstance(val, dict) and next(iter(val), None) in (DICT_CLASS_FUNC, DICT_CLASS_PLAIN):
+                flat.update(self._flatten(val, prefix=prefix + arg + DICT_KEY_SEP))
             else:
-                flat_dict[prefix + DICT_KEY_SEP + arg] = val
-    return flat_dict
+                flat[prefix + arg] = val
+        return flat
 
 
-def flatten_finfo(func_args: dict, prefix='') -> dict:
-    flat_dict: dict = {}
-    for arg, val in func_args.items():
-        if isinstance(val, dict) or isinstance(val, list):
-            at = next(iter(val))
-            if at != DICT_CLASS_FUNC:
-                if arg in COMBINE_FINF:
-                    if prefix != '':
-                        if isinstance(val, dict):
-                            keylist = list(val.keys())
-                            for key in keylist:
-                                val[prefix + DICT_KEY_SEP + key] = val.pop(key, None)
-                        else:  # list
-                            val = [prefix + DICT_KEY_SEP + key for key in val]  # @28.09.24
+class QFuncInfo(QFuncArgs):
+    """`__info()` metadata of a function and its chained qfuncs, `.flat` has every child's field names
+    prefixed. Unlike QFuncArgs, this is not reversible: `.nested` is only the given input."""
 
-                    flat_dict[arg] = val
+    def __init__(self, nested: dict):
+        super().__init__(copy.deepcopy(nested))  # flattening edits the dicts it walks
 
-                    if prefix != '':
-                        if arg == 'schema':  # val is dict of fields
-                            pass
-                        elif arg == 'related':  # val is dict of fields
-                            for key in flat_dict[arg]:
-                                fields = flat_dict[arg][key]['fields']
-                                fields = {prefix + DICT_KEY_SEP + field: val for field, val in fields.items()}
-                                flat_dict[arg][key]['fields'] = fields
-                        elif arg in ['showhide', 'autofill', 'anyof', 'reload']:  # val is dict of fields
-                            for key in flat_dict[arg]:
-                                fields = flat_dict[arg][key]['fields']
-                                fields = [prefix + DICT_KEY_SEP + field for field in fields]
-                                flat_dict[arg][key]['fields'] = fields
-                else:
-                    if prefix == '':
+    @staticmethod
+    def _unflatten(flat: dict) -> dict:
+        raise NotImplementedError('flattened function info cannot be nested again')
+
+    def _flatten(self, nested: dict, prefix='') -> dict:
+        flat_dict: dict = {}
+        for arg, val in nested.items():
+            if isinstance(val, dict) or isinstance(val, list):
+                at = next(iter(val))
+                if at != DICT_CLASS_FUNC:
+                    if arg in COMBINE_FINF:
+                        if prefix != '':
+                            if isinstance(val, dict):
+                                keylist = list(val.keys())
+                                for key in keylist:
+                                    val[prefix + key] = val.pop(key, None)
+                            else:  # list
+                                val = [prefix + key for key in val]  # @28.09.24
+
                         flat_dict[arg] = val
-                    else:
-                        flat_dict[prefix + DICT_KEY_SEP + arg] = val
-            elif at == DICT_CLASS_FUNC and isinstance(val, dict):
-                sqfunc = arg if prefix == '' else prefix + DICT_KEY_SEP + arg
-                _ = val.pop(DICT_CLASS_FUNC)
-                child_flat_dict = flatten_finfo(val, prefix=sqfunc)
-                for key in child_flat_dict:
-                    if key in flat_dict:
-                        flat_dict[key].update(child_flat_dict[key])
-                    else:
-                        flat_dict[key] = child_flat_dict[key]
-        elif arg == 'script':
-            if prefix == '':
-                flat_dict[arg] = val.replace(SCRIPT_RUNTIME_VAR, '')
-            else:
-                flat_dict[arg] = val.replace(SCRIPT_RUNTIME_VAR, prefix + DICT_KEY_SEP)
 
-    return flat_dict
+                        if prefix != '':
+                            if arg == 'schema':  # val is dict of fields
+                                pass
+                            elif arg == 'related':  # val is dict of fields
+                                for key in flat_dict[arg]:
+                                    fields = flat_dict[arg][key]['fields']
+                                    fields = {prefix + field: val for field, val in fields.items()}
+                                    flat_dict[arg][key]['fields'] = fields
+                            elif arg in ['showhide', 'autofill', 'anyof', 'reload']:  # val is dict of fields
+                                for key in flat_dict[arg]:
+                                    fields = flat_dict[arg][key]['fields']
+                                    fields = [prefix + field for field in fields]
+                                    flat_dict[arg][key]['fields'] = fields
+                    else:
+                        flat_dict[prefix + arg] = val
+                elif at == DICT_CLASS_FUNC and isinstance(val, dict):
+                    val.pop(DICT_CLASS_FUNC)
+                    child_flat_dict = self._flatten(val, prefix=prefix + arg + DICT_KEY_SEP)
+                    for key in child_flat_dict:
+                        if key in flat_dict:
+                            flat_dict[key].update(child_flat_dict[key])
+                        else:
+                            flat_dict[key] = child_flat_dict[key]
+            elif arg == 'script':
+                flat_dict[arg] = val.replace(SCRIPT_RUNTIME_VAR, prefix)
+
+        return flat_dict
 
 
 def get_fdef(func_addr, func_id):
@@ -245,7 +257,7 @@ def get_fdef(func_addr, func_id):
             annos[arg] = {DICT_CLASS_FUNC: fid, **fa}
             infs[arg] = {DICT_CLASS_FUNC: fid, **fi}
         elif ann is not None and ann == qdict:
-            fk = flatten_fargs(qargs[arg])
+            fk = QFuncArgs(qargs[arg]).flat
             qargs[arg] = {DICT_CLASS_PLAIN: arg, **fk}
             annos[arg] = {DICT_CLASS_PLAIN: arg}
             infs[arg] = {DICT_CLASS_PLAIN: arg}

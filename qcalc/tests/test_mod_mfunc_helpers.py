@@ -6,8 +6,7 @@ import qsett
 from qcore import qfunc
 from qcalc.calc.mod_mfunc import (
     func_meta,
-    q0162_dictify_fargs,
-    flatten_fargs,
+    QFuncArgs,
     get_fdef,
 )
 
@@ -19,8 +18,8 @@ DO_PRINT = False
 def test_flatten_and_dictify_roundtrip_simple():
     # simple nested function-reference structure (mirrors original examples)
     fa = {'a': 1, 'b': 2, 'c': 3}
-    ff = flatten_fargs(fa)
-    uf = q0162_dictify_fargs(ff)
+    ff = QFuncArgs(fa).flat
+    uf = QFuncArgs(flat=ff).nested
     assert fa == uf
 
     fb = {'x': 11, 'y': 12, 'z': 13, 'f1': {'func': 'fa', 'args': fa}}
@@ -34,10 +33,10 @@ def test_flatten_and_dictify_roundtrip_simple():
         'tt': 34,
     }
 
-    flat = flatten_fargs(fd)
-    unflat = q0162_dictify_fargs(flat)
-    flat2 = flatten_fargs(unflat)
-    unflat2 = q0162_dictify_fargs(flat2)
+    flat = QFuncArgs(fd).flat
+    unflat = QFuncArgs(flat=flat).nested
+    flat2 = QFuncArgs(unflat).flat
+    unflat2 = QFuncArgs(flat=flat2).nested
     # round-trip should preserve the flattened mapping
     assert flat2 == flat
     assert unflat2 == unflat
@@ -45,9 +44,9 @@ def test_flatten_and_dictify_roundtrip_simple():
 
 def test_flatten_and_dictify_roundtrip_simple_minimal():
     fa = {'a': 1, 'b': 2}
-    flat = flatten_fargs(fa)
-    unflat = q0162_dictify_fargs(flat)
-    flat2 = flatten_fargs(unflat)
+    flat = QFuncArgs(fa).flat
+    unflat = QFuncArgs(flat=flat).nested
+    flat2 = QFuncArgs(unflat).flat
     assert flat2 == flat
 
 
@@ -80,8 +79,8 @@ def call_f(fadr):
 
 def tst_func(faddr, func_id):
     flat_fargs, flat_fanns, flat_finfs = func_meta(faddr, func_id)
-    unflat_flat_fargs = q0162_dictify_fargs(flat_fargs)
-    flat_unflat_flat_fargs = flatten_fargs(unflat_flat_fargs)
+    unflat_flat_fargs = QFuncArgs(flat=flat_fargs).nested
+    flat_unflat_flat_fargs = QFuncArgs(unflat_flat_fargs).flat
     if DO_PRINT:
         print('flat_fargs: ', flat_fargs)
         print('unflat_flat_fargs: ', unflat_flat_fargs)
@@ -180,11 +179,11 @@ def test_func():
 
     if DO_PRINT:
         print('flat_fargs: ', flat_fargs)
-        print('unflat_fargs: ', q0162_dictify_fargs(flat_fargs))
+        print('unflat_fargs: ', QFuncArgs(flat=flat_fargs).nested)
         print('flat_fanns: ', flat_fanns)
-        print('unflat_fanns: ', q0162_dictify_fargs(flat_fanns))
+        print('unflat_fanns: ', QFuncArgs(flat=flat_fanns).nested)
         print('flat_finfs: ', flat_finfs)
-        print('unflat_finfs: ', q0162_dictify_fargs(flat_finfs))
+        print('unflat_finfs: ', QFuncArgs(flat=flat_finfs).nested)
 
     assert flat_fargs == {'fill': 1, 'x': 100, 'email': '', 'f1--@': 'callf1', 'f1--x': 10, 'f1--bf--@': 'bodyfat', 'f1--bf--age': '30.0 yr', 'f1--bf--sex': 'M', 'f1--bf--triceps': '7 mm', 'f1--bf--biceps': '5 mm', 'f1--bf--chest': '8 mm', 'f1--bf--subscapular': '4 mm', 'f1--bf--abdominal': '6 mm', 'f1--bf--suprailiac': '10 mm', 'f1--bf--thigh': '8 mm', 'f1--bf--axilla': '3 mm', 'f1--bf--show_details': False, 'f1--y': '3ft', 'fg--@': 'gold', 'fg--gold_weight_intl': '10.0 g', 'fg--gold_weight_india': '@vori, @anna, @roti, @point', 'fg--gold_price': '150 USD', 'fg--gold_price_per': 'g', 'fg--vat_pct': 5.0, 'fg--making_charge_pct': 6.0}
     assert flat_fanns == {'fill': None, 'x': None, 'email': None, 'f1--@': 'callf1', 'f1--x': None, 'f1--bf--@': 'bodyfat', 'f1--bf--age': None, 'f1--bf--sex': None, 'f1--bf--triceps': None, 'f1--bf--biceps': None, 'f1--bf--chest': None, 'f1--bf--subscapular': None, 'f1--bf--abdominal': None, 'f1--bf--suprailiac': None, 'f1--bf--thigh': None, 'f1--bf--axilla': None, 'f1--bf--show_details': None, 'f1--y': None, 'fg--@': 'gold', 'fg--gold_weight_intl': None, 'fg--gold_weight_india': None, 'fg--gold_price': None, 'fg--gold_price_per': None, 'fg--vat_pct': None, 'fg--making_charge_pct': None}
@@ -194,6 +193,6 @@ def test_func():
     unflat_fanns = {'fill': None, 'x': None, 'email': None, 'f1': {'@': 'callf1', 'x': None, 'bf': {'@': 'bodyfat', 'age': None, 'sex': None, 'triceps': None, 'biceps': None, 'chest': None, 'subscapular': None, 'abdominal': None, 'suprailiac': None, 'thigh': None, 'axilla': None, 'show_details': None}, 'y': None}, 'fg': {'@': 'gold', 'gold_weight_intl': None, 'gold_weight_india': None, 'gold_price': None, 'gold_price_per': None, 'vat_pct': None, 'making_charge_pct': None}}
     unflat_finfs = {'f1': {'@': 'callf1', 'bf': {'@': 'bodyfat', 'schema': {'sex': {'type': 'radio', 'initial': 'M', 'choices': {'M': 'Male', 'F': 'Female'}}}}}, 'fg': {'@': 'gold', 'schema': {'vat_pct': {'label': 'VAT %'}, 'making_charge_pct': {'label': 'Making Charge %'}}, 'anyof': {'1': {'fields': ['gold_weight_intl', 'gold_weight_india']}}}}
 
-    assert q0162_dictify_fargs(flat_fargs) == unflat_fargs
-    assert q0162_dictify_fargs(flat_fanns) == unflat_fanns
-    # assert q0162_dictify_fargs(flat_finfs) == unflat_finfs
+    assert QFuncArgs(flat=flat_fargs).nested == unflat_fargs
+    assert QFuncArgs(flat=flat_fanns).nested == unflat_fanns
+    # assert QFuncArgs(flat=flat_finfs).nested == unflat_finfs

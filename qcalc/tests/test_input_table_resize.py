@@ -14,6 +14,7 @@ import pytest
 
 from qcore.qd_df import resize_df
 from qcore.qf_qwidgets import TabulatorWidget
+from qutil import FormState
 from calc import views as calc_views
 
 
@@ -164,7 +165,7 @@ def _make_view_request(monkeypatch, cmd, interactive_pref=True, interactive_info
         GET={},
         pref={"interactive": interactive_pref},
         json_doc={"info": {"interactive": interactive_info, "layout": ""}},
-        cmd=cmd,
+        fs=FormState(cmd=cmd),
         context={},
         headers=headers,
         POST=post,

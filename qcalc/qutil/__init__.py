@@ -1,5 +1,6 @@
 from .mod_basic import *
 from .mod_views import *
+from .mod_formstate import FormState
 from .mod_links import *
 from .mod_func import *
 from .mod_user import *

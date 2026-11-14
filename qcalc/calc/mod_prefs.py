@@ -96,8 +96,8 @@ def apply_persistent_request_prefs(request):
     overrides = _request_overrides(request)
     for key, option in PREF_OPTIONS.items():
         extra_key = option.get('extra')
-        if extra_key and extra_key in request.extra:
-            value = option['parse'](request.extra[extra_key])
+        if extra_key and extra_key in request.fs.extra:
+            value = option['parse'](request.fs.extra[extra_key])
             request.pref[key] = value
             overrides[key] = value
 

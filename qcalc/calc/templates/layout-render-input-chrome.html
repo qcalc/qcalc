@@ -3,5 +3,5 @@
 {% include 'layout-render-images.html' with images=input.doc.info.images placement='bottom' %}
 <input type="hidden" name="cid" value="{{ input.cid }}">
 <input type="hidden" name="extra" value="{{ input.extra }}" id="extra_{{ input.cid }}">
-<input type="hidden" name="input_id" value="{{ request.input_id }}">
+<input type="hidden" name="input_id" value="{{ request.fs.input_id }}">
 {% include 'insert-calculator-section-inpbtns.html' %}

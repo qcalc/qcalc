@@ -19,6 +19,7 @@ from calc.views_form_data import (
     q11424_form_data_add_reload_triggers,
 )
 from calculators.all.general.author.mod_mycal_validation import INFO_VALIDATOR
+from qutil import FormState
 
 
 def _fld(name, ftype, initial=None, **extra):
@@ -119,7 +120,9 @@ def test_the_fields_of_a_nested_calculator_are_prefixed_by_the_info_flattening()
 
 def _request(fields, extra):
     post = _post({**fields, 'extra': json.dumps(extra)})
-    return SimpleNamespace(method='POST', GET=QueryDict(), POST=post, cmd='', extra={})
+    request = SimpleNamespace(method='POST', GET=QueryDict(), POST=post)
+    request.fs = FormState.from_request(request)
+    return request
 
 
 def test_posted_values_of_the_reset_fields_are_dropped_and_the_others_are_kept():
@@ -128,7 +131,7 @@ def test_posted_values_of_the_reset_fields_are_dropped_and_the_others_are_kept()
 
     q11421_get_extra_form_data_posted(request)
 
-    assert request.cmd == '__modify'
+    assert request.fs.cmd == '__modify'
     assert 'from_unit' not in request.POST and 'to_units' not in request.POST
     assert request.POST['quantity'] == 'M' and request.POST['value'] == '99'
 
@@ -143,10 +146,11 @@ def test_a_post_without_a_reset_list_keeps_all_posted_values():
 
 def test_posted_values_of_the_reset_fields_are_not_seen_by_the_hooks():
     request = SimpleNamespace(
-        method='POST', GET=QueryDict(), cmd='', recall=False, user=SimpleNamespace(is_authenticated=False),
+        method='POST', GET=QueryDict(), user=SimpleNamespace(is_authenticated=False),
         session={'hash': 'h'},
         POST=_post({'quantity': 'M', 'value': '7',
                     'extra': json.dumps({'cmd': '__modify', 'reload': True, 'reset': ['quantity']})}))
+    request.fs = FormState.from_request(request)
 
     ctx = HookContext.from_request(request, 'conv2', 'c1', {})
 
@@ -157,8 +161,9 @@ def test_the_fields_to_reset_are_not_replaced_by_their_posted_value():
     schema = [_fld('quantity', 'choice', 'L', choices={'L': 'Length', 'M': 'Mass'}),
               _fld('value', 'float', 1.0), _fld('from_unit', 'text', 'amu')]
     request = SimpleNamespace(
-        method='POST', cmd='__modify', POST=_post({'quantity': 'M', 'value': '99', 'from_unit': 'ft'}), FILES={},
-        extra={'cmd': '__modify', 'args': [], 'kwargs': {}, 'reload': True, 'reset': ['from_unit']},
+        method='POST', POST=_post({'quantity': 'M', 'value': '99', 'from_unit': 'ft'}), FILES={},
+        fs=FormState(cmd='__modify', extra={'cmd': '__modify', 'args': [], 'kwargs': {}, 'reload': True,
+                                            'reset': ['from_unit']}),
         json_schema=schema, json_data={f['name']: f['initial'] for f in schema})
 
     q11423_form_data_apply_posted(request)

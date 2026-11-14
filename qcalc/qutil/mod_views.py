@@ -10,6 +10,7 @@ from django.shortcuts import render
 
 import qvars
 from .mod_basic import nzs
+from .mod_formstate import FormState
 from django.http import Http404
 import hashlib
 import logging
@@ -42,20 +43,10 @@ class HtmxHttpRequest(HttpRequest):
     ojson_d4f: dict
     ojson_keep_dumps: str
 
-    sfunc: str
-    cid: str
     is_public: bool
-    input_id: int
-    var_owner: str
-    var_title: str
-    variant: int
     token: str
     token_state: bool
-    remember: bool
-    recall: bool
-    success: bool
-    cmd: str = ''
-    extra: dict = {}
+    fs: FormState
     times = []
     ufunc_dict: dict = {}
 
@@ -82,7 +73,6 @@ def q1139_request_init(request: HtmxHttpRequest):
     request.pref = {}  # effective preferences, resolved by calc.mod_prefs.resolve_effective_prefs
     request.session_pref = {}  # session level: user's saved defaults
     request.req_pref = {}  # request level: values posted by the page
-    # request.dec = ''
     request.context = {}
     request.json_schema = []
     request.json_data = {}
@@ -99,37 +89,28 @@ def q1139_request_init(request: HtmxHttpRequest):
     request.ojson_d4f = {}
     request.ojson_keep_dumps = '{}'
 
-    request.sfunc = ''
-    request.cid = ''
+    # | not in request.fs: these are also set or read outside the form flow (catalog views, mod_qcals, mod_ucals,
+    # | base and catalog templates), where request.fs does not exist. is_public and token belong to calculator lookup
+    # | and sharing, embed and print_mode are page presentation flags read by the templates.
     request.is_public = True
-    request.input_id = 0
-    request.variant = 0
-    request.var_owner = qvars.super_user.username
-    request.var_title = ''
     request.token = ''
     request.token_state = False  # | not saved
-    # | follwoing two variables are defined even before calling this request_init()
-    # | request.remember = True  # remember input
-    # | request.recall = True  # recall input
-    request.success = True
+    request.embed = False
+    request.print_mode = ''  # | '' (normal layout) or set from ?print= on a GET
+
+    request.fs = FormState.from_request(request)  # | state of the form flow: cmd, extra, success, recall, variant ...
+    request.fs.var_owner = qvars.super_user.username
 
     request.json_doc['fxpr'] = ''
     request.json_doc['furl'] = ''
     request.json_doc['floop'] = ''
-    request.cmd = ''
-    request.extra = {}
     request.times = {}
     request.ufunc_dict = {}
 
 
 def request_dump(request: HtmxHttpRequest):
     return {
-        'sfunc': request.sfunc,
-        'cid': request.cid,
-        'variant': request.variant,
-        'remember': request.remember,
-        'recall': request.recall,
-        'success': request.success,
+        'fs': request.fs,
         'pref': request.session.get("pref", None),
         'mem': request.session.get("mem", None),
         'json_schema': request.json_schema,
@@ -143,10 +124,8 @@ def request_dump(request: HtmxHttpRequest):
         'ojson_doc': request.ojson_doc,
         'ojson_d4f': request.ojson_d4f,
         'ojson_keep_dumps': request.ojson_keep_dumps,
-        'extra': request.extra,
         'times': request.times,
         'ufunc_dict': request.ufunc_dict,
-        # 'qc_cache': QCache.root(),  # some type is not serializable
     }
 
 

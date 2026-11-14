@@ -42,17 +42,17 @@ class HookContext:
     def from_request(cls, request, func_id, cid, var_url_kwargs):
         is_post = request.method == 'POST'
         data = request.POST if is_post else request.GET
-        cmd, extra = cls._command_of(request, data)
+        fs = request.fs
         posted = {}
         if is_post:
             posted = {name: data.getlist(name) for name in data if name not in _TRANSPORT_KEYS}
         # | the fields a 'reload' trigger resets take their default values, not the posted ones
-        reset = extra.get('reset') or []
+        reset = fs.extra.get('reset') or []
         # | q11421 drops the same fields from POST, so the hooks must not see them either
         posted = {name: values for name, values in posted.items() if name not in reset}
         return cls(func_id=func_id, cid=cid, var_url_kwargs=var_url_kwargs, posted=posted,
-                   cmd=cmd, extra=extra, is_post=is_post,
-                   recall=getattr(request, 'recall', False),
+                   cmd=fs.cmd, extra=fs.extra, is_post=is_post,
+                   recall=request.fs.recall,
                    user=user_name(request), is_loggedin=is_loggedin(request))
 
     def with_resolved(self, resolved):
@@ -60,20 +60,6 @@ class HookContext:
         return HookContext(func_id=self.func_id, cid=self.cid, var_url_kwargs=self._var_url_kwargs,
                            posted=self._posted, resolved=resolved, cmd=self.cmd, extra=self._extra,
                            is_post=self.is_post, recall=self.recall, user=self.user, is_loggedin=self.is_loggedin)
-
-    @staticmethod
-    def _command_of(request, data):
-        # | same rule as q11421_get_extra_form_data_posted(), which runs later and blanks POST['extra']:
-        # | 'extra' in the request decides the command, otherwise the command already set on the request is used
-        if 'extra' not in data:
-            return getattr(request, 'cmd', ''), {}
-        try:
-            extra = json.loads(data.get('extra') or '{}')
-        except ValueError:
-            extra = {}
-        if not isinstance(extra, dict) or not extra:
-            return '', {}
-        return str(extra.get('cmd', '')), extra
 
     # | field values come from three sources. For each source, name(field, default) returns one value
     # | and name_kwargs returns a new dict of all fields (a copy, so the context cannot be changed)

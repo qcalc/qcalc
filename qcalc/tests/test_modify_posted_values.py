@@ -15,6 +15,7 @@ import calc.views_form_data as vfd
 from calc.mod_hookctx import HookContext
 from calc.views_form_data import q11422_form_data_modify_after_post, q11423_form_data_apply_posted
 from qcore import Qty, qt
+from qutil import FormState
 
 
 def _fld(name, ftype, initial=None, **extra):
@@ -28,7 +29,7 @@ def _request(post, schema, method='POST', cmd='__modify', extra=None):
     if extra is None:  # | a button post carries its command in extra
         extra = {'cmd': cmd} if cmd else {}
     return SimpleNamespace(
-        method=method, cmd=cmd, extra=extra, POST=data, FILES={},
+        method=method, fs=FormState(cmd=cmd, extra=extra), POST=data, FILES={},
         json_schema=schema, json_data={f['name']: f['initial'] for f in schema})
 
 
@@ -54,8 +55,8 @@ def _modify(monkeypatch, post, arg_name, sig_type):
     for key, value in post.items():
         data.setlist(key, [value])
     ctx = HookContext(func_id='f', posted={key: [value] for key, value in post.items()})
-    request = SimpleNamespace(method='POST', cmd='__modify', POST=data, hook_ctx=ctx,
-                              extra={'cmd': '__modify', 'args': [arg_name], 'kwargs': {}})
+    request = SimpleNamespace(method='POST', POST=data, hook_ctx=ctx,
+                              fs=FormState(cmd='__modify', extra={'cmd': '__modify', 'args': [arg_name], 'kwargs': {}}))
 
     q11422_form_data_modify_after_post(request, 'f', sig_type, arg_name, None)
 

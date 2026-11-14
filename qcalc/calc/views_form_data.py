@@ -61,11 +61,11 @@ def q11429_func_to_form_schema(request: HtmxHttpRequest, func_addr, func_id, cid
             assert fargs['upload_image'] is None
 
     # | __info() 'recall': False turns the recall off, before the context is built so that ctx.recall agrees
-    request.recall = bool(request.recall and request.json_doc['info'].get('recall', True))
+    request.fs.recall = bool(request.fs.recall and request.json_doc['info'].get('recall', True))
     # | one read-only context for all per-request hooks, built before q11421 blanks POST['extra']
     ctx = HookContext.from_request(request, func_id, cid, var_url_kwargs)
     remembered = {}
-    if request.recall and QPref.getp1('memory') > 0:  # | recall and request is not None
+    if request.fs.recall and QPref.getp1('memory') > 0:  # | recall and request is not None
         # | the fields a 'reload' trigger resets take their default values, not the remembered ones
         reset = ctx.extra.get('reset') or []
         remembered = {k: v for k, v in (QMem.getf(func_id) or {}).items() if k not in reset and k in fargs}
@@ -148,9 +148,9 @@ def q11429_func_to_form_schema(request: HtmxHttpRequest, func_addr, func_id, cid
         arg_type = sig_type if sig_type else inf_type
         arg_value = arg_value if arg_value is not None else inf_initial
         if arg_type in [qtable, 'qtable', qtbl, 'qtbl']:
-            if request.cmd == 'edit':
+            if request.fs.cmd == 'edit':
                 inf_class = 'table-in'
-            elif request.cmd == 'display':
+            elif request.fs.cmd == 'display':
                 inf_class = 'table-out'
         parent_index = i
         qjf = QJField(arg_name, arg_type, arg_value, id_prefix, False, inf_class)
@@ -229,10 +229,11 @@ def q11429_func_to_form_schema(request: HtmxHttpRequest, func_addr, func_id, cid
 
 
 def q11422_form_data_modify_after_post(request, func_id, sig_type, arg_name, arg_value):
+    fs = request.fs
     if request.method == 'POST':
         # | process qlist fields data into an array
         # | number of list items will determine number of fields required
-        if sig_type in qlist_types and request.cmd not in ['load']:
+        if sig_type in qlist_types and fs.cmd not in ['load']:
             # | not loading list from json input file
             new_arg_value = []
             for arg in request.POST.keys():
@@ -241,12 +242,12 @@ def q11422_form_data_modify_after_post(request, func_id, sig_type, arg_name, arg
             arg_value = new_arg_value
             if func_id == 'collect':
                 QKeep.setp1('count', len(arg_value))
-        elif sig_type in (qtable, qtbl) and request.cmd == 'load' and arg_name == request.extra.get('to', ''):
+        elif sig_type in (qtable, qtbl) and fs.cmd == 'load' and arg_name == fs.extra.get('to', ''):
             # | loading table from csv file
-            from_fld = request.extra['from']
-            delimiter_fld = request.extra.get('delimiter', 'delimeter')
-            quoting_fld = request.extra.get('quoting', 'quoting')
-            url_fld = request.extra.get('url', 'url')
+            from_fld = fs.extra['from']
+            delimiter_fld = fs.extra.get('delimiter', 'delimeter')
+            quoting_fld = fs.extra.get('quoting', 'quoting')
+            url_fld = fs.extra.get('url', 'url')
             delimiter = request.POST.get(delimiter_fld, ',')
             quoting = request.POST.get(quoting_fld, '1')
             url = request.POST.get(url_fld, ',')
@@ -261,8 +262,8 @@ def q11422_form_data_modify_after_post(request, func_id, sig_type, arg_name, arg
             if df is not None:
                 # | qtbl never receives the DataFrame itself, only plain column/data
                 arg_value = df if sig_type == qtable else {'columns': df.columns.tolist(), 'data': df.values.tolist()}
-        elif request.cmd == '__modify' and (
-            arg_name in request.extra.get('args', []) or arg_name in request.extra.get('kwargs', {})):
+        elif fs.cmd == '__modify' and (
+            arg_name in fs.extra.get('args', []) or arg_name in fs.extra.get('kwargs', {})):
             # | start callback point __modify (q11422, views_form_data.py, line 197)
             # | func__modify(ctx, arg_name, arg_value, action)
             # | modify input value of a specific argument after posting
@@ -274,7 +275,7 @@ def q11422_form_data_modify_after_post(request, func_id, sig_type, arg_name, arg
                     new_arg_value = convert_to_type(raw, sig_type)
                 else:  # | a quantity is joined from its value and unit inputs, a bad value stays the posted text
                     new_arg_value = request.hook_ctx.posted_as(arg_name, sig_type, raw)
-                action = request.extra.get('kwargs', {}).get(arg_name, '')
+                action = fs.extra.get('kwargs', {}).get(arg_name, '')
                 try:
                     result = modify_meta_callback(request.hook_ctx, arg_name, new_arg_value, action)
                     if isinstance(result, (qerror, qwarn, qinfo)):
@@ -299,10 +300,11 @@ def q11423_form_data_apply_posted(request):
     # | in the fields not modified by the command would be lost. Show the posted value of simple fields again.
     # | tables, files, lists and select2 fields are not covered (select2 already shows its posted value)
     # | extra['cmd'] tells a button post from opening a saved input file, which is also a 'load' post
-    if request.method != 'POST' or request.cmd not in ('__modify', 'load') or not request.extra.get('cmd'):
+    extra = request.fs.extra
+    if request.method != 'POST' or request.fs.cmd not in ('__modify', 'load') or not extra.get('cmd'):
         return
-    modified = (set(request.extra.get('args', [])) | set(request.extra.get('kwargs', {})) |
-                set(request.extra.get('reset', [])) | {request.extra.get('to')})
+    modified = (set(extra.get('args', [])) | set(extra.get('kwargs', {})) |
+                set(extra.get('reset', [])) | {extra.get('to')})
     for fld in request.json_schema:
         name, ftype = fld['name'], fld['type']
         if name in modified or fld.get('disabled'):
@@ -396,21 +398,11 @@ def q11426_form_data_qty_unit_fields(request, name):
 
 
 def q11421_get_extra_form_data_posted(request):
-    request_data = request.POST if request.method == 'POST' else request.GET
-    if 'extra' not in request_data:
-        return
-    extra = json.loads(request_data.get('extra'))
-
-    if not extra:
-        request.cmd = ''
-        request.extra = {}
-    else:
-        request.cmd = extra.get('cmd', '').lower()
-        request.extra = extra
-    if request.method == 'POST':
+    fs = request.fs  # | cmd and extra were read from the request by FormState.from_request()
+    if request.method == 'POST' and fs.extra_posted:
         request.POST._mutable = True
         request.POST['extra'] = ""  # reset the extras
-        for name in request.extra.get('reset', []):  # | fields reset by a 'reload' trigger show their defaults
+        for name in fs.extra.get('reset', []):  # | fields reset by a 'reload' trigger show their defaults
             request.POST.pop(name, None)
     return
 
@@ -422,12 +414,13 @@ def q11440b_get_saved_io(_request):
 
 def q11449_form_data_postprocess_and_run(request, func_id):  # cid
     result = ''
+    fs = request.fs
 
     # For calculate/run, surface form validation errors immediately.
     # Without this early guard, cmd='' invalid posts bypass processing and
     # silently return an empty result.
-    if request.method == 'POST' and request.cmd in ['', 'run'] and not request.json_doc['clean']:
-        request.success &= False
+    if request.method == 'POST' and fs.cmd in ['', 'run'] and not request.json_doc['clean']:
+        fs.mark_failed()
         form = request.context.get('input', {}).get('form')
         if form is not None and form.errors:
             error_chunks = []
@@ -439,7 +432,7 @@ def q11449_form_data_postprocess_and_run(request, func_id):  # cid
         return 'Error (VLD): Input validation failed. Please review the highlighted input fields.'
 
     if ((request.method == 'POST' and request.json_doc['clean']) or
-        request.cmd in ['run', 'save_io', '__modify',
+        fs.cmd in ['run', 'save_io', '__modify',
                         'save_input', 'save_var', 'create_var', 'display_var', 'display_xmp']):
         try:
             # replace json_data with cleaned data
@@ -456,13 +449,13 @@ def q11449_form_data_postprocess_and_run(request, func_id):  # cid
                 for ffld, fdata in request.FILES.items():
                     request.json_data[ffld] = QFile(ffld, fdata)
 
-            if request.cmd in ['', 'run', 'save_io']:  # | POST: Usually excute the function and calculate
+            if fs.cmd in ['', 'run', 'save_io']:  # | POST: Usually excute the function and calculate
                 q11441_data_for_function(request)
                 # ic('before', request.json_d4f)
                 arg_dict, result = q11442_func_call_by_name(request, func_id, request.json_d4f)
                 json_data_type = {fld['name']: fld['type'] for fld in request.json_schema}
                 # print('json_data_type', json_data_type)
-                if request.cmd in ['', 'run']:
+                if fs.cmd in ['', 'run']:
                     request.json_doc['fxpr'] = ''
                     if request.json_doc['info']['xpr']:
                         max_table_cells = request.pref.get('xpr_max_table_cells', qconst.TABLE_MAX_CELLS_XPR)
@@ -485,40 +478,40 @@ def q11449_form_data_postprocess_and_run(request, func_id):  # cid
 
                     logger.note("CAL: Calculate clicked | user=%s | ip=%s | func=%s", user_name(request),
                                 user_ip(request), func_id)
-            elif request.cmd == 'save_input':
+            elif fs.cmd == 'save_input':
                 # | POST/GET: Save input
                 q11441_data_for_function(request)
                 QSave.clear()
                 QSave.setp({'function': func_id, 'input': request.json_d4f})
                 # | Saving: STEP 1 of 2 (save json_d4f to server)
                 result = qinfo('Input data can be saved to file now')
-            elif request.cmd in ['save_var', 'create_var']:
+            elif fs.cmd in ['save_var', 'create_var']:
                 # | POST/GET: Save input in DB
                 q11441_data_for_function(request)
                 # | Saving: STEP 1 of 2 (save json_d4f to server)
-                json = {'function': func_id, 'input': request.json_d4f, 'description': request.var_title}
+                json = {'function': func_id, 'input': request.json_d4f, 'description': fs.var_title}
                 # | if current variant is owned by the current user then save to same variant
                 # | else create a new variant even if cmd is 'save_var'
                 cur_user_name = user_name(request)
-                var_id = request.variant if request.cmd == 'save_var' and cur_user_name == request.var_owner else 0
-                if is_loggedin(request) and request.token and cur_user_name != request.var_owner:
+                var_id = fs.variant if fs.cmd == 'save_var' and cur_user_name == fs.var_owner else 0
+                if is_loggedin(request) and request.token and cur_user_name != fs.var_owner:
                     if not request.token_state:
                         QInput.save_shared_cal(func_id, request.token, check_only=False)
-                request.variant = QInput.set_variant(func_id, var_id, json)
+                fs.variant = QInput.set_variant(func_id, var_id, json)
                 result = qinfo(
-                    f"Input variant #{request.variant} is "
+                    f"Input variant #{fs.variant} is "
                     f"{'saved' if var_id > 0 else 'created, refresh and click on [Display variants] to see'}"
                 )
-            elif request.cmd == 'open':
+            elif fs.cmd == 'open':
                 # | POST: data from file
                 result = qinfo('Input data is entered from file')
-            elif request.cmd == 'display_var':
+            elif fs.cmd == 'display_var':
                 # | GET: data from variant
                 result = qinfo('Input data is entered from variant')
-            elif request.cmd == 'display_xmp':
+            elif fs.cmd == 'display_xmp':
                 # | GET: data from example
                 result = qinfo('Input data is entered from example')
-            elif request.cmd == '__command':
+            elif fs.cmd == '__command':
                 # | start callback point __command (q11449, views_form_data.py, line 279)
                 # | func__command(ctx, func_kwargs)
                 # | perform action or validate input values after posting
@@ -531,12 +524,12 @@ def q11449_form_data_postprocess_and_run(request, func_id):  # cid
                     result = command_meta_callback(request.hook_ctx, func_kwargs)
                 else:
                     result = qerror(f'{command_meta_func}: not found')
-                    request.success &= False
-            elif request.cmd == '__modify':
+                    fs.mark_failed()
+            elif fs.cmd == '__modify':
                 modify_message = getattr(request, '_modify_message', None)
                 if isinstance(modify_message, (qerror, qwarn, qinfo)):
                     result = modify_message
-                elif request.extra.get('reload'):
+                elif fs.extra.get('reload'):
                     result = ''  # | a 'reload' trigger only rebuilds the input section, nothing to report
                 else:
                     result = qinfo('Input section updated')
@@ -544,10 +537,10 @@ def q11449_form_data_postprocess_and_run(request, func_id):  # cid
                 # | POST: Update input section
                 result = qinfo('Input section updated')
 
-            if request.method == 'POST':
-                request.success &= request.json_doc['clean']
+            if request.method == 'POST' and not request.json_doc['clean']:
+                fs.mark_failed()
         except Exception as e:
-            request.success &= False
+            fs.mark_failed()
             result = qerror(f'Error (POSTP): {e}')
     else:  # | GET and no cmd
         pass
@@ -565,7 +558,7 @@ def q11469_form_data_create_dynaform_and_fill(request, json_schema, json_data, j
     # form_class.required_css_class = 'required'
     data = json_data
     form = None
-    if request.method == 'POST' and request.cmd not in ['load', '__modify']:
+    if request.method == 'POST' and request.fs.cmd not in ['load', '__modify']:
         # ['', 'resize', 'display', 'edit', 'save']:
         if mode == 0:  # post, input
             form = form_class(request.POST)
@@ -578,7 +571,7 @@ def q11469_form_data_create_dynaform_and_fill(request, json_schema, json_data, j
                 json_doc['clean'] = False
         elif mode == 1:  # post, output
             form = form_class(data)
-    elif request.method == 'POST' and request.cmd in ['load', '__modify']:
+    elif request.method == 'POST' and request.fs.cmd in ['load', '__modify']:
         form = form_class(data)
     else:  # get, input
         form = form_class(data)
@@ -739,11 +732,12 @@ def q11442_func_call_by_name(request: HtmxHttpRequest, func_id, arg_dict=None): 
         timeout = min(900, max(1, int(timeout)))
         result = q0164_execute_qfunc(func_id, unflat_args, timeout=timeout, pref=pref, request=request)
 
-        request.remember = request.remember and request.json_doc['info']['remember']
-        if request.remember and pref.get('memory', 7) > 0:
+        fs = request.fs
+        fs.remember = fs.remember and request.json_doc['info']['remember']
+        if fs.remember and pref.get('memory', 7) > 0:
             QMem.setf(func_id, arg_dict)  # save to memory
     except Exception as e:
-        request.success &= False
+        request.fs.mark_failed()
         if settings.DEBUG:
             traceback.print_exc()
         result = qerror(f'Error (FCBN): {e}')

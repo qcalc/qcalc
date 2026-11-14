@@ -78,13 +78,14 @@ def clear_calcs(request: HtmxHttpRequest):
 def q1119_urlpath_to_func_args(request, dictf):
     kwargs = {}
     sfunc = ''
+    fs = request.fs
     if 'fname' in dictf:
-        request.recall = True
-        request.remember = True
+        fs.recall = True
+        fs.remember = True
         sfunc = dictf['fname']
     elif 'path' in dictf:
-        request.recall = False
-        request.remember = True
+        fs.recall = False
+        fs.remember = True
         spath = dictf['path']
         sfunc = spath.split('/')[0]
         sargs = spath.replace(sfunc + '/', '', 1)
@@ -92,14 +93,14 @@ def q1119_urlpath_to_func_args(request, dictf):
 
     skip_precheck = False
     if 'fargs' in dictf:
-        request.recall = False
-        request.remember = True
-        request.cmd = 'load'
+        fs.recall = False
+        fs.remember = True
+        fs.default_cmd('load')
         skip_precheck = True
         kwargs = dictf['fargs']
 
     if 'cmd' in dictf:
-        request.cmd = dictf['cmd']
+        request.fs.default_cmd(dictf['cmd'])
 
     if not q1129_is_func_authorised(request, sfunc):
         raise Exception(f'Error (FTFC): Function ({sfunc}) can be run by an Authorised user only.')
@@ -156,7 +157,7 @@ def q1999_func_to_form(request: HtmxHttpRequest, **dictf):  # main view
         # Ordinary POST → output only.
         # Structural POST → re-render the requested form/calculator part.
         structural = (
-            getattr(request, 'cmd', '') in {
+            request.fs.cmd in {
             'load', 'resize', 'edit', 'display', '__modify',
         }
             or request.headers.get('X-QCalc-Structural-Cmd') == '1'
@@ -181,8 +182,6 @@ def q1999_func_to_form(request: HtmxHttpRequest, **dictf):  # main view
 
 
 def q1_func_to_form_core(request: HtmxHttpRequest, **dictf):  # main view
-    request.recall = False
-    request.remember = False
     template = 'gen-calculator-core.html'
     try:
         q1199_func_to_form_common(request, **dictf)
@@ -243,9 +242,9 @@ def q1199_func_to_form_common(request: HtmxHttpRequest, **dictf):  # main view
     request.embed = 'embed' in embed_query
 
     variant = int(variant)
-    request.variant = variant
+    request.fs.variant = variant
     request.token = token  # required to check authorization inside q1119_urlpath_to_func_args()
-    if execute is not None: request.cmd = 'run'
+    if execute is not None: request.fs.default_cmd('run')
 
     sfunc, url_kwargs = q1119_urlpath_to_func_args(request, dictf)
 
@@ -255,10 +254,10 @@ def q1199_func_to_form_common(request: HtmxHttpRequest, **dictf):  # main view
         else:
             var_owner = qvars.super_user.username
 
-    request.var_owner = var_owner
+    request.fs.var_owner = var_owner
 
     if cid == '' or cid is None: cid = sfunc + '__' + ut.makeid()
-    request.cid = cid
+    request.fs.cid = cid
 
     var_url_kwargs = url_kwargs
     if request.method == 'GET':
@@ -268,9 +267,9 @@ def q1199_func_to_form_common(request: HtmxHttpRequest, **dictf):  # main view
             var_data = QInput.get_variant_from_token(sfunc, token)
             if var_data:
                 variant = var_data.variant_id
-                request.variant = variant
+                request.fs.variant = variant
                 var_owner = var_data.user.username
-                request.var_owner = var_owner
+                request.fs.var_owner = var_owner
 
                 checked = QInput.save_shared_cal(sfunc, token, check_only=True)
                 request.token_state = (checked != "0")
@@ -286,16 +285,16 @@ def q1199_func_to_form_common(request: HtmxHttpRequest, **dictf):  # main view
             var_kwargs = var_data.item.get('input', {})
             var_kwargs.update(url_kwargs)  # var_kwargs overwritten by url_kwargs
             var_url_kwargs = var_kwargs
-            request.var_title = var_data.description
+            request.fs.var_title = var_data.description
             input_id = var_data.id
         elif token:
-            request.success &= False
+            request.fs.mark_failed()
             raise Exception(f"Error (FTFC) Incorrect Access Token for {sfunc}")
         elif variant > 0:
-            request.success &= False
+            request.fs.mark_failed()
             raise Exception(f"Error (FTFC) Incorrect Variant ({variant}) or Variant Owner {var_owner}")
 
-    request.input_id = input_id
+    request.fs.input_id = input_id
     q11441a_get_user_pref(request)
     request.times['common starts'] = time.time()
 
@@ -347,7 +346,7 @@ def q1199_func_to_form_common(request: HtmxHttpRequest, **dictf):  # main view
                 # Keep minimal failure surface: do nothing if any step fails
                 pass
     except Exception as e:
-        request.success &= False
+        request.fs.mark_failed()
         if settings.DEBUG:
             traceback.print_exc()
         e.args = (f"Error (FTFC) {str(e)}",)
@@ -375,8 +374,6 @@ def q2_open_func(request: HtmxHttpRequest, json_str: str, part='1'):
         sfname = json_data['function']
         ff = QCals.quick_find_func(sfname)
         if ff is not None:
-            request.recall = False
-            request.remember = True
             fargs = json_data['input']
             return q1999_func_to_form(request, fname=ff, fargs=fargs, part=part)
         else:
@@ -466,19 +463,14 @@ def q1_add_func(request: HtmxHttpRequest):
                         raise Exception(
                             f"Error (AF): Alias '{sfname}' points to missing calculator '{alias_target}'")
             if ff is not None:
-                request.recall = True
-                request.remember = True
                 args = request.GET.get('fargs', "").strip()
                 if len(args) == 0:
                     return q1999_func_to_form(request, fname=ff, part='1')
                 else:
-                    request.recall = False
                     return q1999_func_to_form(request, fname=ff, fargs=json.loads(args), part='1')
             else:
                 return seek_cal_help(request, sfname, part='1')
         elif len(spath) != 0:
-            request.recall = False
-            request.remember = True
             # | path func name remains case-sensitive
             return q1999_func_to_form(request, path=spath, part='1')
         else:
@@ -548,7 +540,7 @@ def q1149_func_to_form_context(request: HtmxHttpRequest, func_id, cid, var_url_k
         request, request.json_schema, request.json_data, request.json_s2f,
         request.json_doc, cid, 0)  # data, form, doc[info]
     if request.method == 'POST':
-        if not request.json_doc['clean']: request.success &= False
+        if not request.json_doc['clean']: request.fs.mark_failed()
     # print('|',request.json_s2f, request.json_c4f)
 
     result = q11449_form_data_postprocess_and_run(request, func_id)  # , cid
@@ -563,11 +555,11 @@ def q1149_func_to_form_context(request: HtmxHttpRequest, func_id, cid, var_url_k
         'output': request.ojson_d4f,
         'status': request.ojson_doc,
     }
-    if request.cmd == 'save_io':
+    if request.fs.cmd == 'save_io':
         QSave.clear()
         QSave.setp(io_dict)
 
-    if request.cmd == '' and request.POST and request.json_doc['info'].get('step2', []):
+    if request.fs.cmd == '' and request.POST and request.json_doc['info'].get('step2', []):
         cache_step2_io(
             cid, func_id, request.json_d4f, request.ojson_d4f
         )
@@ -590,7 +582,7 @@ def q1149_func_to_form_context(request: HtmxHttpRequest, func_id, cid, var_url_k
             input_form,
             output_form,
         ).plan()
-    input_id = request.input_id
+    input_id = request.fs.input_id
     request.context['func_id'] = func_id
     request.context['input_id'] = input_id
     request.context['fav_state'] = input_id in QFav.getp1(func_id, [])

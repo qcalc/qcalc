@@ -24,6 +24,7 @@ from calc.views_form_data import (
     schema_type_initial_class,
 )
 from qcore import qerror, qinfo, qwarn
+from qutil import FormState
 
 
 # large dataframe guard -------------------------------------------------------------------------------------------
@@ -226,11 +227,11 @@ def _post_request(cmd='', method='POST', clean=True, data=None, info=None, **ext
     base_info = {'related': {}, 'xpr': False, 'url': False, 'loop': False}
     base_info.update(info or {})
     request = SimpleNamespace(
-        method=method, cmd=cmd, extra={}, success=True, FILES={},
+        method=method, fs=FormState(cmd=cmd), FILES={},
         json_doc={'clean': clean, 'info': base_info},
         json_data={}, json_schema=[], json_d4f={},
         context={'input': {'data': data if data is not None else {}, 'form': None}},
-        pref={}, variant=0, token=None, token_state=False, var_owner='', var_title='', times={})
+        pref={}, token=None, token_state=False, times={})
     for key, value in extra.items():
         setattr(request, key, value)
     return request
@@ -245,7 +246,7 @@ def test_an_invalid_post_reports_the_form_errors_and_fails():
     assert result.startswith('Error (VLD): Input validation failed: ')
     assert 'a: Required' in result
     assert 'Form: Bad combination' in result
-    assert request.success is False
+    assert request.fs.success is False
 
 
 def test_an_invalid_post_without_form_errors_gets_the_generic_message():
@@ -254,14 +255,14 @@ def test_an_invalid_post_without_form_errors_gets_the_generic_message():
     result = q11449_form_data_postprocess_and_run(request, 'f')
 
     assert result == 'Error (VLD): Input validation failed. Please review the highlighted input fields.'
-    assert request.success is False
+    assert request.fs.success is False
 
 
 def test_a_get_without_command_does_nothing():
     request = _post_request(method='GET', clean=False)
 
     assert q11449_form_data_postprocess_and_run(request, 'f') == ''
-    assert request.success is True
+    assert request.fs.success is True
 
 
 def test_a_clean_post_without_command_runs_the_function(monkeypatch):
@@ -282,7 +283,7 @@ def test_a_clean_post_without_command_runs_the_function(monkeypatch):
     assert result == 'RESULT'
     assert calls == [('f', {'a': 1})]
     assert request.json_doc['fxpr'] == ''
-    assert request.success is True
+    assert request.fs.success is True
 
 
 def test_the_related_fields_take_the_cleaned_values():
@@ -319,7 +320,7 @@ def test_modify_returns_the_message_of_the_hook():
 
 def test_a_reload_trigger_reports_nothing():
     request = _post_request(cmd='__modify')
-    request.extra = {'reload': True}
+    request.fs.extra = {'reload': True}
 
     assert q11449_form_data_postprocess_and_run(request, 'f') == ''
 
@@ -329,7 +330,7 @@ def test_a_post_that_is_not_clean_fails_the_request_even_for_modify():
 
     q11449_form_data_postprocess_and_run(request, 'f')
 
-    assert request.success is False
+    assert request.fs.success is False
 
 
 def test_save_input_stores_the_input_for_download(monkeypatch):
@@ -373,7 +374,7 @@ def test_a_missing_command_hook_is_an_error(monkeypatch):
 
     assert isinstance(result, qerror)
     assert 'f__command: not found' in str(result)
-    assert request.success is False
+    assert request.fs.success is False
 
 
 def test_an_exception_while_processing_becomes_an_error():
@@ -384,14 +385,14 @@ def test_an_exception_while_processing_becomes_an_error():
 
     assert isinstance(result, qerror)
     assert 'Error (POSTP)' in str(result)
-    assert request.success is False
+    assert request.fs.success is False
 
 
 # function call ---------------------------------------------------------------------------------------------------
 
 def _call_request(memory_allowed=True, remember=True):
     return SimpleNamespace(
-        times={}, pref={'memory': 7 if memory_allowed else 0}, success=True, remember=remember,
+        times={}, pref={'memory': 7 if memory_allowed else 0}, fs=FormState(remember=remember),
         json_doc={'info': {'remember': True}})
 
 
@@ -462,7 +463,7 @@ def test_a_failing_function_call_becomes_an_error_result(monkeypatch, func_env):
 
     assert isinstance(result, qerror)
     assert 'Error (FCBN): boom' in str(result)
-    assert request.success is False
+    assert request.fs.success is False
     assert arg_dict == {'a': 1}
 
 

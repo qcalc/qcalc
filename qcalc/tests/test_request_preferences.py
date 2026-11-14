@@ -19,18 +19,19 @@ from calc.views_form_data import (
     serialize_persistent_request_prefs,
 )
 from calc import QPref
+from qutil import FormState
 
 
 def test_persistent_request_preferences_round_trip_without_commands():
     request = SimpleNamespace(
-        extra={
+        fs=FormState(extra={
             'ignoredec': '1',
             'layout': 'tb',
             'interactive_enabled': '0',
             'slider_enabled': '0',
             'cmd': 'resize',
             'args': ['rows'],
-        },
+        }),
         pref={'interactive': True},
     )
 
@@ -84,7 +85,7 @@ def test_user_preference_initializes_per_card_slider_state(monkeypatch, user_pre
 
 def test_card_slider_state_overrides_user_preference(monkeypatch):
     monkeypatch.setattr(QPref, 'getp', lambda: {'slider': False})
-    request = SimpleNamespace(pref={}, extra={'slider_enabled': '1'}, json_doc={'info': {}})
+    request = SimpleNamespace(pref={}, fs=FormState(extra={'slider_enabled': '1'}), json_doc={'info': {}})
 
     q11441a_get_user_pref(request)
     apply_persistent_request_prefs(request)
@@ -95,7 +96,7 @@ def test_card_slider_state_overrides_user_preference(monkeypatch):
 
 
 def test_invalid_slider_state_is_rejected():
-    request = SimpleNamespace(extra={'slider_enabled': 'yes'}, pref={})
+    request = SimpleNamespace(fs=FormState(extra={'slider_enabled': 'yes'}), pref={})
 
     with pytest.raises(ValueError, match='Invalid boolean request preference'):
         apply_persistent_request_prefs(request)
@@ -106,15 +107,14 @@ def test_refresh_get_imports_persistent_request_preferences():
         method='GET',
         GET={'extra': '{"ignoredec":"1","layout":"tb","interactive_enabled":"0","slider_enabled":"0"}'},
         POST={},
-        cmd='',
-        extra={},
         pref={},
     )
+    request.fs = FormState.from_request(request)
 
     q11421_get_extra_form_data_posted(request)
     apply_persistent_request_prefs(request)
 
-    assert request.extra == {
+    assert request.fs.extra == {
         'ignoredec': '1',
         'layout': 'tb',
         'interactive_enabled': '0',
@@ -130,7 +130,7 @@ def test_refresh_get_imports_persistent_request_preferences():
 
 @pytest.mark.parametrize('layout', ['', 'horizontal', None])
 def test_invalid_request_layout_is_rejected(layout):
-    request = SimpleNamespace(extra={'layout': layout}, pref={})
+    request = SimpleNamespace(fs=FormState(extra={'layout': layout}), pref={})
 
     with pytest.raises(ValueError, match='Invalid calculator layout'):
         apply_persistent_request_prefs(request)
@@ -139,7 +139,7 @@ def test_invalid_request_layout_is_rejected(layout):
 def test_request_layout_selects_static_template():
     request = SimpleNamespace(
         pref={},
-        extra={'layout': 'tb'},
+        fs=FormState(extra={'layout': 'tb'}),
         json_doc={
             'info': {
                 'layout': 'lr',
@@ -161,7 +161,7 @@ def test_request_layout_selects_static_template():
 def test_request_layout_preserves_dynamic_template():
     request = SimpleNamespace(
         pref={},
-        extra={'layout': 'tb'},
+        fs=FormState(extra={'layout': 'tb'}),
         json_doc={
             'info': {
                 'layout': 'lr',

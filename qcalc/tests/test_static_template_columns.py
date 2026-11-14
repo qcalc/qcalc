@@ -10,6 +10,7 @@ import qsett
 qsett.init()
 
 from calc.views import apply_effective_prefs
+from qutil import FormState
 from calc.views_info_meta import resolve_static_side, side_columns, static_template_name, template_name
 
 FIELDS = ['a', 'b', 'c', 'd']
@@ -94,7 +95,7 @@ def test_static_template_name_provisional_from_spec():
 def test_request_layout_keeps_resolved_columns_after_inp1_expansion():
     request = SimpleNamespace(
         pref={},
-        extra={'layout': 'tb'},
+        fs=FormState(extra={'layout': 'tb'}),
         json_doc={'info': _info(inp1=list(FIELDS), out1='*', input_blocks=[], output_blocks=[])},
     )
     resolve_static_side(request.json_doc['info'], 'input', FIELDS)

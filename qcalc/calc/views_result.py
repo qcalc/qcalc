@@ -46,11 +46,11 @@ def q1145_result_to_form_schema(request, func_id, cid, result, proper_dict):
     request.ojson_data = {}  # data for form
     request.ojson_doc = {
         'table_out': False,
-        'recall': request.recall,
-        'remember': request.remember,
-        'success': request.success,
-        'var_owner': request.var_owner,
-        'variant': request.variant,
+        'recall': request.fs.recall,
+        'remember': request.fs.remember,
+        'success': request.fs.success,
+        'var_owner': request.fs.var_owner,
+        'variant': request.fs.variant,
         'token': request.token,
         'message_text': '',
         'message_kind': '',
@@ -82,8 +82,8 @@ def q1145_result_to_form_schema(request, func_id, cid, result, proper_dict):
         return False, '', ''
 
     is_message_only, message_kind, message_text = classify_outcome_message(
-        request.cmd,
-        request.success,
+        request.fs.cmd,
+        request.fs.success,
         result,
     )
     if is_message_only:

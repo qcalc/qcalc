@@ -1,6 +1,6 @@
 <!-- begin:insert-calculator-section-outbtns -->
 {% load qfilter %}
-{% if request.success and request.method == 'POST' and input.doc.info.step2 %}
+{% if request.fs.success and request.method == 'POST' and input.doc.info.step2 %}
 <div class="btn-group mt-2 section-nextstep w-100 d-print-none">
 {% for fspec in input.doc.info.step2 %}
 <p><button type="button" class="btn btn-info btncmd" href="/calc/step2/"

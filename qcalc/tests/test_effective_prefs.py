@@ -17,6 +17,7 @@ from calc.mod_prefs import (
     serialize_persistent_request_prefs,
 )
 from calc.views import apply_effective_prefs
+from qutil import FormState
 
 
 def _request(session=None, extra=None, declared=(), info=None):
@@ -24,7 +25,7 @@ def _request(session=None, extra=None, declared=(), info=None):
     return SimpleNamespace(
         pref=dict(session),
         session_pref=session,
-        extra=dict(extra or {}),
+        fs=FormState(extra=dict(extra or {})),
         json_doc={
             'declared': list(declared),
             'info': {

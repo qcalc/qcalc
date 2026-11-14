@@ -137,14 +137,14 @@
 
 <input type="hidden" name="cid" value="{{ input.cid }}">
 <input type="hidden" name="extra" value="{{ input.extra }}" id="extra_{{ input.cid }}">
-<input type="hidden" name="input_id" value="{{ request.input_id }}">
+<input type="hidden" name="input_id" value="{{ request.fs.input_id }}">
 </div>
 
     </div>
     <div class="col">
       {% load qfilter %}
 <div id="output-part-{{ input.cid }}" class="row outpart">
-{% if request.method == 'POST' or request.cmd == 'run' or output.doc.message_only %}
+{% if request.method == 'POST' or request.fs.cmd == 'run' or output.doc.message_only %}
 <div class="col section-output1 io">
 
   {% if output.doc.message_only %}

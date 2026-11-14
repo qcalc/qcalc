@@ -1,4 +1,4 @@
-{% if request.user.is_authenticated and request.user.username != request.var_owner %}
+{% if request.user.is_authenticated and request.user.username != request.fs.var_owner %}
 {% if request.token_state or request.token %}
 <a hx-post="{% url 'toggle_share' %}" hx-trigger="click" hx-swap="outerHTML" hx-target="this"
    class="btn" href="/calc/{{func_id}}/"

@@ -16,6 +16,7 @@ from django.test import RequestFactory
 from calc.mod_hookctx import HookContext
 from calculators.all.general import cal_conv
 from qcore import Qty, qt
+from qutil import FormState
 
 
 def _request(method='get', data=None, cmd='', recall=False):
@@ -25,8 +26,9 @@ def _request(method='get', data=None, cmd='', recall=False):
     req.session['hash'] = 'anon-hash'
     req.session.save()
     req.user = AnonymousUser()
-    req.cmd = cmd
-    req.recall = recall
+    req.fs = FormState.from_request(req)
+    req.fs.default_cmd(cmd)
+    req.fs.recall = recall
     return req
 
 
@@ -209,6 +211,40 @@ def test_empty_or_invalid_extra_means_no_command(extra):
 
     assert ctx.cmd == ''
     assert ctx.extra == {}
+
+
+def test_posted_extra_wins_over_the_url_command():
+    fs = FormState.from_request(_request('post', {'extra': json.dumps({'cmd': 'Save'})}))
+
+    fs.default_cmd('run')
+
+    assert fs.cmd == 'save' and fs.extra_posted
+
+
+def test_url_command_applies_without_posted_extra():
+    fs = FormState.from_request(_request('get'))
+
+    fs.default_cmd('run')
+
+    assert fs.cmd == 'run' and not fs.extra_posted and fs.extra == {}
+
+
+def test_malformed_posted_extra_is_tolerated_and_still_counts_as_posted():
+    fs = FormState.from_request(_request('post', {'extra': 'not json'}))
+
+    fs.default_cmd('run')
+
+    assert fs.cmd == '' and fs.extra == {} and fs.extra_posted
+
+
+def test_failed_form_state_stays_failed():
+    fs = FormState()
+    assert fs.success
+
+    fs.mark_failed()
+    fs.default_cmd('run')
+
+    assert fs.success is False
 
 
 def test_value_methods_and_kwargs_properties_agree_for_each_source():

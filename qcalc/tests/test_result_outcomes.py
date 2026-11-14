@@ -10,18 +10,14 @@ qsett.init()
 
 from calc.views_result import q1145_result_to_form_schema
 from qcore import Qty, qchat
+from qutil import FormState
 
 
 def test_qchat_renders_as_scrollable_html_output():
     request = SimpleNamespace(
         pref={},
-        recall=False,
-        remember=False,
-        success=True,
-        var_owner='',
-        variant='',
+        fs=FormState(),
         token='',
-        cmd='',
         ojson_d4f={},
         json_doc={'info': {'out1': '', 'output_blocks': []}},
     )
@@ -47,7 +43,7 @@ def test_qchat_renders_as_scrollable_html_output():
 
 def _render_table(table=None, **info):
     request = SimpleNamespace(
-        pref={}, recall=False, remember=False, success=True, var_owner='', variant='', token='', cmd='',
+        pref={}, fs=FormState(), token='',
         ojson_d4f={}, json_doc={'info': {'out1': '', 'output_blocks': [], **info}},
     )
     table = table or {'columns': ['Material', 'Quantity'], 'data': [['Cement', 5], ['Sand', 7]]}

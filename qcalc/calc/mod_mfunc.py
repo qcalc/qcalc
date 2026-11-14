@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
-from .mod_qcals import QCals
+from .qcatalog.mod_qcals import QCals
 from qcore import qfunc, qdict
 import copy
 import inspect

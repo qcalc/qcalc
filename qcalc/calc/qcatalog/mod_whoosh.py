@@ -10,6 +10,8 @@ import re
 import uuid
 from django.conf import settings
 from .mod_qcals import QCals
+from .mod_pubcals import PubCals
+from .mod_qty_catalog import QtyCatalog
 from whoosh.qparser import QueryParser, FuzzyTermPlugin, DisMaxParser, QueryParserError
 from whoosh.query import And, Or, Term
 from qcore import QScreen
@@ -58,8 +60,8 @@ class QSearch:
 
         # Add documents
         calc_nodes = QCals.calc_root.get_tree()
-        pcalc_nodes = QCals.pcalc_root.get_tree()
-        qty_nodes = QCals.qty_root.get_tree()
+        pcalc_nodes = PubCals.root.get_tree()
+        qty_nodes = QtyCatalog.root.get_tree()
 
         for node in calc_nodes + pcalc_nodes + qty_nodes:
             writer.add_document(
@@ -184,10 +186,10 @@ def search_result_nodes(results, scope='cx'):
             if node:
                 calc_nodes.append(node)
             else:
-                node = QCals.pcalc_root.get_node_by_id(id_)
+                node = PubCals.root.get_node_by_id(id_)
                 if node: pcalc_nodes.append(node)
         elif 'x' in scope:  # 'u', 'q'
-            node = QCals.qty_root.get_node_by_id(id_)
+            node = QtyCatalog.root.get_node_by_id(id_)
             unit_nodes.append(node)
     return calc_nodes, pcalc_nodes, unit_nodes
 

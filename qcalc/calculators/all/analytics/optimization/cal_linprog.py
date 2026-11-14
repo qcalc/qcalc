@@ -4,7 +4,7 @@ import pulp
 
 from qcore import qlist, qtext
 from calculators.all.general.chart import feasible_chart
-from calc import optimization_status_description, QCals
+from calc import optimization_status_description, CalcSandbox
 
 
 def linprog__info():
@@ -108,7 +108,7 @@ def linprog(
     # Build expressions using the variables
     namespace = variables
 
-    objective = QCals.safe_eval(objective_function, gdict={"__builtins__": {}}, ldict=namespace)
+    objective = CalcSandbox.eval(objective_function, gdict={"__builtins__": {}}, ldict=namespace)
 
     # Maximize
     model += objective
@@ -120,21 +120,21 @@ def linprog(
         if "<=" in constraint:
             lhs, rhs = constraint.split("<=", 1)
             model += (
-                QCals.safe_eval(lhs, gdict={"__builtins__": {}}, ldict=namespace)
+                CalcSandbox.eval(lhs, gdict={"__builtins__": {}}, ldict=namespace)
                 <= float(rhs)
             )
 
         elif ">=" in constraint:
             lhs, rhs = constraint.split(">=", 1)
             model += (
-                QCals.safe_eval(lhs, gdict={"__builtins__": {}}, ldict=namespace)
+                CalcSandbox.eval(lhs, gdict={"__builtins__": {}}, ldict=namespace)
                 >= float(rhs)
             )
 
         elif "=" in constraint:
             lhs, rhs = constraint.split("=", 1)
             model += (
-                QCals.safe_eval(lhs, gdict={"__builtins__": {}}, ldict=namespace)
+                CalcSandbox.eval(lhs, gdict={"__builtins__": {}}, ldict=namespace)
                 == float(rhs)
             )
 

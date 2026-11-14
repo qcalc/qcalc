@@ -8,7 +8,7 @@ from django.http import HttpResponse, QueryDict, JsonResponse
 from django.utils.html import format_html
 from django.views.decorators.http import require_POST
 import catalog.views
-from .mod_ucals import get_uc_list
+from .qcatalog.mod_ucals import get_uc_list
 from .mod_mfunc import get_fhelp
 from .views_form_data import *
 from .mod_layout_dynamic import has_dynamic_layout, QLayoutPlanner

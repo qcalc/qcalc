@@ -28,7 +28,7 @@ if __name__ == '__main__':
     # from calc.mod_cutil import _test
     # from qutil.mod_basic import _test
     # from qutil.mod_data import _test
-    # from calc.mod_whoosh import _test
+    # from calc.qcatalog.mod_whoosh import _test
     # from qcore.mod_anno import _test
     # from calc.mod_mfunc import _test
     # from calc.mod_head import _test

@@ -3,7 +3,7 @@
 
 import ast
 from qcore import QScreen
-from calc import QCals, QRam, QPref
+from calc import CalcSandbox, QRam, QPref
 from asteval import Interpreter
 from qutil import HtmxHttpRequest, q1139_request_init, to_python_expr, is_debug, \
     validate_expression_security
@@ -126,7 +126,7 @@ def _top_level_assigned_names(tree):
 
 def qeval(request: HtmxHttpRequest, xpr: str):
     out = QScreen()
-    syms = QCals.qsymbol_dict.copy()
+    syms = CalcSandbox.symbols.copy()
     q1139_request_init(request)
     usyms = QRam.getp({})
     reserved_syms = set(syms)

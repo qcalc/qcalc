@@ -8,7 +8,7 @@ from django.contrib import admin
 from django.utils.crypto import get_random_string
 from qutil import fid2owner
 from .mod_redis import redis_publish_action
-from .mod_ucals import UCals
+from .qcatalog.mod_ucals import UCals
 import logging
 
 logger = logging.getLogger(__name__)
@@ -36,12 +36,12 @@ class MyStuff(models.Model):
 
     def save(self, *args, **kwargs):
         if self.object_id == 'mycal':
-            from calc import QCals
-            if self.is_public and self.item_id not in QCals.pc_list:
+            from calc import PubCals
+            if self.is_public and self.item_id not in PubCals.cal_list:
                 code = self.item
                 if code:
                     cal_id, cal_name, cal_owner = fid2owner(self.item_id)
-                    updated = QCals.update_public_cal(self.item_id, cal_owner, code)
+                    updated = PubCals.update_cal(self.item_id, cal_owner, code)
                     if updated: redis_publish_action(
                         channel="qcalc_channel",
                         action="update_public_cal",
@@ -49,8 +49,8 @@ class MyStuff(models.Model):
                         cal_owner=cal_owner,
                         code=code
                     )
-            elif not self.is_public and self.item_id in QCals.pc_list:
-                deleted = QCals.delete_public_cal(self.item_id)
+            elif not self.is_public and self.item_id in PubCals.cal_list:
+                deleted = PubCals.delete_cal(self.item_id)
                 if deleted:
                     redis_publish_action(
                         channel="qcalc_channel",
@@ -62,9 +62,9 @@ class MyStuff(models.Model):
 
     def delete(self, *args, **kwargs):
         if self.object_id == 'mycal':
-            from calc import QCals
-            if self.is_public and self.item_id in QCals.pc_list:
-                deleted = QCals.delete_public_cal(self.item_id)
+            from calc import PubCals
+            if self.is_public and self.item_id in PubCals.cal_list:
+                deleted = PubCals.delete_cal(self.item_id)
                 if deleted:
                     redis_publish_action(
                         channel="qcalc_channel",
@@ -77,7 +77,7 @@ class MyStuff(models.Model):
                 cal_id, cal_name, cal_owner = fid2owner(self.item_id)
                 UCals().del_cal(cal_name)
                 # Delete cal_id if it is also a public cal
-                QCals.delete_public_cal(cal_id)
+                PubCals.delete_cal(cal_id)
                 # | Delete all user's variants for the item_id from MyInput if object_id is 'input'
                 MyInput.objects.filter(object_id='input', item_id=self.item_id).delete()
                 # | Delete all user's favorites for the item_id from MyStuff if object_id is 'fav'

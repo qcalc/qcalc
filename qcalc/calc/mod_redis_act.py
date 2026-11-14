@@ -7,7 +7,7 @@ import redis
 import qvars
 import time
 from .mod_redis import redis_pubsub_active
-from .mod_qcals import QCals
+from .qcatalog.mod_pubcals import PubCals
 from .mod_qjson import cur_loader
 from qvars import qc_gpref
 import logging
@@ -25,10 +25,10 @@ def handle_qcalc_channel(message):
             cal_id = kwargs.pop('cal_id', '')
             cal_owner = kwargs.pop('cal_owner', '')
             code = kwargs.pop('code', '')
-            QCals.update_public_cal(cal_id, cal_owner, code)
+            PubCals.update_cal(cal_id, cal_owner, code)
         elif action == "delete_public_cal":
             cal_id = kwargs.pop('cal_id', '')
-            QCals.delete_public_cal(cal_id)
+            PubCals.delete_cal(cal_id)
         elif action == "update_currency":
             update_now = kwargs.pop('update_now', False)
             cur_loader.update_currency(update_now)  # update_now False=already downloaded, upload only

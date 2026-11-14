@@ -13,7 +13,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 from django.db import connection
 
-import calc.mod_ucals as mod_ucals
+import calc.qcatalog.mod_ucals as mod_ucals
 from calc.mod_db import QDBTable
 from calc.models import MyInput, MyStuff
 from qutil import QThread

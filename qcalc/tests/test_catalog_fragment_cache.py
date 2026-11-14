@@ -10,7 +10,7 @@ from django.test import RequestFactory
 from django.utils.safestring import mark_safe
 
 import qutil.mod_tree as mt
-from calc import QCals
+from calc import QCals, QtyCatalog
 from catalog import fragment_cache, views
 from qutil import TreeNode, create_category_node
 
@@ -141,7 +141,7 @@ def test_qty_pages_match_uncached_templates(catalog, monkeypatch):
     unit = TreeNode('ft', 'ft', title='Foot', desc='a foot', is_leaf=True, node_type='u')
     length.add_child(unit)
     qty.update_all_descendant_leafs_count()
-    monkeypatch.setattr(QCals, 'qty_root', qty, raising=False)
+    monkeypatch.setattr(QtyCatalog, 'root', qty, raising=False)
     monkeypatch.setattr(views, 'get_help_path', lambda scat, qty=False: Path('missing-help.html'))
     monkeypatch.setattr(views, 'cur_loader', type('L', (), {'timestamp': staticmethod(lambda: 1)}))
 

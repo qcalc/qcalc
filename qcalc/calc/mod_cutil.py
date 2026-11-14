@@ -2,7 +2,8 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 import qconst
 from .mod_mfunc import QFuncArgs
-from .mod_qcals import QCals
+from .qcatalog.mod_qcals import QCals
+from .qcatalog.mod_qty_catalog import QtyCatalog
 from django.conf import settings
 from qcore import Qty, complex_input_xpr, complex_input_url, QDateTime
 from qutil import fid2help_file
@@ -20,7 +21,7 @@ def ancestors(page_id, page_type='c'):
         node = QCals.calc_root.get_node_by_id(page_id)  # unique id
         if node: aids = node.get_ancestor_ids()
     elif page_type == 'q':
-        node = QCals.qty_root.get_node_by_id(page_id)  # unique id
+        node = QtyCatalog.root.get_node_by_id(page_id)  # unique id
         if node: aids = node.get_ancestor_ids()
     return aids
 

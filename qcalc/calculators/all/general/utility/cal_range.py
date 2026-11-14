@@ -6,7 +6,7 @@ import pandas as pd
 
 from qcore import Qty, quomx, qtexta, vals2css
 from qvars import qc_gpref as gs
-from calc import QCals, QResults
+from calc import CalcSandbox, QResults
 
 
 def valid_range(variation_start, variation_stop, variation_step):
@@ -31,7 +31,7 @@ def fx(y: qtexta = 'x**2+2*x-5', variable='x', variation_start=1.0, variation_st
     # y = preprocess_expression(y)
     v_range = valid_range(variation_start, variation_stop, variation_step)
     df = pd.DataFrame({"X": [round(x, round_off) for x in v_range],
-                       "Y": [round(QCals.safe_eval(y, ldict={variable: x}), round_off) for x in v_range]})
+                       "Y": [round(CalcSandbox.eval(y, ldict={variable: x}), round_off) for x in v_range]})
 
     toret = {}
     if 'CSV' in output_format or output_format == []:

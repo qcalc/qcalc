@@ -7,7 +7,7 @@ import re
 
 from jsonschema import Draft202012Validator
 
-from calc import QCals
+from calc import CalcSandbox
 from qutil import (
     UnsafeCodeError,
     extract_calculator_name,
@@ -366,15 +366,11 @@ def validate_calculator_stages(user_code):
         raise CalculatorValidationError('structure', error) from error
 
     try:
-        safe_exec_fn = getattr(QCals, 'safe_exec_with_context', None)
-        if callable(safe_exec_fn):
-            local_dict = safe_exec_fn(
-                user_code,
-                scope='validate-mycal',
-                item_id=calculator_name,
-            )
-        else:
-            local_dict = QCals.safe_exec(user_code)
+        local_dict = CalcSandbox.exec_with_context(
+            user_code,
+            scope='validate-mycal',
+            item_id=calculator_name,
+        )
     except (ImportError, UnsafeCodeError) as error:
         raise CalculatorValidationError('security', error) from error
     except Exception as error:

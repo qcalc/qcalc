@@ -2,7 +2,7 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 from qcore import QScreen, qcode
-from calc import QCals
+from calc import CalcSandbox
 from asteval import Interpreter
 from qvars import qc_gpref as gs
 from qutil import to_python_expr, callback_button, format_py_code, validate_expression_security
@@ -51,7 +51,7 @@ show(y)
         calout.append(args if n>1 else args[0])
 
     out = QScreen()
-    syms = QCals.qsymbol_dict.copy()
+    syms = CalcSandbox.symbols.copy()
     syms.update({"show": show})
 
     aeval = Interpreter(

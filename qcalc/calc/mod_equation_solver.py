@@ -12,7 +12,7 @@ from sympy.abc import _clash1
 
 from qcore import Qty, isMeasureQuantity, UnitRegistry
 from qutil import to_python_expr
-from calc.mod_qcals import QCals
+from calc.mod_sandbox import CalcSandbox
 
 
 def _safe_sqrt(value):
@@ -281,7 +281,7 @@ class QEquationSolver:
                 name = str(sym)
                 if name not in namespace and _is_unit_symbol_name(name):
                     namespace[name] = Qty(1, name)
-        value = QCals.safe_eval(str(solution), gdict=_EVAL_GLOBALS, ldict=namespace)
+        value = CalcSandbox.eval(str(solution), gdict=_EVAL_GLOBALS, ldict=namespace)
 
         if isinstance(value, Number):
             if isinstance(value, complex) and self.unit_hint is not None:

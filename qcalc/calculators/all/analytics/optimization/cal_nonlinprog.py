@@ -7,7 +7,7 @@ from scipy.optimize import minimize
 
 from qcore import qlist, qtext, QChart
 from calculators.all.general.chart import surface_contour3d_chart
-from calc import optimization_status_description, QCals
+from calc import optimization_status_description, CalcSandbox
 
 
 _NONLINEAR_EVAL_GLOBALS = {
@@ -67,7 +67,7 @@ def _build_variable_namespace(variable_names, values):
 
 def _evaluate_expression(expression, variable_names, values):
     namespace = _build_variable_namespace(variable_names, values)
-    return QCals.safe_eval(
+    return CalcSandbox.eval(
         expression,
         gdict=_NONLINEAR_EVAL_GLOBALS,
         ldict=namespace,

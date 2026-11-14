@@ -6,7 +6,7 @@ import os
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.dev")
 
-from calc.mod_whoosh import IsolatedRamStorage
+from calc.qcatalog.mod_whoosh import IsolatedRamStorage
 
 
 def test_ram_storage_uses_isolated_named_temp_directories():

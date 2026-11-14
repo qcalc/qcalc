@@ -14,7 +14,7 @@ import qutil as ut
 from qcore import QChart, step2_pack_value, step2_unpack_for_run
 from qutil import HtmxHttpRequest
 from calc import QIO
-from .mod_qcals import QCals
+from .qcatalog.mod_qcals import QCals
 from qcore import QEncoderBase
 
 

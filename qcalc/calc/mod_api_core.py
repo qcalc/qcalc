@@ -17,7 +17,7 @@ from qcore import (
 from qcore import to_bool
 from qvars import qc_gpref as gs
 from .mod_mfunc import func_meta, q0164_execute_qfunc
-from .mod_qcals import QCals
+from .qcatalog.mod_qcals import QCals
 from .quota.mod_qcalc_quota import QCalcApiQuota, ApiQuotaExceeded
 
 logger = logging.getLogger(__name__)

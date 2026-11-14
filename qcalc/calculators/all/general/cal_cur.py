@@ -2,7 +2,7 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 from qcore import Qty, qhtml, nzv
-from calc import QCals, cur_loader
+from calc import CalcSandbox, cur_loader
 from qconst import amount_help_text
 
 
@@ -30,7 +30,7 @@ def cur(amount: str = '1.0', from_currency='USD', to_currency='UNC'):
     Return:
         returns converted amount
     """
-    xcur = Qty(QCals.safe_eval(amount), from_currency)
+    xcur = Qty(CalcSandbox.eval(amount), from_currency)
     ycur = xcur.to(to_currency)
     return {
         'Converted Amount': ycur,

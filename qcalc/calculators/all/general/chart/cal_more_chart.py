@@ -6,7 +6,7 @@ import pandas as pd
 from qutil import css2strs, to_python_expr
 from qcore import validated_col
 from qcore import qtexta, qlist, qchar, qtable, QChart, as_qtable, css2ints, css2values, css2floats
-from calc import QCals
+from calc import CalcSandbox
 import matplotlib.dates as mdates  # requires for 3D as 3D cant natively handle date axes
 from datetime import date, datetime
 
@@ -77,7 +77,7 @@ def surface3d_error_chart(
     errors = css2floats(error_values)
 
     def zfunc(x, y):
-        return QCals.safe_eval(z_expr, ldict={'x': x, 'y': y})
+        return CalcSandbox.eval(z_expr, ldict={'x': x, 'y': y})
 
     znums = []
     for x in xnums:

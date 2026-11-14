@@ -47,7 +47,7 @@ def _resolve(request):
 
 
 def test_q1141_records_declared_prefs(monkeypatch):
-    from calc.mod_qcals import QCals
+    from calc.qcatalog.mod_qcals import QCals
     from calc.views_info_meta import q1141_read_func_meta
 
     monkeypatch.setattr(QCals, 'run_func_info', classmethod(
@@ -59,7 +59,7 @@ def test_q1141_records_declared_prefs(monkeypatch):
 
 
 def test_q1141_invalid_layout_is_not_declared(monkeypatch):
-    from calc.mod_qcals import QCals
+    from calc.qcatalog.mod_qcals import QCals
     from calc.views_info_meta import q1141_read_func_meta
 
     monkeypatch.setattr(QCals, 'run_func_info', classmethod(lambda cls, func_id, scope='qpots': {'layout': 'x'}))

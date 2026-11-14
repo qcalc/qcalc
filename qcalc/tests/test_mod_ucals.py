@@ -11,8 +11,8 @@ qsett.init()
 
 import pytest
 
-import calc.mod_ucals as mu
-from calc.mod_ucals import UCals, get_uc_list, register_shared_cal, unregister_shared_cal
+import calc.qcatalog.mod_ucals as mu
+from calc.qcatalog.mod_ucals import UCals, get_uc_list, register_shared_cal, unregister_shared_cal
 from qcore import qerror, qinfo
 from qutil import create_category_node, TreeNode
 from qutil.mod_tree import dict_to_tree
@@ -59,20 +59,22 @@ def env(monkeypatch):
     monkeypatch.setattr(mu, 'QMem', env.mem)
     monkeypatch.setattr(mu, 'user_name', lambda request=None: env.owner)
 
-    def safe_exec(code):
+    def exec_with_context(code, **kwargs):
         env.executed.append(code)
         return {}
 
+    sandbox = SimpleNamespace(exec_with_context=exec_with_context)
     qcals = SimpleNamespace(
-        safe_exec=safe_exec,
         func_title_desc_tags=lambda func_id, scope='': (f'Title {func_id}', f'Desc {func_id}', 'tag1'),
         calc_root=create_category_node('qcalc', 'qcalc', 'Standard'),
-        pcalc_root=create_category_node('public', 'public', 'Public'),
-        add_catagories_to_node=lambda parent, name, uname: parent,
-        build_func_dict=lambda items, catalog, package, funcs, cals: None,
     )
+    pubcals = SimpleNamespace(root=create_category_node('public', 'public', 'Public'))
     monkeypatch.setattr(mu, 'QCals', qcals)
+    monkeypatch.setattr(mu, 'PubCals', pubcals)
+    monkeypatch.setattr(mu, 'CalcSandbox', sandbox)
     env.qcals = qcals
+    env.pubcals = pubcals
+    env.sandbox = sandbox
     return env
 
 
@@ -176,10 +178,10 @@ def test_a_name_that_does_not_match_the_code_is_rejected(env):
 
 
 def test_invalid_code_is_not_stored(env):
-    def boom(code):
+    def boom(code, **kwargs):
         raise RuntimeError('bad code')
 
-    env.qcals.safe_exec = boom
+    env.sandbox.exec_with_context = boom
 
     with pytest.raises(RuntimeError, match='bad code'):
         UCals().edit_cal('mycal', CODE)
@@ -276,7 +278,7 @@ def test_the_tree_is_rebuilt_without_duplicating_branches(env):
 
 def test_favorites_are_copies_of_the_calculators_found_under_a_prefixed_id(env):
     env.qcals.calc_root.add_child(_leaf('gold'))
-    env.qcals.pcalc_root.add_child(_leaf('pub-amy'))
+    env.pubcals.root.add_child(_leaf('pub-amy'))
     UCals().edit_cal('mycal', CODE)
     env.fav.setp1('gold', 1)
     env.fav.setp1('pub-amy', 1)

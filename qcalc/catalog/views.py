@@ -7,7 +7,7 @@ from qutil import HtmxHttpRequest, q1139_request_init, not_found
 import qutil as ut
 from calc import QSearch, search_result_nodes
 from django.utils.safestring import mark_safe
-from calc import QCals, UCals, QFav, get_help_path, QInput
+from calc import QCals, QtyCatalog, PubCals, UCals, QFav, get_help_path, QInput
 
 from django.http import JsonResponse
 from django.template.loader import render_to_string
@@ -18,7 +18,7 @@ from calc.views_tabulator import get_fav_data
 from catalog.tag_index import get_tag_view, normalize_tag_list
 from catalog.fragment_cache import cached_fragment, apply_favorites
 from calc import cur_loader
-from calc.mod_ucals import get_personal_tree
+from calc.qcatalog.mod_ucals import get_personal_tree
 
 
 def show_page(request: HtmxHttpRequest, **kwargs):
@@ -75,7 +75,7 @@ def calc_dir(request: HtmxHttpRequest, **kwargs):
 
 
 def pcalc_dir(request: HtmxHttpRequest, **kwargs):
-    return _shared_calc_dir(request, kwargs['category'].lower(), QCals.pcalc_root, 'pcalc',
+    return _shared_calc_dir(request, kwargs['category'].lower(), PubCals.root, 'pcalc',
                             "Public Calculator Catalog")
 
 
@@ -136,7 +136,7 @@ def calc_tree(request: HtmxHttpRequest):
 
 
 def pcalc_tree(request: HtmxHttpRequest):
-    return _shared_calc_tree(request, QCals.pcalc_root, 'pcalc', "Public Calculator Catalog", 'pcalc_tree')
+    return _shared_calc_tree(request, PubCals.root, 'pcalc', "Public Calculator Catalog", 'pcalc_tree')
 
 
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
@@ -156,9 +156,9 @@ def _currency_stamp():
 
 def qty_tree(request: HtmxHttpRequest):
     def fragment_context():
-        return {"qty_data": QCals.qty_root.children}
+        return {"qty_data": QtyCatalog.root.children}
 
-    html = cached_fragment(request, QCals.qty_root, ('qty', 'tree', _currency_stamp()),
+    html = cached_fragment(request, QtyCatalog.root, ('qty', 'tree', _currency_stamp()),
                            'include-tree-node-qty.html', fragment_context)
     return ut.get_page(request, 'treeq.html', {"tree_html": mark_safe(html)}, 'qty_tree')
 
@@ -174,7 +174,7 @@ hx-target="closest .calc" hx-swap="outerHTML">{parent[1]}</a>''')
 
 def qty_dir(request: HtmxHttpRequest, **kwargs):
     scat = kwargs['category'].lower()
-    node = QCals.qty_root.get_node_by_id(scat)
+    node = QtyCatalog.root.get_node_by_id(scat)
     if not node:
         return not_found(request)
 
@@ -188,7 +188,7 @@ def qty_dir(request: HtmxHttpRequest, **kwargs):
             "help_html": help_path.as_posix() if help_path.exists() else "nohelp_qty.html",
         }
 
-    html = cached_fragment(request, QCals.qty_root, ('qty', 'dir', node.id),
+    html = cached_fragment(request, QtyCatalog.root, ('qty', 'dir', node.id),
                            'catalog-qty-categories.html', fragment_context)
     context = {"content_html": mark_safe(html), "category": node, "request": request}
     return ut.get_page(request, 'gen-catalog-qty.html', context, scat)
@@ -286,7 +286,7 @@ def search_unit(request: HtmxHttpRequest):
     # check if a unit is being searched
     sterm = request.GET.get('qu').strip()  # dont lowercase yet
     # Unit abbreviations like "sec" are valid query terms even if they look like stop words.
-    nodes = QCals.qty_root.search_nodes(sterm, request.user, exclude_stop_words=False)
+    nodes = QtyCatalog.root.search_nodes(sterm, request.user, exclude_stop_words=False)
     context = {"qty_data": nodes}
     template = 'search-unit.html'
     return render(request, template, context)

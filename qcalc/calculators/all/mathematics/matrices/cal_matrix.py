@@ -5,7 +5,7 @@ import numpy
 import pandas as pd
 import random
 from qcore import qtable, as_qtable
-from calc import QCals
+from calc import CalcSandbox
 from qcore import np2df
 
 mat_dict = {
@@ -21,7 +21,7 @@ mat_dict = {
 def mat_eva(expr, x, y=None):
     expr = expr.strip()
     if expr:
-        return np2df(QCals.safe_eval(expr, gdict=mat_dict, ldict={'x': x, 'y': y}))
+        return np2df(CalcSandbox.eval(expr, gdict=mat_dict, ldict={'x': x, 'y': y}))
     else:
         return 'Enter a valid matrix expression'
 

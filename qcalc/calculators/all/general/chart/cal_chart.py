@@ -6,7 +6,7 @@ import pandas as pd
 from qutil import css2strs
 from qcore import validated_col
 from qcore import qtexta, qchar, qtable, QChart, legend_locations, qlist, as_qtable, css2values, css2floats
-from calc import QCals
+from calc import CalcSandbox
 import matplotlib.dates as mdates  # requires for 3D as 3D cant natively handle date axes
 from datetime import date, datetime
 from calc import feasible_region
@@ -84,7 +84,7 @@ def surface3d_chart(
     ynums = css2floats(y_values)
 
     def zfunc(x, y):
-        return QCals.safe_eval(z_expr, ldict={'x': x, 'y': y})
+        return CalcSandbox.eval(z_expr, ldict={'x': x, 'y': y})
 
     znums = []
     for x in xnums:
@@ -383,8 +383,8 @@ def pareq(
 ):
     v = np.linspace(variable_start, variable_stop, variations)
 
-    xv = [QCals.safe_eval(x, ldict={variable: val}) for val in v]
-    yv = [QCals.safe_eval(y, ldict={variable: val}) for val in v]
+    xv = [CalcSandbox.eval(x, ldict={variable: val}) for val in v]
+    yv = [CalcSandbox.eval(y,  ldict={variable: val}) for val in v]
     if aspect != '':
         asp = float(aspect)
     else:
@@ -413,7 +413,7 @@ def fx2(
 
     y_xpr_list = [line.strip() for line in y_expressions.split('\n')]
     ylabels = css2strs(y_labels) if y_labels else y_xpr_list
-    yvalsm = [[QCals.safe_eval(expr, ldict={variable: val}) for val in xvals]
+    yvalsm = [[CalcSandbox.eval(expr, ldict={variable: val}) for val in xvals]
               for expr in y_xpr_list]
     if aspect != '':
         asp = float(aspect)

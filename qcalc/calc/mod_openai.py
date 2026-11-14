@@ -5,7 +5,7 @@ import re
 import openai
 from types import SimpleNamespace
 from typing import Any
-from .mod_qcals import QCals
+from .qcatalog.mod_qcals import QCals
 from qcore import _base_categ_s2d, _base_categories, UnitRegistry
 import inspect
 import qconst

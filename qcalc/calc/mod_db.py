@@ -109,7 +109,7 @@ class QDBTable:
                 # | register the function for the user (one off)
                 if not check_only:
                     self.mystuffs.update_or_create(user=user, object_id='othcal', item_id=func_id, item='')
-                    from .mod_ucals import register_shared_cal  # | late reference
+                    from .qcatalog.mod_ucals import register_shared_cal  # | late reference
                     register_shared_cal(func_id, token)
                     result = "2"  # | saved
                 else:
@@ -117,7 +117,7 @@ class QDBTable:
         return result
 
     def delete_shared_cal(self, func_id):
-        from .mod_ucals import unregister_shared_cal  # | late reference
+        from .qcatalog.mod_ucals import unregister_shared_cal  # | late reference
         unregister_shared_cal(func_id)
         user = self._get_authenticated_user()
         # | if current user is not owner of the function

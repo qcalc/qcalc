@@ -40,7 +40,7 @@ def qsymbols(scope='api', name_filter=None):
       'all' - search all functions and symbols
       scope can also be a comma separated list of scope names: e.g. 'api, aux'
     """
-    from calc import QCals, qapis  # local import: calc imports qutil, avoid circular import
+    from calc import QCals, CalcSandbox, qapis  # local import: calc imports qutil, avoid circular import
 
     allowed = {'api', 'cal', 'aux', 'unit', 'cur', 'qty', 'all'}
     scope_names = set(css2strs(scope))
@@ -56,7 +56,7 @@ def qsymbols(scope='api', name_filter=None):
             negate = True
             name_filter = name_filter[1:]
 
-    # | remarks from: mod_qcals.py
+    # | remarks from: calc/mod_sandbox.py
     # | all qfunc_dict items except admin and demo cals, will eventually include pylib_dict and calc_dict
     # |     when create_standard_cataog_from_packages() are executed
     # | all UnitRegistry.table items that includes units and currencies
@@ -75,12 +75,12 @@ def qsymbols(scope='api', name_filter=None):
             if callable(obj)
                and '__' not in name
                and f"{name}__info" in QCals.qfunc_dict
-               and name in QCals.qsymbol_dict  # admin and demo cals are excluded
+               and name in CalcSandbox.symbols  # admin and demo cals are excluded
         }
     if 'aux' in scope_names or 'all' in scope_names:
         names |= {
             name
-            for name, obj in QCals.qsymbol_dict.items()
+            for name, obj in CalcSandbox.symbols.items()
             if callable(obj)
                and name not in qapis()
                and '__' not in name
@@ -130,15 +130,15 @@ def qsymstat():
 
 def qsymhelp(name):
     """Print a short help/description for a qcalc symbol and return it."""
-    from calc import QCals
+    from calc import QCals, QtyCatalog, CalcSandbox
 
     name = str(name).strip()
     if not name:
         return 'Error: a name is required'
 
     # CAL / UNIT / CUR / QTY use TreeNode metadata.
-    for root_name in ('calc_root', 'qty_root'):
-        root = getattr(QCals, root_name, None)
+    for root_name, root in (('calc_root', getattr(QCals, 'calc_root', None)),
+                            ('qty_root', getattr(QtyCatalog, 'root', None))):
         if root is None:
             continue
 
@@ -162,7 +162,7 @@ def qsymhelp(name):
             return f"*** {name} ***\n{help_text}"
 
     # API / AUX / qapi symbols use inline docstrings.
-    obj = getattr(QCals, 'qsymbol_dict', {}).get(name)
+    obj = CalcSandbox.symbols.get(name)
     if obj is None:
         obj = getattr(QCals, 'qfunc_dict', {}).get(name)
 

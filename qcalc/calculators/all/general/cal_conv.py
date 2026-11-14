@@ -3,7 +3,7 @@
 
 from qcore import UnitRegistry, QtyRegistry, QCurrency, dim_to_bname, _base_names, _conv_names
 from qutil import css2strs, list2table, find_matched_variables, cal_link, calurl
-from calc import QCals
+from calc import CalcSandbox
 import itertools
 from qcore.qf_anno import *
 from qconst import amount_help_text
@@ -184,7 +184,7 @@ def conv2(quantity='L', mode='u2u', value: qtexta = '1.0', from_unit=['ft'], fro
     qfrom = None
     from_unit_ = ''
     to_units_ = to_units
-    value = QCals.safe_eval(value)
+    value = CalcSandbox.eval(value)
     converted_value = None
     if mode == 'u2u':
         from_qty = ''
@@ -321,7 +321,7 @@ def conv(value: qtexta = '1.0',
         from_qty = ''
         convert_to_qty = ''
 
-    value = QCals.safe_eval(value)
+    value = CalcSandbox.eval(value)
     if from_unit != '':
         qvalue = Qty(value, from_unit)
     elif from_qty != '':

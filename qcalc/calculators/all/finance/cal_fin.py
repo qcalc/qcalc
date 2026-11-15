@@ -6,7 +6,7 @@ import pandas as pd
 from qcore import Qty, qtable, qhtml, as_qtable, QTable
 import numpy_financial as npf
 from math import log10
-from qutil import addcal_button
+from qutil import addcal_button, step2_spec
 from calc import QCals
 
 when_choices = {'type': 'radio', 'choices': {'1': 'Period Start', '0': 'Period End'}}
@@ -236,9 +236,12 @@ def irrn__info():  # name conflicts with Iranian Rial IRR
     return {
         'title': 'Internal Rate of Return (IRR)',
         'step2': [
-            {'step': 'run', 'func': 'npv', 'caption': 'Net Present Value',
-             'spec': {'cashflows': 'cashflows'}
-             },
+            step2_spec(
+                func='npv',
+                caption='Net Present Value',
+                step='run',
+                spec={'cashflows': 'cashflows'}
+            ),
         ],
     }
 

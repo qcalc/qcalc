@@ -202,6 +202,7 @@ _INFO_PROPERTY_SCHEMAS = {
     'single_instance_key': {'type': 'string'},
     'provides_data': SHARED_DATA_SCHEMA,
     'consumes_data': SHARED_DATA_SCHEMA,
+    'rate_domain': {'type': 'string'},
     'remember': {'type': 'boolean'},
     'recall': {'type': 'boolean'},
     'table_out_all': {'type': 'boolean'},

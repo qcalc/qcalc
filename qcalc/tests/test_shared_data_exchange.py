@@ -17,6 +17,7 @@ from calc import QData, QCost, default_rate_schedule
 from calc.mod_hookctx import HookContext
 from calc.mod_shared_data import publish_shared_dataset, get_shared_dataset
 from calculators.all.engineering.estimation import building_cost_detailed, brickwork, ccwork, plaster
+from calculators.all.agriculture import bee_feeding
 from calculators.all.general.utility import (
     SHARED_RATES_KEY,
     SHARED_RATES_TYPE,
@@ -62,7 +63,7 @@ def _thread_req_cleanup():
 def _shared_action():
     return {
         'dataset_type': SHARED_RATES_TYPE,
-        'dataset_key': SHARED_RATES_KEY,
+        'dataset_key': f'{SHARED_RATES_KEY}:construction',
     }
 
 
@@ -74,15 +75,15 @@ def test_publish_and_read_shared_dataset_dataframe():
     payload = pd.DataFrame({'Item': ['Brick'], 'Unit Cost': ['10 BDT/ea']})
     meta = publish_shared_dataset(
         dataset_type=SHARED_RATES_TYPE,
-        dataset_key=SHARED_RATES_KEY,
+        dataset_key=f'{SHARED_RATES_KEY}:construction',
         payload=payload,
         producer_func='rates',
     )
 
-    record = get_shared_dataset(dataset_type=SHARED_RATES_TYPE, dataset_key=SHARED_RATES_KEY)
+    record = get_shared_dataset(dataset_type=SHARED_RATES_TYPE, dataset_key=f'{SHARED_RATES_KEY}:construction')
 
     assert record is not None
-    assert meta['dataset_key'] == SHARED_RATES_KEY
+    assert meta['dataset_key'] == f'{SHARED_RATES_KEY}:construction'
     assert meta['dataset_type'] == SHARED_RATES_TYPE
     assert isinstance(record['payload'], pd.DataFrame)
     assert record['payload'].iloc[0]['Item'] == 'Brick'
@@ -150,21 +151,14 @@ def test_cost_modify_uses_latest_rates_after_reload():
     assert updated.loc[0, 'Unit Cost'].uom == 'BDT/ea'
 
 
-def test_cost_modify_falls_back_to_legacy_rates_and_backfills_shared_registry():
+def test_cost_modify_raises_when_shared_and_saved_rates_are_missing():
     req = _make_request(method='post')
     QThread.set_req(req)
     QData.clear()
 
-    legacy_rates = pd.DataFrame({'Item': ['Brick'], 'Unit Cost': [Qty('11 BDT/ea')]})
-    QData.setp1('rates', legacy_rates)
-
     items = pd.DataFrame({'Item': ['Brick'], 'Quantity': ['100 nos'], 'Unit Cost': ['0.10 UNC/nos']})
-    updated = cost__modify(HookContext(), 'items', items, _shared_action())
-
-    assert isinstance(updated.loc[0, 'Unit Cost'], Qty)
-    shared = get_shared_dataset(dataset_type=SHARED_RATES_TYPE, dataset_key=SHARED_RATES_KEY)
-    assert isinstance(shared, dict)
-    assert shared.get('payload') is not None
+    with pytest.raises(Exception, match='No rates saved'):
+        cost__modify(HookContext(), 'items', items, _shared_action())
 
 
 def test_saved_rates_survive_a_new_data_session_and_prefill_rates_input():
@@ -239,6 +233,23 @@ def test_building_cost_detailed_cost_is_a_normal_result_that_follows_rates():
 
     rates(default_rate_schedule().assign(Price=lambda d: d['Price'] * 2))
     assert building_cost_detailed(include_cost=True)['Total Cost'].val == pytest.approx(2 * out['Total Cost'].val)
+
+
+def test_bee_feeding_uses_unit_aware_colony_rate_and_apiculture_cost_defaults():
+    QThread.set_req(_make_request(method='post'))
+    QData.clear()
+
+    out = bee_feeding(
+        colonies='50 unit',
+        feeding_rate_per_colony='0.5 L/unit/day',
+        feeding_duration='10 day',
+        include_cost=True,
+    )
+
+    assert out['Total Syrup'].val == pytest.approx(250.0)
+    assert out['Total Syrup'].uom == 'L'
+    assert out['Cost per Colony'].uom == 'BDT/unit'
+    assert out['Total Cost'].val > 0
 
 
 def test_compare_publishes_shared_scenario_dataset():

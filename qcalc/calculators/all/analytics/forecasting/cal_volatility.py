@@ -6,6 +6,7 @@ from statistics import fmean, pstdev
 import pandas as pd
 from qcore import qtable, as_qtable, QChart
 import numpy as np
+from qutil import step2_spec
 
 
 def volatility__info():
@@ -14,16 +15,16 @@ def volatility__info():
         'kins': 'forecast_fv',
         'tags': 'forecasting',
         'step2': [
-            {
-                'step': 'run',
-                'func': 'forecast_fv',
-                'caption': 'Predict Future Values',
-                'spec': {
+            step2_spec(
+                func='forecast_fv',
+                caption='Predict Future Values',
+                step='run',
+                spec={
                     'starting_price': 'Last Value',
                     'volatility': 'Volatility',
                     'drift': 'Drift'
                 }
-            },
+            ),
         ]
     }
 

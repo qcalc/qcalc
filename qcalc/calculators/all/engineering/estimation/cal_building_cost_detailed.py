@@ -2,10 +2,18 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 from qcore import qtbl
+from qutil import cal_link, calurl
 
 from .mod_building_cost_detailed import default_materials_table, estimate_materials
 
 __all__ = ['building_cost_detailed', 'building_cost_detailed__info']
+RATE_DOMAIN = 'construction'
+SHOW_RATES_BUTTON = cal_link(
+    calurl('rates', f'rate_domain/{RATE_DOMAIN}'),
+    f'Show Rates: {RATE_DOMAIN.title()}',
+    'btn btn-info btncmd',
+    button=True,
+)
 
 
 def building_cost_detailed__info():
@@ -13,6 +21,7 @@ def building_cost_detailed__info():
         'title': 'Building Cost Estimator - Detailed',
         'kins': 'rates, building_cost_quick',
         'tags': 'construction, estimation',
+        'rate_domain': RATE_DOMAIN,
         'desc': (
             'Estimate the major materials and the labour of a one or multi-storied RCC-frame building with brick infill: '
             'cement, steel, sand, aggregate, bricks, finishes and skilled and unskilled mandays. '
@@ -111,6 +120,7 @@ def building_cost_detailed__info():
             'Labour by Trade': {'attrs': {'page_all': True}},
             'Cost Breakdown': {'attrs': {'page_all': True}},
         },
+        'inserts': {'form_bottom': SHOW_RATES_BUTTON},
         'input_blocks': [{
             'column': 1,
             'tabs': [

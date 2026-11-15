@@ -1,9 +1,17 @@
 from calc import QCost
 from qcore import Qty
+from qutil import cal_link, calurl
 
 # Breakdown and volume outputs are not priced by include_cost.
 COLUMN_COST_SPEC = '~Longitudinal steel, ~Stirrup steel, ~Concrete volume'
 COST_HELP = 'Price the quantities with your saved Schedule of Rates (illustrative rates are used until you save one).'
+RATE_DOMAIN = 'construction'
+SHOW_RATES_BUTTON = cal_link(
+    calurl('rates', f'rate_domain/{RATE_DOMAIN}'),
+    f'Show Rates: {RATE_DOMAIN.title()}',
+    'btn btn-info btncmd',
+    button=True,
+)
 
 
 def rcc_column__info():
@@ -17,6 +25,7 @@ def rcc_column__info():
             'for each hook.'
         ),
         'calculate': 'Estimate',
+        'rate_domain': RATE_DOMAIN,
         'schema': {
             'number_of_bars': {
                 'type': 'integer',
@@ -25,6 +34,7 @@ def rcc_column__info():
             },
             'include_cost': {'help_text': COST_HELP},
         },
+        'inserts': {'form_bottom': SHOW_RATES_BUTTON},
     }
 
 
@@ -130,6 +140,6 @@ def rcc_column(
         'Number of stirrups': number_of_stirrups,
     }
     if include_cost:
-        result.update(QCost.from_result(result, COLUMN_COST_SPEC).results(
+        result.update(QCost.from_result(result, COLUMN_COST_SPEC, rate_domain=RATE_DOMAIN).results(
             per=result['Concrete volume'], per_label='Volume'))
     return result

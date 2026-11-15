@@ -9,7 +9,7 @@ import qconst
 from qcore import qcode, qtbl
 from calc import QResults, scalar_results, FLD_SHOW_CHOICE, publish_shared_dataset, ResultCellsError, FLD_RESULT_CELLS, \
     FLD_VARIATION_TARGET
-from qutil import QThread, parameter_values
+from qutil import QThread, parameter_values, step2_spec
 
 SHARED_SCENARIO_TYPE = 'scenario_table'
 SHARED_SCENARIO_KEY = 'compare_master'
@@ -87,12 +87,12 @@ def compare__info():
             'dataset_key': SHARED_SCENARIO_KEY,
         },
         'step2': [
-            {
-                'step': 'run',
-                'func': 'scenario',
-                'caption': 'Evaluate Scenarios',
-                'spec': {'scenarios': 'table'},
-            },
+            step2_spec(
+                func='scenario',
+                caption='Evaluate Scenarios',
+                step='run',
+                spec={'scenarios': 'table'},
+            ),
         ],
         'kins': 'redo, monte_carlo',
         'tags': 'comparison, discrete values, parameter sweep, sensitivity',

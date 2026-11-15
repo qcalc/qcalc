@@ -6,7 +6,6 @@ import pandas as pd
 from calc import (
     QKeep,
     valid_numq,
-    QData,
     publish_shared_dataset,
     get_shared_dataset,
     QCost,
@@ -15,11 +14,22 @@ from calc import (
     load_rates,
 )
 import json
-from qutil import action_button, addcal_button, action_script
+from qutil import action_button, action_script, step2_button, step2_spec
 from qcore import qhtml, qtable, QFormatter
 
 SHARED_RATES_TYPE = 'item_rates'
 SHARED_RATES_KEY = 'rates_master'
+DEFAULT_RATE_DOMAIN = 'construction'
+RATE_DOMAIN_CHOICES = {
+    'construction': 'Construction',
+    'farming': 'Farming',
+    'carpentry': 'Carpentry',
+}
+
+
+def _rate_domain_key(rate_domain=''):
+    domain = str(rate_domain or '').strip().lower() or DEFAULT_RATE_DOMAIN
+    return f'{SHARED_RATES_KEY}:{domain}'
 
 
 def collect__input(_ctx):
@@ -105,29 +115,20 @@ def cost__modify(_ctx, arg_name, arg_value, _action):  # _action not used but re
     if arg_name == 'items':
         items = arg_value
         action = _action if isinstance(_action, dict) else {}
+        rate_domain = str(_ctx.value('rate_domain', str, DEFAULT_RATE_DOMAIN) or DEFAULT_RATE_DOMAIN)
         dataset_type = action.get('dataset_type', SHARED_RATES_TYPE)
-        dataset_key = action.get('dataset_key', SHARED_RATES_KEY)
+        dataset_key = action.get('dataset_key', _rate_domain_key(rate_domain))
         shared_record = get_shared_dataset(dataset_type=dataset_type, dataset_key=dataset_key)
 
         if isinstance(shared_record, dict):
             rates = shared_record.get('payload')
         else:
-            # backward compatibility for old sessions that only have legacy rates
-            rates = QData.getp1('rates')
-            if isinstance(rates, pd.DataFrame):
-                publish_shared_dataset(
-                    dataset_type=dataset_type,
-                    dataset_key=dataset_key,
-                    payload=rates,
-                    producer_func='rates',
-                )
-                shared_record = get_shared_dataset(dataset_type=dataset_type, dataset_key=dataset_key)
-                rates = shared_record.get('payload') if isinstance(shared_record, dict) else None
+            rates = None
 
         if isinstance(rates, pd.DataFrame):
             qcost = QCost.from_unit_costs(rates)
         else:  # new session: use the schedule saved in the account
-            qcost = QCost(use_defaults=False)
+            qcost = QCost(use_defaults=False, rate_domain=rate_domain)
         if not qcost.has_rates:
             raise Exception(
                 'No rates saved. Open [Schedule of Rates], click [Load], then apply again.'
@@ -138,46 +139,60 @@ def cost__modify(_ctx, arg_name, arg_value, _action):  # _action not used but re
 
 
 def cost__info():
+    apply_rates_script = action_script(
+        button_name='apply_rate',
+        cmd='__modify',
+        args=['items'],
+        kwargs={
+            'items': {
+                'dataset_type': SHARED_RATES_TYPE,
+            },
+        },
+        sync_table_data=True,
+        enable_table_update_after_swap=True,
+    )
     return {
         'title': 'Calculate Cost',
         'kins': 'rates',
+        'schema': {
+            'rate_domain': {
+                'type': 'select2',
+                'choices': RATE_DOMAIN_CHOICES,
+                'help_text': 'Select or type a domain. Apply Rates uses this domain and Show Rates opens its schedule.',
+            },
+        },
         'consumes_data': {
             'dataset_type': SHARED_RATES_TYPE,
-            'dataset_key': SHARED_RATES_KEY,
+            'dataset_key': _rate_domain_key(DEFAULT_RATE_DOMAIN),
         },
         'inserts': {
-            'form_bottom': addcal_button('rates', 'Schedule of Rates') +
+            'form_bottom': step2_button(
+                func='rates',
+                caption='Show Rates',
+                step='open',
+                spec={'rate_domain': 'rate_domain'},
+                source='input',
+            ) +
                            action_button('apply_rate', 'Apply Rates', 'cmd-rates') +
                            '<p><small class="text-muted ml-2">After [Apply Rates], click [Update] before [Calculate].</small></p>'
-            # callback_button() # not good for scripting
         },
         'step2': [
-            {'step': 'chart', 'caption': 'Modify Chart', 'spec': {'field': 'Cost Chart'}}
+            step2_spec(func='', caption='Modify Chart', step='chart', spec={'field': 'Cost Chart'})
         ],
-        'script': action_script(
-            button_name='apply_rate',
-            cmd='__modify',
-            args=['items'],
-            kwargs={
-                'items': {
-                    'dataset_type': SHARED_RATES_TYPE,
-                    'dataset_key': SHARED_RATES_KEY,
-                },
-            },
-            sync_table_data=True,
-            enable_table_update_after_swap=True,
-        ),
+        'script': apply_rates_script,
     }
 
 
-def cost(items: qtable = pd.DataFrame({'Item': ['Brick'], 'Quantity': ['1000 nos'], 'Unit Cost': ['0.10 UNC/nos']})):
+def cost(items: qtable = pd.DataFrame({'Item': ['Brick'], 'Quantity': ['1000 nos'], 'Unit Cost': ['0.10 UNC/nos']}),
+         rate_domain='construction'):
     qcost = QCost.from_frame(items)
     items2 = qcost.frame(costs=True)
     # | apply formatting as a last action, because formatted values may have commas
     fmt = QFormatter()
     for column in ('Quantity', 'Unit Cost', 'Item Cost'):
         items2[column] = items2[column].apply(fmt.qty)
-    return {'Item Costs': items2, 'Total Cost': qcost.total, 'Cost Chart': qcost.chart()}
+    return {'Rate Domain': str(rate_domain or DEFAULT_RATE_DOMAIN).strip().title(),
+            'Item Costs': items2, 'Total Cost': qcost.total, 'Cost Chart': qcost.chart()}
 
 
 def rates__info():
@@ -185,30 +200,44 @@ def rates__info():
         'title': 'Schedule of Rates',
         'desc': 'Your rates are saved to your account when you click Load, so cost calculations can use them later.',
         'calculate': 'Load',
+        'schema': {
+            'rate_domain': {
+                'type': 'select2',
+                'choices': RATE_DOMAIN_CHOICES,
+                'help_text': 'Select a domain or type a new one. Rates are saved separately per domain.',
+            },
+        },
         'single_instance': True,
         'single_instance_key': 'rates_master',
         'provides_data': {
             'dataset_type': SHARED_RATES_TYPE,
-            'dataset_key': SHARED_RATES_KEY,
+            'dataset_key': _rate_domain_key(DEFAULT_RATE_DOMAIN),
         },
     }
 
 
-def rates__input(_ctx):
-    saved = load_rates()
-    return {} if saved is None else {'rate_schedule': saved}
+def rates__input(ctx):
+    rate_domain = str(ctx.resolved('rate_domain', DEFAULT_RATE_DOMAIN) or DEFAULT_RATE_DOMAIN)
+    saved = load_rates(rate_domain=rate_domain)
+    if saved is None:
+        saved = default_rate_schedule(rate_domain=rate_domain)
+    return {'rate_schedule': saved}
 
 
-def rates(rate_schedule: qtable = default_rate_schedule()):
-    cost_schedule = QCost(schedule=rate_schedule).unit_costs()
-    save_rates(rate_schedule)
+def rates(rate_schedule: qtable = default_rate_schedule(), rate_domain='construction'):
+    rate_domain = str(rate_domain or DEFAULT_RATE_DOMAIN).strip().lower() or DEFAULT_RATE_DOMAIN
+    cost_schedule = QCost(schedule=rate_schedule, rate_domain=rate_domain).unit_costs()
+    save_rates(rate_schedule, rate_domain=rate_domain)
+    # Keep a session-shared copy for calculators (for example cost()) that still use the
+    # shared-data exchange path (Apply Rates -> __modify -> get_shared_dataset()).
     publish_shared_dataset(
         dataset_type=SHARED_RATES_TYPE,
-        dataset_key=SHARED_RATES_KEY,
+        dataset_key=_rate_domain_key(rate_domain),
         payload=cost_schedule,
         producer_func='rates',
+        schema_info={'rate_domain': rate_domain},
     )
-    QData.setp1('rates', cost_schedule)
     return {
+        'Rate Domain': rate_domain.title(),
         'cost_schedule': cost_schedule,
     }

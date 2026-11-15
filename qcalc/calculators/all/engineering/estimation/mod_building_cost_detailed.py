@@ -393,7 +393,7 @@ def estimate_materials(*, plot_length, plot_width, coverage, floors, soil, mater
         items = {n: cell(k, ordered[n]) for n, k, _, _ in orders if n != 'Brick soling'}
         items['Brick'] = result['Brick']  # includes the soling bricks
         items.update({n: result[n] for n in ('Skilled Labour', 'Unskilled Labour') if n in result})
-        cost = QCost()
+        cost = QCost(rate_domain='construction')
         cost.add_all(items)
         result.update(cost.results(per=result['Total Built-up Area'], per_label='Area'))
     if detailed_on and structure_density == 'light' and (floors > 2 or seismic == 'high' or soil == 'poor'):

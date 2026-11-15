@@ -203,9 +203,54 @@ def action_script(
     ''')
 
 
-def addcal_button(calname, caption, icon_class=''):
+def addcal_button(calname, caption, icon_class='', params=''):
     """Build a styled button that inserts a calculator card into the page."""
-    return cal_link(calurl(calname), caption, 'btn btn-info btncmd', icon_class, 'a', '', True)
+    return cal_link(calurl(calname, params=params), caption, 'btn btn-info btncmd', icon_class, 'a', '', True)
+
+
+def step2_spec(func, caption, step='run', spec='', source='both'):
+    """Build one step2 metadata entry using the same argument order as step2_button()."""
+    if not isinstance(step, str) or not step.strip():
+        raise ValueError('step must be a non-empty string')
+
+    entry = {
+        'step': step,
+        'caption': caption,
+    }
+    if func:
+        entry['func'] = func
+    if spec != '':
+        entry['spec'] = spec
+    if source != 'both':
+        entry['source'] = source
+    return entry
+
+
+def step2_button(func, caption, step='run', spec='', source='both', button_class=''):
+    """Build a button that triggers the Step2/QBridge endpoint using current form data."""
+    if not isinstance(step, str) or not step.strip():
+        raise ValueError('step must be a non-empty string')
+
+    classes = 'btn btn-info btncmd ml-2'
+    if button_class:
+        classes += f' {button_class}'
+
+    spec_value = spec if isinstance(spec, str) else json.dumps(spec, separators=(',', ':'))
+    payload = {
+        'step': step,
+        'func': func,
+        'spec': spec_value,
+        'source': source,
+    }
+    vals = escape(json.dumps(payload, separators=(',', ':')), quote=True)
+    caption_html = escape(str(caption))
+    classes_html = escape(classes, quote=True)
+    return (
+        f'<button type="button" class="{classes_html}" '
+        f'hx-post="/calc/step2/" hx-include="closest form" '
+        f'hx-vals="{vals}" hx-target="closest .calc" hx-swap="afterend">'
+        f'{caption_html}</button>'
+    )
 
 
 def list2table(lst, cols, cid, elem, url_format='', url_col=-1):

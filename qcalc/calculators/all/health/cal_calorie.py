@@ -3,6 +3,7 @@
 
 from qcore import Qty
 from calc import FLD_GENDER_CHOICE, activity_choice, calorie_formula_choice
+from qutil import step2_spec
 
 
 def calorie_needs__info():
@@ -54,10 +55,12 @@ def bmr__info():
             'gender': FLD_GENDER_CHOICE,
         },
         'step2': [
-            {
-                'step': 'run', 'func': 'bmi', 'caption': 'Calculate BMI',
-                'spec': {'weight': 'weight', 'height': 'height'}
-            }
+            step2_spec(
+                func='bmi',
+                caption='Calculate BMI',
+                step='run',
+                spec={'weight': 'weight', 'height': 'height'}
+            )
         ],
     }
 

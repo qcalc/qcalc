@@ -62,6 +62,7 @@ INFO_KEYS = {
     'single_instance_key': _key('public'),
     'provides_data': _key('public'),
     'consumes_data': _key('public'),
+    'rate_domain': _key('public'),
     'schema': _key('public'),
     'out_schema': _key('public'),
     'kins': _key('public'),

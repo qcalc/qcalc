@@ -150,6 +150,7 @@ def q1141_read_func_meta(func_id, scope='qpots'):
         'single_instance_key': '',  # internal
         'provides_data': {},
         'consumes_data': {},
+        'rate_domain': '',
         'inserts': {},
         'table_out_all': False,  # True shows all rows of output tables (no pagination)
         # comma separated list of words with proper case that needs to be unchanged

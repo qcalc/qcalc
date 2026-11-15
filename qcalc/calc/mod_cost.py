@@ -25,30 +25,49 @@ from qutil import specified_args
 from .mod_cache import QRates
 
 SCHEDULE_COLUMNS = ['Item', 'Price', 'Currency', 'Price Per', 'Price Unit']
-_SLOT = 'schedule'
+_DEFAULT_DOMAIN = 'construction'
 _FRAMES = QSerializer('frame')
 _EMPTY = pd.DataFrame(columns=SCHEDULE_COLUMNS)
-
-
-def default_rate_schedule() -> pd.DataFrame:
-    """Illustrative rates, used until the user saves a Schedule of Rates."""
-    return pd.DataFrame({
+_DEFAULT_DOMAIN_SCHEDULES = {
+    'construction': pd.DataFrame({
         'Item': ['Brick', 'Sand', 'Cement', 'Gravel', 'Steel', 'Floor Tiles', 'Paint', 'Ready-mix Concrete',
                  'Skilled Labour', 'Unskilled Labour'],
         'Price': [10.0, 20.0, 500.0, 75.0, 100.0, 90.0, 700.0, 7500.0, 1200.0, 1000.0],
         'Currency': ['BDT'] * 10,
         'Price Per': [1] * 10,
         'Price Unit': ['ea', 'cft', 'bag', 'cft', 'kg', 'ft^2', 'L', 'm^3', 'manday', 'manday'],
-    })
+    }),
+    'apiculture': pd.DataFrame({
+        'Item': ['Sugar', 'Water', 'Feeding Labour'],
+        'Price': [80.0, 0.5, 1500.0],
+        'Currency': ['BDT'] * 3,
+        'Price Per': [1] * 3,
+        'Price Unit': ['kg', 'L', 'manday'],
+    }),
+}
 
 
-def save_rates(schedule: pd.DataFrame) -> None:
+def _normalize_rate_domain(rate_domain: str = '') -> str:
+    domain = str(rate_domain or '').strip().lower()
+    return domain or _DEFAULT_DOMAIN
+
+
+def default_rate_schedule(rate_domain: str = _DEFAULT_DOMAIN) -> pd.DataFrame:
+    """Illustrative rates of the given domain, used until the user saves a Schedule of Rates."""
+    domain = _normalize_rate_domain(rate_domain)
+    schedule = _DEFAULT_DOMAIN_SCHEDULES.get(domain)
+    return schedule.copy() if schedule is not None else _EMPTY.copy()
+
+
+def save_rates(schedule: pd.DataFrame, rate_domain: str = _DEFAULT_DOMAIN) -> None:
     """Save the schedule to the user's account (to the session for anonymous users)."""
-    QRates.setp1(_SLOT, _FRAMES.serialize(schedule[SCHEDULE_COLUMNS].astype(str)))
+    domain = _normalize_rate_domain(rate_domain)
+    QRates.setp1(domain, _FRAMES.serialize(schedule[SCHEDULE_COLUMNS].astype(str)))
 
 
-def load_rates() -> pd.DataFrame | None:
-    saved = _FRAMES.deserialize(QRates.getp1(_SLOT))
+def load_rates(rate_domain: str = _DEFAULT_DOMAIN) -> pd.DataFrame | None:
+    domain = _normalize_rate_domain(rate_domain)
+    saved = _FRAMES.deserialize(QRates.getp1(domain))
     return saved if isinstance(saved, pd.DataFrame) else None
 
 
@@ -67,16 +86,19 @@ def _currency(rate: Qty) -> str:
 class QCost:
     """Quantities priced with a Schedule of Rates, plus overheads applied on the running subtotal."""
 
-    def __init__(self, schedule: pd.DataFrame | None = None, use_defaults: bool = True):
+    def __init__(self, schedule: pd.DataFrame | None = None, use_defaults: bool = True,
+                 rate_domain: str = _DEFAULT_DOMAIN):
         """schedule: Item/Price/Currency/Price Per/Price Unit table, else the saved one, else the defaults.
 
         use_defaults=False leaves items without a saved rate unpriced instead of using the illustrative defaults.
         """
         self.default = False
+        self.rate_domain = _normalize_rate_domain(rate_domain)
         if schedule is None:
-            schedule = load_rates()
+            schedule = load_rates(rate_domain=self.rate_domain)
         if schedule is None and use_defaults:
-            schedule, self.default = default_rate_schedule(), True
+            schedule = default_rate_schedule(rate_domain=self.rate_domain)
+            self.default = not schedule.empty
         self._rates, self._labels = {}, {}  # casefolded item -> unit cost Qty, item as written
         for _, row in (schedule if schedule is not None else _EMPTY).iterrows():
             unit_price = _num(row['Price']) / _num(row['Price Per'])
@@ -161,8 +183,9 @@ class QCost:
     def notes(self) -> list:
         notes = []
         if self.default:
-            notes.append('No Schedule of Rates is saved, so illustrative default rates were used. Open Schedule of Rates '
-                         'and click Load to save your own; they are then used here.')
+            notes.append(
+                'No Schedule of Rates is saved, so illustrative default rates were used. Open Schedule of Rates '
+                'and click Load to save your own; they are then used here.')
         if self.missing:
             notes.append('Not priced, no rate in the Schedule of Rates for: ' + ', '.join(self.missing) + '.')
         return notes

@@ -26,7 +26,7 @@ GENERATED_KEYS = (
     'title', 'desc', 'calculate', 'layout', 'interactive',
     'input_columns', 'output_columns', 'input_blocks', 'output_blocks',
     'showhide', 'anyof', 'reload', 'autofill', 'related', 'images', 'onsubmit', 'script', 'inserts',
-    'step2', 'single_instance', 'single_instance_key', 'provides_data', 'consumes_data',
+    'step2', 'single_instance', 'single_instance_key', 'provides_data', 'consumes_data', 'rate_domain',
     'schema', 'out_schema', 'kins', 'tags', 'proper', 'remember', 'recall', 'table_out_all', 'fargs',
 )
 INTERNAL = {'name', 'help', 'clean', 'template', 'qsel2', 'qlist', 'table_in', 'table_out', 'xpr', 'url', 'loop', 'cost'}
@@ -36,7 +36,7 @@ OVERRIDABLE = {
     'reload',
     'layout', 'inp1', 'out1', 'input_columns', 'output_columns', 'input_blocks', 'output_blocks', 'onsubmit',
     'script', 'kins', 'tags', 'xpr', 'url', 'loop', 'step2', 'cost', 'single_instance', 'single_instance_key',
-    'provides_data', 'consumes_data', 'inserts',     'table_out_all', 'proper', 'remember', 'recall',
+    'provides_data', 'consumes_data', 'rate_domain', 'inserts', 'table_out_all', 'proper', 'remember', 'recall',
 }
 PUBLIC = {key for key, spec in INFO_KEYS.items() if spec.kind == 'public'}
 # key found in a library calculator but used by nothing

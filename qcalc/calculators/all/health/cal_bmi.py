@@ -2,6 +2,7 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 from qcore import Qty
+from qutil import step2_spec
 
 
 def bmi__info():
@@ -15,10 +16,12 @@ def bmi__info():
             'top': ['calculators/all/obesity.png'],
         },
         'step2': [
-            {
-                'step': 'run', 'func': 'bmr', 'caption': 'Calculate BMR',
-                'spec': {'weight': 'weight', 'height': 'height'}
-            }
+            step2_spec(
+                func='bmr',
+                caption='Calculate BMR',
+                step='run',
+                spec={'weight': 'weight', 'height': 'height'}
+            )
         ],
         'interactive': True,
         'layout': 'lr',
@@ -30,6 +33,5 @@ def bmi__info():
 def bmi(weight='132 lb', height='5.5 ft'):
     weight_kg = Qty(weight, 'kg')
     height_m = Qty(height, 'm')
-    # print(weight_kg, height_m)
     bmi_kgpm2 = weight_kg / height_m ** 2
     return {'BMI': bmi_kgpm2}  # used in bodyfat2()

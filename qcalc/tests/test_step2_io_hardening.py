@@ -112,6 +112,44 @@ def test_q1_step2_run_unpacks_qty_as_string(monkeypatch):
     assert captured["fargs"]["target_arg"] == "2 kg"
 
 
+def test_q1_step2_open_post_uses_form_cid_and_input_source(monkeypatch):
+    captured = {}
+
+    def _fake_open_form(_request, fname, fargs, part):
+        captured.update({"fname": fname, "fargs": fargs, "part": part})
+        return HttpResponse("ok")
+
+    monkeypatch.setattr(views, "q1999_func_to_form", _fake_open_form)
+    monkeypatch.setattr(views_step2.QCals, "quick_find_func", lambda name: name)
+
+    request = _make_request(
+        query={
+            "step": "open",
+            "func": "rates",
+            "cid": "cid_post",
+            "source": "input",
+            "spec": json.dumps({"rate_domain": "rate_domain"}),
+        },
+        method="post",
+    )
+    QThread.set_req(request)
+    QIO.clear()
+    QIO.setp1(
+        "cid_post",
+        {
+            "input": {"rate_domain": "apiculture"},
+            "output": {"rate_domain": "construction"},
+        },
+    )
+
+    response = views_step2.q1_step2(request, _fake_open_form)
+
+    assert response.status_code == 200
+    assert captured["fname"] == "rates"
+    assert captured["part"] == "1"
+    assert captured["fargs"]["rate_domain"] == "apiculture"
+
+
 def test_q1_step2_chart_works_with_packed_chart(monkeypatch):
     captured = {}
 

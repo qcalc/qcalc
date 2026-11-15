@@ -3,6 +3,7 @@
 
 from calc import QCost
 from qcore import Qty, qtbl, QTable
+from qutil import step2_spec
 
 __all__ = ['building_cost_quick', 'building_cost_quick__info']
 
@@ -86,9 +87,13 @@ def building_cost_quick__info():
             ],
         }],
         'step2': [
-            {'step': 'run', 'func': 'building_cost_detailed', 'caption': 'Detailed Estimate',
-             'spec': {'plot_length': 'plot_length', 'plot_width': 'plot_width', 'floors': 'floors',
-                      'coverage': 'coverage', 'soil': 'soil'}},
+            step2_spec(
+                func='building_cost_detailed',
+                caption='Detailed Estimate',
+                step='run',
+                spec={'plot_length': 'plot_length', 'plot_width': 'plot_width', 'floors': 'floors',
+                      'coverage': 'coverage', 'soil': 'soil'},
+            ),
         ],
     }
 

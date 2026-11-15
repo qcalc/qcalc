@@ -3,18 +3,19 @@
 
 from datetime import date
 from qcore import Qty, QDateTime
+from qutil import step2_spec
 
 
 def age__info():
     return {
         'title': 'Calculate Age from Date of Birth',
         'step2': [
-            {
-                'step': 'run',
-                'func': 'moonphase',
-                'caption': 'Calculate Moonphase',
-                'spec': {'on_date': 'date_of_birth'},
-            }
+            step2_spec(
+                func='moonphase',
+                caption='Calculate Moonphase',
+                step='run',
+                spec={'on_date': 'date_of_birth'},
+            )
         ],
     }
 

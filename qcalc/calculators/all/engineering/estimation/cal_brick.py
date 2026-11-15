@@ -3,12 +3,20 @@
 
 from calc import QCost
 from qcore import Qty, qfl
+from qutil import cal_link, calurl
 
 # Outputs that are not priced by include_cost.
 CC_COST_SPEC = '~CC Work Volume'
 BRICK_COST_SPEC = '~Brick Work*'
 PLASTER_COST_SPEC = '~Plaster Work Area'
 COST_HELP = 'Price the quantities and mandays with your saved Schedule of Rates (illustrative rates are used until you save one).'
+RATE_DOMAIN = 'construction'
+SHOW_RATES_BUTTON = cal_link(
+    calurl('rates', f'rate_domain/{RATE_DOMAIN}'),
+    f'Show Rates: {RATE_DOMAIN.title()}',
+    'btn btn-info btncmd',
+    button=True,
+)
 
 
 def ccwork__info():
@@ -16,10 +24,12 @@ def ccwork__info():
         'title': 'Estimate Gravel, Cement and Sand for Plain Cement Concrete work',
         'kins': 'rates, brickwork, plaster',
         'tags': 'construction, estimation',
+        'rate_domain': RATE_DOMAIN,
         'schema': {
             'csg_ratio': {'label': 'Cement Sand Gravel Ratio'},
             'include_cost': {'help_text': COST_HELP},
         },
+        'inserts': {'form_bottom': SHOW_RATES_BUTTON},
         'inp1': 0.5,
     }
 
@@ -56,7 +66,8 @@ def ccwork(work_thickness='3 inch', work_length='10.0 ft', work_width='15 inch',
         'Unskilled Labour': Qty(unskilled_labour_manday, 'manday')
     }
     if include_cost:
-        result.update(QCost.from_result(result, CC_COST_SPEC).results(per=result['CC Work Volume'], per_label='Volume'))
+        result.update(QCost.from_result(
+            result, CC_COST_SPEC, rate_domain=RATE_DOMAIN).results(per=result['CC Work Volume'], per_label='Volume'))
     return result
 
 
@@ -65,6 +76,7 @@ def brickwork__info():
         'title': 'Estimate Brick, Cement and Sand for Brickwork',
         'kins': 'rates, ccwork, plaster',
         'tags': 'construction, estimation',
+        'rate_domain': RATE_DOMAIN,
         'interactive': True,
         'schema': {
             'work_thickness': {
@@ -76,6 +88,7 @@ def brickwork__info():
             'include_cost': {'help_text': COST_HELP},
         },
         'layout': 'tb',
+        'inserts': {'form_bottom': SHOW_RATES_BUTTON},
         'inp1': 0.5,
     }
 
@@ -128,7 +141,8 @@ def brickwork(brick_length='9.5 inch', brick_width='4.5 inch', brick_height='2.7
         'Unskilled Labour': Qty(unskilled_labour_nos_v, 'manday')
     }
     if include_cost:
-        result.update(QCost.from_result(result, BRICK_COST_SPEC).results(per=result['Brick Work Volume'], per_label='Volume'))
+        result.update(QCost.from_result(
+            result, BRICK_COST_SPEC, rate_domain=RATE_DOMAIN).results(per=result['Brick Work Volume'], per_label='Volume'))
     return result
 
 
@@ -136,6 +150,7 @@ def plaster__info(): return {
     'title': 'Estimate Cement and Sand for Plaster work',
     'kins': 'rates, brickwork, ccwork',
     'tags': 'construction, estimation',
+    'rate_domain': RATE_DOMAIN,
     'schema': {
         'schema': {
             'cs_ratio': {'label': 'Cement Sand Ratio'},
@@ -143,6 +158,7 @@ def plaster__info(): return {
         'work_side': {'type': 'radio', 'choices': {1: 'One Side', 2: 'Both Side'}},
         'include_cost': {'help_text': COST_HELP},
     },
+    'inserts': {'form_bottom': SHOW_RATES_BUTTON},
     'inp1': 0.5,
 }
 
@@ -179,7 +195,8 @@ def plaster(work_thickness='0.5 inch', work_length='12 ft', work_width='10 ft',
         'Unskilled Labour': Qty(unskilled_labour_manday, 'manday')
     }
     if include_cost:
-        result.update(QCost.from_result(result, PLASTER_COST_SPEC).results(per=result['Plaster Work Area'], per_label='Area'))
+        result.update(QCost.from_result(
+            result, PLASTER_COST_SPEC, rate_domain=RATE_DOMAIN).results(per=result['Plaster Work Area'], per_label='Area'))
     return result
 
 

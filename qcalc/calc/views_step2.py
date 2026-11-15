@@ -9,7 +9,7 @@ This module owns:
 """
 
 import json
-from django.http import JsonResponse
+from django.http import JsonResponse, QueryDict
 import qutil as ut
 from qcore import QChart, step2_pack_value, step2_unpack_for_run
 from qutil import HtmxHttpRequest
@@ -47,6 +47,14 @@ def cache_step2_io(cid, func_id, input_map, output_map, *, pack_value=step2_pack
     )
     QIO.setp1(cid, payload)
     return payload
+
+
+def needs_step2_cache(info):
+    """True when any step2 entry (info list or button field binding) reads the calculated result."""
+    entries = list(info.get('step2') or [])
+    entries += [m['button'] for m in (info.get('schema') or {}).values()
+                if isinstance(m, dict) and isinstance(m.get('button'), dict) and 'step' in m['button']]
+    return any(e.get('source') != 'input' for e in entries)
 
 
 class QBridge:
@@ -114,6 +122,22 @@ class QBridge:
             mapped_from[arg_key] = src_key
         return fargs
 
+    @staticmethod
+    def post_input_map(post_data):
+        if not hasattr(post_data, 'lists'):
+            return {}
+        reserved = {
+            'csrfmiddlewaretoken', 'step', 'func', 'spec', 'source', 'src_cid', 'cid', 'part',
+        }
+        posted = {}
+        for key, values in post_data.lists():
+            if not isinstance(key, str) or not key.strip() or key in reserved:
+                continue
+            if not values:
+                continue
+            posted[key] = values[0] if len(values) == 1 else values
+        return posted
+
 
 def q1_step2(request: HtmxHttpRequest, open_func=None):
     """Execute Step2 action for a calculator card."""
@@ -126,6 +150,11 @@ def q1_step2(request: HtmxHttpRequest, open_func=None):
     fcid = (data.get('src_cid', "") or data.get('cid', "")).strip()
     fsource = data.get('source', 'both')
     fspec = QBridge.parse_spec(data.get('spec', ''))
+    posted_inputs = QBridge.post_input_map(data) if request.method == 'POST' else {}
+    if request.method == 'POST':
+        # | the posted form belongs to the source calculator, the new calculator must be opened, not calculated
+        request.GET = QueryDict(mutable=True)
+        request.method = 'GET'
     # | spec supports:
     # | 1) run mapping dict: {'dest_arg': 'source_field'}
     # | 2) selector syntax accepted by specified_args(): 'weight,height' / '~skip_this'
@@ -137,6 +166,8 @@ def q1_step2(request: HtmxHttpRequest, open_func=None):
     if fstep in ('run', 'open'):
         ff = QCals.quick_find_func(fname)
         source_map = QBridge.source_map(step2_io, source=fsource)
+        if posted_inputs and fsource == 'input':
+            source_map = {**source_map, **posted_inputs}
         fargs = QBridge.map_args(source_map, fspec)
         return open_func(request, fname=ff, fargs=fargs, part='1')
 

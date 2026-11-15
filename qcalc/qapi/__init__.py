@@ -42,7 +42,7 @@ from qcore import (
 from qutil import (
     DotDict, dd_list,  # mod_dict
     user_name, user_process, user_ip, local_ip,  # mod_user
-    page_link, calurl, cal_link, callback_button, action_button, action_script, addcal_button,  # mod_links
+    page_link, calurl, cal_link, callback_button, action_button, action_spec, addcal_button,  # mod_links
     iif, joinx, css2strs,  # mod_basic
     md2html, demo_url, is_debug,
     specified_args, preprocess_expression, variable_to_title,
@@ -97,7 +97,7 @@ __evacon__ = [
     'QImage', 'qf2img', 'nparray_to_bio',
     'QChart', 'QGeo', 'QMap', 'SmartCalc',
     'user_name', 'user_process', 'user_ip', 'local_ip',  # qutil.mod_user
-    'page_link', 'calurl', 'cal_link', 'callback_button', 'action_button', 'action_script', 'addcal_button',
+    'page_link', 'calurl', 'cal_link', 'callback_button', 'action_button', 'action_spec', 'addcal_button',
     # qutil.mod_links
     'today', 'now', 'spellnow',  # qcore.qd_datetime
     'md2html', 'demo_url', 'is_debug', 'is_blank', 'normalize_name', 'to_float', 'pct2fraction', 'val2fraction',

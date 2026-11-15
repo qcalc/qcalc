@@ -59,7 +59,8 @@ def bmr__info():
                 func='bmi',
                 caption='Calculate BMI',
                 step='run',
-                spec={'weight': 'weight', 'height': 'height'}
+                spec={'weight': 'weight', 'height': 'height'},
+                source='input',
             )
         ],
     }

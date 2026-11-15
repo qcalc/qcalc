@@ -176,6 +176,23 @@
 
     bindAfterRequestCleanup();
 
+    // buttons rendered by action_attrs(): table sync and update-button handling around the request
+    document.addEventListener('click', function(ev) {
+        var btn = ev.target.closest ? ev.target.closest('button[data-qcalc-action]') : null;
+        if (!btn) {
+            return;
+        }
+        var $btn = $(btn);
+        if (btn.hasAttribute('data-qcalc-sync-table')) {
+            updateAllData($btn);
+        }
+        if (btn.hasAttribute('data-qcalc-update-after-swap')) {
+            qcalc_EnableTableUpdateAfterSwap(getCidOf($btn));
+        }
+        $btn.addClass('is-busy');
+        $(document).one('htmx:afterRequest', function() { $btn.removeClass('is-busy'); });
+    }, true);
+
     window.QCalcActions = {
         updateExtra: updateExtra,
         clearExtraCmd: clearExtraCmd,

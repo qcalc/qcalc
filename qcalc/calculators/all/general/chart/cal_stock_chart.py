@@ -4,7 +4,7 @@
 import pandas as pd
 import numpy as np
 from qcore import qchar, qtable, QChart, as_qtable, qhtml, qurl, QTable, css2ints, css2floats
-from qutil import QThread, demo_url, action_script
+from qutil import QThread, demo_url, action_spec
 import mplfinance as mpf
 
 
@@ -239,20 +239,15 @@ def stock_chart__info():
         function toggle_renko_pnf_fields(v){
             return [v === 'renko', v === 'pnf', v === 'pnf'];
         }
-        ''' + action_script(
-            button_name='@load_csv',
-            cmd='load',
-            field_refs={
-                'from': 'data',
-                'to': 'data',
-                'url': 'csv_url',
-            },
-            extra={
-                'delimiter': ',',
-                'quoting': '1',
-            },
-        ),
+        ''',
         'schema': {
+            'load_csv': {
+                'button': action_spec(
+                    'load',
+                    spec={'from': 'data', 'to': 'data', 'url': 'csv_url'},
+                    extra={'delimiter': ',', 'quoting': '1'},
+                ),
+            },
             'data': {
                 'help_text': 'Input OHLCV table with columns Date, Open, High, Low, Close, and optional Volume.',
             },

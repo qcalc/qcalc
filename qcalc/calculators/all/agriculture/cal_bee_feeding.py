@@ -8,6 +8,8 @@ from qcore import Qty
 from qutil import cal_link, calurl
 
 RATE_DOMAIN = 'apiculture'
+# DEFAULT_SYRUP_RATE = '0.5 L/unit/day'
+# DEFAULT_DRY_SUGAR_RATE = '0.5 kg/unit/day'
 COST_SPEC = 'Sugar, Water, Feeding Labour'
 COST_HELP = 'Price sugar, water and labour with your saved Schedule of Rates (illustrative rates are used until you save one).'
 SHOW_RATES_BUTTON = cal_link(
@@ -36,9 +38,6 @@ def bee_feeding__info():
                 'help_text': 'Colony count as a unit quantity, for example 50 unit.',
             },
             'feed_type': {'type': 'radio', 'choices': {'syrup': 'Sugar syrup', 'dry': 'Dry sugar'}, 'initial': 'syrup'},
-            'feeding_rate_per_colony': {
-                'help_text': 'Use L/unit/day for syrup and kg/unit/day for dry sugar.',
-            },
             'sugar_concentration': {
                 'help_text': 'Syrup only. Sugar share by weight.',
             },
@@ -47,6 +46,16 @@ def bee_feeding__info():
             },
             'include_cost': {'help_text': COST_HELP},
         },
+        'showhide': {
+            'feed_type': {
+                'fields': ['syrup_rate_per_colony', 'sugar_concentration', 'syrup_density', 'batch_size',
+                           'dry_rate_per_colony'],
+                'callback': {
+                    'syrup': "[1,1,1,1,0]",
+                    'dry': "[0,0,0,0,1]",
+                },
+            },
+        },
         'inserts': {'form_bottom': SHOW_RATES_BUTTON},
         'tags': 'beekeeping, apiculture, feeding, syrup, sugar, cost',
     }
@@ -54,13 +63,14 @@ def bee_feeding__info():
 
 def bee_feeding(
     colonies='50 unit',
-    feeding_rate_per_colony='0.5 L/unit/day',
     feeding_duration='10 day',
     feeding_interval='1 day',
     feed_type='syrup',
+    syrup_rate_per_colony='0.5 L/unit/day',
     sugar_concentration='50 pct',
     syrup_density='',
     batch_size='100 L',
+    dry_rate_per_colony='0.5 kg/unit/day',
     labour_productivity='250 unit/manday',
     other_expenses='0 pct',
     include_cost=False,
@@ -77,7 +87,7 @@ def bee_feeding(
     }
 
     if str(feed_type).strip().lower() == 'dry':
-        daily_rate = Qty(feeding_rate_per_colony, 'kg/unit/day')
+        daily_rate = Qty(dry_rate_per_colony, 'kg/unit/day')
         daily_dry_sugar = colonies_unit.val * daily_rate.val
         total_dry_sugar = daily_dry_sugar * duration_days.val
         per_feeding = total_dry_sugar / feedings
@@ -90,7 +100,7 @@ def bee_feeding(
             'Feed Type': 'Dry sugar',
         })
     else:
-        daily_rate = Qty(feeding_rate_per_colony, 'L/unit/day')
+        daily_rate = Qty(syrup_rate_per_colony, 'L/unit/day')
         sugar_fraction = Qty(sugar_concentration, 'unit').val
         if sugar_fraction < 0 or sugar_fraction > 1:
             raise Exception('sugar_concentration must be between 0 pct and 100 pct.')

@@ -6,7 +6,7 @@ from django import template
 from qcore import qhtml, UnitRegistry, QtyRegistry, qjson_dumps, qpretty_json
 from qutil import href_url, is_debug, user_name, user_process, hx_target, fid2owner
 from django.utils.safestring import mark_safe
-from qutil import page_link, iif, qaddr, cal_link, calurl, encode_url_param
+from qutil import page_link, iif, qaddr, cal_link, calurl, encode_url_param, step2_attrs
 from qvars import qc_gpref as gs
 from qsite import STATIC_VERSION
 from django.utils.html import format_html
@@ -151,6 +151,17 @@ def is_in(value, list_or_dict):
 @register.filter
 def jdumps(dict_):
     return qjson_dumps(dict_)
+
+
+@register.simple_tag
+def step2_out(entries):
+    """Step2 entries for the post-Calculate row: those that read the result and have no insert slot."""
+    return [e for e in (entries or []) if not e.get('place') and e.get('source') != 'input']
+
+
+@register.simple_tag
+def step2_hx(entry, cid):
+    return mark_safe(step2_attrs(entry, cid))
 
 
 @register.simple_tag

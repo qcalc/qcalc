@@ -5,7 +5,6 @@ import pandas as pd
 import re
 import json
 from html import escape
-from textwrap import dedent
 
 
 def page_link(pageurl, caption='', link_class="", icon_class="", cid='', card=False):
@@ -129,128 +128,119 @@ def callback_button(sfunc, caption, cmd, args=None, kwargs=None, spinner=False):
     return htm
 
 
-def action_button(name, caption, button_class='', spinner=False):
-    """Build a named button for a calculator form action script.
-    action_button() is suitable for manually constructed form_top or form_bottom inserts, 
-    such as Apply Rates and Apply Compare. It is not currently a replacement for 
-    declarative form-field buttons btn:0.
-    Set ``spinner=True`` to show the calculate-button spinner while the action runs.
-    """
-    if not isinstance(name, str) or not name:
-        raise ValueError('name must be a non-empty string')
-
-    classes = 'btn btn-info btncmd ml-2'
-    if spinner:
-        classes += ' btn-spin'
-    if button_class:
-        classes += f' {button_class}'
-
-    return (
-        f'<button type="button" class="{escape(classes, quote=True)}" '
-        f'name="{escape(name, quote=True)}">{_spin_inner(escape(str(caption)), spinner)}</button>'
-    )
-
-
-def action_script(
-    button_name, cmd, field_refs=None, args=None, kwargs=None, extra=None,
-    sync_table_data=False, enable_table_update_after_swap=False):
-    """Build a named action_button handler that submits a structured calculator command."""
-    if not isinstance(button_name, str) or not button_name:
-        raise ValueError('button_name must be a non-empty string')
-
-    def field_ref(field_name):
-        if not isinstance(field_name, str) or not field_name:
-            raise ValueError('Calculator field names must be non-empty strings')
-        return f'@{field_name}'
-
-    payload = {'cmd': cmd}
-    payload.update(extra or {})
-
-    if field_refs:
-        payload.update({
-            property_name: field_ref(field_name)
-            for property_name, field_name in field_refs.items()
-        })
-    if args:
-        payload['args'] = [field_ref(field_name) for field_name in args]
-    if kwargs:
-        payload['kwargs'] = {
-            field_ref(field_name): action
-            for field_name, action in kwargs.items()
-        }
-
-    selector = json.dumps(f'button[name="{button_name}"]')
-    payload_json = json.dumps(payload, separators=(',', ':'))
-    sync_script = 'updateAllData($(this));' if sync_table_data else ''
-    update_script = (
-        'qcalc_EnableTableUpdateAfterSwap(cid);'
-        if enable_table_update_after_swap else ''
-    )
-
-    return dedent(f'''
-        $(document).ready(function() {{
-            const buttonSelector = {selector};
-            $(buttonSelector).on("click", function() {{
-                {sync_script}
-                const cid = getCidOf($(this));
-                {update_script}
-                const busyButton = $(this).addClass("is-busy");
-                $(document).one("htmx:afterRequest", function() {{ busyButton.removeClass("is-busy"); }});
-                window.QCalcActions.updateExtra(cid, {payload_json});
-                window.QCalcActions.qcalc_FullFormSubmit(cid);
-            }});
-        }});
-    ''')
-
-
 def addcal_button(calname, caption, icon_class='', params=''):
     """Build a styled button that inserts a calculator card into the page."""
     return cal_link(calurl(calname, params=params), caption, 'btn btn-info btncmd', icon_class, 'a', '', True)
 
 
-def step2_spec(func, caption, step='run', spec='', source='both'):
-    """Build one step2 metadata entry using the same argument order as step2_button()."""
+def step2_spec(func, caption, step='run', spec='', source=None, place=''):
+    """Build one step2 entry. source: 'input' (live form, shown before Calculate), 'output' or 'both'
+    (cached result, shown after Calculate). place: optional insert slot, e.g. 'form_top'."""
     if not isinstance(step, str) or not step.strip():
         raise ValueError('step must be a non-empty string')
 
     entry = {
         'step': step,
         'caption': caption,
+        'source': source or ('output' if step == 'chart' else 'both'),
     }
     if func:
         entry['func'] = func
     if spec != '':
         entry['spec'] = spec
-    if source != 'both':
-        entry['source'] = source
+    if place:
+        entry['place'] = place
     return entry
 
 
-def step2_button(func, caption, step='run', spec='', source='both', button_class=''):
-    """Build a button that triggers the Step2/QBridge endpoint using current form data."""
-    if not isinstance(step, str) or not step.strip():
-        raise ValueError('step must be a non-empty string')
-
-    classes = 'btn btn-info btncmd ml-2'
-    if button_class:
-        classes += f' {button_class}'
-
-    spec_value = spec if isinstance(spec, str) else json.dumps(spec, separators=(',', ':'))
-    payload = {
-        'step': step,
-        'func': func,
-        'spec': spec_value,
-        'source': source,
+def step2_attrs(entry, cid=''):
+    """htmx attributes that call the Step2 endpoint. Without cid the live form is posted (input source);
+    with cid the cached result of that card is used."""
+    spec = entry.get('spec', '')
+    vals = {
+        'step': entry['step'],
+        'func': entry.get('func', ''),
+        'spec': spec if isinstance(spec, str) else json.dumps(spec, separators=(',', ':')),
+        'source': entry.get('source', 'both'),
     }
-    vals = escape(json.dumps(payload, separators=(',', ':')), quote=True)
-    caption_html = escape(str(caption))
-    classes_html = escape(classes, quote=True)
-    return (
-        f'<button type="button" class="{classes_html}" '
-        f'hx-post="/calc/step2/" hx-include="closest form" '
-        f'hx-vals="{vals}" hx-target="closest .calc" hx-swap="afterend">'
-        f'{caption_html}</button>'
-    )
+    include = ''
+    if cid:
+        vals['src_cid'] = cid
+    else:
+        include = 'hx-include="closest form" '
+    vals_html = escape(json.dumps(vals, separators=(',', ':')), quote=True)
+    return (f'hx-post="/calc/step2/" {include}hx-vals="{vals_html}" '
+            f'hx-target="closest .calc" hx-swap="afterend"')
+
+
+def step2_html(entry, button_class=''):
+    """Render one step2 entry as a button."""
+    classes = escape(f'btn btn-info btncmd {button_class}'.strip(), quote=True)
+    return (f'<button type="button" class="{classes}" {step2_attrs(entry)}>'
+            f'{escape(str(entry.get("caption", "")))}</button>')
+
+
+def step2_button(func, caption, step='run', spec='', source='input', button_class=''):
+    """Hand-placed step2 button for any insert slot (form_top, form_bottom, out_top, ...)."""
+    return step2_html(step2_spec(func, caption, step, spec, source), button_class)
+
+
+def action_spec(cmd, caption='', spec=None, args=None, kwargs=None, extra=None,
+                sync_table=False, update_after_swap=False):
+    """Build one same-card action entry for a btn:0 field, bound as schema[field]['button'].
+    cmd is the command the calculator hooks receive (e.g. 'load', '__modify'); spec maps payload properties to
+    field names, args/kwargs name the fields the command modifies, extra holds literal values.
+    sync_table: sync the input tables before the request; update_after_swap: re-enable the table update button."""
+    if not isinstance(cmd, str) or not cmd.strip():
+        raise ValueError('cmd must be a non-empty string')
+
+    entry = {'cmd': cmd}
+    for key, value in (('caption', caption), ('spec', spec), ('args', args), ('kwargs', kwargs),
+                       ('extra', extra), ('sync_table', sync_table), ('update_after_swap', update_after_swap)):
+        if value:
+            entry[key] = value
+    return entry
+
+
+def action_attrs(entry, func):
+    """htmx attributes that post the form with a command to the calculator func and refresh the form."""
+    payload = {'cmd': entry['cmd'], **(entry.get('extra') or {}), **(entry.get('spec') or {})}
+    if entry.get('args'):
+        payload['args'] = list(entry['args'])
+    if entry.get('kwargs'):
+        payload['kwargs'] = entry['kwargs']
+    # | hx-swap must be explicit, see callback_button()
+    vals = escape(json.dumps({'extra': payload, 'qcalc_structural_cmd': '1'}, separators=(',', ':')), quote=True)
+    flags = ''.join(f' data-qcalc-{name}="1"' for name, key in
+                    (('sync-table', 'sync_table'), ('update-after-swap', 'update_after_swap')) if entry.get(key))
+    return (f'data-qcalc-action="1"{flags} hx-post="/calc/{escape(str(func), quote=True)}/?part=2" '
+            f'hx-target="closest form" hx-swap="innerHTML" hx-vals="{vals}"')
+
+
+def action_button(func, caption, cmd, spec=None, args=None, kwargs=None, extra=None,
+                  sync_table=False, update_after_swap=False, button_class=''):
+    """Hand-placed same-card action button for a form insert (form_top, form_bottom, ...) of calculator func.
+    Takes the same arguments as action_spec(); inside the form, prefer a btn:0 field bound to action_spec()."""
+    entry = action_spec(cmd, caption, spec, args, kwargs, extra, sync_table, update_after_swap)
+    classes = escape(f'btn btn-info btncmd {button_class}'.strip(), quote=True)
+    return f'<button type="button" class="{classes}" {action_attrs(entry, func)}>{escape(str(caption))}</button>'
+
+
+def button_attrs(entry, func='', cid=''):
+    """htmx attributes of a button bound to a field: a same-card action (cmd) or a step2 entry (step)."""
+    return action_attrs(entry, func) if 'cmd' in entry else step2_attrs(entry, cid)
+
+
+def prefix_button_names(entry, prefix):
+    """Copy of a button entry with its field names prefixed, for a calculator nested in another one."""
+    entry = dict(entry)
+    if isinstance(entry.get('spec'), dict):  # values are field names, keys are payload properties or other-calculator arguments
+        entry['spec'] = {k: prefix + v if isinstance(v, str) else v for k, v in entry['spec'].items()}
+    if entry.get('args'):
+        entry['args'] = [prefix + name for name in entry['args']]
+    if entry.get('kwargs'):
+        entry['kwargs'] = {prefix + name: action for name, action in entry['kwargs'].items()}
+    return entry
 
 
 def list2table(lst, cols, cid, elem, url_format='', url_col=-1):

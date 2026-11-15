@@ -20,7 +20,8 @@ def bmi__info():
                 func='bmr',
                 caption='Calculate BMR',
                 step='run',
-                spec={'weight': 'weight', 'height': 'height'}
+                spec={'weight': 'weight', 'height': 'height'},
+                source='input',
             )
         ],
         'interactive': True,

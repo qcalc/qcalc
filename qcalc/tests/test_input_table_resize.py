@@ -7,6 +7,7 @@ import qsett
 qsett.init()
 
 import json
+import re
 from types import SimpleNamespace
 
 import pandas as pd
@@ -237,70 +238,46 @@ def test_callback_button_sets_explicit_inner_swap():
     assert 'hx-swap="innerHTML"' in html
 
 
-def test_action_button_builds_named_script_button():
+def test_action_button_posts_the_command_to_the_calculator_and_escapes_values():
     from qutil.mod_links import action_button
 
-    html = action_button('apply_rate', 'Apply Rates', 'cmd-rates')
+    html = action_button('apply"rate', '<Apply>', '__modify', args=['items'],
+                         kwargs={'items': {'dataset_type': 'item_rates'}}, sync_table=True,
+                         update_after_swap=True, button_class='custom" class')
+    vals = json.loads(re.search(r'hx-vals="([^"]*)"', html).group(1).replace('&quot;', '"'))
 
-    assert html == (
-        '<button type="button" class="btn btn-info btncmd ml-2 cmd-rates" '
-        'name="apply_rate">Apply Rates</button>'
-    )
-
-
-def test_action_button_escapes_html_values():
-    from qutil.mod_links import action_button
-
-    html = action_button('apply"rate', '<Apply>', 'custom" class')
-
-    assert 'name="apply&quot;rate"' in html
-    assert 'class="btn btn-info btncmd ml-2 custom&quot; class"' in html
-    assert '&lt;Apply&gt;' in html
+    assert 'hx-post="/calc/apply&quot;rate/?part=2"' in html
+    assert 'class="btn btn-info btncmd custom&quot; class"' in html and '&lt;Apply&gt;' in html
+    assert 'data-qcalc-action="1" data-qcalc-sync-table="1" data-qcalc-update-after-swap="1"' in html
+    assert vals == {'extra': {'cmd': '__modify', 'args': ['items'], 'kwargs': {'items': {'dataset_type': 'item_rates'}}},
+                    'qcalc_structural_cmd': '1'}
+    assert 'data-qcalc-sync-table' not in action_button('f', 'Go', 'load')
 
 
-def test_action_script_builds_load_payload_with_field_references():
-    from qutil.mod_links import action_script
+@pytest.mark.parametrize('calculator, caption, cmd', [
+    ('csv_editor', 'Load CSV', 'load'),
+    ('stock_chart', 'Load CSV', 'load'),
+    ('cost', 'Apply Rates', '__modify'),
+    ('scenario', 'Apply Compare', '__modify'),
+])
+def test_calculator_action_buttons_post_the_command_without_a_script(calculator, caption, cmd):
+    from django.test import Client
 
-    script = action_script(
-        button_name='@load',
-        cmd='load',
-        field_refs={
-            'from': 'upload_csv',
-            'to': 'csv_table',
-            'url': 'csv_url',
-        },
-        extra={'delimiter': ',', 'quoting': '1'},
-    )
+    html = Client(HTTP_HOST='localhost').get(f'/calc/core/{calculator}/').content.decode()
+    button = re.search(rf'<button[^>]*data-qcalc-action[^>]*>{caption}</button>', html).group(0)
+    vals = json.loads(re.search(r'hx-vals="([^"]*)"', button).group(1).replace('&quot;', '"'))
 
-    assert 'button[name=\\"@load\\"]' in script
-    assert (
-        '{"cmd":"load","delimiter":",","quoting":"1",'
-        '"from":"@upload_csv","to":"@csv_table","url":"@csv_url"}'
-    ) in script
+    assert f'hx-post="/calc/{calculator}/?part=2"' in button
+    assert vals['extra']['cmd'] == cmd
+    assert 'button[name=' not in html
 
 
-def test_action_script_builds_modify_payload_and_optional_hooks():
-    from qutil.mod_links import action_script
+def test_csv_editor_load_button_sends_the_field_names():
+    from django.test import Client
 
-    script = action_script(
-        button_name='apply_rate',
-        cmd='__modify',
-        args=['items'],
-        kwargs={
-            'items': {
-                'dataset_type': 'item_rates',
-                'dataset_key': 'rates_master',
-            },
-        },
-        sync_table_data=True,
-        enable_table_update_after_swap=True,
-    )
+    html = Client(HTTP_HOST='localhost').get('/calc/core/csv_editor/').content.decode()
+    button = re.search(r'<button[^>]*name="load"[^>]*>Load CSV</button>', html).group(0)
+    vals = json.loads(re.search(r'hx-vals="([^"]*)"', button).group(1).replace('&quot;', '"'))
 
-    assert 'button[name=\\"apply_rate\\"]' in script
-    assert 'updateAllData($(this));' in script
-    assert 'qcalc_EnableTableUpdateAfterSwap(cid);' in script
-    assert (
-        '{"cmd":"__modify","args":["@items"],'
-        '"kwargs":{"@items":{"dataset_type":"item_rates",'
-        '"dataset_key":"rates_master"}}}'
-    ) in script
+    assert vals['extra'] == {'cmd': 'load', 'from': 'upload_csv', 'to': 'csv_table', 'delimiter': 'delimiter',
+                             'quoting': 'quoting', 'url': 'csv_url'}

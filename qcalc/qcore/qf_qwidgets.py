@@ -153,6 +153,8 @@ class ButtonWidget(Widget):
         # self.caption = field_meta['label']
         self.btnid = field_meta['attrs']['id']
         self.variant = variant
+        self.button = field_meta.get('button')
+        self.func = field_meta.get('button_func', '')
 
     def get_variant(self):
         v = {
@@ -173,6 +175,9 @@ class ButtonWidget(Widget):
 
     def render(self, name, value, attrs=None, renderer=None):
         v = self.get_variant()
+        if self.button:
+            from qutil import button_attrs  # lazy: qutil must not be imported while qcore loads
+            v['xdef'] = button_attrs(self.button, self.func)
         clk = f' onclick="{v['onclick']}"' if v['onclick'] else ""
         ico = f'<i class="{v['icon']}"></i>' if v['icon'] else ""
         button_html = (f'<button type="{v['type']}" name="{name}" id="{self.btnid}" '

@@ -189,6 +189,8 @@ def q11429_func_to_form_schema(request: HtmxHttpRequest, func_addr, func_id, cid
                 # | else:
                 # |    # 'type' and 'initial' are already considered
                 # |    pass
+            if 'button' in request.json_schema[parent_index]:  # | the button posts to this calculator
+                request.json_schema[parent_index]['button_func'] = func_id
 
         # | propagate readonly from a qty parent to generated child fields, whether they are
         # | nested under comp or emitted as sibling schema entries such as tin_size_uom

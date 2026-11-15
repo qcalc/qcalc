@@ -6,7 +6,7 @@ import pandas as pd
 from qcore import qtbl, qerror, nzv
 from calc import FLD_SHOW_CHOICE, get_shared_dataset
 from calc.mod_result_post import postprocess_scenarios
-from qutil import action_button, addcal_button, action_script
+from qutil import action_button, addcal_button
 from calculators.all.analytics.what_if import SHARED_SCENARIO_TYPE, SHARED_SCENARIO_KEY
 
 
@@ -43,7 +43,16 @@ def scenario__info():
         },
         'inserts': {
             'form_bottom': addcal_button('compare', 'What-If Scenario Comparison') +
-                           action_button('apply_compare', 'Apply Compare', 'cmd-compare')
+                           action_button(
+                               'scenario', 'Apply Compare', '__modify',
+                               args=['scenarios'],
+                               kwargs={'scenarios': {
+                                   'dataset_type': SHARED_SCENARIO_TYPE,
+                                   'dataset_key': SHARED_SCENARIO_KEY,
+                               }},
+                               sync_table=True,
+                               button_class='ml-2 cmd-compare',
+                           )
         },
         'showhide': {
             'mode': {
@@ -65,18 +74,7 @@ def scenario__info():
                 'callback': 'scenario_mode_showhide',
             }
         },
-        'script': action_script(
-            button_name='apply_compare',
-            cmd='__modify',
-            args=['scenarios'],
-            kwargs={
-                'scenarios': {
-                    'dataset_type': SHARED_SCENARIO_TYPE,
-                    'dataset_key': SHARED_SCENARIO_KEY,
-                },
-            },
-            sync_table_data=True,
-        ) + '''
+        'script': '''
         function scenario_mode_showhide(mode){
             var vis = {
                 delta: [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],

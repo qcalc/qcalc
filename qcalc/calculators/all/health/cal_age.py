@@ -15,6 +15,7 @@ def age__info():
                 caption='Calculate Moonphase',
                 step='run',
                 spec={'on_date': 'date_of_birth'},
+                source='input',
             )
         ],
     }

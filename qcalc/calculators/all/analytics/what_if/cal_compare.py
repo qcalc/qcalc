@@ -92,6 +92,7 @@ def compare__info():
                 caption='Evaluate Scenarios',
                 step='run',
                 spec={'scenarios': 'table'},
+                source='output',
             ),
         ],
         'kins': 'redo, monte_carlo',

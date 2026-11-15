@@ -13,7 +13,7 @@ from qconst import (
     SCRIPT_RUNTIME_VAR,
 )
 from qvars import qfunc_info
-from qutil import thread_with_timeout, run_with_timeout, QThread
+from qutil import thread_with_timeout, run_with_timeout, QThread, prefix_button_names
 from qvars import qc_gpref as gs
 import platform
 import logging
@@ -171,8 +171,10 @@ class QFuncInfo(QFuncArgs):
                         flat_dict[arg] = val
 
                         if prefix != '':
-                            if arg == 'schema':  # val is dict of fields
-                                pass
+                            if arg == 'schema':  # val is dict of fields; the names inside a button follow the prefix
+                                for meta in val.values():
+                                    if isinstance(meta, dict) and isinstance(meta.get('button'), dict):
+                                        meta['button'] = prefix_button_names(meta['button'], prefix)
                             elif arg == 'related':  # val is dict of fields
                                 for key in flat_dict[arg]:
                                     fields = flat_dict[arg][key]['fields']

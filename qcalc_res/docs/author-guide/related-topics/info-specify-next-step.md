@@ -38,6 +38,40 @@ Each item commonly uses:
 - `func`: target calculator for `run`
 - `caption`: button text shown to user
 - `spec`: mapping/filter details (format depends on step)
+- `source` (optional): where the data comes from. `input` reads the live form and the button appears before Calculate; `output` or `both` (default; `output` for `chart`) read the latest result and the button appears after Calculate
+- `place` (optional): put the button in an insert slot such as `form_top`, `form_bottom` or `out_top` instead of the default position
+
+Prefer the `step2_spec()` helper from `qutil`, which fills these keys:
+
+```python
+from qutil import step2_spec
+
+'step2': [
+    step2_spec(func='bmr', caption='Calculate BMR', spec={'weight': 'weight', 'height': 'height'}, source='input'),
+]
+```
+
+To position a button between fields, declare a `btn:0` parameter and bind the step under the `button` key of its schema entry
+(use `source='input'`, or the button works only after Calculate):
+
+```python
+def mycal(weight, show_bmr: 'btn:0' = 'Calculate BMR', height=170): ...
+
+'schema': {'show_bmr': {'button': step2_spec('bmr', 'Calculate BMR', spec={'weight': 'weight'}, source='input')}},
+```
+
+The same `button` key binds a same-card action instead of opening another calculator. `action_spec(cmd, caption='', spec=None, args=None, kwargs=None, extra=None, sync_table=False, update_after_swap=False)` takes the command the calculator hooks receive, `spec` maps payload properties to field names, `args`/`kwargs` name the fields a `__modify` command changes, and `extra` holds literal values. It needs no script. For a custom layout, `action_button(func, caption, cmd, ...)` takes the same arguments and returns the button HTML for any insert slot of calculator `func`:
+
+```python
+def csv_editor(upload_csv: qfile = None, csv_table: qtable = ..., load: 'btn:0' = 'Load CSV'): ...
+
+'schema': {'load': {'button': action_spec('load', spec={'from': 'upload_csv', 'to': 'csv_table'})}},
+```
+
+Field names are plain; no `@` prefix is needed (the prefix of a nested calculator is added automatically).
+
+For custom layouts, `step2_button(func, caption, step, spec, source)` returns the button HTML for any insert slot.
+Do not list the same step in `step2` and also place it by hand, or it appears twice.
 
 ---
 

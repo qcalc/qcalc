@@ -345,3 +345,13 @@ def doctrim(docstring):
         trimmed.pop(0)
     # Return a single string:
     return '\n'.join(trimmed)
+
+
+def show_if(items: list, op='===') -> str:
+    """Use with showhide callback"""
+    def fmt(item):
+        return f"'{item}'" if isinstance(item, str) else str(item)
+
+    x = '[' + ', '.join(f"{qconst.SCRIPT_RUNTIME_VAR}{op}{fmt(item)}" for item in items) + ']'
+    # print('!', x, type(x))
+    return x

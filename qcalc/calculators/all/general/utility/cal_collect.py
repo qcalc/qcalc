@@ -14,7 +14,7 @@ from calc import (
     load_rates,
 )
 import json
-from qutil import action_button, action_script, step2_button, step2_spec
+from qutil import action_button, step2_button, step2_spec
 from qcore import qhtml, qtable, QFormatter
 
 SHARED_RATES_TYPE = 'item_rates'
@@ -139,18 +139,6 @@ def cost__modify(_ctx, arg_name, arg_value, _action):  # _action not used but re
 
 
 def cost__info():
-    apply_rates_script = action_script(
-        button_name='apply_rate',
-        cmd='__modify',
-        args=['items'],
-        kwargs={
-            'items': {
-                'dataset_type': SHARED_RATES_TYPE,
-            },
-        },
-        sync_table_data=True,
-        enable_table_update_after_swap=True,
-    )
     return {
         'title': 'Calculate Cost',
         'kins': 'rates',
@@ -172,14 +160,18 @@ def cost__info():
                 step='open',
                 spec={'rate_domain': 'rate_domain'},
                 source='input',
-            ) +
-                           action_button('apply_rate', 'Apply Rates', 'cmd-rates') +
-                           '<p><small class="text-muted ml-2">After [Apply Rates], click [Update] before [Calculate].</small></p>'
+            ) + action_button(
+                'cost', 'Apply Rates', '__modify',
+                args=['items'],
+                kwargs={'items': {'dataset_type': SHARED_RATES_TYPE}},
+                sync_table=True,
+                update_after_swap=True,
+                button_class='ml-2 cmd-rates',
+            ) + '<p><small class="text-muted ml-2">After [Apply Rates], click [Update] before [Calculate].</small></p>'
         },
         'step2': [
             step2_spec(func='', caption='Modify Chart', step='chart', spec={'field': 'Cost Chart'})
         ],
-        'script': apply_rates_script,
     }
 
 

@@ -93,6 +93,7 @@ def building_cost_quick__info():
                 step='run',
                 spec={'plot_length': 'plot_length', 'plot_width': 'plot_width', 'floors': 'floors',
                       'coverage': 'coverage', 'soil': 'soil'},
+                source='input',
             ),
         ],
     }

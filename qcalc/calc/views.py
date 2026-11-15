@@ -24,7 +24,7 @@ from .views_info_meta import (
     _normalize_layout_blocks,
 )
 from .views_result import q1145_result_to_form_schema, q1146_result_transfer
-from .views_step2 import cache_step2_io
+from .views_step2 import cache_step2_io, needs_step2_cache
 from qutil import HtmxHttpRequest, url_to_user_expr, fid2owner
 import qutil as ut
 import json
@@ -559,7 +559,7 @@ def q1149_func_to_form_context(request: HtmxHttpRequest, func_id, cid, var_url_k
         QSave.clear()
         QSave.setp(io_dict)
 
-    if request.fs.cmd == '' and request.POST and request.json_doc['info'].get('step2', []):
+    if request.fs.cmd == '' and request.POST and needs_step2_cache(request.json_doc['info']):
         cache_step2_io(
             cid, func_id, request.json_d4f, request.ojson_d4f
         )

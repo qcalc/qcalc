@@ -5,7 +5,7 @@ import hashlib
 from bs4 import BeautifulSoup
 from qconst import delimiter_help_text
 from qcore import csv2df
-from qutil import nzs, demo_url, md2html, md_math_script, action_script, fetch_url, code2html
+from qutil import nzs, demo_url, md2html, md_math_script, action_spec, fetch_url, code2html, show_if
 from qcore.qf_anno import *
 from qcore import df2normalized
 
@@ -141,17 +141,20 @@ def md_reader__info():
         'showhide': {
             'mode': {
                 'fields': ['upload_markdown', 'md_url', 'markdown_text'],
-                'callback': 'mode_reader_fields',
+                # 1| 'callback': 'mode_reader_fields',
+                # 2| 'callback': "[@==='File', @==='URL', @==='Text']",
+                'callback': show_if(['File', 'URL', 'Text']),
             },
         },
         'inserts': {
             'out_bottom': md_math_script(),
         },
-        'script': """
-        function mode_reader_fields(v){
-            return [v === 'File', v === 'URL', v === 'Text'];
-        }
-        """,
+        # 1| method 1
+        # 'script': """
+        # function mode_reader_fields(v){
+        #     return [v === 'File', v === 'URL', v === 'Text'];
+        # }
+        # """,
         'schema': {
             'mode': {
                 'type': 'choice',
@@ -278,18 +281,16 @@ def csv_editor__info():
                 'type': 'checkbox',
                 'help_text': 'Convert compatible quantity columns to numeric values and append units to column titles.',
             },
-        },
-        'script': action_script(
-            button_name='@load',
-            cmd='load',
-            field_refs={
-                'from': 'upload_csv',
-                'to': 'csv_table',
-                'delimiter': 'delimiter',
-                'quoting': 'quoting',
-                'url': 'csv_url',
+            'load': {
+                'button': action_spec('load', spec={
+                    'from': 'upload_csv',
+                    'to': 'csv_table',
+                    'delimiter': 'delimiter',
+                    'quoting': 'quoting',
+                    'url': 'csv_url',
+                }),
             },
-        ),
+        },
     }
 
 
@@ -394,7 +395,7 @@ def html_reader(upload_html: qfile = None, html_url: qurl = demo_url('demo.html'
     <li>Second item</li>
     <li>Third item</li>
 </ul>
-""", display = 'Code', mode='URL'):
+""", display='Code', mode='URL'):
     # https://www.geeksforgeeks.org/remove-all-style-scripts-and-html-tags-using-beautifulsoup/
     mode = str(mode).strip().upper()
     if mode == 'URL':

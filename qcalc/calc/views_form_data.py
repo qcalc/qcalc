@@ -421,7 +421,7 @@ def q11449_form_data_postprocess_and_run(request, func_id):  # cid
     # For calculate/run, surface form validation errors immediately.
     # Without this early guard, cmd='' invalid posts bypass processing and
     # silently return an empty result.
-    if request.method == 'POST' and fs.cmd in ['', 'run'] and not request.json_doc['clean']:
+    if request.method == 'POST' and fs.cmd in ['', 'run', 'step2'] and not request.json_doc['clean']:
         fs.mark_failed()
         form = request.context.get('input', {}).get('form')
         if form is not None and form.errors:
@@ -527,6 +527,9 @@ def q11449_form_data_postprocess_and_run(request, func_id):  # cid
                 else:
                     result = qerror(f'{command_meta_func}: not found')
                     fs.mark_failed()
+            elif fs.cmd == 'step2':
+                q11441_data_for_function(request)  # | the values Calculate would pass, the function is not run
+                result = qinfo('Next step')
             elif fs.cmd == '__modify':
                 modify_message = getattr(request, '_modify_message', None)
                 if isinstance(modify_message, (qerror, qwarn, qinfo)):

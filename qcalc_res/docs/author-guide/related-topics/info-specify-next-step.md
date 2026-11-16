@@ -38,7 +38,7 @@ Each item commonly uses:
 - `func`: target calculator for `run`
 - `caption`: button text shown to user
 - `spec`: mapping/filter details (format depends on step)
-- `source` (optional): where the data comes from. `input` reads the live form and the button appears before Calculate; `output` or `both` (default; `output` for `chart`) read the latest result and the button appears after Calculate
+- `source` (optional): where the data comes from. `input` reads the live form (validated and converted exactly as Calculate does, so quantities, lists and other composite fields work) and the button appears before Calculate; `output` or `both` (default; `output` for `chart`) read the latest result and the button appears after Calculate
 - `place` (optional): put the button in an insert slot such as `form_top`, `form_bottom` or `out_top` instead of the default position
 
 Prefer the `step2_spec()` helper from `qutil`, which fills these keys:
@@ -70,7 +70,7 @@ def csv_editor(upload_csv: qfile = None, csv_table: qtable = ..., load: 'btn:0' 
 
 Field names are plain; no `@` prefix is needed (the prefix of a nested calculator is added automatically).
 
-For custom layouts, `step2_button(func, caption, step, spec, source)` returns the button HTML for any insert slot.
+For custom layouts, `step2_button(calc, func, caption, step, spec, source)` returns the button HTML for any insert slot of calculator `calc` (the one that hosts the button).
 Do not list the same step in `step2` and also place it by hand, or it appears twice.
 
 ---

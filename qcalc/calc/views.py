@@ -24,7 +24,7 @@ from .views_info_meta import (
     _normalize_layout_blocks,
 )
 from .views_result import q1145_result_to_form_schema, q1146_result_transfer
-from .views_step2 import cache_step2_io, needs_step2_cache
+from .views_step2 import cache_step2_io, cache_step2_input, needs_step2_cache, step2_from_form
 from qutil import HtmxHttpRequest, url_to_user_expr, fid2owner
 import qutil as ut
 import json
@@ -153,6 +153,8 @@ def q1999_func_to_form(request: HtmxHttpRequest, **dictf):  # main view
 
     try:
         q1199_func_to_form_common(request, **dictf)
+        if request.fs.cmd == 'step2':
+            return step2_from_form(request, q1999_func_to_form)
 
         # Ordinary POST → output only.
         # Structural POST → re-render the requested form/calculator part.
@@ -544,6 +546,11 @@ def q1149_func_to_form_context(request: HtmxHttpRequest, func_id, cid, var_url_k
     # print('|',request.json_s2f, request.json_c4f)
 
     result = q11449_form_data_postprocess_and_run(request, func_id)  # , cid
+    if request.fs.cmd == 'step2':  # | the form values are cached for the step, nothing is rendered
+        request.step2_status = result
+        if request.fs.success:
+            cache_step2_input(cid, func_id, request.json_d4f)
+        return
     request.context['input']['extra'] = serialize_persistent_request_prefs(request)
     # update ojson_data, ojson_schema
     proper_dict = request.json_doc['info']['proper']

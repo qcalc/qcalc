@@ -115,47 +115,31 @@ def test_q1_step2_run_unpacks_qty_as_string(monkeypatch):
     assert captured["fargs"]["target_arg"] == "2 kg"
 
 
-def test_q1_step2_open_post_uses_form_cid_and_input_source(monkeypatch):
-    captured = {}
+def _post_step2(calc, fields, step2):
+    from django.test import Client
 
-    def _fake_open_form(_request, fname, fargs, part):
-        captured.update({"fname": fname, "fargs": fargs, "part": part, "method": _request.method,
-                         "cid": _request.GET.get("cid")})
-        return HttpResponse("ok")
+    data = {"cid": f"{calc}__t1", "input_id": 0, **fields, "extra": json.dumps({"cmd": "step2", **step2})}
+    return Client(HTTP_HOST="localhost").post(f"/calc/{calc}/?part=2", data, HTTP_HX_REQUEST="true")
 
-    monkeypatch.setattr(views, "q1999_func_to_form", _fake_open_form)
-    monkeypatch.setattr(views_step2.QCals, "quick_find_func", lambda name: name)
 
-    request = _make_request(
-        query={
-            "step": "open",
-            "func": "rates",
-            "cid": "cid_post",
-            "source": "input",
-            "spec": json.dumps({"rate_domain": "rate_domain"}),
-            "rate_domain": "apiculture",
-        },
-        method="post",
-    )
-    QThread.set_req(request)
-    QIO.clear()
-    QIO.setp1(
-        "cid_post",
-        {
-            "input": {"rate_domain": "construction"},
-            "output": {"rate_domain": "construction"},
-        },
-    )
+def test_input_step2_opens_the_next_calculator_with_the_converted_live_form():
+    step2 = {"step": "run", "func": "bmr", "source": "input",
+             "spec": json.dumps({"weight": "weight", "height": "height"})}
+    fields = {"weight": "70", "weight_uom": "kg", "height": "180", "height_uom": "cm"}
 
-    response = views_step2.q1_step2(request, _fake_open_form)
+    html = _post_step2("bmi", fields, step2).content.decode()
 
-    assert response.status_code == 200
-    assert captured["fname"] == "rates"
-    assert captured["part"] == "1"
-    assert captured["fargs"]["rate_domain"] == "apiculture"
-    # the new calculator is opened (GET) without the source form's cid, never calculated from the posted form
-    assert captured["method"] == "GET"
-    assert captured["cid"] is None
+    assert 'id="form-bmr__' in html and 'id="form-bmi__t1"' not in html
+    assert re.search(r'name="weight"[^>]*value="70(\.0)?"', html) and 'data-default="kg"' in html
+    assert re.search(r'name="height"[^>]*value="180(\.0)?"', html) and 'data-default="cm"' in html
+
+
+def test_input_step2_reports_the_validation_error_like_calculate():
+    step2 = {"step": "run", "func": "bmr", "source": "input", "spec": "weight"}
+
+    response = _post_step2("bmi", {"weight": "abc", "weight_uom": "kg"}, step2)
+
+    assert "Input validation failed" in response["HX-Trigger"] and 'id="form-bmr__' not in response.content.decode()
 
 
 def test_q1_step2_chart_works_with_packed_chart(monkeypatch):
@@ -221,26 +205,56 @@ def test_calc_io_clear_deletes_only_requested_cid():
     assert QIO.getp1("cid_b") is not None
 
 
-def test_q1_step2_both_source_ignores_posted_form_values(monkeypatch):
-    captured = {}
+def _form_fields(html):
+    """name -> value of the inputs and selects of the first calculator form, as the browser would post them."""
+    form = html[html.index("<form"):html.index("</form>")]
+    fields = {}
+    for tag in re.findall(r"<input[^>]*>", form):
+        name = re.search(r'name="([^"]+)"', tag)
+        value = re.search(r'value="([^"]*)"', tag)
+        if name and 'type="button"' not in tag and 'type="file"' not in tag:
+            fields.setdefault(name.group(1), value.group(1) if value else "")
+    for select in re.findall(r"<select[^>]*>", form):
+        name = re.search(r'name="([^"]+)"', select)
+        default = re.search(r'data-default="([^"]*)"', select)
+        if name and default:
+            fields[name.group(1)] = default.group(1)
+    return fields
 
-    def _fake_open_form(_request, fname, fargs, part):
-        captured.update(fargs)
-        return HttpResponse("ok")
 
-    monkeypatch.setattr(views_step2.QCals, "quick_find_func", lambda name: name)
-    request = _make_request(
-        query={"step": "run", "func": "x", "cid": "cid_both", "source": "both",
-               "spec": json.dumps({"a": "a"}), "a": "live"},
-        method="post",
-    )
-    QThread.set_req(request)
+@pytest.mark.parametrize("calc, field, expected", [
+    ("gold", "gold_weight_india", lambda v: v.count(",") == 3 and "vori" in v and "point" in v),  # 4 parts
+    ("gold", "gold_weight_intl", lambda v: v == "10.0 g"),  # one part
+    ("demo_arr2", "x", lambda v: v == [100, 200, 300]),  # qlist
+    ("ccwork", "csg_ratio__gravel_part", lambda v: v == 4.0),  # a part of a composite is a function argument itself
+])
+def test_input_step2_caches_the_values_calculate_would_pass_for_composite_fields(calc, field, expected):
+    from django.test import Client
+
+    client = Client(HTTP_HOST="localhost")
+    fields = _form_fields(client.get(f"/calc/core/{calc}/").content.decode())
+    extra = {"cmd": "step2", "step": "run", "func": "bmi", "source": "input", "spec": ""}
+    data = {**fields, "extra": json.dumps(extra)}
+
+    response = client.post(f"/calc/{calc}/?part=2", data, HTTP_HX_REQUEST="true")
+    assert response.headers.get("HX-Trigger") is None
+    (payload,) = client.get("/calc/io/").json().values()
+    cached = payload["input"]
+
+    assert not any(k.endswith(("_uom", "_part_uom")) for k in cached)  # no raw unit inputs are left over
+    assert expected(cached[field])
+
+
+def test_cache_step2_input_keeps_the_cached_output():
+    QThread.set_req(_make_request())
     QIO.clear()
-    QIO.setp1("cid_both", {"input": {"a": "cached"}, "output": {}})
+    QIO.setp1("cid_k", {"function": "f", "input": {"a": "old"}, "output": {"r": 1}})
 
-    views_step2.q1_step2(request, _fake_open_form)
+    views_step2.cache_step2_input("cid_k", "f", {"a": Qty("2 kg")})
+    cached = QIO.getp1("cid_k")
 
-    assert captured["a"] == "cached"
+    assert cached["output"] == {"r": 1}
+    assert views_step2.QBridge.source_map(cached, "input") == {"a": "2.0 kg"}
 
 
 def test_needs_step2_cache_only_when_an_entry_reads_the_result():
@@ -253,12 +267,15 @@ def test_needs_step2_cache_only_when_an_entry_reads_the_result():
     assert not views_step2.needs_step2_cache({"schema": {"go": {"button": action_spec("load")}}})
 
 
-def test_step2_attrs_post_the_form_for_input_and_the_card_for_output():
+def test_step2_attrs_post_the_form_to_its_calculator_for_input_and_the_card_cache_for_output():
     entry = step2_spec("f", "F", spec={"a": "b"}, source="input")
-    assert 'hx-include="closest form"' in step2_attrs(entry)
-    assert "src_cid" not in step2_attrs(entry)
+    attrs = step2_attrs(entry, func="src")
+    assert 'hx-post="/calc/src/?part=2"' in attrs and 'hx-include="closest form"' in attrs
+    assert "&quot;cmd&quot;:&quot;step2&quot;" in attrs and "src_cid" not in attrs
+    with pytest.raises(ValueError):
+        step2_attrs(entry)
     attrs = step2_attrs(step2_spec("f", "F", spec={"a": "b"}), "c1")
-    assert "hx-include" not in attrs
+    assert 'hx-post="/calc/step2/"' in attrs and "hx-include" not in attrs
     assert "&quot;src_cid&quot;:&quot;c1&quot;" in attrs
 
 
@@ -266,11 +283,11 @@ def test_btn_field_bound_to_step2_renders_htmx_attributes():
     from qcore.qf_qwidgets import ButtonWidget
 
     entry = step2_spec("rates", "Show Rates", "open", {"rate_domain": "rate_domain"}, source="input")
-    meta = {"initial": "Show Rates", "attrs": {"id": "b1"}, "button": entry}
+    meta = {"initial": "Show Rates", "attrs": {"id": "b1"}, "button": entry, "button_func": "cost"}
     html = ButtonWidget(meta, "0").render("show_rates", None)
 
     assert 'class="btn btn-info btncmd"' in html
-    assert 'hx-post="/calc/step2/"' in html and 'hx-include="closest form"' in html
+    assert 'hx-post="/calc/cost/?part=2"' in html and 'hx-include="closest form"' in html
     plain = ButtonWidget({"initial": "Go", "attrs": {"id": "b2"}}, "0").render("go", None)
     assert "hx-post" not in plain
 
@@ -313,10 +330,10 @@ def test_step2_into_inserts_places_input_entries_and_keeps_author_inserts_intact
         step2_spec("f", "Out"),
     ]}
 
-    _step2_into_inserts(info)
+    _step2_into_inserts(info, "host")
 
     assert info["inserts"]["form_bottom"].startswith("<i>x</i><button")
-    assert ">In<" in info["inserts"]["form_bottom"]
+    assert ">In<" in info["inserts"]["form_bottom"] and "/calc/host/?part=2" in info["inserts"]["form_bottom"]
     assert ">Top<" in info["inserts"]["form_top"]
     assert "Out" not in "".join(info["inserts"].values())
     assert authored == {"form_bottom": "<i>x</i>"}

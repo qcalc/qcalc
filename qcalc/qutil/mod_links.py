@@ -153,9 +153,9 @@ def step2_spec(func, caption, step='run', spec='', source=None, place=''):
     return entry
 
 
-def step2_attrs(entry, cid=''):
-    """htmx attributes that call the Step2 endpoint. Without cid the live form is posted (input source);
-    with cid the cached result of that card is used."""
+def step2_attrs(entry, cid='', func=''):
+    """htmx attributes of a step2 button. Input source: the form is posted to calculator func as a 'step2' command, so
+    the server converts the live values exactly as Calculate does. Otherwise the cached result of card cid is used."""
     spec = entry.get('spec', '')
     vals = {
         'step': entry['step'],
@@ -163,26 +163,27 @@ def step2_attrs(entry, cid=''):
         'spec': spec if isinstance(spec, str) else json.dumps(spec, separators=(',', ':')),
         'source': entry.get('source', 'both'),
     }
-    include = ''
-    if cid:
-        vals['src_cid'] = cid
+    if vals['source'] == 'input':
+        if not func:
+            raise ValueError('an input source step2 button needs the calculator that hosts it')
+        url, include, vals = f'/calc/{escape(str(func), quote=True)}/?part=2', 'hx-include="closest form" ', \
+            {'extra': {'cmd': 'step2', **vals}}
     else:
-        include = 'hx-include="closest form" '
+        url, include, vals = '/calc/step2/', '', {**vals, 'src_cid': cid}
     vals_html = escape(json.dumps(vals, separators=(',', ':')), quote=True)
-    return (f'hx-post="/calc/step2/" {include}hx-vals="{vals_html}" '
-            f'hx-target="closest .calc" hx-swap="afterend"')
+    return f'hx-post="{url}" {include}hx-vals="{vals_html}" hx-target="closest .calc" hx-swap="afterend"'
 
 
-def step2_html(entry, button_class=''):
-    """Render one step2 entry as a button."""
+def step2_html(entry, func='', button_class=''):
+    """Render one step2 entry as a button; func is the calculator hosting it (needed for an input source)."""
     classes = escape(f'btn btn-info btncmd {button_class}'.strip(), quote=True)
-    return (f'<button type="button" class="{classes}" {step2_attrs(entry)}>'
+    return (f'<button type="button" class="{classes}" {step2_attrs(entry, func=func)}>'
             f'{escape(str(entry.get("caption", "")))}</button>')
 
 
-def step2_button(func, caption, step='run', spec='', source='input', button_class=''):
-    """Hand-placed step2 button for any insert slot (form_top, form_bottom, out_top, ...)."""
-    return step2_html(step2_spec(func, caption, step, spec, source), button_class)
+def step2_button(calc, func, caption, step='run', spec='', source='input', button_class=''):
+    """Hand-placed step2 button for any insert slot of calculator calc (form_top, form_bottom, out_top, ...)."""
+    return step2_html(step2_spec(func, caption, step, spec, source), calc, button_class)
 
 
 def action_spec(cmd, caption='', spec=None, args=None, kwargs=None, extra=None,
@@ -228,7 +229,7 @@ def action_button(func, caption, cmd, spec=None, args=None, kwargs=None, extra=N
 
 def button_attrs(entry, func='', cid=''):
     """htmx attributes of a button bound to a field: a same-card action (cmd) or a step2 entry (step)."""
-    return action_attrs(entry, func) if 'cmd' in entry else step2_attrs(entry, cid)
+    return action_attrs(entry, func) if 'cmd' in entry else step2_attrs(entry, cid, func)
 
 
 def prefix_button_names(entry, prefix):

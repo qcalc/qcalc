@@ -49,6 +49,15 @@ def cache_step2_io(cid, func_id, input_map, output_map, *, pack_value=step2_pack
     return payload
 
 
+def cache_step2_input(cid, func_id, input_map, *, pack_value=step2_pack_value):
+    """Replace the cached input of a card (its output is kept) with the values of the live form."""
+    payload = QIO.getp1(cid, {})
+    payload = {**(payload if isinstance(payload, dict) else {}), 'function': func_id,
+               'input': pack_value(input_map or {})}
+    QIO.setp1(cid, payload)
+    return payload
+
+
 def needs_step2_cache(info):
     """True when any step2 entry (info list or button field binding) reads the calculated result."""
     entries = list(info.get('step2') or [])
@@ -122,37 +131,31 @@ class QBridge:
             mapped_from[arg_key] = src_key
         return fargs
 
-    @staticmethod
-    def post_input_map(post_data):
-        if not hasattr(post_data, 'lists'):
-            return {}
-        reserved = {
-            'csrfmiddlewaretoken', 'step', 'func', 'spec', 'source', 'src_cid', 'cid', 'part',
-        }
-        posted = {}
-        for key, values in post_data.lists():
-            if not isinstance(key, str) or not key.strip() or key in reserved:
-                continue
-            if not values:
-                continue
-            posted[key] = values[0] if len(values) == 1 else values
-        return posted
-
 
 def q1_step2(request: HtmxHttpRequest, open_func=None):
-    """Execute Step2 action for a calculator card."""
+    """Execute Step2 action on the cached result of a calculator card (output buttons)."""
     if open_func is None:
         from .views import q1999_func_to_form
         open_func = q1999_func_to_form
     data = request.POST if request.method == 'POST' else request.GET
+    return step2_run(request, data, (data.get('src_cid', "") or data.get('cid', "")).strip(), open_func)
+
+
+def step2_from_form(request, open_func):
+    """Input source: the form was converted by the Calculate pipeline and cached (q1149), run the step on that."""
+    if not request.fs.success:
+        return ut.show_modal(request, "Next Step", str(request.step2_status))
+    return step2_run(request, request.fs.extra, request.fs.cid, open_func)
+
+
+def step2_run(request, data, fcid, open_func):
+    """Run one step2 step (data: step, func, spec, source) on the cached IO of the card fcid."""
     fstep = data.get('step', "").strip().lower()  # run, open, chart
     fname = data.get('func', "").strip().lower()
-    fcid = (data.get('src_cid', "") or data.get('cid', "")).strip()
     fsource = data.get('source', 'both')
     fspec = QBridge.parse_spec(data.get('spec', ''))
-    posted_inputs = QBridge.post_input_map(data) if request.method == 'POST' else {}
     if request.method == 'POST':
-        # | the posted form belongs to the source calculator, the new calculator must be opened, not calculated
+        # | the posted request belongs to the source calculator, the new calculator must be opened, not calculated
         request.GET = QueryDict(mutable=True)
         request.method = 'GET'
     # | spec supports:
@@ -166,8 +169,6 @@ def q1_step2(request: HtmxHttpRequest, open_func=None):
     if fstep in ('run', 'open'):
         ff = QCals.quick_find_func(fname)
         source_map = QBridge.source_map(step2_io, source=fsource)
-        if posted_inputs and fsource == 'input':
-            source_map = {**source_map, **posted_inputs}
         fargs = QBridge.map_args(source_map, fspec)
         return open_func(request, fname=ff, fargs=fargs, part='1')
 

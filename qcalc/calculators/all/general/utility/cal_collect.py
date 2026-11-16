@@ -155,6 +155,7 @@ def cost__info():
         },
         'inserts': {
             'form_bottom': step2_button(
+                calc='cost',
                 func='rates',
                 caption='Show Rates',
                 step='open',

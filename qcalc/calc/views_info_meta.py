@@ -97,13 +97,13 @@ def _normalize_layout_blocks(blocks, spec_source):
     return result
 
 
-def _step2_into_inserts(info):
+def _step2_into_inserts(info, func_id):
     """Input-source entries (and any entry with place) render in an insert slot, available before Calculate."""
     inserts = dict(info['inserts'])
     for entry in info['step2']:
         slot = entry.get('place') or ('form_bottom' if entry.get('source') == 'input' else '')
         if slot:
-            inserts[slot] = inserts.get(slot, '') + ut.step2_html(entry)
+            inserts[slot] = inserts.get(slot, '') + ut.step2_html(entry, func_id)
     info['inserts'] = inserts
 
 
@@ -177,7 +177,7 @@ def q1141_read_func_meta(func_id, scope='qpots'):
     for key in INFO_OVERRIDE_KEYS:
         if key in func_info:
             json_doc['info'][key] = func_info[key]
-    _step2_into_inserts(json_doc['info'])
+    _step2_into_inserts(json_doc['info'], func_id)
 
     # preferences defined at the calculator level, the resolver gives them precedence over the session level
     declared = set(declared_prefs(func_info))

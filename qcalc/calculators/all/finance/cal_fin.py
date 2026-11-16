@@ -240,7 +240,8 @@ def irrn__info():  # name conflicts with Iranian Rial IRR
                 func='npv',
                 caption='Net Present Value',
                 step='run',
-                spec={'cashflows': 'cashflows'}
+                spec={'cashflows': 'cashflows'},
+                source='input'
             ),
         ],
     }

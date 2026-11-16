@@ -24,7 +24,7 @@ def to_plain(value):
     return value
 
 
-def qsymbols(scope='api', name_filter=None):
+def qsymbols(scope='api', name_filter=None, include_members=False):
     """
     List callables reachable from eva()/console/mycal() code.
     Optional name_filter can have wildcard (case-insensitive, *=any chars, ?=one char),
@@ -39,6 +39,8 @@ def qsymbols(scope='api', name_filter=None):
       'qty' - search only quantity names
       'all' - search all functions and symbols
       scope can also be a comma separated list of scope names: e.g. 'api, aux'
+    Set include_members=True to include public class members as
+    <ClassSymbol>.<member> in the output.
     """
     from calc import QCals, CalcSandbox, qapis  # local import: calc imports qutil, avoid circular import
 
@@ -103,8 +105,18 @@ def qsymbols(scope='api', name_filter=None):
             name
             for name in QtyRegistry.info
         }
+    if include_members:
+        member_names = set()
+        for name in names:
+            obj = resolve_qsym_obj(name, QCals, CalcSandbox)
+            if inspect.isclass(obj):
+                member_names |= class_member_symbols(name, obj)
+        names |= member_names
+
     entries = []
     for name in names:
+        if name.startswith('_'):
+            continue
         if name_filter and fnmatch.fnmatch(name.lower(), name_filter) == negate:
             continue
 
@@ -136,6 +148,24 @@ def qsymhelp(name):
     if not name:
         return 'Error: a name is required'
 
+    if '.' in name:
+        class_name, member_name = name.split('.', 1)
+        if not class_name or not member_name:
+            return f"Help not found for: {name}"
+
+        cls = resolve_qsym_obj(class_name, QCals, CalcSandbox)
+        if not inspect.isclass(cls):
+            return f"Help not found for: {name}"
+
+        member = inspect.getattr_static(cls, member_name, None)
+        if member is None:
+            return f"Help not found for: {name}"
+
+        help_text = class_member_doc(cls, member_name, member)
+        if not help_text:
+            return f"Help not found for: {name}"
+        return f"*** {name} ***\n{help_text}"
+
     # CAL / UNIT / CUR / QTY use TreeNode metadata.
     for root_name, root in (('calc_root', getattr(QCals, 'calc_root', None)),
                             ('qty_root', getattr(QtyCatalog, 'root', None))):
@@ -157,23 +187,20 @@ def qsymhelp(name):
             help_text = '\n'.join(parts) if parts else ""
             if root_name == 'calc_root':
                 obj = getattr(QCals, 'qfunc_dict', {}).get(name)
-                help_text += "\n" + sig_doc(obj)
+                help_text += "\n" + obj_doc(obj)
 
             return f"*** {name} ***\n{help_text}"
 
     # API / AUX / qapi symbols use inline docstrings.
-    obj = CalcSandbox.symbols.get(name)
-    if obj is None:
-        obj = getattr(QCals, 'qfunc_dict', {}).get(name)
+    obj = resolve_qsym_obj(name, QCals, CalcSandbox)
 
-    if obj is None:
-        try:
-            import qapi
-            obj = getattr(qapi, name, None)
-        except ImportError:
-            obj = None
-
-    help_text = sig_doc(obj)
+    help_text = obj_doc(obj)
+    if not help_text:
+        names = [sym_name for sym_name in qsymbols('all') if sym_name.lower() == name.lower()]
+        if len(names) > 1:
+            return f"Ambiguous symbol name: {name}. Matches: {', '.join(sorted(names))}"
+        if len(names) == 1 and names[0] != name:
+            return qsymhelp(names[0])
     if not help_text:
         return f"Help not found for: {name}"
 
@@ -191,3 +218,118 @@ def sig_doc(obj):
         help_text += f"\n\nNote: {docstring}"
 
     return help_text
+
+
+def resolve_qsym_obj(name, QCals, CalcSandbox):
+    obj = CalcSandbox.symbols.get(name)
+    if obj is None:
+        obj = getattr(QCals, 'qfunc_dict', {}).get(name)
+    if obj is None:
+        try:
+            import qapi
+            obj = getattr(qapi, name, None)
+        except ImportError:
+            obj = None
+    return obj
+
+
+def class_member_doc(cls, member_name, member):
+    if isinstance(member, property):
+        help_text = f"\nProperty: {cls.__name__}.{member_name}"
+        docstring = inspect.getdoc(member.fget)
+        if docstring:
+            help_text += f"\n\nNote: {docstring}"
+        return help_text
+
+    target = member
+    if isinstance(member, staticmethod):
+        target = member.__func__
+    elif isinstance(member, classmethod):
+        target = member.__func__
+
+    if callable(target):
+        try:
+            sig = inspect.signature(target)
+        except (TypeError, ValueError):
+            sig = "(...)"
+        help_text = f"\nMethod: {cls.__name__}.{member_name}{sig}"
+        docstring = inspect.getdoc(target)
+        if docstring:
+            help_text += f"\n\nNote: {docstring}"
+        return help_text
+
+    return f"\nProperty: {cls.__name__}.{member_name}"
+
+
+def class_members_doc(cls):
+    methods = []
+    properties = []
+
+    for name in dir(cls):
+        if name.startswith('_'):
+            continue
+
+        try:
+            member = inspect.getattr_static(cls, name)
+        except Exception:
+            continue
+
+        target = member
+        if isinstance(member, staticmethod):
+            target = member.__func__
+        elif isinstance(member, classmethod):
+            target = member.__func__
+        elif isinstance(member, property):
+            properties.append(name)
+            continue
+
+        if callable(target):
+            try:
+                sig = inspect.signature(target)
+            except (TypeError, ValueError):
+                sig = "(...)"
+            methods.append(f"{name}{sig}")
+            continue
+
+        if not hasattr(member, '__get__') and not hasattr(member, '__set__'):
+            properties.append(name)
+
+    lines = [f"\nClass: {cls.__name__}"]
+    if methods:
+        lines.append("\nPublic methods:")
+        lines.extend(f"- {name}" for name in sorted(methods))
+    if properties:
+        lines.append("\nPublic properties:")
+        lines.extend(f"- {name}" for name in sorted(set(properties)))
+    return "\n".join(lines)
+
+
+def class_member_symbols(class_name, cls):
+    names = set()
+    for member_name in dir(cls):
+        if member_name.startswith('_'):
+            continue
+        try:
+            member = inspect.getattr_static(cls, member_name)
+        except Exception:
+            continue
+
+        target = member
+        if isinstance(member, staticmethod):
+            target = member.__func__
+        elif isinstance(member, classmethod):
+            target = member.__func__
+
+        if isinstance(member, property) or callable(target):
+            names.add(f"{class_name}.{member_name}")
+            continue
+
+        if not hasattr(member, '__get__') and not hasattr(member, '__set__'):
+            names.add(f"{class_name}.{member_name}")
+    return names
+
+
+def obj_doc(obj):
+    if inspect.isclass(obj):
+        return class_members_doc(obj)
+    return sig_doc(obj)

@@ -152,42 +152,43 @@ def qeval(request: HtmxHttpRequest, xpr: str):
     )
 
     xpr = to_python_expr(xpr).strip()
+    xpr_lower = xpr.lower()
 
     # command: strict
-    if xpr in {"strict on", "strict off"}:
-        enabled = xpr.endswith("on")
+    if xpr_lower in {"strict on", "strict off"}:
+        enabled = xpr_lower.endswith("on")
         QPref.setp1("strict_assign", enabled)
         stdout = out.flush()
         return f"strict assign set to {'on' if enabled else 'off'}", stdout
-    elif xpr == "strict":
+    elif xpr_lower == "strict":
         stdout = out.flush()
         return f"strict assign is {'on' if strict_assign else 'off'}", stdout
 
     # command: forget
-    if xpr == "forget":
+    if xpr_lower == "forget":
         usyms.clear()
         QRam.clear()
         stdout = out.flush()
         return "Assigned variables cleared", stdout
 
     # command: help
-    if xpr in ["?", "help"]:
+    if xpr in ["?", "help"] or xpr_lower == "help":
         help_text = (
             "Commands:\n"
-            "  ? | help [<name>]  show this help screen or help on qcalc symbols\n"
-            "  find <name>        show qcalc symbols matching a wildcard (*,?) filter\n"
-            "  strict [on|off]    disable/enable assignment to any variable\n"
-            "  forget             clear stored variables\n"
-            "  cls                clear screen\n"
-            "  <expr>             evaluate a calculation\n"
-            "  <value> to <unit>  convert a quantity to another unit\n"
-            "  <value> as <unit>  same-unit conversion for display\n"
-            "  x = <expr>         assign a value to a variable\n"
-            "  qtypes()           to get a list of calculator field types\n"
-            "  qsymbols()         to get a list of qcalc api symbols\n"
-            "  qsymbols('all')    to get a list of all exposed qcalc symbols\n"
-            "  qmodules()         list of importable modules in frontend\n"
-            "  qsymstat()         summary of qsymbol counts by category\n"
+            "  ?|help [<name>[.member]]  show this help screen or help on qcalc symbols\n"
+            "  find <name>[.member]      show qcalc symbols/members matching wildcard (*,?)\n"
+            "  strict [on|off]           disable/enable assignment to any variable\n"
+            "  forget                    clear stored variables\n"
+            "  cls                       clear screen\n"
+            "  <expr>                    evaluate a calculation\n"
+            "  <value> to <unit>         convert a quantity to another unit\n"
+            "  <value> as <unit>         same-unit conversion for display\n"
+            "  x = <expr>                assign a value to a variable\n"
+            "  qtypes()                  to get a list of calculator field types\n"
+            "  qsymbols()                to get a list of qcalc api symbols\n"
+            "  qsymbols('all')           to get a list of all exposed qcalc symbols\n"
+            "  qmodules()                list of importable modules in frontend\n"
+            "  qsymstat()                summary of qsymbol counts by category\n"
             "\n"
             "Examples:\n"
             "  ft to inch\n"
@@ -206,7 +207,7 @@ def qeval(request: HtmxHttpRequest, xpr: str):
         stdout = out.flush()
         return help_text, stdout
 
-    if xpr.startswith("?") or xpr.startswith("help "):
+    if xpr.startswith("?") or xpr_lower.startswith("help "):
         rest = xpr[1:].strip() if xpr.startswith("?") else xpr[4:].strip()
         if rest:
             if ' ' not in rest:
@@ -217,12 +218,12 @@ def qeval(request: HtmxHttpRequest, xpr: str):
             stdout = out.flush()
             return "Usage: help <name>  or  help --<name>", stdout
 
-    if xpr.startswith("find"):
+    if xpr_lower.startswith("find"):
         rest = xpr[4:].strip()
         if rest:
             if ' ' not in rest:
                 from qcore.mod_autil import qsymbols, qsymhelp
-                matches = qsymbols('all', rest)
+                matches = qsymbols('all', rest, include_members=True)
                 stdout = out.flush()
                 if not matches:
                     return f"No qCalc symbols matched '{rest}'", stdout

@@ -8,12 +8,14 @@ qsett.init()
 
 import pytest
 import qvars
+import calc
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.test import RequestFactory
 
 from calc import QPref, QRam
 from calculators.all.general import qeval
+from qcore.mod_autil import qsymbols
 from qutil.timed_thread import QThread
 
 
@@ -90,3 +92,51 @@ def test_forget_clears_assigned_variables(request_):
     # "x" is no longer defined, so evaluating it should fail rather than
     # return the previously assigned value
     assert result != 42
+
+
+def test_help_command_keyword_is_case_insensitive(request_):
+    result, _ = qeval(request_, "HeLP")
+    assert isinstance(result, str)
+    assert result.startswith("Commands:")
+
+
+def test_find_command_keyword_is_case_insensitive(request_):
+    result, _ = qeval(request_, "FiNd")
+    assert result == "Usage: find <name>"
+
+
+def test_help_symbol_lookup_is_case_insensitive_when_unique(request_):
+    result, _ = qeval(request_, "help QSYMBOLS")
+    assert isinstance(result, str)
+    assert "*** qsymbols ***" in result
+
+
+def test_find_includes_class_members_in_search(request_, monkeypatch):
+    captured = {}
+
+    def _fake_qsymbols(scope, name_filter=None, include_members=False):
+        captured['scope'] = scope
+        captured['name_filter'] = name_filter
+        captured['include_members'] = include_members
+        return ['DemoClass.member']
+
+    monkeypatch.setattr('qcore.mod_autil.qsymbols', _fake_qsymbols)
+    monkeypatch.setattr('qcore.mod_autil.qsymhelp', lambda name: f'help for {name}')
+
+    result, _ = qeval(request_, "find DemoClass.mem*")
+
+    assert captured == {
+        'scope': 'all',
+        'name_filter': 'DemoClass.mem*',
+        'include_members': True,
+    }
+    assert result == "Match: DemoClass.member\nhelp for DemoClass.member"
+
+
+def test_qsymbols_restricts_leading_underscore_names(monkeypatch):
+    monkeypatch.setattr(calc, "qapis", lambda: {"visible_api", "_hidden_api"})
+
+    names = qsymbols("api")
+
+    assert "visible_api" in names
+    assert "_hidden_api" not in names

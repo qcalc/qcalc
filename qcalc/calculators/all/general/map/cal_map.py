@@ -3,6 +3,7 @@
 
 from math import sin, cos, acos, pi
 from qcore import Qty, QMap, QGeo, qhtml, qtexta
+from qutil import when_show
 
 
 def map_region__info():
@@ -30,12 +31,10 @@ def map_distance__info():
             'show_map': {'type': 'radio', 'choices': ['None', 'English', 'Local']},
         },
         'showhide': {
-            'method': {
-                'fields': ['from_latitude', 'from_longitude', 'to_latitude', 'to_longitude',
-                           'from_location', 'to_location'],
-                'callback': "@==='1' ? [true, true, true, true, false, false] : "
-                            '[false, false, false, false, true, true]'
-            }
+            'method': when_show({
+                '1': ['from_latitude', 'from_longitude', 'to_latitude', 'to_longitude'],
+                '2': ['from_location', 'to_location'],
+            })
         }
     }
 

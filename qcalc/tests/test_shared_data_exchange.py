@@ -241,7 +241,7 @@ def test_bee_feeding_uses_unit_aware_colony_rate_and_apiculture_cost_defaults():
 
     out = bee_feeding(
         colonies='50 unit',
-        feeding_rate_per_colony='0.5 L/unit/day',
+        syrup_rate_per_colony='0.5 L/unit/day',
         feeding_duration='10 day',
         include_cost=True,
     )

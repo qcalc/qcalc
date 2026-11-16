@@ -3,6 +3,7 @@
 
 # import colorsys
 from qcore import qfl, qin, qhtml
+from qutil import when_show
 
 
 def hex_to_rgb(hex_color: str):
@@ -255,26 +256,14 @@ def color_profile__info():
             'known_values': {'type': 'choice', 'choices': ['HEX', 'RGB', 'YIQ', 'HLS', 'HSV', 'YMCK']}
         },
         'showhide': {
-            'known_values': {
-                'fields':
-                    [
-                        'hex_color',
-                        'rgb', 'g_part', 'b_part',
-                        'yiq', 'i_part', 'q_part',
-                        'hls', 'l_part', 's_part',
-                        'hsv', 's2_part', 'v_part',
-                        'ymck', 'm_part', 'c_part', 'k_part',
-                    ],
-                'callback':
-                    {
-                        'HEX': "[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]",
-                        'RGB': "[0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0]",
-                        'YIQ': "[0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0]",
-                        'HLS': "[0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0]",
-                        'HSV': "[0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0]",
-                        'YMCK': "[0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1]",
-                    },
-            },
+            'known_values': when_show({
+                'HEX': 'hex_color',
+                'RGB': ['rgb', 'g_part', 'b_part'],
+                'YIQ': ['yiq', 'i_part', 'q_part'],
+                'HLS': ['hls', 'l_part', 's_part'],
+                'HSV': ['hsv', 's2_part', 'v_part'],
+                'YMCK': ['ymck', 'm_part', 'c_part', 'k_part'],
+            }),
         },
     }
 

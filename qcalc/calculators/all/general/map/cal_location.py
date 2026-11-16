@@ -2,6 +2,7 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 from qcore import QGeo, qhtml, qtexta
+from qutil import when_show
 
 
 def geo_location__info():
@@ -12,10 +13,7 @@ def geo_location__info():
             'show_map': {'type': 'radio', 'choices': ['None', 'English', 'Local']}
         },
         'showhide': {
-            'method': {
-                'fields': ['latitude', 'longitude', 'location'],
-                'callback': "@==='1' ? [true, true, false] : [false, false, true]"
-            }
+            'method': when_show({'1': ['latitude', 'longitude'], '2': 'location'})
         }
     }
 

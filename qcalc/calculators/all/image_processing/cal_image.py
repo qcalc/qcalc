@@ -4,7 +4,7 @@
 from PIL import Image, ImageOps, ExifTags
 from qcore import qurl, qf2img, qimage, QImage, QScreen, qhtml
 import io
-from qutil import demo_url
+from qutil import demo_url, show_when, when_show
 
 
 def image_reader__info():
@@ -12,10 +12,7 @@ def image_reader__info():
         'title': 'Image Reader',
         'calculate': 'Display',
         'showhide': {
-            'mode': {
-                'fields': ['upload_image', 'image_url'],
-                'callback': 'image_reader_mode_showhide',
-            },
+            'mode': when_show({'File': 'upload_image', 'URL': 'image_url'}),
         },
         'schema': {
             'mode': {
@@ -32,11 +29,6 @@ def image_reader__info():
                 'help_text': 'Enter the image URL to load when mode is URL.',
             },
         },
-        'script': """
-        function image_reader_mode_showhide(v){
-            return [v === 'File', v === 'URL'];
-        }
-        """,
     }
 
 
@@ -176,17 +168,12 @@ def image_resize__info():
             },
         },
         'showhide': {
-            'option': {
-                'fields': ['width', 'height', 'width_percent', 'height_percent'],
-                'callback': {
-                    'w': '[1, 0, 0, 0]',
-                    'h': '[0, 1, 0, 0]',
-                    'wp': '[0, 0, 1, 0]',
-                    'hp': '[0, 0, 0, 1]',
-                    'wh': '[1, 1, 0, 0]',
-                    'whp': '[0, 0, 1, 1]',
-                }
-            }
+            'option': show_when({
+                'width': ['w', 'wh'],
+                'height': ['h', 'wh'],
+                'width_percent': ['wp', 'whp'],
+                'height_percent': ['hp', 'whp'],
+            }),
         },
     }
 

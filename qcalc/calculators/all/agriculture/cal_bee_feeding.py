@@ -5,7 +5,7 @@ from math import ceil
 
 from calc import QCost
 from qcore import Qty
-from qutil import cal_link, calurl
+from qutil import cal_link, calurl, when_show
 
 RATE_DOMAIN = 'apiculture'
 # DEFAULT_SYRUP_RATE = '0.5 L/unit/day'
@@ -47,14 +47,10 @@ def bee_feeding__info():
             'include_cost': {'help_text': COST_HELP},
         },
         'showhide': {
-            'feed_type': {
-                'fields': ['syrup_rate_per_colony', 'sugar_concentration', 'syrup_density', 'batch_size',
-                           'dry_rate_per_colony'],
-                'callback': {
-                    'syrup': "[1,1,1,1,0]",
-                    'dry': "[0,0,0,0,1]",
-                },
-            },
+            'feed_type': when_show({
+                'syrup': ['syrup_rate_per_colony', 'sugar_concentration', 'syrup_density', 'batch_size'],
+                'dry': 'dry_rate_per_colony',
+            }),
         },
         'inserts': {'form_bottom': SHOW_RATES_BUTTON},
         'tags': 'beekeeping, apiculture, feeding, syrup, sugar, cost',

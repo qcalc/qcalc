@@ -6,7 +6,7 @@ import pandas as pd
 from qcore import qtbl, qerror, nzv
 from calc import FLD_SHOW_CHOICE, get_shared_dataset
 from calc.mod_result_post import postprocess_scenarios
-from qutil import action_button, addcal_button
+from qutil import action_button, addcal_button, show_when
 from calculators.all.analytics.what_if import SHARED_SCENARIO_TYPE, SHARED_SCENARIO_KEY
 
 
@@ -55,36 +55,22 @@ def scenario__info():
                            )
         },
         'showhide': {
-            'mode': {
-                'fields': [
-                    'baseline_variation',
-                    'delta_type',
-                    'rank_by',
-                    'rank_order',
-                    'top_n',
-                    'filter_by',
-                    'filter_operator',
-                    'filter_value',
-                    'filter_value2',
-                    'score_weights',
-                    'score_directions',
-                    'score_column',
-                    'score_normalization',
-                ],
-                'callback': 'scenario_mode_showhide',
-            }
+            'mode': show_when({
+                'baseline_variation': 'delta',
+                'delta_type': 'delta',
+                'rank_by': 'rank',
+                'rank_order': 'rank',
+                'top_n': ['rank', 'filter', 'score'],
+                'filter_by': 'filter',
+                'filter_operator': 'filter',
+                'filter_value': 'filter',
+                'filter_value2': 'filter',
+                'score_weights': 'score',
+                'score_directions': 'score',
+                'score_column': 'score',
+                'score_normalization': 'score',
+            })
         },
-        'script': '''
-        function scenario_mode_showhide(mode){
-            var vis = {
-                delta: [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                rank: [0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
-                filter: [0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0],
-                score: [0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1],
-            }
-            return vis[mode] || [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-        }
-        ''',
         'schema': {
             'mode': {
                 'type': 'choice',

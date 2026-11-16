@@ -33,6 +33,7 @@ from dataclasses import dataclass, field
 import qconst
 from .qd_basic import css2list
 from .qd_data import is_blank, to_bool
+from qutil.mod_basic import js_string
 from qutil.mod_func import variable_to_title
 from .mod_info_keys import INTERNAL_KEYS, LEGACY_KEYS, PUBLIC_KEYS
 
@@ -441,16 +442,11 @@ def _common_prefix_token(table_args):
 # (true/false for a checkbox, a quoted string otherwise), as in stock_chart() or bodyfat2().
 # A list of expressions gives the visibility of each field in 'fields' one by one.
 
-def _js_string(value):
-    escaped = value.replace('\\', '\\\\').replace("'", "\\'").replace('\n', '\\n')
-    return f"'{escaped}'"
-
-
 def _inline_condition(op, values):
     lowered = [v.lower() for v in values]
     if op in ('==', '!=') and lowered[0] in ('true', 'false'):
         return '@' if (lowered[0] == 'true') == (op == '==') else '!@'
-    literals = [_js_string(v) for v in values]
+    literals = [js_string(v) for v in values]
     if op == '==':
         return f'@==={literals[0]}'
     if op == '!=':

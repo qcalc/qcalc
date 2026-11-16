@@ -2,7 +2,7 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 from qcore import UnitRegistry, QtyRegistry, QCurrency, dim_to_bname, _base_names, _conv_names
-from qutil import css2strs, list2table, find_matched_variables, cal_link, calurl
+from qutil import css2strs, list2table, find_matched_variables, cal_link, calurl, show_when
 from calc import CalcSandbox
 import itertools
 from qcore.qf_anno import *
@@ -275,19 +275,11 @@ def conv__info():
                   "2": {"fields": ["convert_to_units", "convert_to_qty"]}
                   },
         'showhide': {
-            "mode": {"fields": ["from_qty", "convert_to_qty", "express_in_units", "unit_cost"],
-                     "callback": "convert_sh"}
+            'mode': show_when({'from_qty': '3', 'convert_to_qty': '3',
+                               'express_in_units': ['2', '3'], 'unit_cost': ['2', '3']}),
         },
         'images': {'top': ['calculators/all/measuring-tools.line.png']},
         'kins': 'conv2',
-        'script': '''
-            function convert_sh(v)
-            {
-            if(v=='1') return [false,false,false,false];
-            else if(v=='2') return [false,false,true,true];
-            else return [true,true,true,true]
-            }
-            ''',
     }
 
 

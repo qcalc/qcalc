@@ -2,6 +2,7 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 from qcore import Qty
+from qutil import show_when
 import math
 
 
@@ -19,14 +20,14 @@ def triangle__info():
             }
         },
         'showhide': {
-            'method': {
-                'fields': ['side_a', 'side_b', 'side_c', 'base', 'height', 'angle'],
-                'callback': {
-                    '1': '[0, 0, 0, 1, 1, 1]',
-                    '2': '[1, 1, 0, 0, 0, 1]',
-                    '3': '[1, 1, 1, 0, 0, 0]',
-                },
-            },
+            'method': show_when({
+                'side_a': ['2', '3'],
+                'side_b': ['2', '3'],
+                'side_c': '3',
+                'base': '1',
+                'height': '1',
+                'angle': ['1', '2'],
+            }),
         }
     }
 

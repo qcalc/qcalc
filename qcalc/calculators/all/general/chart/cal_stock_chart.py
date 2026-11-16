@@ -4,7 +4,7 @@
 import pandas as pd
 import numpy as np
 from qcore import qchar, qtable, QChart, as_qtable, qhtml, qurl, QTable, css2ints, css2floats
-from qutil import QThread, demo_url, action_spec
+from qutil import QThread, demo_url, action_spec, when_show
 import mplfinance as mpf
 
 
@@ -230,16 +230,11 @@ def stock_chart__info():
                 'fields': ['obv_smoothing_period', 'show_obv_cross_markers'],
                 'callback': '@',
             },
-            'chart_type': {
-                'fields': ['renko_brick_size', 'pnf_box_size', 'pnf_reversal'],
-                'callback': 'toggle_renko_pnf_fields',
-            },
+            'chart_type': when_show({
+                'renko': 'renko_brick_size',
+                'pnf': ['pnf_box_size', 'pnf_reversal'],
+            }),
         },
-        'script': '''
-        function toggle_renko_pnf_fields(v){
-            return [v === 'renko', v === 'pnf', v === 'pnf'];
-        }
-        ''',
         'schema': {
             'load_csv': {
                 'button': action_spec(

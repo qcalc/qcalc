@@ -5,7 +5,7 @@ import hashlib
 from bs4 import BeautifulSoup
 from qconst import delimiter_help_text
 from qcore import csv2df
-from qutil import nzs, demo_url, md2html, md_math_script, action_spec, fetch_url, code2html, show_if
+from qutil import nzs, demo_url, md2html, md_math_script, action_spec, fetch_url, code2html, when_show
 from qcore.qf_anno import *
 from qcore import df2normalized
 
@@ -139,22 +139,11 @@ def md_reader__info():
         'title': 'Mark Down File Reader and Editor',
         'calculate': 'Show',
         'showhide': {
-            'mode': {
-                'fields': ['upload_markdown', 'md_url', 'markdown_text'],
-                # 1| 'callback': 'mode_reader_fields',
-                # 2| 'callback': "[@==='File', @==='URL', @==='Text']",
-                'callback': show_if(['File', 'URL', 'Text']),
-            },
+            'mode': when_show({'File': 'upload_markdown', 'URL': 'md_url', 'Text': 'markdown_text'}),
         },
         'inserts': {
             'out_bottom': md_math_script(),
         },
-        # 1| method 1
-        # 'script': """
-        # function mode_reader_fields(v){
-        #     return [v === 'File', v === 'URL', v === 'Text'];
-        # }
-        # """,
         'schema': {
             'mode': {
                 'type': 'choice',
@@ -218,10 +207,7 @@ def csv_reader__info():
         'title': 'CSV Reader',
         'calculate': 'Show',
         'showhide': {
-            'mode': {
-                'fields': ['upload_csv', 'csv_url'],
-                'callback': 'csv_reader_mode_showhide',
-            },
+            'mode': when_show({'File': 'upload_csv', 'URL': 'csv_url'}),
         },
         'schema': {
             'mode': {
@@ -239,11 +225,6 @@ def csv_reader__info():
                 'help_text': delimiter_help_text,
             }
         },
-        'script': """
-        function csv_reader_mode_showhide(v){
-            return [v === 'File', v === 'URL'];
-        }
-        """,
     }
 
 
@@ -352,16 +333,8 @@ def html_reader__info():
         'title': 'HTML Reader and Editor',
         'calculate': 'Show',
         'showhide': {
-            'mode': {
-                'fields': ['upload_html', 'html_url', 'html_text'],
-                'callback': 'mode_reader_fields',
-            },
+            'mode': when_show({'File': 'upload_html', 'URL': 'html_url', 'Text': 'html_text'}),
         },
-        'script': """
-        function mode_reader_fields(v){
-            return [v === 'File', v === 'URL', v === 'Text'];
-        }
-        """,
         'schema': {
             'mode': {
                 'type': 'choice',
@@ -431,16 +404,8 @@ def js_reader__info():
         'title': 'JavaScript Reader and Editor',
         'calculate': 'Show',
         'showhide': {
-            'mode': {
-                'fields': ['upload_js', 'js_url', 'js_text'],
-                'callback': 'mode_reader_fields',
-            },
+            'mode': when_show({'File': 'upload_js', 'URL': 'js_url', 'Text': 'js_text'}),
         },
-        'script': """
-        function mode_reader_fields(v){
-            return [v === 'File', v === 'URL', v === 'Text'];
-        }
-        """,
         'schema': {
             'mode': {
                 'type': 'choice',

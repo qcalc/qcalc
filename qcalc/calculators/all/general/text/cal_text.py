@@ -13,6 +13,7 @@ from qutil import (
     get_wordcloud_stop_words,
     nzs,
     url2text,
+    when_show,
     word_count,
 )
 
@@ -180,10 +181,7 @@ def text_stats__info():
     return {
         'title': 'Text Statistics',
         'showhide': {
-            'mode': {
-                'fields': ['upload_text', 'text_url', 'text'],
-                'callback': 'text_stats_mode_showhide',
-            },
+            'mode': when_show({'File': 'upload_text', 'URL': 'text_url', 'Text': 'text'}),
         },
         'schema': {
             'mode': {
@@ -193,11 +191,6 @@ def text_stats__info():
                 'help_text': 'Choose whether to analyze text from a file, URL, or direct text input.',
             },
         },
-        'script': """
-        function text_stats_mode_showhide(v){
-            return [v === 'File', v === 'URL', v === 'Text'];
-        }
-        """,
     }
 
 

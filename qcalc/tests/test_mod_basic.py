@@ -13,9 +13,38 @@ qsett.init()
 from qutil.mod_basic import (
     category_slug, css2strs, curdir_fullpath, doctrim,
     docstring_to_html, fchoices, iif, joinx, key_val, nzs, parameter_values, replace_parameter_values,
-    replace_variables, replace_words, sort_by_val, truncate, xpr_coeffs,
+    replace_variables, replace_words, show_when, sort_by_val, truncate, when_show, xpr_coeffs,
 )
 from qcore.qd_basic import css2floats, css2ints, css2set, css2values, nzv, vals2css
+
+
+def test_when_show_value_to_fields():
+    entry = when_show({'File': 'upload', 'URL': 'url', 'Text': 'text'})
+    assert entry == {'fields': ['upload', 'url', 'text'],
+                     'callback': "[@==='File', @==='URL', @==='Text']"}
+
+
+def test_when_show_shared_fields_tuple_keys_and_checkbox():
+    entry = when_show({'a': ['x', 'y'], ('b', 'c'): 'y'})
+    assert entry == {'fields': ['x', 'y'], 'callback': "[@==='a', ['a', 'b', 'c'].indexOf(@) >= 0]"}
+    assert when_show({True: ['x', 'y']}) == {'fields': ['x', 'y'], 'callback': '[@, @]'}
+
+
+def test_show_when_field_to_values():
+    entry = show_when({'base': '1', 'angle': ['1', '2'], 'off': False})
+    assert entry == {'fields': ['base', 'angle', 'off'],
+                     'callback': "[@==='1', ['1', '2'].indexOf(@) >= 0, !@]"}
+    assert show_when({'only': 'x'})['callback'] == "@==='x'"
+
+
+def test_showhide_values_are_quoted_and_validated():
+    assert show_when({'f': "O'Neil"})['callback'] == "@==='O\\'Neil'"
+    assert show_when({'f': 1})['callback'] == "@==='1'"  # choice values are always strings
+    with pytest.raises(ValueError):
+        show_when({'f': 'a@b'})
+    with pytest.raises(ValueError):
+        show_when({'f': [True, 'a']})
+
 
 
 def test_fchoices_dict_gives_items():

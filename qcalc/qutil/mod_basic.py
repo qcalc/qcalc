@@ -347,11 +347,60 @@ def doctrim(docstring):
     return '\n'.join(trimmed)
 
 
-def show_if(items: list, op='===') -> str:
-    """Use with showhide callback"""
-    def fmt(item):
-        return f"'{item}'" if isinstance(item, str) else str(item)
+def js_string(value) -> str:
+    escaped = str(value).replace('\\', '\\\\').replace("'", "\\'").replace('\n', '\\n')
+    return f"'{escaped}'"
 
-    x = '[' + ', '.join(f"{qconst.SCRIPT_RUNTIME_VAR}{op}{fmt(item)}" for item in items) + ']'
-    # print('!', x, type(x))
-    return x
+
+def _as_list(item) -> list:
+    return list(item) if isinstance(item, (list, tuple)) else [item]
+
+
+def _showhide_condition(values: list) -> str:
+    """Inline JS condition, true when the controlling field's value is one of ``values``.
+
+    ``values`` are strings (choice values) or bools (a checkbox).
+    """
+    var = qconst.SCRIPT_RUNTIME_VAR
+    if all(isinstance(v, bool) for v in values):
+        return var if values[0] else '!' + var
+    if any(isinstance(v, bool) for v in values):
+        raise ValueError(f'showhide values cannot mix booleans and strings: {values}')
+    values = [str(v) for v in values]
+    if any(var in v for v in values):
+        raise ValueError(f"showhide values cannot contain '{var}': {values}")
+    if len(values) == 1:
+        return f'{var}==={js_string(values[0])}'
+    return f"[{', '.join(js_string(v) for v in values)}].indexOf({var}) >= 0"
+
+
+def _showhide_entry(fields: list, conditions: list) -> dict:
+    callback = conditions[0] if len(conditions) == 1 else '[' + ', '.join(conditions) + ']'
+    return {'fields': fields, 'callback': callback}
+
+
+def when_show(by_value: dict) -> dict:
+    """Scriptless showhide entry for a controlling field: ``{value: fields to show}``.
+
+    ``'mode': when_show({'File': 'upload', 'URL': 'url', ('A', 'B'): ['x', 'y']})`` reads as
+    "when mode is File show upload, when it is URL show url, when it is A or B show x and y".
+    A tuple key stands for any of its values, True/False are the values of a checkbox and
+    a value that is not listed hides all the fields. Use ``show_when`` if the same fields
+    are shown for several values.
+    """
+    shown = {}  # field -> values showing it, in the order of the first appearance
+    for key, fields in by_value.items():
+        for field in _as_list(fields):
+            shown.setdefault(field, []).extend(_as_list(key))
+    return _showhide_entry(list(shown), [_showhide_condition(v) for v in shown.values()])
+
+
+def show_when(by_field: dict) -> dict:
+    """Scriptless showhide entry for a controlling field: ``{field: value(s) showing it}``.
+
+    ``'method': show_when({'base': '1', 'angle': ['1', '2']})`` reads as
+    "show base when method is 1, show angle when method is 1 or 2". A list or tuple stands for
+    any of its values and True/False are the values of a checkbox. Use ``when_show`` if each value
+    shows its own fields.
+    """
+    return _showhide_entry(list(by_field), [_showhide_condition(_as_list(v)) for v in by_field.values()])

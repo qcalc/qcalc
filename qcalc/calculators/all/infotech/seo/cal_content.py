@@ -11,6 +11,7 @@ from qutil import (
     qaddr,
     text2words,
     url2text,
+    when_show,
     word_count,
 )
 import pandas as pd
@@ -23,10 +24,7 @@ def word_freq__info():
     return {
         'title': 'Word Frequency Analysis',
         'showhide': {
-            'mode': {
-                'fields': ['text', 'url'],
-                'callback': 'word_mode_showhide',
-            },
+            'mode': when_show({'Text': 'text', 'URL': 'url'}),
         },
         'schema': {
             'mode': {
@@ -36,11 +34,6 @@ def word_freq__info():
                 'help_text': 'Choose whether to analyze direct text input or extract content from a URL.',
             },
         },
-        'script': """
-        function word_mode_showhide(v){
-            return [v === 'Text', v === 'URL'];
-        }
-        """,
     }
 
 
@@ -105,10 +98,7 @@ def word_cloud__info():
         'title': 'Generate Word Cloud',
         'kins': 'html_reader, csv_reader',
         'showhide': {
-            'mode': {
-                'fields': ['text', 'url'],
-                'callback': 'word_mode_showhide',
-            },
+            'mode': when_show({'Text': 'text', 'URL': 'url'}),
         },
         'schema': {
             'mode': {
@@ -118,11 +108,6 @@ def word_cloud__info():
                 'help_text': 'Choose whether to generate the cloud from direct text input or URL content.',
             },
         },
-        'script': """
-        function word_mode_showhide(v){
-            return [v === 'Text', v === 'URL'];
-        }
-        """,
     }
 
 
@@ -178,10 +163,7 @@ def keywords__info():
         'desc': 'The lower the score, the more relevant the keyword is',
         'kins': 'html_reader, csv_reader',
         'showhide': {
-            'mode': {
-                'fields': ['text', 'url'],
-                'callback': 'word_mode_showhide',
-            },
+            'mode': when_show({'Text': 'text', 'URL': 'url'}),
         },
         'schema': {
             'mode': {
@@ -191,11 +173,6 @@ def keywords__info():
                 'help_text': 'Choose whether to extract keywords from direct text input or URL content.',
             },
         },
-        'script': """
-        function word_mode_showhide(v){
-            return [v === 'Text', v === 'URL'];
-        }
-        """,
     }
 
 

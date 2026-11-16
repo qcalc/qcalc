@@ -10,7 +10,8 @@ from django.conf import settings
 import logging
 import qconst
 from qcore import QScreen, quom, color_schemes, legend_locations, qtext, qinfo, qwarn
-from qutil import nzs, css2strs, truncate, user_process, callback_button, QThread, is_loggedin, addcal_button, qaddr
+from qutil import nzs, css2strs, truncate, user_process, callback_button, QThread, is_loggedin, addcal_button, qaddr, \
+    show_when
 from qvars import qc_gpref as gs
 from calc import (
     OPENAI_MODEL_CHOICES,
@@ -302,14 +303,8 @@ def api_keys__info():
             },
         },
         'showhide': {
-            'action': {'fields': ['provider', 'api_key'], 'callback': 'show_action_fields'}
+            'action': show_when({'provider': ['status', 'set', 'delete'], 'api_key': 'set'})
         },
-        'script':
-            """
-            function show_action_fields(v){
-                return [v !== 'activate' && v !== 'inactivate', v === 'set'];
-            }
-            """,
         'calculate': 'Apply',
     }
 
@@ -390,14 +385,8 @@ def api_access__info():
             },
         },
         'showhide': {
-            'action': {'fields': ['name', 'prefix'], 'callback': 'show_action_fields'}
+            'action': show_when({'name': 'create', 'prefix': ['revoke', 'delete']})
         },
-        'script':
-            """
-            function show_action_fields(v){
-                return [v === 'create', v === 'revoke' || v === 'delete'];
-            }
-            """,
         'calculate': 'Apply',
     }
 

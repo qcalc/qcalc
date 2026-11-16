@@ -377,6 +377,12 @@ function showCustomRate(value) { # callback JavaScript function
 ''',
 ```
 * Use `showhide` to keep some fields visible or hidden when necessary.
+* For the usual "show these fields for these values" rules, no JavaScript is needed. Import `when_show` or `show_when` from `qutil`; both return the `fields`/`callback` entry:
+  * `when_show({value: fields})` when each value shows its own fields. It reads as "when mode is File, show upload":
+    `'mode': when_show({'File': 'upload', 'URL': 'url', 'Text': 'text'})`
+  * `show_when({field: values})` when fields are shared by several values. It reads as "show base when method is 1":
+    `'method': show_when({'base': '1', 'side_a': ['2', '3'], 'angle': ['1', '2']})`
+  * A tuple key in `when_show` (`('set', 'create'): 'api_key'`) or a list of values in `show_when` means "any of". `True`/`False` are the values of a checkbox. A value that is not listed hides all the fields.
 * For typical forms, use a tiny JavaScript callback using `script` key. The callback receives the controlling value and returns one Boolean for every field: `true` or `1` shows it; `false` or `0` hides it.
 * For one simple javascript rule, qCalc also supports a compact callback such as `'callback': "@=='custom'"`. `@` will be replaced by selected value in runtime.
 * Simple javascript rule snippet using multiple `@` is also possible, for example:

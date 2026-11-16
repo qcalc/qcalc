@@ -7,6 +7,7 @@ from qcore import Qty, qfunc, QGeo, qhtml
 from math import fmod, radians, degrees, sqrt, ceil, acos
 from .cal_coord import *
 from qcore import nzv, QTimezone, QDateTime
+from qutil import show_when
 
 
 class EarthRotation:
@@ -207,27 +208,18 @@ def coord__info():
         },
         # 'min_height': '300px',
         'showhide': {
-            'convert': {
-                'fields': [
-                    'right_ascension', 'declination', 'celestial_longitude', 'celestial_latitude',
-                    'galactic_longitude', 'galactic_latitude', 'azimuth', 'altitude',
-                    'observer_latitude', 'local_siderial_time'
-                ],
-                'callback': {
-                    'eq2ec': '[1,1,0,0,0,0,0,0,0,0]',
-                    'eq2ga': '[1,1,0,0,0,0,0,0,0,0]',
-                    'eq2lo': '[1,1,0,0,0,0,0,0,1,1]',
-                    'ec2eq': '[0,0,1,1,0,0,0,0,0,0]',
-                    'ec2ga': '[0,0,1,1,0,0,0,0,0,0]',
-                    'ec2lo': '[0,0,1,1,0,0,0,0,1,1]',
-                    'ga2eq': '[0,0,0,0,1,1,0,0,0,0]',
-                    'ga2ec': '[0,0,0,0,1,1,0,0,0,0]',
-                    'ga2lo': '[0,0,0,0,1,1,0,0,1,1]',
-                    'lo2eq': '[0,0,0,0,0,0,1,1,1,1]',
-                    'lo2ec': '[0,0,0,0,0,0,1,1,1,1]',
-                    'lo2ga': '[0,0,0,0,0,0,1,1,1,1]'
-                }
-            }
+            'convert': show_when({
+                'right_ascension': ['eq2ec', 'eq2ga', 'eq2lo'],
+                'declination': ['eq2ec', 'eq2ga', 'eq2lo'],
+                'celestial_longitude': ['ec2eq', 'ec2ga', 'ec2lo'],
+                'celestial_latitude': ['ec2eq', 'ec2ga', 'ec2lo'],
+                'galactic_longitude': ['ga2eq', 'ga2ec', 'ga2lo'],
+                'galactic_latitude': ['ga2eq', 'ga2ec', 'ga2lo'],
+                'azimuth': ['lo2eq', 'lo2ec', 'lo2ga'],
+                'altitude': ['lo2eq', 'lo2ec', 'lo2ga'],
+                'observer_latitude': ['eq2lo', 'ec2lo', 'ga2lo', 'lo2eq', 'lo2ec', 'lo2ga'],
+                'local_siderial_time': ['eq2lo', 'ec2lo', 'ga2lo', 'lo2eq', 'lo2ec', 'lo2ga'],
+            })
         }
     }
 

@@ -2,6 +2,7 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 from qcore import Qty
+from qutil import when_show
 import math
 
 
@@ -24,19 +25,12 @@ def quadlat__info():
             }
         },
         'showhide': {
-            'object': {
-                'fields': ['side_a', 'side_b', 'side_c', 'side_d', 'angle_a', 'angle_c', 'height'],
-                'callback': {
-                    's': '[1, 0, 0, 0, 0, 0, 0]',
-                    'r': '[1, 1, 0, 0, 0, 0, 0]',
-                    't': '[1, 0, 1, 0, 0, 0, 1]',
-                    'i': '[1, 1, 1, 1, 1, 1, 0]',
-                    'h': '[1, 1, 1, 1, 1, 1, 0]',
-                    'k': '[1, 1, 1, 1, 1, 1, 0]',
-                    'p': '[1, 1, 1, 1, 1, 1, 0]',
-                    'q': '[1, 1, 1, 1, 1, 1, 0]',
-                },
-            },
+            'object': when_show({
+                's': 'side_a',
+                'r': ['side_a', 'side_b'],
+                't': ['side_a', 'side_c', 'height'],
+                ('i', 'h', 'k', 'p', 'q'): ['side_a', 'side_b', 'side_c', 'side_d', 'angle_a', 'angle_c'],
+            }),
         },
     }
 

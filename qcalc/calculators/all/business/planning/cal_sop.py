@@ -8,7 +8,7 @@ from calc import QResults
 from qcore import qhtml, qtable, QTable
 from qcore import validate_schema_if_needed
 from qcore import to_bool
-
+from qutil import when_show
 from calc import (
     SOP_CAPACITY_SCHEMA,
     SOP_DEMAND_SCHEMA,
@@ -1204,74 +1204,22 @@ def optima_sop__info():
             },
         ],
         'showhide': {
-            'objective': {
-                'fields': ['service_level_floor_pct'],
-                'callback': 'toggle_service_level_floor',
-            },
-            'backlog_policy': {
-                'fields': ['max_backlog_pct'],
-                'callback': 'toggle_backlog_cap',
-            },
-            'stability_enabled': {
-                'fields': ['stability_penalty', 'max_change_pct', 'sop_previous_plan'],
-                'callback': 'toggle_stability_fields',
-            },
-            'scenarios_enabled': {
-                'fields': ['sop_scenarios'],
-                'callback': 'toggle_scenario_fields',
-            },
-            'bom_enabled': {
-                'fields': ['sop_material_requirements'],
-                'callback': 'toggle_bom_fields',
-            },
-            'overtime_enabled': {
-                'fields': ['sop_overtime'],
-                'callback': 'toggle_overtime_fields',
-            },
-            'procurement_enabled': {
-                'fields': [
-                    'procurement_max_suppliers',
-                    'procurement_material_qty_type',
-                    'procurement_budget_limit',
-                    'procurement_min_avg_quality',
-                    'procurement_max_avg_risk',
-                    'supplier_master',
-                    'supplier_item_cost',
-                ],
-                'callback': 'toggle_procurement_fields',
-            },
+            'objective': when_show({'cost_minimize': 'service_level_floor_pct'}),
+            'backlog_policy': when_show({'cap': 'max_backlog_pct'}),
+            'stability_enabled': when_show({True: ['stability_penalty', 'max_change_pct', 'sop_previous_plan']}),
+            'scenarios_enabled': when_show({True: 'sop_scenarios'}),
+            'bom_enabled': when_show({True: 'sop_material_requirements'}),
+            'overtime_enabled': when_show({True: 'sop_overtime'}),
+            'procurement_enabled': when_show({True: [
+                'procurement_max_suppliers',
+                'procurement_material_qty_type',
+                'procurement_budget_limit',
+                'procurement_min_avg_quality',
+                'procurement_max_avg_risk',
+                'supplier_master',
+                'supplier_item_cost',
+            ]}),
         },
-        'script': """
-        function isTruthySelection(v){
-            if (typeof v === 'boolean') return v;
-            if (Array.isArray(v)) return v.length > 0;
-            if (v && typeof v === 'object') return Object.keys(v).length > 0;
-            if (v === null || v === undefined) return false;
-            var t = String(v).trim().toLowerCase();
-            return ['1', 'true', 'yes', 'y', 'on'].indexOf(t) >= 0;
-        }
-        function toggle_service_level_floor(v){
-            return v === 'cost_minimize';
-        }
-        function toggle_backlog_cap(v){
-            return v === 'cap';
-        }
-        function toggle_stability_fields(v){
-            return isTruthySelection(v);
-        }
-        function toggle_scenario_fields(v){
-            return isTruthySelection(v);
-        }
-        function toggle_bom_fields(v){
-            return isTruthySelection(v);
-        }
-        function toggle_overtime_fields(v){
-            return isTruthySelection(v);
-        }
-        function toggle_procurement_fields(v){
-            return isTruthySelection(v);
-        }
-        """,
         'schema': {
             'objective': {
                 'type': 'choice',

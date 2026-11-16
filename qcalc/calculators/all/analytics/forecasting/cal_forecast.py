@@ -5,7 +5,7 @@ from math import sqrt
 from statistics import NormalDist
 
 from qcore import qtbl, QChart, qhtml
-from qutil import md2html
+from qutil import md2html, when_show
 
 
 def _qtbl(columns, data_rows):
@@ -1269,25 +1269,13 @@ def forecast__info():
                 'fields': manual_fields,
                 'callback': 'showManualFields',
             },
-            'random_mode': {
-                'fields': ['confidence_level'],
-                'callback': 'showConfidence',
-            },
-            'validation_mode': {
-                'fields': ['holdout_percent'],
-                'callback': 'showHoldoutPct',
-            },
+            'random_mode': when_show({'historical': 'confidence_level'}),
+            'validation_mode': when_show({'holdout': 'holdout_percent'}),
         },
         'script': """
         function getModeValue(fieldName){
             const elem = document.querySelector(`[id$='_${fieldName}']`);
             return elem ? elem.value : '';
-        }
-        function showConfidence(v){
-            return [v === 'historical'];
-        }
-        function showHoldoutPct(v){
-            return [v === 'holdout'];
         }
         function showManualFields(v){
             const methodValue = getModeValue('method_mode');

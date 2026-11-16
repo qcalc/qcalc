@@ -8,6 +8,9 @@
     "all-admin": {
         "desc": "Administrative calculators and utilities for platform operations, preferences, messaging, and support workflows."
     },
+    "all-agriculture": {
+        "desc": "Agriculture calculators for crop planning, yield estimation, and farm management."
+    },
     "all-analytics": {
         "desc": "Analytics calculators for forecasting, optimization, scenario analysis, and data-driven business decision support."
     },

@@ -87,6 +87,18 @@ BLEND_MATERIALS_SCHEMA = {
     'Max Qty': _optional(float, min=0),
 }
 BLEND_SPECS_SCHEMA = {'Property': str, 'Min %': {'required': False}, 'Max %': {'required': False}}
+FERT_NUTRIENTS_SCHEMA = {
+    'Nutrient': str,
+    'Required': _NON_NEGATIVE,
+    'Soil Supply': _optional(float, min=0, default=0.0),
+    'Max Supply': _optional(float, min=0),
+}
+FERT_PRODUCTS_SCHEMA = {
+    'Fertilizer': str,
+    'Price': _NON_NEGATIVE,
+    'Min Qty': _optional(float, min=0, default=0.0),
+    'Max Qty': _optional(float, min=0),
+}
 ITEMS_SCHEMA = {'Item': str, 'Value': float, 'Weight': float, 'Max Qty': _optional(float, default=1.0)}
 CAPACITY_OBJECT_SCHEMA = {'Resource': str, 'Available': float, 'Required': float, 'Unit Cost': float}
 ROUTING_OBJECT_SCHEMA = {'From': str, 'To': str, 'Cost': float, 'Capacity': float}
@@ -168,6 +180,45 @@ def table_blend_specs(field_name):
             "Specification table with Property, Min %, Max %. "
             "Property names must match blend_materials property columns (ignoring trailing '%'). "
             "Percent entries are interpreted as whole-percent values (for example 20 means 20%, 0.5 means 0.5%)."
+        ),
+    }
+
+
+def table_fert_nutrients(field_name):
+    # Generic use: per-nutrient requirement with optional soil credit and upper limit.
+    # Example use: crop NPK recommendation, animal ration targets.
+    return {
+        'initial': pd.DataFrame({
+            'Nutrient': ['N', 'P2O5', 'K2O'],
+            'Required': [100, 50, 40],
+            'Soil Supply': [0, 0, 0],
+            'Max Supply': [150, 80, 60],
+        }),
+        'validators': [table_columns_validator(field_name, schema=FERT_NUTRIENTS_SCHEMA)],
+        'help_text': (
+            'Crop nutrient table in quantity per area unit. Required is the crop recommendation; optional Soil Supply '
+            'is the agronomic credit from soil or manure; optional Max Supply caps the nutrient the fertilizers may supply.'
+        ),
+    }
+
+
+def table_fert_products(field_name):
+    # Generic use: priced products with one nutrient-content column (in %) per nutrient.
+    return {
+        'initial': pd.DataFrame({
+            'Fertilizer': ['Urea', 'TSP', 'MOP', 'DAP'],
+            'Price': [0.40, 0.50, 0.35, 0.60],
+            'Min Qty': [0, 0, 0, 0],
+            'Max Qty': [250, 150, 150, 200],
+            'N %': [46, 0, 0, 18],
+            'P2O5 %': [0, 46, 0, 46],
+            'K2O %': [0, 0, 60, 0],
+        }),
+        'validators': [table_columns_validator(field_name, schema=FERT_PRODUCTS_SCHEMA)],
+        'help_text': (
+            'Fertilizer table with Price per quantity unit, optional Min Qty/Max Qty (quantity per area unit), and one '
+            'content column in % per nutrient (for example N %, P2O5 %, K2O %, S %). Use actual product specifications. '
+            'Default prices are rough USD per kg and should be replaced with local prices.'
         ),
     }
 

@@ -86,7 +86,7 @@ e.g. you do not ever require "from qcore import Qty" statement for frontend calc
     QFile, qf2bio, dd_list,
     QImage, qf2img, nparray_to_bio,
     QChart, QGeo, QMap, SmartCalc,
-    user_name, user_process, user_ip, local_ip,
+    user_name, user_ip,
     page_link, calurl, cal_link, command_button, addcal_button,
     today, now, spellnow,
     md2html, demo_url, is_debug, is_blank, normalize_name, to_float, pct2fraction, val2fraction,

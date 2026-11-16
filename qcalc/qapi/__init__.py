@@ -1,54 +1,131 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
-"""Narrow public API for restricted user calculators."""
+"""Narrow public API for restricted (sandboxed) user calculators.
+
+Everything listed here is injected into user calculator code, so only add a name when it is safe for untrusted
+authors: it must not reach the filesystem, network, threads, request/settings objects, the database, or hand out a
+raw pandas object (see ``qutil.mod_code_security.dangerous_keywords``).
+
+To expose a new helper:
+  1. import it in the matching group below, and
+  2. add its name to the ``_api()`` call right under that import.
+``tests/test_qapi_exports.py`` fails if a listed name does not resolve or is listed twice.
+
+For imports from calc see inside the package itself (calc imports qapi, so qapi must not import calc).
+"""
 
 import datetime
-# imports from qcore, qutil, qapi and standard python
-# for imports from calc see inside the package itself
 
+_API = {}  # group title -> exported names, in declaration order
+_TYPES = 'field types'  # the group exposed as __qtypes__; every other group is exposed through __evacon__
+
+
+def _api(group, names):
+    _API[group] = tuple(names.split())
+
+
+# | Calculator field types (annotations)
 from qcore import (
-    # | Qty class and related functions
-    Qty, QTable, QRelation, QBase,
-    UnitRegistry, QtyRegistry,
-    qdf, QList,
-    qconvert, qdf_demo_data,
-    QDateTime, today, now, spellnow,  # mod_datetime
-    base_dims, prefixes, lmt_desc,
-    isMeasureUnit as is_unit, isMeasureQuantity as is_qty,
-    # | Keep the following annotations
     qchar, qcode, qdate, qdict, qdatetime, qemail, qchat, qfl, qfile, qfunc, qhide,
     qhidex, qhtml, qin, qimage, qlist, qpage, qread, qregex, qsel2, qtbl, qtc,
     qtc2, qtext, qtexta, qtexte, qtime, qt, qt2, qtx, quom, quom2, quomx,
     qurl, qvstr, qerror, qwarn, qinfo,
-    # | Other classes and related functions
-    QFile, qf2bio,
-    QImage, qf2img, nparray_to_bio,
-    QChart, QGeo, QMap, SmartCalc,
-    table_columns_validator,
-    QFormatter, QCurrency,
-    ai_prompt_field, br,
-    qsymbols, qsymstat, qsymhelp,
-    csv2qtbl, np2qtbl,  # qd_df, qd_np
-    qnp as np, np_names,  # qb_np_proxy
 )
 
+# qtable (real pd.DataFrame) is deliberately excluded: safe_execute()'s AST check doesn't block attribute calls
+# like .eval()/.query()/.to_pickle() on it - use qtbl instead
+_api(_TYPES, """
+    qchar qcode qdate qdict qdatetime qemail qchat qfl qfile qfunc qhide qhidex qhtml qin qimage qlist qpage
+    qread qregex qsel2 qtbl qtc qtc2 qtext qtexta qtexte qtime qt qt2 qtx quom quom2 quomx qurl qvstr
+    qerror qwarn qinfo
+""")
+
+# | Quantities, units and currencies
 from qcore import (
-    css2floats, css2ints, css2values, css2strs, vals2css, css2set, css2dict, css2list,  # mod_basic
-    is_blank, normalize_name, to_float, pct2fraction, val2fraction, to_cast,
-    to_bool, as_float, time2float,
+    Qty, UnitRegistry, QtyRegistry, qconvert, base_dims, prefixes, lmt_desc, QFormatter, QCurrency,
+    isMeasureUnit as is_unit, isMeasureQuantity as is_qty,
 )
 
-from qutil import (
-    DotDict, dd_list,  # mod_dict
-    user_name, user_process, user_ip, local_ip,  # mod_user
-    page_link, calurl, cal_link, callback_button, action_button, action_spec, addcal_button,  # mod_links
-    iif, joinx, css2strs,  # mod_basic
-    md2html, demo_url, is_debug,
-    specified_args, preprocess_expression, variable_to_title,
-    title_to_variable,
-    replace_variables, replace_parameter_values, parameter_values,
+_api('units', """
+    Qty UnitRegistry QtyRegistry qconvert base_dims prefixes lmt_desc QFormatter QCurrency is_unit is_qty
+""")
+
+# | Tables and containers
+from qcore import QTable, QRelation, QBase, QList, qdf, qdf_demo_data, table_columns_validator, csv2qtbl, np2qtbl, \
+    validated_col, qnp as np
+from qutil import DotDict, dd_list
+
+_api('tables', """
+    QTable QRelation QBase QList qdf qdf_demo_data table_columns_validator csv2qtbl np2qtbl validated_col np
+    DotDict dd_list
+""")
+
+# | Date and time
+from qcore import QDateTime, QTimezone, today, now, spellnow, time2float
+
+_api('datetime', 'datetime QDateTime QTimezone today now spellnow time2float')
+
+# | Value parsing and conversion
+from qcore import (
+    css2floats, css2ints, css2values, css2set, css2dict, css2list, vals2css,
+    is_blank, normalize_name, to_float, as_float, to_bool, to_cast, pct2fraction, val2fraction, nzv,
 )
+from qutil import css2strs, iif, joinx, nzs
+
+_api('parsing', """
+    css2floats css2ints css2values css2strs css2set css2dict css2list vals2css
+    is_blank normalize_name to_float as_float to_bool to_cast pct2fraction val2fraction nzv nzs iif joinx minimum
+""")
+
+# | Expressions and variables
+from qutil import (
+    specified_args, preprocess_expression, to_python_expr, xpr_coeffs, find_matched_variables,
+    variable_to_title, title_to_variable, replace_variables, replace_parameter_values, parameter_values,
+)
+
+_api('expressions', """
+    specified_args preprocess_expression to_python_expr xpr_coeffs find_matched_variables
+    variable_to_title title_to_variable replace_variables replace_parameter_values parameter_values
+""")
+
+# | Text, markdown and JSON output
+from qcore import br, pretty_json, qpretty_json, QScreen
+from qutil import md2html, code2html, escape_markdown, truncate, word_count, text2words
+
+_api('text', 'br md2html code2html escape_markdown truncate word_count text2words pretty_json qpretty_json QScreen')
+
+# | Files and images
+from qcore import QFile, qf2bio, QImage, qf2img, nparray_to_bio
+
+_api('files', 'QFile qf2bio QImage qf2img nparray_to_bio')
+
+# | Charts, maps and solvers
+from qcore import QChart, QGeo, QMap, SmartCalc, legend_locations, color_schemes
+
+_api('charts', 'QChart QGeo QMap SmartCalc legend_locations color_schemes')
+
+# | Links, buttons and form behaviour
+from qcore import ai_prompt_field
+from qutil import (
+    page_link, calurl, cal_link, callback_button, action_button, action_spec, addcal_button,
+    step2_spec, step2_button, when_show, show_when, demo_url,
+)
+
+_api('links', """
+    page_link calurl cal_link callback_button action_button action_spec addcal_button
+    step2_spec step2_button when_show show_when demo_url ai_prompt_field
+""")
+
+# | User and environment
+from qutil import user_name, user_ip, is_debug
+
+_api('environment', 'user_name user_ip is_debug')
+
+# | API discovery
+from qcore import qsymbols, qsymstat, qsymhelp
+
+_api('discovery', 'qtypes qmodules qsymbols qsymstat qsymhelp')
 
 
 def minimum(*args, key=None):
@@ -62,59 +139,6 @@ def minimum(*args, key=None):
     return min(*args, key=key)
 
 
-qlib_dict = {
-    'q': Qty, 'ureg': UnitRegistry, 'qreg': QtyRegistry, 'qdt': QDateTime, 'dd': DotDict,
-    # | 'datetime': datetime.datetime, 'date': datetime.date, 'time': datetime.time,
-    # | 'timedelta': datetime.timedelta, 'timezone': datetime.timezone,
-    # | 'call': QCals.addr, (circular)
-}
-
-__qtypes__ = [
-    'qchar', 'qcode', 'qdate', 'qdict', 'qdatetime', 'qemail',
-    'qchat', 'qfl', 'qfile', 'qfunc', 'qhide', 'qhidex', 'qhtml', 'qin', 'qimage', 'qlist', 'qpage',
-    'qread', 'qregex', 'qsel2', 'qtbl', 'qtc', 'qtc2', 'qtext', 'qtexta',
-    # | qtable (real pd.DataFrame) deliberately excluded: safe_execute()'s AST check
-    # | doesn't block attribute calls like .eval()/.query()/.to_pickle() on it - use qtbl instead
-    'qtexte', 'qtime', 'qt', 'qt2', 'qtx', 'quom', 'quom2', 'quomx', 'qurl', 'qvstr',
-    'qerror', 'qwarn', 'qinfo',
-]
-
-# for eva(), mycal() and console
-__evacon__ = [
-    'datetime',
-    'Qty', 'UnitRegistry', 'QtyRegistry', 'QDateTime', 'DotDict', 'QTable', 'QRelation', 'QBase', 'QList',  # qcore
-    'is_qty', 'is_unit', 'base_dims', 'prefixes', 'lmt_desc',  # qcore
-    'minimum',  # this file
-    'table_columns_validator',
-    'QFormatter', 'QCurrency',  # qcore.mod_qcutil
-    'ai_prompt_field', 'br',  # qcor.mod_fields
-    'iif', 'joinx', 'css2floats', 'css2ints', 'css2values', 'css2strs', 'vals2css', 'css2set', 'css2dict',
-    'css2list',  # qutil.mod_basic
-    'np', 'qdf',  # qapi.mod_qtbl
-    'qconvert', 'qdf_demo_data',
-    'qtypes', 'qmodules', 'qsymbols', 'qsymstat', 'qsymhelp',  # qcore.mod_autil
-    'QFile', 'qf2bio', 'dd_list',
-    'QImage', 'qf2img', 'nparray_to_bio',
-    'QChart', 'QGeo', 'QMap', 'SmartCalc',
-    'user_name', 'user_process', 'user_ip', 'local_ip',  # qutil.mod_user
-    'page_link', 'calurl', 'cal_link', 'callback_button', 'action_button', 'action_spec', 'addcal_button',
-    # qutil.mod_links
-    'today', 'now', 'spellnow',  # qcore.qd_datetime
-    'md2html', 'demo_url', 'is_debug', 'is_blank', 'normalize_name', 'to_float', 'pct2fraction', 'val2fraction',
-    'to_cast',
-    'to_bool', 'parameter_values', 'as_float', 'specified_args', 'preprocess_expression', 'time2float',
-    'variable_to_title', 'title_to_variable', 'replace_variables', 'replace_parameter_values',
-    'csv2qtbl', 'np2qtbl',
-]
-
-
-def _qapis():
-    names = set(qlib_dict) | set(__evacon__)
-    # names |= qdf_names()
-    # names |= np_names()
-    return names
-
-
 def qtypes():
     """Return sorted qcalc annotation/helper type names available to calculators."""
     return sorted(__qtypes__)
@@ -126,5 +150,21 @@ def qmodules():
     return sorted(allowed_modules)
 
 
+qlib_dict = {
+    'q': Qty, 'ureg': UnitRegistry, 'qreg': QtyRegistry, 'qdt': QDateTime, 'dd': DotDict,
+    # | 'datetime': datetime.datetime, 'date': datetime.date, 'time': datetime.time,
+    # | 'timedelta': datetime.timedelta, 'timezone': datetime.timezone,
+    # | 'call': QCals.addr, (circular)
+}
+
+__qtypes__ = list(_API[_TYPES])
+
+# for eva(), mycal() and console
+__evacon__ = [name for group, names in _API.items() if group != _TYPES for name in names]
+
 # for cal()
 __all__ = __qtypes__ + __evacon__
+
+
+def _qapis():
+    return set(qlib_dict) | set(__evacon__)

@@ -77,7 +77,7 @@ tbl = {"columns": ["name", "qty"], "data": [["A", 3], ["B", 5]]}
 
 | Symbol | Kind | What it does | Example |
 |---|---|---|---|
-| `user_name`, `user_process`, `user_ip`, `local_ip` | function | Runtime/user context metadata | `user_name()` |
+| `user_name`, `user_ip` | function | Runtime/user context metadata | `user_name()` |
 
 ---
 

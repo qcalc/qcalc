@@ -6,7 +6,8 @@ import warnings
 
 import qapi
 from asteval import make_symbol_table
-from qcore import Qty, UnitRegistry, QtyRegistry
+from qcore import Qty, UnitRegistry, QtyRegistry, registered
+from qcore.mod_qcalc import SANDBOX
 from qutil import to_python_expr, safe_execute
 
 logger = logging.getLogger(__name__)
@@ -49,9 +50,10 @@ class CalcSandbox:
 
     @classmethod
     def exec_with_context(cls, code, scope, username='', item_id=''):
+        gdict = {**cls.symbols, SANDBOX: True}
         with warnings.catch_warnings(record=True) as caught:
             warnings.simplefilter("always", SyntaxWarning)
-            local_dict = cls.exec(code)
+            local_dict = cls.exec(code, gdict)
 
         for warning_item in caught:
             if issubclass(warning_item.category, SyntaxWarning):
@@ -63,4 +65,5 @@ class CalcSandbox:
                     getattr(warning_item, 'lineno', '?'),
                     str(warning_item.message),
                 )
+        local_dict.update(registered(gdict, local_dict, code))
         return local_dict

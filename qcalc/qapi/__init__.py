@@ -122,6 +122,11 @@ from qutil import user_name, user_ip, is_debug
 
 _api('environment', 'user_name user_ip is_debug')
 
+# | Calculator registration
+from qcore import qcalc
+
+_api('calculator', 'qcalc')
+
 # | API discovery
 from qcore import qsymbols, qsymstat, qsymhelp
 

@@ -11,6 +11,7 @@ from pathlib import Path
 
 import qconst
 from django.conf import settings
+from qcore import registered
 from qutil import TreeNode, joinx, names2fid
 from qvars import qfunc_categ_info
 from ..mod_sandbox import CalcSandbox
@@ -57,6 +58,7 @@ class CatalogBuilder:
                     elif entry.is_file() and entry.name.endswith('.py'):
                         module = import_module(current_pkg)
                         func_address_list = inspect.getmembers(module, inspect.isfunction)
+                        func_address_list += registered(vars(module), vars(module)).items()
                         cls.build_func_dict(func_address_list, catalog_name, package_name, func_dict, c_dict)
 
         searchpath(package_name)

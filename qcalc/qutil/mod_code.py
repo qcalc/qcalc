@@ -129,4 +129,34 @@ def format_py_code(code):
 def get_functions(code_string):
     tree = ast.parse(code_string)
     functions = [node.name for node in ast.walk(tree) if isinstance(node, ast.FunctionDef)]
+    for cal in qcalc_names(tree):  # a qcalc calculator has its __info generated, report it as defined
+        functions += [n for n in (cal, f'{cal}__info') if n not in functions]
     return functions
+
+
+def qcalc_names(code_or_tree):
+    """Calculator names declared with @qcalc, @qcalc(...) or a top-level qcalc(<function name>, ...) call."""
+    tree = ast.parse(code_or_tree) if isinstance(code_or_tree, str) else code_or_tree
+    names = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef):
+            subject, calls = node.name, [d for d in node.decorator_list if _is_qcalc(d)]
+        elif (isinstance(node, ast.Expr) and _is_qcalc(node.value)
+              and node.value.args and isinstance(node.value.args[0], ast.Name)):
+            subject, calls = node.value.args[0].id, [node.value]
+        else:
+            continue
+        names += [_literal_name(call) or subject for call in calls]
+    return names
+
+
+def _is_qcalc(node):
+    target = node.func if isinstance(node, ast.Call) else node
+    return isinstance(target, ast.Name) and target.id == 'qcalc'
+
+
+def _literal_name(call):
+    for kw in getattr(call, 'keywords', []):
+        if kw.arg == 'name' and isinstance(kw.value, ast.Constant) and isinstance(kw.value.value, str):
+            return kw.value.value
+    return None

@@ -11,6 +11,7 @@ from calc import CalcSandbox
 from qutil import (
     UnsafeCodeError,
     extract_calculator_name,
+    get_functions,
     validate_expression_security,
 )
 
@@ -357,11 +358,7 @@ def validate_calculator_stages(user_code):
         raise CalculatorValidationError('security', error) from error
 
     try:
-        functions = [
-            node.name
-            for node in ast.walk(tree)
-            if isinstance(node, ast.FunctionDef)
-        ]
+        functions = get_functions(user_code)
         calculator_name = _identify_calculator(functions)
     except Exception as error:
         raise CalculatorValidationError('structure', error) from error

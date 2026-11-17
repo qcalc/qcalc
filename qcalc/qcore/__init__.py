@@ -38,4 +38,5 @@ from .mod_qgeo import QGeo
 from .mod_qmap import QMap
 from .mod_fields import *
 from .mod_autil import *
+from .mod_qcalc import *
 from .mod_schema_validate import validate_schema_if_needed

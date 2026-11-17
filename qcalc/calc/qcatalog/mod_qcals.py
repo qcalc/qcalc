@@ -214,6 +214,11 @@ class QCals:
 
     @classmethod
     def func_title_desc_tags(cls, sfunc, scope='qpots'):
+        return cls.func_title_desc_tags_folder(sfunc, scope)[:3]
+
+    @classmethod
+    def func_title_desc_tags_folder(cls, sfunc, scope='qpots'):
+        """Title, description, tags and the normalized user folder path ('' for the catalog root) from one __info()."""
         func_info = cls.run_func_info(sfunc, scope)
         if 'title' in func_info:
             title = func_info['title']
@@ -226,7 +231,7 @@ class QCals:
             desc = title
 
         tags = func_info.get('tags', '')
-        return title, desc, tags
+        return title, desc, tags, CatalogBuilder.normalize_folder(func_info.get('folder'))
 
     @classmethod
     def run_func_info(cls, func_id, scope='qpots'):

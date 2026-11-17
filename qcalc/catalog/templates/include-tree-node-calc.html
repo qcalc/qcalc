@@ -17,7 +17,7 @@
       {% endif %}
     {% else %}
       <a class="categ">{{ node.title }} ({{ node|uleafcount:user }})</a>
-      <p class="tdesc">{{ node.desc }}</p>
+      {% if node.desc %}<p class="tdesc">{{ node.desc }}</p>{% endif %}
       {% if node.children %}
           <ul>
           {% include 'include-tree-node-calc.html' with calc_data=node.children %}

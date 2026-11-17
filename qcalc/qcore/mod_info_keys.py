@@ -13,8 +13,9 @@ Columns:
             (``images`` is merged separately, ``api`` and ``fargs`` are read by their own code paths, and a few
             internal keys are overridable for compatibility)
 
-The info generator (mod_code_info) produces every public key except ``api``, in registry order. ``api`` opts a
-calculator into the public API, so a draft must not set it silently.
+The info generator (mod_code_info) produces every public key except ``api`` and ``folder``, in registry order.
+``api`` opts a calculator into the public API, so a draft must not set it silently. ``folder`` only applies to the
+calculators a user creates, so it is not drafted either.
 
 The metadata validation of user-authored calculators (mod_mycal_validation) owns the value schemas. It accepts the
 public keys and ``inp1`` / ``out1``, never the internal keys; tests/test_info_keys.py enforces that every public key
@@ -67,6 +68,7 @@ INFO_KEYS = {
     'out_schema': _key('public'),
     'kins': _key('public'),
     'tags': _key('public'),
+    'folder': _key('public', override=False),  # read by the personal catalog (mod_ucals)
     'proper': _key('public'),
     'remember': _key('public'),
     'recall': _key('public'),
@@ -91,7 +93,7 @@ INFO_KEYS = {
     'cost': _key('internal'),
 }
 
-PUBLIC_KEYS = tuple(key for key, spec in INFO_KEYS.items() if spec.kind == 'public' and key != 'api')
+PUBLIC_KEYS = tuple(key for key, spec in INFO_KEYS.items() if spec.kind == 'public' and key not in ('api', 'folder'))
 LEGACY_KEYS = frozenset(key for key, spec in INFO_KEYS.items() if spec.kind == 'legacy')
 INTERNAL_KEYS = frozenset(key for key, spec in INFO_KEYS.items() if spec.kind == 'internal')
 ALL_INFO_KEYS = frozenset(INFO_KEYS)

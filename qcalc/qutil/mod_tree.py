@@ -403,11 +403,16 @@ def load_tree_from_json(filename):
 def dict_to_tree(node_dict, id_prefix=''):
     if not node_dict:
         return None
-    nid = f'{id_prefix}{node_dict["id"]}'
-    name = node_dict["name"]
-    node = TreeNode(nid, name)  # root
+    node = _node_from_dict(node_dict, id_prefix)  # root
     # noinspection PyProtectedMember
     node._index_node()
+    _add_children_from_dict(node, node_dict)
+    node.update_all_descendant_leafs_count()
+    return node
+
+
+def _node_from_dict(node_dict, id_prefix=''):
+    node = TreeNode(f'{id_prefix}{node_dict["id"]}', node_dict["name"])
     node.title = node_dict.get("title", '')
     node.desc = node_dict.get("desc", '')
     node.tags = node_dict.get("tags", '')
@@ -421,12 +426,15 @@ def dict_to_tree(node_dict, id_prefix=''):
     node.uname = node_dict.get("uname", '')
     node.depth = node_dict.get("depth", 0)
     node.leafcount = 0  # | dynamic, not node_dict.get("numchild", 0)
-
-    for child_dict in node_dict.get("children", []):
-        child_node = dict_to_tree(child_dict)
-        node.add_child(child_node)
-    node.update_all_descendant_leafs_count()
     return node
+
+
+def _add_children_from_dict(node, node_dict):
+    # | a child joins its parent before its own children do, so that every descendant lands in the shared index
+    for child_dict in node_dict.get("children", []):
+        child_node = _node_from_dict(child_dict)
+        node.add_child(child_node)
+        _add_children_from_dict(child_node, child_dict)
 
 
 def create_category_node(ctg_node_id, ctg_node_name, ctg_node_title, uname=None):

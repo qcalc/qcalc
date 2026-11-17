@@ -93,6 +93,7 @@ Following table lists down the optional elements or info keys of a metadata func
 | `step2` | list | Offer a follow-up calculator or action after a successful result. |
 | `kins` | comma-separated string | Related calculators displayed in the Related section. |
 | `tags` | comma-separated string | Search and catalog tags. |
+| `folder` | string | My Catalog folder of a calculator you create, as a dotted path such as `'projects.steel'` (`/` also works). Up to 4 levels; letters, digits, spaces and `_` only. Empty keeps it at the root. Ignored for library calculators, whose folder is their directory. |
 | `xpr` | bool | Show or hide expression actions. Defaults to `True`. |
 | `url` | bool | Show or hide the generated Browse link. Defaults to `True`. |
 | `loop` | bool | Show or hide the Redo action. Defaults to `True`. |

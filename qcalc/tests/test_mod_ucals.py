@@ -12,6 +12,7 @@ qsett.init()
 import pytest
 
 import calc.qcatalog.mod_ucals as mu
+from calc.qcatalog.mod_catalog_build import CatalogBuilder
 from calc.qcatalog.mod_ucals import UCals, get_uc_list, register_shared_cal, unregister_shared_cal
 from qcore import qerror, qinfo
 from qutil import create_category_node, TreeNode
@@ -52,7 +53,8 @@ class _Store:
 
 @pytest.fixture
 def env(monkeypatch):
-    env = SimpleNamespace(meta=_Store(), mycal=_Store(), fav=_Store(), mem=_Store(), owner=OWNER, executed=[])
+    env = SimpleNamespace(meta=_Store(), mycal=_Store(), fav=_Store(), mem=_Store(), owner=OWNER, executed=[],
+                          folders={})
     monkeypatch.setattr(mu, 'QMeta', env.meta)
     monkeypatch.setattr(mu, 'QMyCal', env.mycal)
     monkeypatch.setattr(mu, 'QFav', env.fav)
@@ -66,6 +68,8 @@ def env(monkeypatch):
     sandbox = SimpleNamespace(exec_with_context=exec_with_context)
     qcals = SimpleNamespace(
         func_title_desc_tags=lambda func_id, scope='': (f'Title {func_id}', f'Desc {func_id}', 'tag1'),
+        func_title_desc_tags_folder=lambda func_id, scope='': (
+            f'Title {func_id}', f'Desc {func_id}', 'tag1', CatalogBuilder.normalize_folder(env.folders.get(func_id))),
         calc_root=create_category_node('qcalc', 'qcalc', 'Standard'),
     )
     pubcals = SimpleNamespace(root=create_category_node('public', 'public', 'Public'))
@@ -211,6 +215,107 @@ def test_a_failing_title_lookup_does_not_fail_the_edit(env):
 
     assert "Run the calculator using 'mycal'" in results
     assert env.meta.getp1('uc_list') == ['mycal-bob']
+
+
+# folders ---------------------------------------------------------------------------------------------------------
+
+def _parent_id(env, nid):
+    tree = dict_to_tree(env.meta.getp1('uc_tree'))
+    parent = tree.get_node_by_id(nid).parent.id
+    tree.delete_tree()
+    return parent
+
+
+def test_a_calculator_without_a_folder_stays_at_the_root(env):
+    UCals().edit_cal('mycal', CODE)
+
+    assert _parent_id(env, 'mycal-bob') == 'created'
+
+
+def test_a_calculator_is_placed_in_its_folder_path(env):
+    env.folders['mycal-bob'] = 'projects.steel'
+
+    results = UCals().edit_cal('mycal', CODE)
+
+    assert _parent_id(env, 'mycal-bob') == 'd:projects-steel'
+    assert _tree_ids(env.meta.getp1('uc_tree')) >= {'d:projects', 'd:projects-steel'}
+    tree = dict_to_tree(env.meta.getp1('uc_tree'))
+    assert tree.get_node_by_id('d:projects-steel').desc == ''
+    assert 'Folder: Projects > Steel' in results
+
+
+def test_a_calculator_moves_with_its_folder_and_empty_folders_are_dropped(env):
+    cals = UCals()
+    env.folders['mycal-bob'] = 'a.b'
+    cals.edit_cal('mycal', CODE)
+
+    env.folders['mycal-bob'] = 'a'
+    cals.edit_cal('mycal', CODE)
+
+    assert _parent_id(env, 'mycal-bob') == 'd:a'
+    assert 'd:a-b' not in _tree_ids(env.meta.getp1('uc_tree'))
+
+    env.folders['mycal-bob'] = ''
+    cals.edit_cal('mycal', CODE)
+
+    assert _parent_id(env, 'mycal-bob') == 'created'
+    assert 'd:a' not in _tree_ids(env.meta.getp1('uc_tree'))
+
+
+def test_a_folder_named_like_a_branch_does_not_clash_with_it(env):
+    env.folders['mycal-bob'] = 'shared'
+
+    UCals().edit_cal('mycal', CODE)
+
+    assert _parent_id(env, 'mycal-bob') == 'd:shared'
+
+
+def test_deleting_the_last_calculator_of_a_folder_drops_the_folder(env):
+    cals = UCals()
+    env.folders['mycal-bob'] = 'a.b'
+    cals.edit_cal('mycal', CODE)
+
+    cals.del_cal('mycal')
+
+    assert _tree_ids(env.meta.getp1('uc_tree')) == {'created'}
+
+
+def test_the_private_catalog_places_calculators_in_their_folders(env):
+    env.folders['mine-bob'] = 'Work/Q1'
+    cals = UCals()
+    cals.uctg_dict = {'ucals.bob': 'bob'}
+    cals.uc_dict = {'mine-bob': 'ucals.bob', 'other-bob': 'ucals.bob'}
+
+    cals.create_catalog_calc_private(SimpleNamespace())
+
+    assert _parent_id(env, 'mine-bob') == 'd:work-q1'
+    assert _parent_id(env, 'other-bob') == 'created'
+
+
+def test_every_descendant_of_a_loaded_tree_can_be_found_by_id():
+    root = create_category_node('r', 'r', 'R')
+    child = root.add_category_node('r', 'c', 'c', 'c')
+    child.add_category_node('c', 'g', 'g', 'g').add_child(_leaf('leaf'))
+
+    loaded = dict_to_tree(root.tree_to_dict())
+
+    assert all(loaded.get_node_by_id(i) for i in ('c', 'g', 'leaf'))
+    assert loaded.get_node_by_id('leaf').depth == 3
+
+
+@pytest.mark.parametrize('raw, expected', [
+    ('projects.steel', 'projects.steel'),
+    (' My Jobs / Steel Beams ', 'my_jobs.steel_beams'),
+    ('a..b/', 'a.b'),
+    ('a-b.c!', 'ab.c'),
+    ('a.b.c.d.e.f', 'a.b.c.d'),
+    ('x' * 40, 'x' * 30),
+    ('', ''),
+    (None, ''),
+    (5, ''),
+])
+def test_folder_paths_are_normalized(raw, expected):
+    assert CatalogBuilder.normalize_folder(raw) == expected
 
 
 # delete ----------------------------------------------------------------------------------------------------------
@@ -420,9 +525,9 @@ def test_the_private_catalog_skips_calculators_whose_title_cannot_be_read(env):
     def fail(func_id, scope=''):
         if func_id == 'bad-bob':
             raise RuntimeError('broken')
-        return 't', 'd', ''
+        return 't', 'd', '', ''
 
-    env.qcals.func_title_desc_tags = fail
+    env.qcals.func_title_desc_tags_folder = fail
     cals = UCals()
     cals.uctg_dict = {'ucals.bob': 'bob'}
     cals.uc_dict = {'good-bob': 'ucals.bob', 'bad-bob': 'ucals.bob'}

@@ -183,6 +183,7 @@ _INFO_PROPERTY_SCHEMAS = {
     'script': {'type': 'string'},
     'kins': {'type': 'string'},
     'tags': {'type': 'string'},
+    'folder': {'type': 'string'},
     'proper': {'type': 'string'},
     'inserts': {'type': 'object'},
     'step2': {

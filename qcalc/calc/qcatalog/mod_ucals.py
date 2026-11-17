@@ -4,12 +4,12 @@
 from ..mod_cache import QMeta, QMyCal, QFav, QMem
 from .mod_qcals import QCals
 from .mod_pubcals import PubCals
+from .mod_catalog_build import CatalogBuilder, FOLDER_ID_PREFIX
 from ..mod_sandbox import CalcSandbox
-from .mod_catalog_build import CatalogBuilder
 from qcore import qinfo, qerror
 from qutil.mod_tree import dict_to_tree
 from qutil import TreeNode, create_category_node, user_name, get_functions, \
-    extract_calculator_name, names2fid, fid2owner
+    extract_calculator_name, names2fid, fid2owner, path_title
 import fnmatch
 import logging
 import json
@@ -50,7 +50,7 @@ def _remove_cal(kind, cal_id, cal_name, on_remove=None):
         del cal_dict[cal_id]
         node = tree.get_node_by_id(cal_id) if tree else None
         if node:
-            node.delete_tree()
+            CatalogBuilder.remove_leaf(node)
         if on_remove:
             on_remove()
         QMeta.setp1(f'{kind}_list', cal_list)
@@ -209,7 +209,10 @@ class UCals:
         ctg_node_id = "created"
         with _edit_tree('uc_tree', ctg_node_id, ctg_node_id, self.cal_owner) as ctg_node:
             try:
-                CatalogBuilder.upsert_leaf(ctg_node, cal_id, QCals.func_title_desc_tags, 'o', self.cal_owner, 'e')
+                leaf = CatalogBuilder.upsert_leaf(ctg_node, cal_id, QCals.func_title_desc_tags_folder, 'o',
+                                                  self.cal_owner, 'e')
+                if leaf.parent.id.startswith(FOLDER_ID_PREFIX):
+                    results.append(f"Folder: {path_title(leaf.parent.id[len(FOLDER_ID_PREFIX):])}")
             except Exception as e:
                 logger.error(f">>> EC: {e}")  # Example: Log the exception
 
@@ -242,7 +245,7 @@ class UCals:
         uname = user_name(request)
         created_node = create_category_node("created", "created", "Created by Me", uname)
         self.calc_root.add_child(created_node)
-        CatalogBuilder.populate(created_node, self.uctg_dict, self.uc_dict, QCals.func_title_desc_tags, 'o',
+        CatalogBuilder.populate(created_node, self.uctg_dict, self.uc_dict, QCals.func_title_desc_tags_folder, 'o',
                                 uname=uname, sub_type='e', flat_ctg=self.cal_owner)
 
         created_node.update_all_descendant_leafs_count()

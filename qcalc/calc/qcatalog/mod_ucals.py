@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
-from ..mod_cache import QMeta, QMyCal, QFav, QMem
+from ..mod_cache import QMeta, QMyCal, QFav, QMem, QCache
 from .mod_qcals import QCals
 from .mod_pubcals import PubCals
 from .mod_catalog_build import CatalogBuilder, FOLDER_ID_PREFIX
@@ -205,6 +205,7 @@ class UCals:
         QMeta.setp1('uc_list', uc_list)
         QMeta.setp1('uc_dict', uc_dict)
         QMyCal.setp1(cal_id, code)  # QCals.func_title_desc_tags needs it
+        QCache.remove(cal_id)  # | the cached form schema (and generated info) is of the old code
 
         ctg_node_id = "created"
         with _edit_tree('uc_tree', ctg_node_id, ctg_node_id, self.cal_owner) as ctg_node:
@@ -221,7 +222,7 @@ class UCals:
 
     def del_cal(self, cal_name):
         cal_id = names2fid(self.cal_owner, cal_name)
-        return _remove_cal('uc', cal_id, cal_name, on_remove=lambda: QMyCal.delp1(cal_id))
+        return _remove_cal('uc', cal_id, cal_name, on_remove=lambda: (QMyCal.delp1(cal_id), QCache.remove(cal_id)))
 
     def package_contents_private(self, request):
         self.ufunc_dict = {}

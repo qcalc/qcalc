@@ -59,6 +59,8 @@ def env(monkeypatch):
     monkeypatch.setattr(mu, 'QMyCal', env.mycal)
     monkeypatch.setattr(mu, 'QFav', env.fav)
     monkeypatch.setattr(mu, 'QMem', env.mem)
+    env.schema = SimpleNamespace(removed=[], remove=lambda key: env.schema.removed.append(key))
+    monkeypatch.setattr(mu, 'QCache', env.schema)
     monkeypatch.setattr(mu, 'user_name', lambda request=None: env.owner)
 
     def exec_with_context(code, **kwargs):
@@ -319,6 +321,16 @@ def test_folder_paths_are_normalized(raw, expected):
 
 
 # delete ----------------------------------------------------------------------------------------------------------
+
+def test_editing_and_deleting_a_calculator_drops_its_cached_schema(env):
+    cals = UCals()
+
+    cals.edit_cal('mycal', CODE)
+    cals.edit_cal('mycal', CODE.replace('a=1', 'a=2'))
+    cals.del_cal('mycal')
+
+    assert env.schema.removed == ['mycal-bob'] * 3
+
 
 def test_a_deleted_calculator_is_removed_from_all_stores_and_the_tree(env):
     cals = UCals()

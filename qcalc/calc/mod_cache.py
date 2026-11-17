@@ -47,7 +47,11 @@ class QCacheGen:
             return None
 
     def remove(self, key):
-        self.cache.delete(key)
+        if self.active:
+            try:
+                self.cache.delete(key)
+            except Exception as e:
+                logger.error(f'>>> QCR: Could not remove {key} from cache; {e}')
 
 
 class QSession:

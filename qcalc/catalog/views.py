@@ -18,7 +18,7 @@ from calc.views_tabulator import get_fav_data
 from catalog.tag_index import get_tag_view, normalize_tag_list
 from catalog.fragment_cache import cached_fragment, apply_favorites
 from calc import cur_loader
-from calc.qcatalog.mod_ucals import get_personal_tree
+from calc.qcatalog.mod_ucals import get_personal_tree, search_personal_nodes
 
 
 def show_page(request: HtmxHttpRequest, **kwargs):
@@ -203,6 +203,7 @@ def search_catalog(request: HtmxHttpRequest, scope='cx', idonly=False):
     calc_nodes, pcalc_nodes, unit_nodes = search_result_nodes(results, scope)
     context = {
         "calc_data": calc_nodes,
+        "ucalc_data": search_personal_nodes(sterm) if idonly else [],  # | id search, i.e. add calculator
         "pcalc_data": pcalc_nodes,
         "category": {'title': ''},
         "cat": 'calc',

@@ -2,7 +2,7 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 from qutil import variable_to_title, TreeNode, \
-    QThread, create_category_node, user_name, fid2owner
+    QThread, create_category_node, user_name, fid2owner, fid_separator
 from qvars import qc_gpref as gs, qfunc_info
 import bisect
 from ..mod_cache import QMeta, QMyCal
@@ -110,12 +110,20 @@ class QCals:
         request = QThread.get_req()
 
         def find_in_list(item_list, part):
-            idx = bisect.bisect_left(item_list, part)
+            # | lists are sorted by str.lower, so the search ignores case and returns the id as stored
+            part = part.lower()
+            idx = bisect.bisect_left(item_list, part, key=str.lower)
             if idx < len(item_list):
-                if item_list[idx] == part:
+                item = item_list[idx].lower()
+                if item == part:
                     return item_list[idx]
-                elif item_list[idx].startswith(part):
-                    if idx + 1 < len(item_list) and item_list[idx + 1].startswith(part):
+                elif item.startswith(part):
+                    nxt = item_list[idx + 1].lower() if idx + 1 < len(item_list) else ''
+                    # | a user calculator id is <name>-<owner>, so its name alone is an exact match
+                    # | unless the next id has the same name (e.g. shared by two owners)
+                    if item.partition(fid_separator)[0] == part and nxt.partition(fid_separator)[0] != part:
+                        return item_list[idx]
+                    if nxt.startswith(part):
                         return 2  # Multiple matches
                     return item_list[idx]
             return 0
@@ -175,7 +183,7 @@ class QCals:
         catalog_name = package_name.split('.')[-1] if catalog_name == '' else catalog_name
         CatalogBuilder.scan_package(package_name, catalog_name, cls.qfunc_dict, cls.qc_dict, cls.qctg_dict)
         cls.qc_list[:] = cls.qc_dict.keys()
-        cls.qc_list.sort()
+        cls.qc_list.sort(key=str.lower)
 
     @classmethod
     def create_catalog_calc(cls):

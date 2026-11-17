@@ -82,7 +82,7 @@ class PubCals:
             if faddr and cal_id not in cls.cal_list:
                 updated = True
                 cls.cal_list.append(cal_id)
-                cls.cal_list.sort()
+                cls.cal_list.sort(key=str.lower)
 
             node = cls.root.get_node_by_id(cal_id)
             if not node:
@@ -126,7 +126,7 @@ class PubCals:
             cls.func_dict = func_dict
             cls.cal_dict = cal_dict
             cls.ctg_dict = ctg_dict
-            cls.cal_list = sorted(cal_dict)
+            cls.cal_list = sorted(cal_dict, key=str.lower)
 
     @classmethod
     def build_catalog(cls):

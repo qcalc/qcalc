@@ -163,6 +163,17 @@ def test_the_list_of_created_calculators_stays_sorted(env):
     assert env.meta.getp1('uc_list') == ['alpha-bob', 'zeta-bob']
 
 
+def test_names_are_case_sensitive_but_must_not_differ_only_by_case(env):
+    cals = UCals()
+    cals.edit_cal('', CODE.replace('mycal', 'Zeta'))
+    cals.edit_cal('', CODE.replace('mycal', 'alpha'))
+
+    assert env.meta.getp1('uc_list') == ['alpha-bob', 'Zeta-bob']  # | sorted ignoring case
+    with pytest.raises(Exception, match='differs only by case'):
+        cals.edit_cal('', CODE.replace('mycal', 'zeta'))
+    cals.edit_cal('', CODE.replace('mycal', 'Zeta'))  # | editing the same name is fine
+
+
 def test_code_without_an_info_function_is_rejected(env):
     with pytest.raises(Exception, match=r'Meta __info\(\) not found'):
         UCals().edit_cal('', 'x = 1\n')

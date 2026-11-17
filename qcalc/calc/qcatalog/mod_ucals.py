@@ -10,6 +10,7 @@ from qcore import qinfo, qerror
 from qutil.mod_tree import dict_to_tree
 from qutil import TreeNode, create_category_node, user_name, get_functions, \
     extract_calculator_name, names2fid, fid2owner
+import fnmatch
 import logging
 import json
 import threading
@@ -174,6 +175,9 @@ class UCals:
 
         cal_id = names2fid(catalog_name, cal_name)
         update = cal_id in uc_list
+        clash = next((i for i in uc_list if i.lower() == cal_id.lower() and i != cal_id), None)
+        if clash:  # | search ignores case, so names that differ only by case would hide each other
+            raise Exception(f"Error (SUC): '{cal_name}' differs only by case from your calculator '{clash}'")
         CalcSandbox.exec_with_context(
             code,
             scope='edit-mycal',
@@ -196,7 +200,7 @@ class UCals:
                     uc_list.append(cal_id)
 
         if added:
-            uc_list.sort()
+            uc_list.sort(key=str.lower)
         results.append(f"Run the calculator using '{cal_name}'")
         QMeta.setp1('uc_list', uc_list)
         QMeta.setp1('uc_dict', uc_dict)
@@ -228,7 +232,7 @@ class UCals:
         CatalogBuilder.scan_cals(sources, 'private-mycal', 'Private',
                                  self.ufunc_dict, self.uc_dict, self.uctg_dict)
 
-        self.uc_list = sorted(self.uc_dict)
+        self.uc_list = sorted(self.uc_dict, key=str.lower)
 
         QMeta.setp1('uc_dict', self.uc_dict)
         QMeta.setp1('uc_list', self.uc_list)
@@ -268,7 +272,7 @@ class UCals:
         CatalogBuilder.scan_cals(sources(), 'shared-mycal', 'Shared',
                                  self.sfunc_dict, self.sc_dict, self.sctg_dict)
 
-        self.sc_list = sorted(self.sc_dict)
+        self.sc_list = sorted(self.sc_dict, key=str.lower)
 
         QMeta.setp1('sc_dict', self.sc_dict)
         QMeta.setp1('sc_list', self.sc_list)
@@ -301,7 +305,7 @@ def register_shared_cal(func_id, token):
 
     if cal_id not in sc_list:
         sc_list.append(cal_id)
-        sc_list.sort()
+        sc_list.sort(key=str.lower)
         QMeta.setp1('sc_list', sc_list)
 
     with _edit_tree('sc_tree', 'shared', 'Shared with Me', uname) as ctg_node:
@@ -329,6 +333,15 @@ def _personal_fingerprint():
                                sort_keys=True, default=str))
     except TypeError:
         return None
+
+
+def search_personal_nodes(pattern):
+    """The current user's created and shared calculators whose id matches the wildcard pattern, ignoring case."""
+    pattern = pattern.lower()
+    return [
+        node for node in get_personal_tree().depth_first()
+        if node.is_leaf and not node.id.startswith('f:') and fnmatch.fnmatchcase(node.id.lower(), pattern)
+    ]
 
 
 def get_personal_tree():

@@ -26,7 +26,8 @@
             {% endif %}
             <a class="dropdown-item" href="javascript:;"
             onclick="window.QCalcActions.saveInputToFile('{{ input.cid }}', '{{ input.doc.name }}');">Save Input to File...</a>
-            <a class="dropdown-item" href="/calc/core/{{ input.doc.name }}/?run" target="_blank">Printable View...</a>
+            <a class="dropdown-item" href="javascript:;"
+            onclick="window.QCalcActions.printView('{{ input.cid }}', '{{ input.doc.name }}', '');">Printable View...</a>
           </div>
           {% endif %}
           {% if input.doc.name|hashelp %}

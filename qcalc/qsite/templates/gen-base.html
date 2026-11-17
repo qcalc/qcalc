@@ -456,7 +456,8 @@
             {% endif %}
             <a class="dropdown-item" href="javascript:;"
             onclick="window.QCalcActions.saveInputToFile('{{ input.cid }}', '{{ input.doc.name }}');">Save Input to File...</a>
-            <a class="dropdown-item" href="/calc/core/{{ input.doc.name }}/?run" target="_blank">Printable View...</a>
+            <a class="dropdown-item" href="javascript:;"
+            onclick="window.QCalcActions.printView('{{ input.cid }}', '{{ input.doc.name }}', '');">Printable View...</a>
           </div>
           {% endif %}
           {% if input.doc.name|hashelp %}
@@ -526,8 +527,10 @@
             <a class="dropdown-item" href="javascript:;"
             onclick="window.QCalcActions.setRequestPreferences('{{ input.cid }}', {layout: 'tb'}, true);">Top/Bottom Layout</a>
             <div class="dropdown-divider"></div>
-            <a class="dropdown-item" href="/calc/core/{{ input.doc.name }}/?run&print=layout" target="_blank" aria-label="Printable Layout View">Printable Layout View...</a>
-            <a class="dropdown-item" href="/calc/core/{{ input.doc.name }}/?run&print=flat" target="_blank" aria-label="Printable Flat View">Printable Flat View...</a>
+            <a class="dropdown-item" href="javascript:;" aria-label="Printable Layout View"
+            onclick="window.QCalcActions.printView('{{ input.cid }}', '{{ input.doc.name }}', 'layout');">Printable Layout View...</a>
+            <a class="dropdown-item" href="javascript:;" aria-label="Printable Flat View"
+            onclick="window.QCalcActions.printView('{{ input.cid }}', '{{ input.doc.name }}', 'flat');">Printable Flat View...</a>
           </div>
           <a class="card-help" href="/calc/help/{{ input.doc.name }}/"
              hx-get="/calc/help/{{ input.doc.name }}/?part=1&token={{request.token}}"

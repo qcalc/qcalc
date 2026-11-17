@@ -100,6 +100,25 @@
             }
         }
 
+        try {
+            var data = await postSaveIo(cid, fname);
+            var jsonText = JSON.stringify(data, null, 2);
+            if (fileHandle) {
+                var writable = await fileHandle.createWritable();
+                await writable.write(jsonText);
+                await writable.close();
+            } else {
+                var blob = new Blob([jsonText], { type: 'application/json;charset=utf-8' });
+                saveAs(blob, downloadName);
+            }
+        } catch (_err) {
+            alert('Unable to save input right now. Please try again.');
+        }
+    }
+
+    // Posts the live form with cmd 'save_io'; the server also remembers the input, as Calculate does.
+    async function postSaveIo(cid, fname) {
+        var form = document.getElementById(TOK_FORM_PREFIX + cid);
         var extraField = document.getElementById(TOK_EXTRA_PREFIX + cid);
         var originalExtra = extraField ? (extraField.value || '{}') : null;
 
@@ -115,34 +134,37 @@
         }
 
         try {
-            var postData = new FormData(form);
             var csrftoken = form.querySelector('[name=csrfmiddlewaretoken]');
             var response = await fetch('/calc/run/' + encodeURIComponent(fname) + '/?part=2', {
                 method: 'POST',
-                body: postData,
+                body: new FormData(form),
                 headers: csrftoken ? { 'X-CSRFToken': csrftoken.value } : {}
             });
             if (!response.ok) {
                 throw new Error('Save request failed with status ' + response.status);
             }
-
-            var data = await response.json();
-            var jsonText = JSON.stringify(data, null, 2);
-            if (fileHandle) {
-                var writable = await fileHandle.createWritable();
-                await writable.write(jsonText);
-                await writable.close();
-            } else {
-                var blob = new Blob([jsonText], { type: 'application/json;charset=utf-8' });
-                saveAs(blob, downloadName);
-            }
-        } catch (_err) {
-            alert('Unable to save input right now. Please try again.');
+            return await response.json();
         } finally {
             if (extraField) {
                 extraField.value = originalExtra == null ? '{}' : originalExtra;
                 clearExtraCmd(cid);
             }
+        }
+    }
+
+    // Printable views open the remembered input, so send the live form first (showhide state follows its values).
+    async function printView(cid, fname, mode) {
+        var win = window.open('', '_blank'); // opened synchronously so popup blockers allow it
+        try {
+            await postSaveIo(cid, fname);
+        } catch (_err) {
+            // fall back to the last remembered input
+        }
+        var url = '/calc/core/' + encodeURIComponent(fname) + '/?run' + (mode ? '&print=' + mode : '');
+        if (win) {
+            win.location.href = url;
+        } else {
+            window.open(url, '_blank');
         }
     }
 
@@ -201,6 +223,7 @@
         setRequestPreferences: setRequestPreferences,
         calWithCmd: calWithCmd,
         saveInputToFile: saveInputToFile,
+        printView: printView,
         saveInput: saveInput,
     };
 })();

@@ -9,7 +9,18 @@ __all__ = ['QRelation', 'QBase']
 
 
 class QRelation:
-    """A foreign-key relationship from a detail table to a master table."""
+    """Describe how a column in one ``QTable`` refers to another table.
+
+    ``master`` and ``detail`` are table names. ``master_key`` identifies the
+    referenced master column(s), and ``detail_key`` identifies the corresponding
+    column(s) in the detail table; it defaults to ``master_key``. Supply lists
+    for keys that contain more than one column.
+
+    ``relation_type`` can be ``'one-to-one'``, ``'one-to-many'`` or
+    ``'many-to-one'``. Set ``nullable=True`` when detail rows may have a
+    completely blank foreign key. Validation reports missing columns, blank or
+    duplicate keys, and references that do not exist in the master table.
+    """
 
     def __init__(self, master, detail, master_key='id', detail_key=None,
                  relation_type='one-to-many', nullable=False):
@@ -66,7 +77,13 @@ class QRelation:
 
 
 class QBase:
-    """Registry and integrity coordinator for a small group of QTables."""
+    """Keep a group of related ``QTable`` objects together and validate them.
+
+    ``tables`` is a dictionary mapping names to tables or table data.
+    ``relations`` is an optional list of ``QRelation`` objects or dictionaries
+    containing relation settings. Use ``register()`` and ``relate()`` to add
+    more items, and ``validate()`` to check table rules and relationships.
+    """
 
     def __init__(self, tables=None, relations=None):
         self._tables = {}

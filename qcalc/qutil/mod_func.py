@@ -136,12 +136,23 @@ def url_to_user_expr(qexpr):
 
 
 def preprocess_expression(qexpr, disp=False):
-    """Backward-compatible wrapper, prefer to_python_expr() / to_user_expr() / url_to_user_expr()."""
+    """Convert an expression between calculator syntax and Python syntax.
+
+    With the default ``disp=False``, convert calculator syntax for evaluation:
+    ``^`` becomes ``**`` and implicit multiplication is added. With
+    ``disp=True``, convert Python exponent syntax back for display. For new
+    code, ``to_python_expr()`` is clearer for the default conversion.
+    """
     return to_user_expr(qexpr) if disp else to_python_expr(qexpr)
 
 
 def title_to_variable(title, data_type=''):
-    """Convert a display title into normalized variable name form."""
+    """Turn a display label into a lowercase variable name.
+
+    Spaces become underscores, so ``title_to_variable('Annual Cost')`` returns
+    ``'annual_cost'``. ``data_type`` is appended unchanged when you need a
+    suffix such as ``'_qty'``.
+    """
     title = title.replace(': ', qconst.DICT_KEY_SEP).replace(' ', '_').lower()
     title = title + data_type
     return title
@@ -169,7 +180,13 @@ def css2proper_dict(css: str) -> dict:
 
 
 def variable_to_title(var, pdict: dict | None = None):
-    """Convert normalized variable name into a readable title."""
+    """Turn a variable name into a readable display label.
+
+    ``variable_to_title('annual_cost')`` returns ``'Annual Cost'``. Common
+    abbreviations such as ``kpi`` receive suitable capitalization. Pass
+    ``pdict`` to override or add wording, for example
+    ``variable_to_title('ac_cost', {'ac': 'Air Conditioning'})``.
+    """
     word_dict = PROPER_WORDS if pdict is None else {**PROPER_WORDS, **pdict}
     var = qconst.TOK_RESULT_SUFFIX_PATTERN.sub('', var).replace('_', ' ').replace(qconst.DICT_KEY_SEP, ': ')
     words = [str(word_dict.get(word.lower(), word)) for word in titlecase(var).split()]
@@ -197,16 +214,19 @@ def path_to_title(path, separator='/', sep_display=' > '):
 
 
 def specified_args(func_or_args, spec, empty_spec='*'):
-    """
-    Resolve a field/argument selection spec against func_or_args.
+    """Choose calculator arguments by name, position, range, or pattern.
 
-    empty_spec controls how empty selector inputs are interpreted:
-    - '*' : treat None / '' / [] as "select all".
-        Use this for user-facing selector inputs where leaving spec blank
-        conventionally means "include everything".
-    - ''  : treat None / '' / [] as "select none".
-        Use this for metadata-driven layout wiring (__info blocks/tabs)
-        where blank or unmatched field specs must stay empty.
+    ``func_or_args`` can be a function, a comma-separated string, or a list or
+    tuple of argument names. In ``spec`` you can use:
+    - ``'*'`` for every argument;
+    - names or one-based positions such as ``'cost,3'``;
+    - wildcards such as ``'*cost*'``;
+    - ranges such as ``'2-5'`` or ``'price-total'``;
+    - ``'~name'`` to exclude matching arguments.
+
+    A number from 0 to 1 selects that fraction of the arguments. Empty input
+    selects all arguments by default; use ``empty_spec=''`` to select none.
+    The result is a list of selected names with duplicates removed.
     """
     if isinstance(func_or_args, str):
         all_args = css2strs(func_or_args)

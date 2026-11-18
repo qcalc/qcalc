@@ -2,6 +2,18 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 class DotDict(dict):
+    """A dictionary whose entries can also be accessed as attributes.
+
+    Use ``row.name`` as an alternative to ``row['name']``. Nested dictionaries
+    are converted automatically, including dictionaries inside lists and tuples.
+    This helper is also available as ``dd``.
+
+    With ``readonly=True``, reading a missing attribute or calling ``key()`` for
+    a missing entry raises an error instead of creating an empty entry.
+
+    Example:
+        ``DotDict({'name': 'Asha'}).name`` returns ``'Asha'``.
+    """
 
     def __init__(self, *args, readonly=False, **kwargs):
         super().__init__()
@@ -36,6 +48,11 @@ class DotDict(dict):
         self[key] = self._convert(value, readonly=self._readonly)
 
     def key(self, key):
+        """Access an entry whose key is not suitable for dot notation.
+
+        A missing key creates an empty ``DotDict`` unless this object is readonly,
+        in which case ``KeyError`` is raised.
+        """
         # supports keys that can't use dot notation
         if key not in self:
             if self._readonly:
@@ -44,6 +61,12 @@ class DotDict(dict):
         return self[key]
 
 def dd_list(items, readonly=False):
+    """Return a new list with each dictionary in ``items`` converted to ``DotDict``.
+
+    Non-dictionary items are left unchanged. With ``readonly=True``, reading a
+    missing attribute from a converted item raises an error instead of creating
+    an empty entry.
+    """
     return [
         DotDict(item, readonly=readonly) if isinstance(item, dict) else item
         for item in items

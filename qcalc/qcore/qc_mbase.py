@@ -133,6 +133,12 @@ _base_categ_list2 = list(zip(_base_slugs, _base_categories.values()))  # list (s
 
 
 def lmt_desc(dim):
+    """Return the plain-language category for a dimension code.
+
+    For example, ``lmt_desc('LT-1')`` returns ``'Velocity'``. An unknown code
+    raises ``KeyError``. Dimension codes describe combinations such as length,
+    mass, time, and currency in a quantity's unit.
+    """
     return _base_categories[dim]
 
 
@@ -225,6 +231,12 @@ _prefixes = [
 
 
 def base_dims():
+    """Return the dimension symbols used to describe qcalc units.
+
+    The list contains symbols for length, mass, time, electric current,
+    temperature, amount of substance, luminous intensity, angle, solid angle,
+    and currency, in that order.
+    """
     return _base_dimensions
 
 
@@ -232,4 +244,9 @@ _prefix_list = [pf[0] for pf in _prefixes]
 
 
 def prefixes():
+    """Return the prefix symbols that can be used in unit names.
+
+    These include familiar prefixes such as ``k`` for kilo and ``m`` for milli,
+    together with the other prefixes supported by qcalc quantities.
+    """
     return _prefix_list

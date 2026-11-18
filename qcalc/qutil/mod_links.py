@@ -8,7 +8,12 @@ from html import escape
 
 
 def page_link(pageurl, caption='', link_class="", icon_class="", cid='', card=False):
-    """Build an HTMX page-navigation link (or card link) HTML snippet."""
+    """Return an HTML link that opens another page inside the qcalc page area.
+
+    ``caption`` is the visible text. Use ``link_class`` and ``icon_class`` for
+    styling, ``cid`` when a card should be opened only once, and ``card=True``
+    to display the link as a card instead of a simple link.
+    """
     link_class = f'class="{link_class}"' if link_class else ''
     hx_trigger = ''
     if cid:  # | page will be replaced anyway if cid is available or not
@@ -38,7 +43,12 @@ def href_url(addurl):
 
 
 def calurl(calname, params=''):
-    """Build calculator add/load URL from calculator name and optional params."""
+    """Return the URL used to open a calculator.
+
+    ``calname`` is the calculator's registered name or catalog path. Optional
+    ``params`` is additional path text appended to that name when opening a
+    particular variant or parameterized view.
+    """
     return f'/calc/add/?path={calname}/{params}' if params else f'/calc/add/?fname={calname}'
 
 
@@ -69,7 +79,14 @@ def link_card_body(icon_class, caption):
 
 
 def cal_link(calurl, caption='', link_class='', icon_class='', target='a', cid='', button=False, card=False):
-    """Build an HTMX calculator-launch link/button (or card variant)."""
+    """Return an HTML link, button, or card that opens a calculator.
+
+    ``target`` controls where the calculator appears: ``'f'`` first on the page,
+    ``'b'`` before the current card, ``'r'`` replacing the current card,
+    ``'a'`` after it, or ``'l'`` last in the card area. Use ``cid`` to prevent
+    the same card from being added twice. ``button`` and ``card`` select the
+    visual style, while ``link_class`` and ``icon_class`` control appearance.
+    """
     link_class = f'class="{link_class}"' if link_class else ''
     href = href_url(calurl)
     target_swap = hx_target(target)
@@ -97,12 +114,12 @@ def _spin_inner(caption, spinner):
 
 
 def callback_button(sfunc, caption, cmd, args=None, kwargs=None, spinner=False):
-    """Build a submit button that posts a calculator callback command.
+    """Return a submit button that sends a command to a calculator callback.
 
-    The generated button posts to ``/calc/<sfunc>/?part=2`` with command payload
-    in ``hx-vals`` so server-side callback handlers can execute structured UI
-    actions (for example format/load/check commands).
-    Set ``spinner=True`` to show the calculate-button spinner while the request runs.
+    ``sfunc`` identifies the calculator function, ``caption`` is the button
+    text, and ``cmd`` is the command to handle. ``args`` and ``kwargs`` provide
+    additional command values. Set ``spinner=True`` to show progress while the
+    calculator processes the request.
     """
     # | to execute calculator callback command
     # | 'if', '' = inside form, default
@@ -129,13 +146,26 @@ def callback_button(sfunc, caption, cmd, args=None, kwargs=None, spinner=False):
 
 
 def addcal_button(calname, caption, icon_class='', params=''):
-    """Build a styled button that inserts a calculator card into the page."""
+    """Return a styled HTML button that opens another calculator after the current card.
+
+    ``caption`` is the button text, ``icon_class`` adds an optional icon, and
+    ``params`` is forwarded to ``calurl()`` for a parameterized view.
+    """
     return cal_link(calurl(calname, params=params), caption, 'btn btn-info btncmd', icon_class, 'a', '', True)
 
 
 def step2_spec(func, caption, step='run', spec='', source=None, place=''):
-    """Build one step2 entry. source: 'input' (live form, shown before Calculate), 'output' or 'both'
-    (cached result, shown after Calculate). place: optional insert slot, e.g. 'form_top'."""
+    """Describe a follow-up action for a calculated result.
+
+    ``caption`` is the button text and ``step`` identifies the action, such as
+    ``'run'`` or ``'chart'``. ``func`` optionally names the calculator that
+    handles live form input, and ``spec`` supplies additional action values.
+
+    ``source`` controls the data used: ``'input'`` for current form values,
+    ``'output'`` for the calculated result, or ``'both'``. By default, charts
+    use output and other actions use both. ``place`` optionally names a layout
+    slot such as ``'form_top'``. The returned dictionary describes the action.
+    """
     if not isinstance(step, str) or not step.strip():
         raise ValueError('step must be a non-empty string')
 
@@ -182,16 +212,28 @@ def step2_html(entry, func='', button_class=''):
 
 
 def step2_button(calc, func, caption, step='run', spec='', source='input', button_class=''):
-    """Hand-placed step2 button for any insert slot of calculator calc (form_top, form_bottom, out_top, ...)."""
+    """Return an HTML button for a follow-up calculator action.
+
+    ``calc`` is the calculator containing the button, and ``func`` handles the
+    action when live input is used. ``caption``, ``step``, ``spec`` and
+    ``source`` have the same meaning as in ``step2_spec()``; ``source`` defaults
+    to current form input. ``button_class`` adds custom CSS classes.
+    """
     return step2_html(step2_spec(func, caption, step, spec, source), calc, button_class)
 
 
 def action_spec(cmd, caption='', spec=None, args=None, kwargs=None, extra=None,
                 sync_table=False, update_after_swap=False):
-    """Build one same-card action entry for a btn:0 field, bound as schema[field]['button'].
-    cmd is the command the calculator hooks receive (e.g. 'load', '__modify'); spec maps payload properties to
-    field names, args/kwargs name the fields the command modifies, extra holds literal values.
-    sync_table: sync the input tables before the request; update_after_swap: re-enable the table update button."""
+    """Describe a button that sends a command within the current calculator.
+
+    Use the returned dictionary in a button field's specification. ``cmd`` is
+    the command handled by the calculator, and ``caption`` is the button text.
+    ``spec`` maps payload names to form fields, ``args`` and ``kwargs`` identify
+    values changed by the command, and ``extra`` contains fixed payload values.
+
+    ``sync_table`` sends current table edits first. ``update_after_swap``
+    re-enables the table update button after the form is refreshed.
+    """
     if not isinstance(cmd, str) or not cmd.strip():
         raise ValueError('cmd must be a non-empty string')
 
@@ -220,8 +262,12 @@ def action_attrs(entry, func):
 
 def action_button(func, caption, cmd, spec=None, args=None, kwargs=None, extra=None,
                   sync_table=False, update_after_swap=False, button_class=''):
-    """Hand-placed same-card action button for a form insert (form_top, form_bottom, ...) of calculator func.
-    Takes the same arguments as action_spec(); inside the form, prefer a btn:0 field bound to action_spec()."""
+    """Return an HTML button that sends a command within the current calculator.
+
+    ``func`` is the calculator handling the command. The remaining command
+    options match ``action_spec()``, and ``button_class`` adds CSS classes.
+    For a button defined directly in a form field, prefer ``action_spec()``.
+    """
     entry = action_spec(cmd, caption, spec, args, kwargs, extra, sync_table, update_after_swap)
     classes = escape(f'btn btn-info btncmd {button_class}'.strip(), quote=True)
     return f'<button type="button" class="{classes}" {action_attrs(entry, func)}>{escape(str(caption))}</button>'

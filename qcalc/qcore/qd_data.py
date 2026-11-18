@@ -91,7 +91,15 @@ def to_cast(value, field_name="value", cast=float, required=False) -> None | flo
 
 
 def as_float(value, field_name='value', required=False) -> None | float:
-    """Best-effort float conversion returning ``None`` for non-numeric inputs."""
+    """Convert a number or numeric text to ``float`` when possible.
+
+    Return ``None`` for blank, non-numeric, boolean, or unsupported values.
+    With ``required=True``, raise an error instead; ``field_name`` is used in
+    that error to identify the input.
+
+    Examples: ``as_float('12.5')`` returns ``12.5`` and
+    ``as_float('not available')`` returns ``None``.
+    """
 
     def _as_float_or_none(value, field_name="value"):
         if isinstance(value, bool):
@@ -120,7 +128,14 @@ def as_float(value, field_name='value', required=False) -> None | float:
 
 
 def pct2fraction(value, field_name="value", required=True):
-    """Parse numeric input and return fractional form (value / 100)."""
+    """Convert a percentage with a ``%`` suffix to its fractional value.
+
+    ``pct2fraction('12.5%')`` returns ``0.125``. A number or numeric text
+    without ``%`` is returned as a float without dividing it by 100, so
+    ``pct2fraction('12.5')`` returns ``12.5``. Blank input returns ``None``
+    only when ``required=False``; invalid input raises an error containing
+    ``field_name``.
+    """
     has_percent_suffix = False
     parse_value = value
     if isinstance(value, str):
@@ -153,6 +168,11 @@ def normalize_name(name):
 
 
 def pretty_json(json_data):
+    """Return JSON text with four-space indentation for easy reading.
+
+    Dictionary keys remain in their supplied order. The input must contain
+    values supported by Python's standard JSON encoder.
+    """
     return json.dumps(json_data, indent=4, sort_keys=False)
 
 

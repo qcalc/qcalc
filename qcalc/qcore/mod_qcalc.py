@@ -21,11 +21,17 @@ _NAME = re.compile(r'^[A-Za-z_]\w*$')
 
 
 def qcalc(func=None, name=None, **hints):
-    """``@qcalc``, ``@qcalc(title=..., overrides=..., ...)`` or ``qcalc(existing_function, name='x', ...)``.
+    """Register a Python function as a qcalc calculator.
 
-    ``hints`` and ``overrides`` are those of ``qcore.mod_info.build_info`` and must be literal values.
-    The function is recorded in the calling namespace, never modified or wrapped.
-    An explicit ``<name>__info()`` takes precedence.
+    Use ``@qcalc`` directly above a function, or ``@qcalc(title=..., ...)`` to
+    customize its form and results. You can also register an existing function
+    with ``qcalc(existing_function, name='my_calc')``. Calculator names must be
+    valid Python identifiers and cannot contain ``__``.
+
+    Hints such as ``title``, ``desc``, ``overrides``, and ``outputs`` customize
+    the generated calculator. They must be literal values rather than values
+    calculated at runtime. A separately defined ``<name>__info()`` takes
+    precedence over generated metadata.
     """
     caller = sys._getframe(1).f_globals  # the module, or the namespace sandboxed code runs in
     hints_text = repr(hints)

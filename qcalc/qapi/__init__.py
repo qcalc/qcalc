@@ -134,10 +134,12 @@ _api('discovery', 'qtypes qmodules qsymbols qsymstat qsymhelp')
 
 
 def minimum(*args, key=None):
-    """Return the smallest item from an iterable or argument list.
+    """Return the smallest value from a list or from separate arguments.
 
-    This is a safe qapi-exported alias of Python's built-in ``min`` for use in
-    calculator expressions.
+    ``minimum([3, 1, 2])`` and ``minimum(3, 1, 2)`` both return ``1``. Use
+    ``key`` to choose how values are compared, just as with Python's ``min``.
+    An empty input raises ``ValueError``; this helper does not provide ``min``'s
+    optional ``default`` value.
     """
     # defined locally (not imported from calc.conflicts) to avoid a
     # qapi <-> calc circular import at package-load time

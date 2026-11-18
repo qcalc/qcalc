@@ -9,12 +9,21 @@ import numpy as np
 
 
 class QMap(QChart):
+    """Create map-based calculator results.
+
+    ``resolution`` controls map detail and can be ``'10m'``, ``'50m'`` or
+    ``'110m'``; ``'10m'`` provides the finest detail. Use methods such as
+    ``coastlines()``, ``region()`` and ``distance()`` to choose a view, then
+    add locations or other map features.
+    """
+
     def __init__(self, resolution='50m'):
         super().__init__()
         self.projection = ccrs.PlateCarree()
         self.resolution = resolution
 
     def coastlines(self):
+        """Create and return a world map showing coastlines at the selected resolution."""
         projection = ccrs.PlateCarree(central_longitude=0)
         fig, ax = self.create_figure(projection)
         ax.stock_img()
@@ -22,6 +31,7 @@ class QMap(QChart):
         return fig
 
     def draw_features(self, ax):
+        """Add borders, coastlines, land, water, and gridlines to a map axis ``ax``."""
         ax.add_feature(cartopy.feature.BORDERS)
         ax.add_feature(cartopy.feature.COASTLINE)
         # ax.add_feature(cartopy.feature.LAKES, edgecolor='black')
@@ -33,6 +43,11 @@ class QMap(QChart):
         ax.coastlines(resolution=self.resolution)
 
     def region(self, central_latitude=50.0, central_lonitude=0, extent_lat=10.0, extent_long=18.0):
+        """Create a map around a central latitude and longitude.
+
+        ``extent_lat`` and ``extent_long`` set the number of degrees covered on
+        either side of the center. The map figure is returned.
+        """
         extent = [central_lonitude - extent_long, central_lonitude + extent_long,
                   central_latitude - extent_lat, central_latitude + extent_lat]
         projection = ccrs.Orthographic(central_lonitude, central_latitude)
@@ -46,6 +61,10 @@ class QMap(QChart):
                  color='red', linewidth=2, marker='o', transform=self.projection)
 
     def distance(self, lat1, long1, lat2, long2):
+        """Draw and return a map showing routes between two coordinates.
+
+        This method visualizes the connection; it does not return a numeric distance.
+        """
         fig, ax = self.create_figure(projection=ccrs.PlateCarree(central_longitude=(long1 + long2) / 2))
         offset_lng = max(abs(long1 - long2), 10) / 2
         offset_lat = max(abs(lat1 - lat2), 10) / 2
@@ -93,6 +112,7 @@ class QMap(QChart):
         return plt.gcf()
 
     def zoom(self, factor=2):
+        """Adjust the current map extent by ``factor`` and return the updated figure."""
         ax = plt.gca()
         ax.set_extent([ax.get_xlim()[0] / factor, ax.get_xlim()[1] * factor,
                        ax.get_ylim()[0] / factor, ax.get_ylim()[1] * factor], crs=self.projection)

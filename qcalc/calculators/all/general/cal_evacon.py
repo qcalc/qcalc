@@ -202,6 +202,7 @@ def qeval(request: HtmxHttpRequest, xpr: str):
             "  y = 35*m/s\n"
             "  x+y to m/s\n"
             "  help bmi\n"
+            "  help QTable.column\n"
             "  find bm*\n"
         )
         stdout = out.flush()

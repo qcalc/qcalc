@@ -83,15 +83,16 @@ def _unique_specs(unique):
 
 
 class QTable:
-    """A compact, schema-aware table backed by native Python data.
+    """Create a table from rows and optional column rules.
 
-    ``data`` accepts a qtbl dictionary, a list of row dictionaries, or a list
-    of row lists (when ``columns`` is supplied).  A qtbl produced by
-    ``to_dict(full=True)`` also restores its schema and key definitions.
+    ``data`` can be a dictionary with ``'columns'`` and ``'data'`` entries, a
+    list of row dictionaries, or a list of row lists with ``columns`` supplied.
+    A dictionary saved by ``to_dict(full=True)`` also restores its column rules
+    and key definitions. Use ``schema`` for column rules, and ``primary_key``
+    or ``unique`` for keys and uniqueness checks.
 
-    Column names are always matched case-insensitively (as in most databases).
-    ``case_sensitive`` only controls how *values* are compared by the
-    ``assert_*`` checks (unique, foreign key, cross join, domain match).
+    Column names are matched case-insensitively. ``case_sensitive`` controls
+    how *values* are compared by the ``assert_*`` checks.
     """
 
     def __init__(self, data=None, columns=None, schema=None, primary_key=None,

@@ -87,7 +87,13 @@ sane_lists: keeps explicit ordered-list numbering instead of restarting at 1 for
 
 
 def md2html(md_text: str, *, in_container=False, pre_wrap=False):
-    """Render Markdown to HTML using qcalc's standard extension set."""
+    """Convert Markdown text to HTML for a calculator result.
+
+    qcalc's standard extensions support tables, fenced code, math, and other
+    common Markdown features. Set ``in_container=True`` to wrap the result in
+    qcalc's content container, and ``pre_wrap=True`` to preserve line breaks in
+    that container.
+    """
     html = markdown.markdown(
         md_text,
         extensions=MARKDOWN_EXTENSIONS,
@@ -107,7 +113,13 @@ _MARKDOWN_CODE_PATTERN = re.compile(
 
 
 def code2html(code: str, lang: str, *, in_container: bool = True, pre_wrap: bool = False):
-    """Convert a code block to HTML using Markdown."""
+    """Display source code as formatted HTML with syntax highlighting.
+
+    ``code`` is the source text and ``lang`` is its language, such as
+    ``'python'``. By default the result is wrapped in qcalc's content container;
+    set ``in_container=False`` for the code HTML alone or ``pre_wrap=True`` to
+    preserve line breaks in the container.
+    """
     fence = '`' * max(3, max((len(m) for m in re.findall(r'`+', code)), default=0) + 1)
     return md2html(
         f'{fence}{lang}\n{code.strip(chr(10))}\n{fence}',

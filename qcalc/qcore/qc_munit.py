@@ -201,4 +201,10 @@ class MeasureUnit:
 
 
 def isMeasureUnit(x):
+    """Return ``True`` when ``x`` behaves like a qcalc unit object.
+
+    This helper is available to calculators as ``is_unit``. A unit obtained
+    from ``UnitRegistry.find('m')`` returns ``True``; the text ``'m'`` returns
+    ``False``.
+    """
     return hasattr(x, "factor") and hasattr(x, "powers")

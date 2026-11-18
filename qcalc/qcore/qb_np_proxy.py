@@ -28,11 +28,13 @@ def np_names():
 
 
 class _RestrictedProxy:
-    """Generic allowlist proxy (currently used by qnp, exposed as np). `_allowed` maps a
-    permitted attribute name to either True (call/read, convert result to
-    plain Python) or a nested allowed-dict (call, wrap result in a new proxy
-    exposing only those names). Add entries to _NP_ALLOWED below to expose
-    more, one name at a time.
+    """Provide the numerical tools available to calculators as ``np``.
+
+    Use familiar functions such as ``np.sqrt()``, ``np.mean()``, ``np.sin()``,
+    ``np.array()``, and constants such as ``np.pi``. Array and numerical results
+    are returned as plain Python values where possible. Only the supported
+    numerical operations are available; unsupported names raise ``AttributeError``.
+    Results are limited to 10,000 array values.
     """
 
     __slots__ = ('_obj', '_allowed')

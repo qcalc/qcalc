@@ -4,7 +4,17 @@ from qutil import css2strs
 
 
 class SmartCalc:
+    """Calculate derived values only when a calculator asks for them.
 
+    Supply known values as keyword arguments. Quantity strings are converted to
+    ``Qty`` objects, and arguments whose value is ``None`` are ignored. Define
+    ``inferred()`` in a subclass to provide calculations for derived names;
+    each result is calculated on first access and then reused.
+
+    For example, a subclass can return ``{'profit': calculate_profit}`` from
+    ``inferred()``, where ``calculate_profit`` uses the supplied ``revenue``
+    and ``cost`` values. Accessing ``calc.profit`` then returns the result.
+    """
     def __init__(self, **kwargs):
         self.params = {}
         for k, v in kwargs.items():

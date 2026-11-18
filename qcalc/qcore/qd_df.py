@@ -115,12 +115,24 @@ def csv2df(buff_or_url, delimiter=',', quoting='1'):
 
 
 def csv2qtbl(buff_or_url, delimiter=',', quoting='1'):
-    """Read CSV input/url and return qtbl ``{'columns': ..., 'data': ...}``."""
+    """Read CSV data and return a qcalc table dictionary.
+
+    ``buff_or_url`` can be a CSV buffer or URL. ``delimiter`` separates fields,
+    and ``quoting`` is the numeric CSV quoting mode, supplied as text. The
+    result has ``'columns'`` and ``'data'`` keys and can be passed to ``QTable``
+    or ``qdf``.
+    """
     df = csv2df(buff_or_url, delimiter=delimiter, quoting=int(quoting))
     return df2qtbl(df)
 
 
 def validated_col(cols: list, idx: int, cname: str = '') -> str:
+    """Return a column name after checking that it exists in ``cols``.
+
+    Use ``cname`` when you already know the desired name. If it is blank, the
+    column at zero-based position ``idx`` is used. A missing column raises an
+    error naming the unavailable column.
+    """
     c = cols[idx] if cname == '' else cname
     if c in cols:
         return c

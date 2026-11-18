@@ -9,6 +9,11 @@ def category_slug(category):
 
 
 def truncate(txt: str, n: int):
+    """Limit text to ``n`` characters and mark anything that was shortened.
+
+    Text of length ``n`` or less is returned unchanged. Longer text is cut to
+    ``n`` characters and followed by ``'... Truncated'``.
+    """
     return txt if len(txt) <= n else (txt[:n] + '... Truncated')
 
 
@@ -17,6 +22,7 @@ def sort_by_val(vdict: dict) -> dict:
 
 
 def nzs(sval):
+    """Return an empty string when ``sval`` is ``None``; otherwise return it unchanged."""
     return '' if sval is None else sval
 
 
@@ -56,7 +62,14 @@ def replace_words(str_to_replace, words_to_replace, replace_with, case_sensitive
 
 
 def replace_variables(str_to_replace, variables_dict, case_sensitive=True):
-    """Replace variables in a string using a dictionary of variable/replacement pairs."""
+    """Replace variable names in text using values from a dictionary.
+
+    For example, ``replace_variables('length * width', {'length': '4', 'width': '3'})``
+    returns ``'4 * 3'``. Replacement values must be strings. Only complete
+    variable names are replaced, not matching text inside a longer name.
+    Matching is case-sensitive by default; set ``case_sensitive=False`` to
+    ignore letter case.
+    """
     if case_sensitive:
         lookup = variables_dict
         flags = 0
@@ -79,10 +92,13 @@ def replace_variables(str_to_replace, variables_dict, case_sensitive=True):
 
 
 def parameter_values(xpr: str, case_sensitive: bool = False) -> dict:
-    """Read the current numeric value of each parameter in a calculator expression.
+    """Read named numeric values from a calculator expression.
 
-    Example:
-        "f(power='1.3 kW', factor=0.8)" -> {'power': 1.3, 'factor': 0.8}
+    ``parameter_values("f(power='1.3 kW', factor=0.8)")`` returns
+    ``{'power': 1.3, 'factor': 0.8}``. Quantity units are not included in the
+    returned numbers. Parameter names ignore case by default and are converted
+    to lowercase; use ``case_sensitive=True`` to preserve and match exact names.
+    If a name appears more than once, its first value is used.
     """
     flags = 0 if case_sensitive else re.IGNORECASE
     values = {}
@@ -100,33 +116,16 @@ def replace_parameter_values(
     parameters_dict: dict,
     case_sensitive: bool = False,
 ) -> str:
-    """
-    Replace parameter values in a calculator expression.
+    """Replace named numeric values in a calculator expression.
 
-    Examples:
-        xpr = (
-            "ac_running_cost("
-            "power='1.3 kW', "
-            "usage='150.0 hr/mo', "
-            "electricity_rate='10.0 BDT/kWh', "
-            "operating_factor=0.8, "
-            "days='30.0 day'"
-            ")"
-        )
+    ``parameters_dict`` maps parameter names to their new values. Quoted
+    quantities keep their original units: replacing ``power`` in
+    ``"f(power='1.3 kW', factor=0.8)"`` with ``1.25`` produces
+    ``"f(power='1.25 kW', factor=0.8)"``. Parameters absent from the dictionary
+    remain unchanged.
 
-        parameters = {
-            "power": 1.25,
-            "operating_factor": 0.75,
-        }
-
-        result:
-            ac_running_cost(
-                power='1.25 kW',
-                usage='150.0 hr/mo',
-                electricity_rate='10.0 BDT/kWh',
-                operating_factor=0.75,
-                days='30.0 day'
-            )
+    Names ignore case by default. Set ``case_sensitive=True`` to match exact
+    spelling. The updated expression is returned as text.
     """
 
     flags = 0 if case_sensitive else re.IGNORECASE
@@ -193,17 +192,13 @@ def replace_parameter_values(
 
 
 def joinx(slist, separator=' '):
-    """Join string-like items while skipping separators around blank items.
+    """Join text items without leaving extra separators around blank items.
 
-    Unlike ``separator.join(...)``, this avoids extra separators when adjacent
-    values are blank, making it handy for building labels/messages from optional
-    parts.
+    ``joinx(['Hello', '', 'world'])`` returns ``'Hello world'`` instead of the
+    ``'Hello  world'`` produced by ``' '.join(...)``. The default separator is
+    one space; supply ``separator`` to use something else.
 
-    Example:
-    >> joinx(('hello','', 'how','you','?'))
-    >> 'hello how you ?'
-    >> ' '.join(('hello','', 'how','you','?'))
-    >> 'hello how you ?'
+    Provide a non-empty list or tuple of strings.
     """
     s1 = slist[0]
     for s2 in slist[1:]:
@@ -242,6 +237,12 @@ def curdir_fullpath(ref_fname, fname, subdir=''):
 
 
 def xpr_coeffs(xpr):
+    """Return the numeric coefficients from a linear expression.
+
+    For example, ``xpr_coeffs('3x - y + 2z')`` returns ``[3.0, -1.0, 2.0]``.
+    A variable without a written coefficient has coefficient ``1`` or ``-1``.
+    Exponents using ``^`` or ``**`` are rejected with ``ValueError``.
+    """
     # xpr('3x-a+2y2-9.5_zZ') or xpr('3,-1,2,-9.5')
     # returns [3,-1,2,-9.5]
     if '**' in xpr or '^' in xpr:
@@ -380,13 +381,14 @@ def _showhide_entry(fields: list, conditions: list) -> dict:
 
 
 def when_show(by_value: dict) -> dict:
-    """Scriptless showhide entry for a controlling field: ``{value: fields to show}``.
+    """Choose which fields to show for each value of a controlling field.
 
-    ``'mode': when_show({'File': 'upload', 'URL': 'url', ('A', 'B'): ['x', 'y']})`` reads as
-    "when mode is File show upload, when it is URL show url, when it is A or B show x and y".
-    A tuple key stands for any of its values, True/False are the values of a checkbox and
-    a value that is not listed hides all the fields. Use ``show_when`` if the same fields
-    are shown for several values.
+    ``'mode': when_show({'File': 'upload', 'URL': 'url', ('A', 'B'): ['x', 'y']})``
+    shows ``upload`` for File, ``url`` for URL, and both ``x`` and ``y`` for A
+    or B. A tuple key groups several controlling values. Checkbox values can be
+    ``True`` or ``False``. Unlisted values hide the fields named here.
+
+    Use ``show_when`` when several values should show the same fields.
     """
     shown = {}  # field -> values showing it, in the order of the first appearance
     for key, fields in by_value.items():
@@ -396,11 +398,12 @@ def when_show(by_value: dict) -> dict:
 
 
 def show_when(by_field: dict) -> dict:
-    """Scriptless showhide entry for a controlling field: ``{field: value(s) showing it}``.
+    """Show fields when a controlling field has selected values.
 
-    ``'method': show_when({'base': '1', 'angle': ['1', '2']})`` reads as
-    "show base when method is 1, show angle when method is 1 or 2". A list or tuple stands for
-    any of its values and True/False are the values of a checkbox. Use ``when_show`` if each value
-    shows its own fields.
+    ``'method': show_when({'base': '1', 'angle': ['1', '2']})`` shows ``base``
+    when method is 1, and ``angle`` when method is 1 or 2. A list or tuple
+    groups acceptable values, and checkbox values can be ``True`` or ``False``.
+
+    Use ``when_show`` when each controlling value shows a different set of fields.
     """
     return _showhide_entry(list(by_field), [_showhide_condition(_as_list(v)) for v in by_field.values()])

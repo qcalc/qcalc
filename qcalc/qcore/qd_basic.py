@@ -7,6 +7,7 @@ from qutil import css2strs
 
 
 def nzv(nval):
+    """Return ``0`` when ``nval`` is ``None``; otherwise return ``nval`` unchanged."""
     return 0 if nval is None else nval
 
 

@@ -24,10 +24,11 @@ def request_prefs():
 
 
 class QCurrency:
-    """Converts currency tokens in units to one preferred currency.
+    """Convert quantities involving currency to a preferred currency.
 
-    ``pref_cur`` defaults to the user's ``defa_currency`` from ``thread_prefs()``,
-    which is read once per instance. Create instances per request, not at import.
+    Set ``pref_cur`` to a currency code such as ``'USD'`` or ``'EUR'``. If you
+    omit it, the current calculator user's preferred currency is used.
+    Non-currency quantities are returned unchanged.
     """
 
     def __init__(self, pref_cur: str | None = None):
@@ -59,10 +60,11 @@ class QCurrency:
 
 
 class QFormatter:
-    """Value/quantity formatter bound to one set of preferences.
+    """Format numbers and quantities for display in calculator results.
 
-    ``pref`` defaults to ``thread_prefs()``. It is merged with global defaults once,
-    since some call paths set only a subset of preferences.
+    By default, formatting follows the current user's preferences, including
+    decimal places, thousands separators, and preferred currency. Pass ``pref``
+    as a dictionary only when you need to override particular display settings.
     """
 
     def __init__(self, pref=None):
@@ -125,9 +127,15 @@ class QFormatter:
         return fv if unit is None else [fv, funame]
 
     def value(self, val) -> str:
+        """Return a number formatted as display text using the current preferences."""
         return self.format(val)
 
     def qty(self, qty: Qty | str, val_only=False, thousands_separator=None) -> str:
+        """Format a ``Qty`` or quantity string for display.
+
+        Set ``val_only=True`` to omit the unit. ``thousands_separator`` overrides
+        the user's grouping preference for this value.
+        """
         if isinstance(qty, str):
             qty = Qty(qty)
         vstr, ustr = self.format(qty.val, qty.unit, thousands_separator)

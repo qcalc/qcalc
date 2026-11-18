@@ -65,6 +65,13 @@ def get_synonyms(word):
 
 
 def find_matched_variables(expression, variable_list):
+    """Return the variables from ``variable_list`` that appear in an expression.
+
+    Names are matched as complete identifiers, not as fragments of longer
+    names. The result follows the order of ``variable_list``. For example,
+    searching ``'length * width'`` with ``['width', 'height', 'length']``
+    returns ``['width', 'length']``.
+    """
     # | Define a regular expression pattern to match variables
     variable_pattern = r'[a-zA-Z_][a-zA-Z0-9_]*'
     # | Find all matches of variables in the expression

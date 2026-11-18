@@ -413,6 +413,13 @@ def qjson_dumps(dict_):
 
 
 def qpretty_json(dict_):
+    """Format calculator values as readable, four-space-indented JSON text.
+
+    qcalc values such as quantities, dates, and tables are converted to their
+    JSON representation. Long strings are shortened for preview, dictionary
+    keys keep their order, and JSON ``null`` is displayed as an empty string.
+    Use this for display rather than lossless data storage.
+    """
     return json.dumps(dict_, cls=QEncoderShort, indent=4, sort_keys=False).replace('null', '""')
 
 

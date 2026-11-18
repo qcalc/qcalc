@@ -25,22 +25,17 @@ def to_plain(value):
 
 
 def qsymbols(scope='api', name_filter=None, include_members=False):
-    """
-    List callables reachable from eva()/console/mycal() code.
-    Optional name_filter can have wildcard (case-insensitive, *=any chars, ?=one char),
-    e.g. 'add*', '*len*', matched against the full name.
-    Prefix with '~' to negate, e.g. '~*info' lists names NOT ending in 'info'
-    'scope' controls kind of symbols you want to list:
-      'api' (default) - search only formally specified functions
-      'cal' - search only calculators
-      'aux' - search only auxiliary functions used by calculators
-      'unit' - search only unit names (excluding currencies)
-      'cur' - search only currency names
-      'qty' - search only quantity names
-      'all' - search all functions and symbols
-      scope can also be a comma separated list of scope names: e.g. 'api, aux'
-    Set include_members=True to include public class members as
-    <ClassSymbol>.<member> in the output.
+    """List names you can use in calculators and calculator expressions.
+
+    ``scope`` chooses the names to list: ``'api'`` for built-in helpers,
+    ``'cal'`` for calculators, ``'aux'`` for auxiliary functions, ``'unit'``
+    for units, ``'cur'`` for currencies, ``'qty'`` for named quantities, or
+    ``'all'``. Combine scopes with commas, for example ``'api,unit'``.
+
+    ``name_filter`` accepts case-insensitive wildcards: ``'*date*'`` finds names
+    containing date, and ``'~*info'`` excludes names ending in info. Set
+    ``include_members=True`` to include public methods and properties in the
+    form ``Class.member``. The result is a sorted list of names.
     """
     from calc import QCals, CalcSandbox, qapis  # local import: calc imports qutil, avoid circular import
 
@@ -141,7 +136,12 @@ def qsymstat():
 
 
 def qsymhelp(name):
-    """Print a short help/description for a qcalc symbol and return it."""
+    """Return help text for a calculator helper, calculator, unit, or quantity.
+
+    Use ``qsymhelp('QDateTime')`` for a class or ``qsymhelp('QDateTime.spell')``
+    for a particular method. The returned text explains usage; print it in a
+    console or return it from a calculator when you want to display it.
+    """
     from calc import QCals, QtyCatalog, CalcSandbox
 
     name = str(name).strip()
@@ -208,6 +208,10 @@ def qsymhelp(name):
 
 
 def sig_doc(obj):
+    """Return formatted signature and docstring help for a callable.
+
+    Return an empty string when ``obj`` is not callable.
+    """
     if not callable(obj):
         return ""
 
@@ -221,6 +225,10 @@ def sig_doc(obj):
 
 
 def resolve_qsym_obj(name, QCals, CalcSandbox):
+    """Resolve a symbol from the sandbox, calculator registry, or ``qapi``.
+
+    The sources are searched in that order. Return ``None`` if no match is found.
+    """
     obj = CalcSandbox.symbols.get(name)
     if obj is None:
         obj = getattr(QCals, 'qfunc_dict', {}).get(name)
@@ -234,6 +242,7 @@ def resolve_qsym_obj(name, QCals, CalcSandbox):
 
 
 def class_member_doc(cls, member_name, member):
+    """Return formatted help for a class method, property, or other attribute."""
     if isinstance(member, property):
         help_text = f"\nProperty: {cls.__name__}.{member_name}"
         docstring = inspect.getdoc(member.fget)
@@ -262,6 +271,7 @@ def class_member_doc(cls, member_name, member):
 
 
 def class_members_doc(cls):
+    """Return formatted help listing the public methods and properties of a class."""
     methods = []
     properties = []
 
@@ -305,6 +315,7 @@ def class_members_doc(cls):
 
 
 def class_member_symbols(class_name, cls):
+    """Return qualified names for public methods, properties, and attributes."""
     names = set()
     for member_name in dir(cls):
         if member_name.startswith('_'):
@@ -330,6 +341,20 @@ def class_member_symbols(class_name, cls):
 
 
 def obj_doc(obj):
-    if inspect.isclass(obj):
-        return class_members_doc(obj)
-    return sig_doc(obj)
+    """Return class, initializer, and member help, or signature help for an object."""
+    if not inspect.isclass(obj):
+        return sig_doc(obj)
+
+    sections = []
+    class_docstring = inspect.getdoc(obj)
+    if class_docstring:
+        sections.append(f"\nDescription:\n{class_docstring}")
+
+    init = getattr(obj, '__init__', None)
+    if init is not None and init is not object.__init__:
+        init_docstring = inspect.getdoc(init)
+        if init_docstring:
+            sections.append(f"\nConstructor (__init__):\n{init_docstring}")
+
+    sections.append(class_members_doc(obj))
+    return "\n".join(sections)

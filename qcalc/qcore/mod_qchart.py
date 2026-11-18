@@ -101,6 +101,19 @@ def plot_implicit_line(
 
 
 class QChart:
+    """Create charts and other visual results for a calculator.
+
+    ``width`` is the image width in pixels. ``aspect`` is height divided by
+    width; leave it as ``0`` to use the configured chart height. Choose
+    ``color_scheme`` from ``color_schemes``. ``xtype`` controls how values on
+    the horizontal axis are interpreted.
+
+    Create a chart, call the appropriate ``render_*`` method with your data,
+    and return the rendered result from your calculator.
+
+    Example:
+        ``QChart(width=700, aspect=0.5, color_scheme='viridis')``
+    """
 
     def __init__(self, width: int = None, aspect: float = 0.0,
                  color_scheme=None, xtype=float):
@@ -138,6 +151,7 @@ class QChart:
         return f'Chart image base64 size {len(self.b64)} bytes'
 
     def set_labels(self, xlabel=None, ylabel=None, zlabel=None, title=None, grid=False):
+        """Set axis labels and the chart title, and optionally show a grid."""
         if xlabel: self.ax.set_xlabel(xlabel)
         if ylabel: self.ax.set_ylabel(ylabel)
         if zlabel: self.ax.set_zlabel(zlabel)
@@ -146,12 +160,14 @@ class QChart:
         # if aspect > 0.0: self.ax.set_aspect(aspect)
 
     def set_legend(self, labels, loc=None):
+        """Set legend labels and optionally choose a location from ``legend_locations``."""
         self.legend_labels = labels
         self.legend_loc = loc or self.legend_loc
         if self.legend_loc == 'best':
             self.legend_loc = self.legend_loc_best or 'best'
 
     def show_legend(self):
+        """Draw the legend using the labels and location set by ``set_legend()``."""
         outside = {
             'upper left out': (0, 1.01), 'upper center out': (.5, 1.01), 'upper right out': (1, 1.01),
             'lower left out': (0, -0.25 / self.aspect), 'lower center out': (0.5, -0.25 / self.aspect),
@@ -203,10 +219,12 @@ class QChart:
         # self.fig.tight_layout(rect=[0, 0.1, 1, 1])  # Adjust the rect to give more space at the bottom
 
     def save_data(self, data, chtype):
+        """Attach source ``data`` and a chart-type label ``chtype`` to this chart."""
         self.data = data
         self.chtype = chtype
 
     def fig2b64(self):
+        """Convert the current figure to a base64 PNG image and close the figure."""
         buf = io.BytesIO()
         self.fig.savefig(buf)
         # self.fig.savefig(buf, format='png', bbox_inches='tight')
@@ -215,6 +233,7 @@ class QChart:
         plt.close(self.fig)
 
     def chart(self):
+        """Return the rendered base64 chart image, or ``None`` before rendering."""
         return self.b64
 
     def create_figure(self, projection=None):
@@ -229,6 +248,7 @@ class QChart:
         return self.fig, self.ax
 
     def render_done(self):
+        """Finish the chart by formatting labels, adding the legend, and encoding the image."""
         if self.projection == '3d':
             # for 2d native support available for dates
             # Set padding for the X-axis ticks and labels

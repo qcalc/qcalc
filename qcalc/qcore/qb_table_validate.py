@@ -32,10 +32,12 @@ def _coerce_table_for_validation(value, field_name):
 
 
 def table_columns_validator(field_name, required_cols=None, optional_cols=None, schema=None):
-    """Return a reusable validator for a table input.
+    """Create a reusable check for a table input's columns and values.
 
-    Pass ``schema`` (a QTable schema) to check headers and values, or ``required_cols`` /
-    ``optional_cols`` to check headers only.
+    ``field_name`` identifies the input in error messages. Use ``schema`` to
+    check both column names and values, or provide ``required_cols`` and
+    ``optional_cols`` to check column names only. Return the generated validator
+    for use in the table field's rules.
     """
     optional_cols = optional_cols or []
 

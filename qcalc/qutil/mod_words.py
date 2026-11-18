@@ -14,10 +14,20 @@ def ordinal(n):
 
 
 def text2words(text: str):
+    """Split text into a list of lowercase words and numbers.
+
+    Punctuation is treated as a separator. For example,
+    ``text2words('Hello, qCalc!')`` returns ``['hello', 'qcalc']``.
+    """
     return re.findall(r'\w+', text.lower(), re.UNICODE)
 
 
 def word_count(text: str):
+    """Count words in text and return both the count and the words found.
+
+    ``word_count('Hello, qCalc!')`` returns ``(2, ['hello', 'qcalc'])``. Use
+    ``word_count(text)[0]`` when you need only the count.
+    """
     words = text2words(text)
     cnt = len(words)
     return cnt, words

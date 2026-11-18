@@ -174,6 +174,10 @@ class MeasureQuantity:
         return self.value is not None and self.value != 0
 
     def to(self, unit):
+        """Return a new quantity converted to ``unit``, leaving this one unchanged.
+
+        ``unit`` can be a unit name such as ``'cm'`` or a qcalc unit object.
+        """
         if isinstance(unit, str):  # deb@04.04.24
             unit = UnitRegistry.find(unit)
         if self.value is not None:  # deb@13.10.23, 04.04.24
@@ -183,6 +187,11 @@ class MeasureQuantity:
         return self.__class__(value, unit)  # deb@04.04.24
 
     def in_units_of(self, *units):
+        """Express this quantity in one unit or split it across several units.
+
+        With one unit, return a converted quantity. With several units, return
+        a tuple of components, such as feet and inches for a length.
+        """
         units = list(map(UnitRegistry.find, units))
         if len(units) == 1:
             unit = units[0]
@@ -205,6 +214,7 @@ class MeasureQuantity:
         return tuple(result)
 
     def in_base_units(self):
+        """Return a new quantity expressed using qcalc's base units."""
         new_value = self.unit.to_base(self.value)
         terms = []
         for i in range(len(_base_names)):
@@ -217,29 +227,40 @@ class MeasureQuantity:
         return self.__class__(new_value, formatted)
 
     def is_compatible(self, unit):
+        """Return ``True`` when this quantity can be converted to ``unit``."""
         unit = UnitRegistry.find(unit)
         return self.unit.is_compatible(unit)
 
     def sqrt(self):
+        """Return the square root of the numeric value and its unit."""
         return pow(self, 0.5)
 
     def sin(self):
+        """Return the sine of an angle quantity; raise ``TypeError`` for other units."""
         if self.unit.is_angle():
             return np.sin(self.value * self.unit.conversion_factor_to(UnitRegistry.table['rad']))
         raise TypeError('Error (MQ): Argument of sin must be an angle')
 
     def cos(self):
+        """Return the cosine of an angle quantity; raise ``TypeError`` for other units."""
         if self.unit.is_angle():
             return np.cos(self.value * self.unit.conversion_factor_to(UnitRegistry.table['rad']))
         raise TypeError('Error (MQ): Argument of cos must be an angle')
 
     def tan(self):
+        """Return the tangent of an angle quantity; raise ``TypeError`` for other units."""
         if self.unit.is_angle():
             return np.tan(self.value * self.unit.conversion_factor_to(UnitRegistry.table['rad']))
         raise TypeError('Error (MQ): Argument of tan must be an angle')
 
 
 def isMeasureQuantity(x):
+    """Return ``True`` when ``x`` behaves like a quantity with a value and unit.
+
+    This helper is available to calculators as ``is_qty``. For example,
+    ``is_qty(q('5 m'))`` is ``True``, while ``is_qty('5 m')`` is ``False``
+    because the second value is still text.
+    """
     return hasattr(x, 'value') and hasattr(x, 'unit')
 
 

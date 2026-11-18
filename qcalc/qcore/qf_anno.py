@@ -352,13 +352,25 @@ class qerror(str):
 
 
 class QScreen:
+    """Collect printed text and return it as a page of calculator output.
+
+    Call ``write()`` with the values you would otherwise pass to ``print()``.
+    Call ``flush()`` once to finish and return the collected page; flushing
+    closes the buffer, so create a new ``QScreen`` for further output.
+
+    Example:
+        ``screen = QScreen(); screen.write('Hello'); result = screen.flush()``
+    """
+
     def __init__(self):
         self.out = io.StringIO()
 
     def write(self, *args):
+        """Append values and a newline to the output page, using ``print()`` spacing."""
         print(*args, file=self.out)
 
     def flush(self):
+        """Return the collected output as a ``qpage`` and close the screen buffer."""
         contents = qpage(self.out.getvalue())
         self.out.close()
         return contents

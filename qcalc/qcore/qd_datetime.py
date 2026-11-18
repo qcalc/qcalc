@@ -27,10 +27,22 @@ def is_number(value: str) -> bool:
 
 
 class QTimezone:
-    """Timezone resolvers."""
+    """Find timezone information for dates, times, and locations.
+
+    Use ``from_offset()`` for values such as ``'UTC'``, ``'+06:00'`` or
+    ``'UTC-05:30'``, and ``from_name()`` for names such as ``'Asia/Dhaka'``.
+    These return a timezone when the text is recognized, otherwise ``None``.
+    Use ``from_latlng(latitude, longitude)`` to look up a location's timezone
+    name.
+    """
 
     @staticmethod
     def from_offset(time_zone: str) -> None | timezone:
+        """Return a fixed timezone from ``UTC`` or an offset such as ``+06:00``.
+
+        The forms ``+HHMM``, ``-HHMM``, and ``UTC+HH:MM`` are also accepted.
+        Blank or unrecognized text returns ``None``.
+        """
         # both 'UTC+06:00' and '+06:00' are valid
         if not time_zone:
             return None
@@ -54,11 +66,16 @@ class QTimezone:
 
     @staticmethod
     def from_latlng(latitude: float, longitude: float):
+        """Return the IANA timezone name for geographic coordinates, or ``None``."""
         # returns the IANA timezone name, e.g. 'Asia/Dhaka'
         return TimezoneFinder().timezone_at(lat=latitude, lng=longitude)
 
     @staticmethod
     def from_name(time_zone: str) -> None | tzinfo:
+        """Return the timezone for an IANA name such as ``'Asia/Dhaka'`` or ``'UTC'``.
+
+        Unrecognized names return ``None``.
+        """
         # time_zone: python timezone string e.g. 'Asia/Dhaka', 'Europe/London'
         value = time_zone.strip()
         if value.upper() == "UTC":
@@ -71,13 +88,18 @@ class QTimezone:
 
 
 class QDateTime:
-    """
-    Timezone behavior:
-    - No fixed/default timezone is assumed for dt_value.
-    - If parsed/input datetime contains an explicit timezone/offset, dt_value is timezone-aware.
-    - If parsed/input datetime has no timezone, dt_value is naive (tzinfo is None).
-    - date values are date-only (no timezone concept).
-    - time values may be naive or timezone-aware, depending on input.
+    """Read and work with a date, time, or combined date and time.
+
+    Pass text such as ``'2026-11-18'``, ``'18:30'`` or
+    ``'2026-11-18 18:30 UTC+06:00'``, or a Python date/time value. The parsed
+    value is available as ``dt_value``; invalid input sets it to ``None``.
+    ``str(value)`` gives a display-friendly result and ``spell()`` gives a
+    longer description. This class is also available as ``qdt``.
+
+    Existing timezone information is preserved. Values without timezone
+    information stay without it, while values with ``UTC`` or an explicit
+    offset keep that information. Adding or subtracting a number changes a
+    date or datetime by that many days.
     """
     dt_value: date | datetime | dt_time | None
 
@@ -160,6 +182,10 @@ class QDateTime:
 
     @staticmethod
     def to_str(dtime: datetime | date | dt_time | None) -> str:  # qc date/time format
+        """Format a Python date, datetime, or time as qcalc display text.
+
+        ``None`` returns ``'Invalid date'``. Aware datetimes include their offset.
+        """
         if dtime is None:
             return "Invalid date"
 
@@ -174,6 +200,10 @@ class QDateTime:
         return self.to_str(self.dt_value)
 
     def spell(self) -> str:
+        """Return the value as a readable date and time sentence.
+
+        Invalid or missing values return ``'Invalid date'``.
+        """
         dt = self.date_time
         if dt is None:
             return "Invalid date"
@@ -242,20 +272,32 @@ class QDateTime:
         return self._compare_qdatetime(other, lambda a, b: a >= b)
 
     def day_name(self, short: bool = False) -> str | None:
+        """Return the weekday name for a date or datetime.
+
+        Use ``short=True`` for an abbreviation such as ``'Mon'``. Time-only and
+        invalid values return ``None``.
+        """
         if isinstance(self.dt_value, (date, datetime)):
             return self.dt_value.strftime('%a' if short else '%A')
         return None
 
     @classmethod
     def qc_str_to_datetime(cls, sdatetime_iso_qc: str):  # risk
+        """Parse text and return its date, datetime, or time value; invalid text returns ``None``."""
         return cls(sdatetime_iso_qc).val
 
     @classmethod
     def qc_str_to_date_and_time(cls, sdatetime_iso_qc: str):  # risk
+        """Parse text and return a ``datetime`` where possible.
+
+        Dates use midnight, and time-only values use today's date. Invalid text
+        returns ``None``.
+        """
         return cls(sdatetime_iso_qc).date_time
 
     @classmethod
     def is_str_date(cls, sdatetime_iso_qc: str) -> bool:  # risk
+        """Return ``True`` when text represents a date without a time component."""
         return cls(sdatetime_iso_qc).is_date
 
     @staticmethod
@@ -277,6 +319,7 @@ class QDateTime:
 
     @staticmethod
     def j2ts(jdy: float):
+        """Convert a Julian day number to a Unix timestamp in seconds."""
         # julian date/day to timestamp
         return (jdy - 2440587.5) * 86400
 
@@ -291,19 +334,27 @@ class QDateTime:
 
     @staticmethod
     def ts2iso(time_stamp, tz: tzinfo):
+        """Convert a Unix timestamp to qcalc datetime text in timezone ``tz``."""
         dt = datetime.fromtimestamp(time_stamp, tz)
         return QDateTime.to_str(dt)  # | time upto sec
 
     @classmethod
     def j2iso(cls, jdy: float, tz: tzinfo):
+        """Convert a Julian day number to qcalc datetime text in timezone ``tz``."""
         return cls.ts2iso(cls.j2ts(jdy), tz)
 
     @property
     def val(self) -> None | date | datetime | dt_time:
+        """The parsed Python date, datetime, or time, or ``None`` for invalid input."""
         return self.dt_value  # DateTime or None
 
     @property
     def date_time(self) -> datetime | None:
+        """The value as a ``datetime`` where possible.
+
+        Dates use midnight, time-only values use today's date, and invalid input
+        returns ``None``.
+        """
         if self.dt_value is None:
             return None
         if self.is_datetime:
@@ -316,15 +367,18 @@ class QDateTime:
 
     @property
     def is_date(self) -> bool:
+        """``True`` when this is a date without a time component."""
         # datetime is a subclass of date.
         return isinstance(self.dt_value, date) and not isinstance(self.dt_value, datetime)
 
     @property
     def is_datetime(self) -> bool:
+        """``True`` when this value contains both a date and a time."""
         return isinstance(self.dt_value, datetime)
 
     @property
     def is_time(self) -> bool:
+        """``True`` when this is a time without a date."""
         return isinstance(self.dt_value, dt_time)
 
 
@@ -336,7 +390,12 @@ def today() -> QDateTime:
 
 
 def spellnow(tz: str | None = None) -> str:
-    """Return a human-readable string representation of current time."""
+    """Return the current date and time as a readable sentence.
+
+    Leave ``tz`` blank for local time, or use ``'UTC'``, an offset such as
+    ``'+06:00'`` or ``'UTC-05:30'``. The result includes the weekday, date,
+    time, and timezone information when available.
+    """
     return now(tz).spell()
 
 

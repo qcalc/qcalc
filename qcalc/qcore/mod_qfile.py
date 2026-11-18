@@ -18,6 +18,14 @@ from qutil.mod_file import decode_text
 
 
 class QFile:
+    """Represent a file supplied to a calculator through a file input.
+
+    You normally receive a ``QFile`` from a ``qfile`` field rather than creating
+    one yourself. Use ``text()`` for decoded text, ``txt_buf()`` for a text
+    buffer, or ``bin_buf()`` for a binary buffer. ``file_name``, ``file_bytes``
+    and ``file_type`` provide information about the upload.
+    """
+
     def __init__(self, ffld, fdata):
         self.field_name: str = ffld
         self.file_name: str = fdata.name
@@ -29,16 +37,20 @@ class QFile:
         return f'File {self.file_name}'
 
     def text(self):
+        """Return the uploaded file's contents decoded as text."""
         return decode_text(self.file_bytes)
 
     def txt_buf(self):
+        """Return a new readable text buffer containing the uploaded file."""
         return io.StringIO(decode_text(self.file_bytes))
 
     def bin_buf(self):
+        """Return a new binary buffer containing the uploaded file's bytes."""
         return io.BytesIO(self.file_bytes)  # base64.b64encode
 
     @property
     def file_type(self):
+        """Return a lowercase file-type name based on the filename and content type."""
         ctypes = {
             'application/vnd.ms-excel': 'csv',
             'text/plain': 'txt',
@@ -60,6 +72,7 @@ class QFile:
         return ext or 'unknown'
 
     def save2temp(self):
+        """Save the upload to a temporary file and return its generated filename."""
         temp_filename = str(uuid.uuid4())  # Use a unique identifier
         temp_filepath = os.path.join(settings.FILE_UPLOAD_TEMP_DIR, temp_filename)
         with open(temp_filepath, 'wb') as temp_file:
@@ -68,6 +81,7 @@ class QFile:
         return temp_filename
 
     def to_dict(self):
+        """Return file metadata and base64-encoded content in a dictionary."""
         # file_content = io.BytesIO()
         # for chunk in self.file_mem.chunks():
         #     file_content.write(chunk)
@@ -82,10 +96,15 @@ class QFile:
         return content
 
     def to_json(self):
+        """Return the file metadata and base64-encoded content as JSON text."""
         return json.dumps(self.to_dict())  # | simple json dumps
 
     @staticmethod
     def load_content(sfunc, content: dict):
+        """Recreate a ``QFile`` from a dictionary produced by ``to_dict()``.
+
+        ``sfunc`` is the field name to use when the content has no field name.
+        """
         fdata = InMemoryUploadedFile(
             file=io.BytesIO(base64.b64decode(content['file'])),
             field_name=content.get('field_name', sfunc),
@@ -98,6 +117,11 @@ class QFile:
 
 
 def qf2bio(qf: QFile, url=''):
+    """Return a binary buffer containing an uploaded file or downloaded resource.
+
+    Pass a ``QFile`` as ``qf``, or a non-empty ``url``. When both are supplied,
+    the URL takes precedence. An error is raised when neither source is valid.
+    """
     if url != '':  # url precedence
         bio = io.BytesIO(fetch_url(url).content)
     elif qf is not None:

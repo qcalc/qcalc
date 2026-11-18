@@ -22,6 +22,16 @@ def load_qty(jso):
 
 
 class Qty(MQty):
+    """Represent a number together with its unit.
+
+    Create a quantity with ``Qty('2.5 kg')`` or ``Qty(2.5, 'kg')``. In calculator
+    code you can use the shorter alias ``q``. Supply a target unit to convert
+    immediately, for example ``q('2.5 kg', 'g')``, or call ``.to('g')`` later.
+
+    Use ``.val`` for the numeric value and ``.uom`` for the unit name. Quantities
+    support unit-aware arithmetic, comparison, rounding, and conversion, so you
+    can work with expressions such as ``q('2 m') + q('30 cm')``.
+    """
     # | a) num, 'unit'
     # | b) num, Unit
     # | c) 'num unit'
@@ -58,6 +68,7 @@ class Qty(MQty):
                 super().__init__(*args)
 
     def to_json(self):
+        """Return this quantity's numeric value and unit as JSON text."""
         return json.dumps({'__qty__': 1, 'val': self.val, 'uom': self.uom})  # | simple json dumps
 
     def __str__(self):
@@ -71,17 +82,24 @@ class Qty(MQty):
 
     @property
     def val(self):
+        """The quantity's numeric value, or ``None`` when no value is present."""
         return self.value
 
     @property
     def uom(self):
+        """The quantity's unit name as text."""
         return self.unit.name()
 
     def nzq(self):
+        """Replace a missing numeric value with ``0.0`` in place.
+
+        The method returns ``None``; use the same quantity object afterwards.
+        """
         if self.value is None:
             self.value = 0.0
 
     def category(self):
+        """Return the quantity's dimension code and plain-language category."""
         powers = self.unit.powers
         bn, lmt = powers_to_bname_lmt(powers, _base_names)
         if lmt in _base_categories:
@@ -91,10 +109,19 @@ class Qty(MQty):
         return categ
 
     def roundoff(self, idecimal=0):
+        """Round the numeric value in place and return this same quantity.
+
+        ``idecimal`` is the number of decimal places and defaults to zero.
+        """
         self.value = round(self.value, idecimal)
         return self
 
     def as_units(self, units):  # units - comma separated string of units, or list of unit strings
+        """Express this quantity using one or more requested units.
+
+        ``units`` can be a comma-separated string or list. One unit returns a
+        converted ``Qty``; several units return their components as readable text.
+        """
         if isinstance(units, str):
             units = [x.strip() for x in units.split(',')]
         xpr_as = self.in_units_of(*units)
@@ -105,9 +132,14 @@ class Qty(MQty):
             return xpr_as
 
     def as_(self, units):
+        """Return the result of ``as_units(units)`` using a shorter method name."""
         return self.as_units(units)
 
     def to_units(self, units):  # units - comma separated string of units, or list of unit strings
+        """Return a list containing an independent ``Qty`` conversion for each unit.
+
+        ``units`` can be a comma-separated string or a list of unit names.
+        """
         if isinstance(units, str):
             units = [x.strip() for x in units.split(',')]
         res = []
@@ -120,22 +152,30 @@ class Qty(MQty):
         return res
 
     def si(self):
+        """Return a new quantity expressed in SI units."""
         bname, lmt = powers_to_bname_lmt(self.unit.powers, _base_names)
         return self.in_units_of(bname)
 
     def mks(self):
+        """Return a new quantity in metre-kilogram-second units; equivalent to ``si()``."""
         return self.si()
 
     def fps(self):
+        """Return a new quantity in foot-pound-second units."""
         fps_name, lmt = powers_to_bname_lmt(self.unit.powers, _fps_names)
         return self.in_units_of(fps_name)
 
     def cgs(self):
+        """Return a new quantity in centimetre-gram-second units."""
         cgs_name, lmt = powers_to_bname_lmt(self.unit.powers, _cgs_names)
         return self.in_units_of(cgs_name)
 
     @staticmethod
     def compose2(qstrs_wwo_comma):
+        """Combine comma-separated quantities and return ``(sum_text, part_count)``.
+
+        This is useful for inputs such as ``'1 ft, 6 inch'``.
+        """
         qstrs = css2strs(qstrs_wwo_comma)
         qty_obj = None
         ln = len(qstrs)
@@ -183,6 +223,7 @@ class Qty(MQty):
 
     @classmethod
     def is_valid(cls, snum_unit: str) -> bool:
+        """Return ``True`` when text can be parsed as a quantity."""
         return cls.parse(snum_unit) is not None
 
     @staticmethod
@@ -230,10 +271,14 @@ def _add_all_quantities(_add_qty):
 
 
 class QtyRegistry(metaclass=RegistryMeta):
-    """The named quantities (e.g. 'th_hair'), filled once by ``_load()``. Everything is class level.
+    """Look up named reference quantities such as typical sizes and constants.
 
-    ``info`` and ``tree`` are read-only views and only the ``_`` methods change the registry,
-    see RegistryMeta in qc_units for the reason.
+    Use ``get(name)`` for the ``Qty`` value, ``entry(name)`` for its description
+    and related information, and ``search(text)`` to find quantities and units
+    by description. ``by_dimension(code)`` lists choices for a dimension.
+
+    ``info`` and ``tree`` provide read-only views of the available entries.
+    This registry is also available as ``qreg``.
     """
 
     # _info example: {'q0001': {'base_qty': '384000000 m',
@@ -265,10 +310,18 @@ class QtyRegistry(metaclass=RegistryMeta):
 
     @classmethod
     def get(cls, qcode):  # q() extended
+        """Return the named reference quantity for ``qcode``.
+
+        Names are matched without regard to case; an unknown name raises ``KeyError``.
+        """
         return cls.info[qcode.lower()]['qty']
 
     @classmethod
     def entry(cls, qcode):  # extended q() info
+        """Return the description, quantity, base value, and dimension for ``qcode``.
+
+        Names are matched without regard to case; an unknown name raises ``KeyError``.
+        """
         return cls.info[qcode.lower()]
 
     @classmethod
@@ -282,6 +335,10 @@ class QtyRegistry(metaclass=RegistryMeta):
 
     @classmethod
     def desc(cls, sname):  # deb@04.06.24
+        """Return a readable description of a named quantity and its base value.
+
+        Unknown names produce a ``'not found'`` message instead of an exception.
+        """
         if sname in cls.info:
             lname = cls.info[sname]['description']
             bqty = cls.info[sname]['base_qty']

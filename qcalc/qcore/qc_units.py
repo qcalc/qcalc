@@ -821,9 +821,16 @@ class RegistryMeta(type):
 
 
 class UnitRegistry(metaclass=RegistryMeta):
-    """The measurement units, filled once by ``_load()``. Everything is class level, e.g. ``UnitRegistry.find('ft/s')``.
+    """Find information about measurement units and currencies.
 
-    ``table``, ``info`` and ``tree`` are read-only views (see RegistryMeta); only the ``_`` methods change the registry.
+    Use ``find('ft/s')`` to obtain a unit for a unit expression,
+    ``is_uom(text)`` to check whether text is a valid unit, and
+    ``by_dimension(code)`` to list units suitable for a form choice.
+    ``search`` through ``QtyRegistry`` when you need both units and named
+    reference quantities.
+
+    ``table``, ``info`` and ``tree`` are read-only lookup views. This registry
+    is also available as ``ureg``.
     """
 
     # _table example: {'m': MeasureUnit(1.0,'m'), ...}
@@ -922,6 +929,7 @@ class UnitRegistry(metaclass=RegistryMeta):
 
     @staticmethod
     def base_units():
+        """Return the names of qcalc's base units."""
         return [bu[0] for bu in _base_units]
 
     @classmethod
@@ -949,6 +957,7 @@ class UnitRegistry(metaclass=RegistryMeta):
 
     @classmethod
     def is_uom(cls, uname: str) -> bool:
+        """Return ``True`` when text is a valid unit or unit expression."""
         return cls.parse(uname) is not None
 
     @classmethod
@@ -961,18 +970,25 @@ class UnitRegistry(metaclass=RegistryMeta):
 
     @classmethod
     def is_named(cls, uname) -> bool:
+        """Return ``True`` for an exact registered unit name, not a compound expression."""
         return cls.named(uname) is not None
 
     @classmethod
     def dimension(cls, uname):
+        """Return the dimension code for a unit expression.
+
+        ``None`` input returns ``None``; invalid unit text raises an error.
+        """
         return None if uname is None else cls.find(uname).dimension
 
     @staticmethod
     def category(lmt):
+        """Return a dimension code with its category description when one is known."""
         return _base_categories[lmt] + f' ({lmt})' if lmt in _base_categories else lmt
 
     @staticmethod
     def categories():
+        """Return ``(dimension_code, description)`` pairs for unit categories."""
         return list(_base_categories.items())
 
     @classmethod
@@ -1009,6 +1025,10 @@ class UnitRegistry(metaclass=RegistryMeta):
 
     @classmethod
     def catalog(cls, dim):
+        """Return catalog entries for units in dimension ``dim``.
+
+        The entries include unit names, conversion links, and descriptions.
+        """
         dim_title = lmt_desc(dim)
         categ_items = []
         bname = dim_to_bname(dim, _base_names)
@@ -1025,6 +1045,10 @@ class UnitRegistry(metaclass=RegistryMeta):
 
     @classmethod
     def desc(cls, sname):  # deb@19.08.23
+        """Return a detailed description of a unit and its equivalent base value.
+
+        Unknown names produce a ``'not found'`` message instead of an exception.
+        """
         if sname in cls.info:
             pname = cls.info[sname]['proper_name']
             long_name = cls.info[sname]['long_name']
@@ -1044,6 +1068,10 @@ class UnitRegistry(metaclass=RegistryMeta):
 
     @classmethod
     def short_desc(cls, sname):  # deb@29.06.24
+        """Return a compact conversion description for a unit.
+
+        Unknown names produce a ``'not found'`` message instead of an exception.
+        """
         if sname in cls.info:
             pname = cls.info[sname]['proper_name']
             bqty = cls.info[sname]['base_qty']

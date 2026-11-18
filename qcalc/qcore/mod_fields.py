@@ -11,6 +11,14 @@ def ai_prompt_field(
     token_hint=True,
     help_inline=None,
 ):
+    """Build a multiline text field for collecting an AI prompt.
+
+    The returned dictionary can be used as a calculator field specification.
+    Customize ``label``, ``placeholder``, ``rows``, and ``max_chars`` to guide
+    the response. ``monospace`` controls the text style, ``token_hint`` adds an
+    approximate token limit to the help text, and ``help_inline`` replaces the
+    default guidance when supplied.
+    """
     classes = ['texta', 'w-100']
     if monospace:
         classes.append('text-monospace')
@@ -41,4 +49,8 @@ def ai_prompt_field(
 
 
 def br(html: str):
+    """Place HTML content on its own full-width row in a calculator layout.
+
+    For example, ``br('<hr>')`` creates a full-width horizontal divider.
+    """
     return f'<div class="w-100">{html}</div>'

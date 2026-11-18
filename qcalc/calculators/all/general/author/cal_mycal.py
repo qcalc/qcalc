@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2024-2026 Debasish C Saha
 
-from qcore import qcode, qhtml, qinfo, qerror, br
+from qcore import qcode, qhtml, qinfo, qerror, br, qpage, qsymhelp, qsymbols
 from calc import UCals
 from qutil import callback_button, page_link, format_py_code, ensure_calculator_info, extract_calculator_name, \
     get_functions, addcal_button
@@ -106,3 +106,17 @@ def addlen__info():
         }
     except Exception as e:
         return f'Error (MC): {e}'
+
+
+def qhelp(symbol="QTable"):
+    return qpage(qsymhelp(symbol))
+
+
+def qhelp__info():
+    return {
+        'title': 'Help on qCalc Symbols',
+        'layout': 'tb',
+        'schema': {
+            'symbol': {'type': 'select2', 'choices': qsymbols(include_members=True)}
+        }
+    }

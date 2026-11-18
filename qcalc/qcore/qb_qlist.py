@@ -9,12 +9,11 @@ __all__ = ['QList', 'qconvert']
 
 
 def qconvert(x):
-    """Convert one input value into calculator-native runtime value.
+    """Convert recognizable text into a calculator value.
 
-    Behavior:
-    - Non-string values are returned unchanged.
-    - Convert numeric/Qty/date/time-like strings to appropriate types
-      (a time string gives ``datetime.time``); other strings are returned stripped
+    Numeric, quantity, date, and time text is converted to the corresponding
+    value. Other text is returned with surrounding whitespace removed, and
+    non-text input is returned unchanged.
     """
     if not isinstance(x, str):
         return x
@@ -27,14 +26,14 @@ def qconvert(x):
 
 
 class QList(list):
-    """A list of calculator-native values (numbers, quantities, dates, ...).
+    """Create a list whose items can be used in calculator expressions.
 
-    Numeric/Qty/date/time-like strings are converted to appropriate types when
-    the list is created. Operations return a new ``QList`` and never modify
-    the original. Element-wise operations accept another list/tuple of the same
-    length or a single value that is applied to every item.
+    Numeric, quantity, date, and time strings are converted when the list is
+    created. Operations return a new ``QList`` and leave the original unchanged.
+    Apply an operation to every item, or supply another list or tuple of the
+    same length to combine corresponding items.
 
-    Example:
+    Examples:
         ``QList(['2 m', '30 cm']).sum()``
         ``QList([1, 2]).add(10)``
     """

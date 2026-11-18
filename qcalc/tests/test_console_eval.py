@@ -111,6 +111,18 @@ def test_help_symbol_lookup_is_case_insensitive_when_unique(request_):
     assert "*** qsymbols ***" in result
 
 
+def test_help_class_shows_class_and_init_docstrings_before_members(request_):
+    result, _ = qeval(request_, "help Qtable")
+
+    class_doc = "Create a table from rows and optional column rules."
+    init_doc = "Initialize a QTable instance with the given data, columns, schema, and constraints."
+    member_listing = "\nClass: QTable"
+
+    assert f"Description:\n{class_doc}" in result
+    assert f"Constructor (__init__):\n{init_doc}" in result
+    assert result.index(class_doc) < result.index(init_doc) < result.index(member_listing)
+
+
 def test_find_includes_class_members_in_search(request_, monkeypatch):
     captured = {}
 

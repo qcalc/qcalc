@@ -11,6 +11,16 @@ import requests
 
 
 class QGeo:
+    """Represent a place using an address or geographic coordinates.
+
+    Supply ``address``, or both ``latitude`` and ``longitude``. An address is
+    looked up using an external geocoding service; supplying coordinates avoids
+    that address lookup. Missing or unresolved locations raise an error.
+
+    Use ``to_geojson()`` for map data, ``timezone()`` for the local timezone,
+    and ``elevation()`` for elevation in metres.
+    """
+
     def __init__(self, address='', latitude=None, longitude=None):
         self.geolocator = Nominatim(user_agent='qcalc', timeout=10)
         self.id = f'map-{makeid()}'
@@ -28,10 +38,12 @@ class QGeo:
         return f'{self.address}: {round(self.latitude, 3)}, {round(self.longitude, 3)}'
 
     def timezone(self):
+        """Return the location's IANA timezone name, or ``None`` if it cannot be determined."""
         return QTimezone.from_latlng(self.latitude, self.longitude)
 
     @classmethod
     def from_str(cls, s):
+        """Create a location from ``'address: latitude, longitude'`` text."""
         address, coords = s.rsplit(': ', 1)
         latitude, longitude = map(float, coords.split(', '))
         geo = cls(address, latitude, longitude)
@@ -60,6 +72,7 @@ class QGeo:
         return location.latitude, location.longitude, location.address
 
     def elevation(self):
+        """Look up elevation in metres, returning ``None`` when the service has no result."""
         # elevation in meters
         elevation_url = f"https://api.open-elevation.com/api/v1/lookup?locations={self.latitude},{self.longitude}"
         try:
@@ -71,12 +84,14 @@ class QGeo:
         return altitude
 
     def reverse_geocode(self):
+        """Look up the address for the current coordinates, or return ``None``."""
         location = self.geolocator.reverse((self.latitude, self.longitude), exactly_one=True)
         if location:
             return location.address
         return None
 
     def marker(self):
+        """Return this location as a marker dictionary for ``display()`` or ``center()``."""
         return {"location": [self.latitude, self.longitude], "popup": self.__str__()}
 
     @classmethod
@@ -110,6 +125,10 @@ class QGeo:
         return round(zoom)
 
     def center(self, markers=None):
+        """Return a map center and zoom level for optional marker dictionaries.
+
+        Without markers, center on this location and use zoom level 8.
+        """
         if markers:
             # Step 1: Calculate bounds from markers
             latitudes = [marker['location'][0] for marker in markers]
@@ -131,6 +150,11 @@ class QGeo:
             return {'center': [self.latitude, self.longitude], 'zoom': 8}
 
     def display(self, zoom=None, markers=None, language='English'):
+        """Return an interactive map as HTML.
+
+        Optionally provide a zoom level, marker dictionaries, and map language.
+        By default the map contains a marker for this location.
+        """
         center = self.center(markers)
         zoom = zoom or center['zoom']
         map_data = {

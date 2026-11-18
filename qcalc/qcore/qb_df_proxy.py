@@ -142,6 +142,11 @@ del _name
 
 
 def qdf_demo_data():
+    """Return a small sample table for trying ``qdf()`` operations.
+
+    The result is a dictionary with ``Name``, ``Salary``, ``Dob`` and
+    ``Height`` columns and four example rows.
+    """
     return {'columns': ['Name', 'Salary', 'Dob', 'Height'],
             'data': [
                 ['Dave', 50000, '1985-07-15', '5.5 ft'],
@@ -152,17 +157,17 @@ def qdf_demo_data():
 
 
 def qdf(tbl):
-    """Create a safe DataFrame-like wrapper from a qtbl dictionary.
+    """Create a table for data analysis from a qcalc table dictionary.
 
-    Args:
-        tbl: qtbl payload with ``'columns'`` and ``'data'`` keys.
+    ``tbl`` must contain a ``'columns'`` list and a ``'data'`` list of rows.
+    The returned object supports a focused set of familiar DataFrame-style
+    operations and returns plain calculator values where appropriate.
 
-    Returns:
-        A restricted/safe DataFrame-like API.
+    ``TypeError`` reports an invalid input type. ``ValueError`` reports an
+    invalid table shape or duplicate column names.
 
-    Raises:
-        TypeError: If input or qtbl shape members have invalid types.
-        ValueError: If qtbl schema is invalid or column names are not unique.
+    Example:
+        ``table = qdf(qdf_demo_data())``
     """
     if not isinstance(tbl, dict):
         raise TypeError("qdf() expects a qtbl dictionary")

@@ -11,7 +11,7 @@ from qcore import as_qtable, qchar, qcode, qerror, qhtml, qtable, qtexta, qtext,
 from qutil import md2html
 from qcore.mod_info import build_info as _build_info
 
-OVERRIDE_COLUMNS = ['Argument', 'Label', 'Help', 'Choices', 'Group', 'Show When']
+OVERRIDE_COLUMNS = ['Argument', 'Label', 'Help', 'Choices', 'Tab', 'Show When']
 ID_PATTERN = re.compile(r'^[A-Za-z_]\w*$')
 STANDARD_CAL_MODULE = 'calculators.'
 
@@ -32,10 +32,10 @@ def _source_of_standard_calculator(cal_name):
     return inspect.getsource(module), func.__name__
 
 
-def _override_rows(overrides):
-    if overrides is None:
+def _field_rows(fields):
+    if fields is None:
         return []
-    table = as_qtable(overrides)
+    table = as_qtable(fields)
     return [
         {col: row[col] for col in table.columns if not pd.isna(row[col])}
         for _, row in table.iterrows()
@@ -66,7 +66,7 @@ def infogen__info():
                 'tabs': [
                     {
                         'title': 'Source',
-                        'fields': ['source', 'func_name', 'overrides', 'scan_body', 'explicit_defaults'],
+                        'fields': ['source', 'func_name', 'fields', 'scan_body', 'explicit_defaults'],
                     },
                     {
                         'title': 'Details',
@@ -183,11 +183,11 @@ def infogen__info():
                     'Not needed, qcalc derives them from the default.'
                 ),
             },
-            'overrides': {
+            'fields': {
                 'help_text': (
-                    'Per argument refinements. Choices: "a=Label A, b=Label B". Show When: '
+                    'Per field refinements. Choices: "a=Label A, b=Label B". Show When: '
                     '"controller == value", "controller != value" or "controller in a, b". '
-                    'Group is a tab title.'
+                    'Tab is the title of the tab the field goes to.'
                 ),
             },
         },
@@ -197,7 +197,7 @@ def infogen__info():
 def infogen(
     source: qcode = 'def my_calc(objective, rate_pct=5.0, use_extra=False, extra_cost=0.0):',
     func_name: qchar = '',
-    overrides: qtable = pd.DataFrame({col: [''] for col in OVERRIDE_COLUMNS}),
+    fields: qtable = pd.DataFrame({col: [''] for col in OVERRIDE_COLUMNS}),
     scan_body=True,
     explicit_defaults=False,
     title: qchar = '',
@@ -252,7 +252,7 @@ def infogen(
         )
         result = _build_info(
             source,
-            overrides=_override_rows(overrides),
+            overrides=_field_rows(fields),
             hints=hints,
             table_helpers=_table_helpers(),
         )

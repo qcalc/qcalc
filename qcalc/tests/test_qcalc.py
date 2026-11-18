@@ -62,6 +62,20 @@ def test_explicit_info_wins_over_marker():
     assert CalcSandbox.exec_with_context(code, 'test')['f__info']()['title'] == 'Mine'
 
 
+def test_a_misspelled_hint_suggests_the_right_one():
+    with pytest.raises(TypeError, match="unknown qcalc hint 'out_schemax', did you mean 'out_schema'"):
+        qcalc(secret, out_schemax={'result': 'map'})
+
+
+def test_every_hint_build_info_reads_is_a_known_qcalc_hint():
+    import re
+    import qconst
+    source = open(sys.modules['qcore.mod_info'].__file__, encoding='utf-8').read()
+    read = set(re.findall(r"hints(?:\.get\(|\[)'(\w+)'", source)) | {'func_name'}
+
+    assert read <= qconst.QCALC_HINTS
+
+
 @pytest.mark.parametrize('code', [
     "qcalc(secret)",  # | a host function that is not exported through qapi
     "qcalc(Qty)",  # | not a function
@@ -69,6 +83,7 @@ def test_explicit_info_wins_over_marker():
     "g = qconvert\nqcalc(g)",  # | not given by its own name
     "@qcalc(name='a__b')\ndef f(): pass",
     "@qcalc(title=Qty)\ndef f(): pass",  # | hints must be literals
+    "@qcalc(out_schemax={'result': 'map'})\ndef f(): pass",  # | a misspelled hint
     "def conv(): pass\n@qcalc(name='conv')\ndef f(): pass",  # | name of another function
 ])
 def test_sandbox_rejects(code, monkeypatch):

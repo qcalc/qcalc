@@ -8,7 +8,7 @@ from qvars import qc_gpref as gs
 from .qd_datetime import QDateTime
 import pandas as pd
 from .qc_qty import Qty
-from qconst import TOK_UOM, TOK_PART, TOK_PART_UOM, TOK_INDEX_SEP
+from qconst import TOK_UOM, TOK_PART, TOK_PART_UOM, TOK_INDEX_SEP, DEFAULT_ARG_TYPE
 
 
 class QJField:  # 11422
@@ -35,12 +35,13 @@ class QJField:  # 11422
         self.c4f = {arg_name: 1}
         self.doc_info = {}
 
+        arg_type = as_qmap_annotation(arg_type)
         if arg_type:
             self._ann2type(arg_type, arg_value)
         else:
             self._val2type(arg_value)
 
-        if arg_type in [qtable, 'qtable', qtbl, 'qtbl']:
+        if arg_type in [qtable, 'qtable', qtbl, 'qtbl', qmap]:
             self.jf['attrs']['class'] = inf_class
             # can be '', table-in or table-out
             # '' when not specified to change i.e. status quo
@@ -58,11 +59,11 @@ class QJField:  # 11422
         elif arg_type in [qchar, 'char']:
             self.jf['type'] = 'char'
             self.jf['attrs']['class'] = 'chr'
-        elif arg_type in [qdate, 'date', 'qdate']:
+        elif arg_type in [qdate, 'date', 'qdate', date]:
             self.jf['type'] = 'date'
-        elif arg_type in [qtime, 'time', 'qtime']:
+        elif arg_type in [qtime, 'time', 'qtime', dt_time]:
             self.jf['type'] = 'time'
-        elif arg_type in [qdatetime, 'datetime', 'qdatetime']:
+        elif arg_type in [qdatetime, 'datetime', 'qdatetime', datetime]:
             self.jf['type'] = 'datetime'
         elif arg_type in [qemail, 'email', 'qemail']:
             self.jf['type'] = 'email'
@@ -147,6 +148,9 @@ class QJField:  # 11422
             self._table2flds(arg_value, 'table')
         elif arg_type in [qtbl, 'qtbl']:  # composite of 4 fields, plain dict not DataFrame
             self._table2flds(arg_value, 'tbl')
+        elif arg_type is qmap:  # a Key/Value table, the function gets a dict
+            self.jf['initial'] = dict_to_qtbl(arg_value)
+            self._table2flds(arg_value, 'map')
         elif arg_type == 'float-q':  # special
             self.jf['type'] = 'float'
             self.jf['attrs']['class'] = 'val-q'
@@ -210,7 +214,7 @@ class QJField:  # 11422
 
     def _val2type(self, arg_value):
         if arg_value is None:
-            self.jf['type'] = 'float'  # or 'char?'
+            self.jf['type'] = DEFAULT_ARG_TYPE
             self.jf['attrs']['class'] = 'unknown'
         elif isinstance(arg_value, float):
             self.jf['type'] = 'float'
@@ -244,6 +248,12 @@ class QJField:  # 11422
         elif isinstance(arg_value, list):
             self.jf['type'] = 'multiplechoice'
             self.jf['attrs']['class'] = 'unknown'
+        elif is_qtbl(arg_value):
+            self._table2flds(arg_value, 'tbl')
+        elif isinstance(arg_value, dict):  # an unannotated dict, same as the dict annotation
+            self.jf['initial'] = dict_to_qtbl(arg_value)
+            self.doc_info['table_in'] = True
+            self._table2flds(arg_value, 'map')
         elif isinstance(arg_value, pd.DataFrame):
             self._table2flds(arg_value, 'table')
         else:
@@ -421,4 +431,18 @@ class QJField:  # 11422
         self.doc_info['url'] = False
 
         self.jf['type'] = 'table'
-        self.s2f = {'type': s2f_type}  # 'table' -> DataFrame, 'tbl' -> plain dict
+        self.s2f = {'type': s2f_type}  # 'table' -> DataFrame, 'tbl' -> plain dict, 'map' -> dict of Key/Value rows
+
+
+def type_of_value(value):
+    """Plain field type qcalc derives from a value (QJField._val2type): 17 -> 'integer', '10:30' -> 'time'.
+
+    None when the value gives a composite field (quantity strings such as '2 ft', tables) or is unsupported.
+    """
+    try:
+        field = QJField('x', None, value)
+    except TypeError:
+        return None
+    if field.s2f['type'] or field.jf_ex or field.c4f != {'x': 1}:
+        return None
+    return field.jf['type']

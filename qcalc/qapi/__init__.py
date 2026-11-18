@@ -30,7 +30,7 @@ from qcore import (
     qchar, qcode, qdate, qdict, qdatetime, qemail, qchat, qfl, qfile, qfunc, qhide,
     qhidex, qhtml, qin, qimage, qlist, qpage, qread, qregex, qsel2, qtbl, qtc,
     qtc2, qtext, qtexta, qtexte, qtime, qt, qt2, qtx, quom, quom2, quomx,
-    qurl, qvstr, qerror, qwarn, qinfo,
+    qurl, qvstr, qerror, qwarn, qinfo, qmap,
 )
 
 # qtable (real pd.DataFrame) is deliberately excluded: safe_execute()'s AST check doesn't block attribute calls
@@ -38,7 +38,7 @@ from qcore import (
 _api(_TYPES, """
     qchar qcode qdate qdict qdatetime qemail qchat qfl qfile qfunc qhide qhidex qhtml qin qimage qlist qpage
     qread qregex qsel2 qtbl qtc qtc2 qtext qtexta qtexte qtime qt qt2 qtx quom quom2 quomx qurl qvstr
-    qerror qwarn qinfo
+    qerror qwarn qinfo qmap
 """)
 
 # | Quantities, units and currencies

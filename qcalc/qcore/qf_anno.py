@@ -4,6 +4,7 @@
 import io
 import json
 import logging
+import typing
 import pandas as pd
 from .mod_qfile import QFile
 from .qc_qty import Qty
@@ -209,6 +210,9 @@ qlist_types = {
     qlist[qtexta]: ('textarea', qtexta, 'texta'),
     qlist[qchar]: ('char', qchar, 'chr'),
 }
+# a plain list (library functions) works like qlist, and a bare list holds text
+qlist_types.update({list: ('char', qchar, 'chr'),
+                    **{list[t]: qlist_types[qlist[t]] for t in (float, int, str, qtexta, qchar)}})
 
 
 # Fixed dictionary field whose items cannot be added or deleted.
@@ -230,6 +234,41 @@ class qtable(pd.DataFrame):  # pd.DataFrame
 # Safe table field represented by columns and row data without exposing the DataFrame API.
 class qtbl(dict):  # {'columns': [...], 'data': [[...]]} - safe table, no DataFrame API exposed
     pass
+
+
+# Key/Value table input that gives the function a plain dict; a dict or dict[K, V] annotation becomes this.
+class qmap(dict):
+    pass
+
+
+MAP_COLUMNS = ['Key', 'Value']
+
+
+def as_qmap_annotation(annotation, default=None):
+    # dict, dict[K, V] and an unannotated plain dict default are all a Key/Value table
+    if annotation is dict or typing.get_origin(annotation) is dict:
+        return qmap
+    if annotation is None and isinstance(default, dict) and not is_qtbl(default):
+        return qmap
+    return annotation
+
+
+def dict_to_qtbl(value):
+    # a dict becomes Key/Value rows; a table (already shaped or posted JSON) is left as is
+    if isinstance(value, dict) and not is_qtbl(value):
+        return {'columns': MAP_COLUMNS, 'data': [[k, v] for k, v in value.items()]}
+    return value if value is not None else {'columns': MAP_COLUMNS, 'data': []}
+
+
+def qtbl_to_dict(value):
+    result = {}
+    for key, val in (row[:2] for row in value['data']):
+        if key in ('', None):
+            if val in ('', None):
+                continue  # a blank row from Add Row
+            raise ValueError('Error (QMP): every value needs a key')
+        result[key] = val
+    return result
 
 
 def _trim_table_columns_inplace(table):

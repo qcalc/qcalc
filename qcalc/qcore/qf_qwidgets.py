@@ -19,6 +19,7 @@ import re
 _COL_WIDTH_OPTIONS = {'min': 'tabulator-minwidth', 'max': 'tabulator-maxwidth', 'width': 'tabulator-width'}
 _ALIGNS = ('left', 'center', 'right')
 _OUT_ATTRS = ('col_widths', 'align', 'page_all')
+_OUT_TYPES = ('map',)  # 'map': a dict result shown as one Key/Value table
 
 
 class TableAttrs:
@@ -37,11 +38,22 @@ class TableAttrs:
     def _base(name):
         return str(name).split(TBL_UOM_SEP)[0].strip().casefold()
 
+    @staticmethod
+    def _out_entry(out_schema, names):
+        entry = next((out_schema[n] for n in names if n in (out_schema or {})), None) or {}
+        if entry.get('type') not in (None, *_OUT_TYPES):
+            raise ValueError(f"out_schema type '{entry['type']}' is not supported; use {', '.join(_OUT_TYPES)}.")
+        return entry
+
+    @classmethod
+    def out_type(cls, out_schema, names):
+        """The ``type`` of the first of ``names`` found in ``out_schema``, or None."""
+        return cls._out_entry(out_schema, names).get('type')
+
     @classmethod
     def for_output(cls, out_schema, names, columns):
         """The validated attrs of the first of ``names`` found in ``out_schema`` ({result: {'attrs': {...}}})."""
-        entry = next((out_schema[n] for n in names if n in (out_schema or {})), None)
-        return cls((entry or {}).get('attrs'), columns).validate_out()
+        return cls(cls._out_entry(out_schema, names).get('attrs'), columns).validate_out()
 
     def validate_out(self):
         """Raise ValueError for an attrs key that output tables do not support or a page_all that is not a bool."""

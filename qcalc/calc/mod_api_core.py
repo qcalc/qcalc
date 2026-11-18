@@ -12,7 +12,7 @@ import logging
 import time
 
 from qcore import (
-    api_pack_value, api_unpack_value, QJField, qerror, qtable, qtbl, qlist, qdict, as_qtable, is_qtbl,
+    api_pack_value, api_unpack_value, QJField, qerror, qtable, qtbl, qlist, qdict, qmap, as_qmap_annotation, as_qtable, is_qtbl,
 )
 from qcore import to_bool
 from qvars import qc_gpref as gs
@@ -137,7 +137,7 @@ def get_schema(func_id: str) -> dict:
 
 
 def _coerce(name, value, parameter):
-    annotation = None if parameter.annotation is inspect.Parameter.empty else parameter.annotation
+    annotation = None if parameter.annotation is inspect.Parameter.empty else as_qmap_annotation(parameter.annotation)
     default = parameter.default
 
     try:
@@ -147,9 +147,9 @@ def _coerce(name, value, parameter):
             if not is_qtbl(value):
                 raise TypeError("Expected {'columns': [...], 'data': [[...]]}")
             return value
-        if annotation is qlist and not isinstance(value, list):
+        if annotation in (qlist, list) and not isinstance(value, list):
             raise TypeError('Expected a list')
-        if annotation is qdict and not isinstance(value, dict):
+        if annotation in (qdict, qmap) and not isinstance(value, dict):
             raise TypeError('Expected an object')
         if value is None or default is inspect.Parameter.empty or default is None:
             return value

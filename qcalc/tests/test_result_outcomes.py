@@ -4,12 +4,14 @@
 
 from types import SimpleNamespace
 
+import pytest
+
 import qsett
 
 qsett.init()
 
 from calc.views_result import q1145_result_to_form_schema
-from qcore import Qty, qchat
+from qcore import Qty, qchat, qmap
 from qutil import FormState
 
 
@@ -83,3 +85,44 @@ def test_numeric_output_columns_are_right_aligned_and_the_author_can_override():
     left = _render_table(table, out_schema={'Method Comparison': {'attrs': {'align': {'Qty': 'left', 'Price': 'left'}}}})
     assert RIGHT not in left
     assert '<th tabulator-hozalign="left" tabulator-headerhozalign="left">Qty | kg</th>' in left
+
+
+def _titles(result, out_schema):
+    request = SimpleNamespace(
+        pref={}, fs=FormState(), token='',
+        ojson_d4f={}, json_doc={'info': {'out1': '', 'output_blocks': [], 'out_schema': out_schema}},
+    )
+    q1145_result_to_form_schema(request, func_id='x', cid='c1', result=result, proper_dict={})
+    return [s['name'] for s in request.ojson_schema], request
+
+
+def test_out_schema_type_map_shows_a_dict_as_a_key_value_table():
+    names, request = _titles({'Spices': {'Cumin': '5 g', 'Salt': '12 g'}, 'Total': 5},
+                             {'Spices': {'type': 'map', 'attrs': {'page_all': True}}})
+
+    assert names == ['spices__r', 'total__r']
+    assert '<th>Key</th>' in str(request.ojson_schema[0]['initial'])
+    assert 'data-page-all="true"' in str(request.ojson_schema[0]['initial'])
+
+    names, request = _titles({'Cumin': '5 g', 'Salt': '12 g'}, {'result': {'type': 'map'}})  # a top-level dict
+    assert names == ['result__r']
+    assert 'Cumin' in str(request.ojson_schema[0]['initial'])
+
+
+def test_out_schema_rejects_an_unknown_type():
+    with pytest.raises(ValueError, match="type 'mapp' is not supported"):
+        _titles({'Spices': {'a': 1}}, {'Spices': {'type': 'mapp'}})
+
+
+def test_a_qmap_is_one_key_value_table_while_a_plain_dict_is_one_result_per_key():
+    rendered = _render_table(qmap({'Cement': 5, 'Sand': '7 kg'}))
+
+    assert '<th>Key</th>' in rendered and 'Value</th>' in rendered
+    assert 'Cement' in rendered and 'Sand' in rendered
+
+    request = SimpleNamespace(
+        pref={}, fs=FormState(), token='',
+        ojson_d4f={}, json_doc={'info': {'out1': '', 'output_blocks': []}},
+    )
+    q1145_result_to_form_schema(request, func_id='x', cid='c1', result={'Cement': 5, 'Sand': '7 kg'}, proper_dict={})
+    assert [s['name'] for s in request.ojson_schema] == ['cement__r', 'sand__r']

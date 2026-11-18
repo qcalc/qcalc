@@ -172,6 +172,19 @@ def tst1():
     print(call_f(callf4))
 
 
+def test_dict_annotations_and_unannotated_dict_defaults_are_key_value_tables():
+    from qcore import qmap, qtbl
+
+    def f(a: dict = None, b: dict[str, str] = None, c={'k': 1}, d: qtbl = None, e={'columns': [], 'data': []}, g=1):
+        pass
+
+    _, fanns, _ = get_fdef(f, 'f')
+
+    assert [fanns[n] for n in 'abc'] == [qmap, qmap, qmap]
+    assert fanns['d'] is qtbl
+    assert fanns['e'] is None and fanns['g'] is None  # a qtbl default is not a map
+
+
 def test_func():
     faddr = callf3
     func_id = "callf3"

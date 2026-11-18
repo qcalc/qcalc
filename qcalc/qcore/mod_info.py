@@ -350,7 +350,8 @@ _OVERRIDE_KEYS = {
 def _normalize_overrides(overrides):
     if not overrides:
         return {}
-    rows = [dict(v, arg=k) for k, v in overrides.items()] if isinstance(overrides, dict) else list(overrides)
+    rows = [dict(v if isinstance(v, dict) else {'type': v}, arg=k)  # {'x': 'char'} is {'x': {'type': 'char'}}
+            for k, v in overrides.items()] if isinstance(overrides, dict) else list(overrides)
     result = {}
     for row in rows:
         clean = {}
@@ -534,6 +535,7 @@ class InfoBuilder:
         self.warnings = []
         self.titler = _make_titler(self.hints.get('proper'))
         self.explicit = bool(self.hints.get('explicit_defaults'))
+        self.arg_type = str(self.hints.get('arg_type') or qconst.DEFAULT_ARG_TYPE)
         self.scan = SourceScan(source, self.hints.get('func_name'))
         self.args = self.scan.args
         self.arg_names = {a.name for a in self.args}
@@ -794,11 +796,16 @@ class InfoBuilder:
         else:
             field_type, initial = self._infer_type(arg, has_value, default)
             field_type = override.get('type') or field_type
+            if not field_type and override_initial is not _MISSING and arg.annotation is None:
+                from .qf_qjfield import type_of_value  # imported here: it pulls in qvars and pandas
+                field_type = type_of_value(override_initial)
             if field_type:
                 entry['type'] = field_type
 
         if override_initial is not _MISSING:
             initial = override_initial
+            if not (entry.get('type') or choices):
+                self.warnings.append(f"{arg.name}: initial override ignored, it needs a 'type' override")
         if initial is not _MISSING and (entry.get('type') or choices):
             entry['initial'] = initial
 
@@ -841,10 +848,9 @@ class InfoBuilder:
         if arg.annotation is not None:
             return None, _MISSING
         if has_value:
-            if self.explicit:
-                for py_type, field_type in ((bool, 'checkbox'), (float, 'float'), (int, 'integer')):
-                    if isinstance(default, py_type):
-                        return field_type, default
+            if self.explicit and isinstance(default, (bool, int, float)):
+                from .qf_qjfield import type_of_value  # imported here: it pulls in qvars and pandas
+                return type_of_value(default), default
         elif arg.is_toggle:
             return 'checkbox', False
         elif PERCENT_NAME.search(arg.name):
@@ -852,6 +858,8 @@ class InfoBuilder:
         elif CHOICE_NAME.search(arg.name):
             self.warnings.append(f"{arg.name}: looks like a choice but no choices were found, "
                                  "supply them with an override")
+        if not has_value and self.arg_type != qconst.DEFAULT_ARG_TYPE:
+            return self.arg_type, _MISSING
         return None, _MISSING
 
     # ----- other public keys
@@ -884,6 +892,9 @@ class InfoBuilder:
             spec['remember'] = False
         if to_bool(hints.get('table_out_all')):
             spec['table_out_all'] = True
+        out_schema = hints.get('out_schema')
+        if isinstance(out_schema, dict) and out_schema:  # {'result': 'map'} is short for {'result': {'type': 'map'}}
+            spec['out_schema'] = {k: {'type': v} if isinstance(v, str) else v for k, v in out_schema.items()}
 
     def _add_extra(self, spec):
         """Extra public keys as a dict literal, for keys without a dedicated hint (step2, autofill, ...)."""
@@ -918,16 +929,23 @@ class InfoBuilder:
 def build_info(source, overrides=None, hints=None, table_helpers=None):
     """Build a draft ``__info`` for the calculator described by ``source``.
 
-    ``overrides``: ``{arg: {...}}`` or a list of rows with an ``arg`` key. Supported keys are
+    ``overrides``: ``{arg: {...}}`` (``{arg: 'char'}`` is short for ``{arg: {'type': 'char'}}``) or a list of
+    rows with an ``arg`` key. Supported keys are
     ``label``, ``help_text``, ``choices`` (dict, list or ``'a=Label A, b=Label B'``), ``group`` (tab title),
-    ``show_when`` (``"controller == value"``, ``!=``, ``in a, b``), ``type`` and ``initial``.
+    ``show_when`` (``"controller == value"``, ``!=``, ``in a, b``), ``type`` and ``initial``
+    (without a ``type``, the type is derived from the value as qcalc does for a default, e.g. 17 -> integer).
 
     ``hints``: ``func_name``, ``title``, ``desc``, ``tags``, ``kins``, ``proper`` and ``calculate`` (button
     caption) are plain text. ``layout`` is ``'lr'`` or ``'tb'`` and ``tabs`` is ``False`` to disable or ``True``
     to force the tab layout. ``outputs`` is names (list or comma separated text) and ``output_groups`` is
     ``{tab: [output names]}``. ``scan_body=False`` skips body scans and ``explicit_defaults=True`` also writes
     type/initial for fields with a non-None default (qcalc derives them from the signature otherwise).
+    ``arg_type`` is the field type written for an argument with no annotation, no value in its default and no
+    ``type`` override, e.g. ``'char'`` for a library function that processes text; it defaults to
+    ``qconst.DEFAULT_ARG_TYPE``, which qcalc applies itself, so nothing is written for that type.
     ``interactive``, ``remember`` (written only when False) and ``table_out_all`` are flags.
+    ``out_schema`` is ``{result title: {'type': 'map', 'attrs': {...}}}``, where ``{'result': 'map'}`` is short
+    for ``{'result': {'type': 'map'}}``; a top-level dict returned by the function is titled ``result``.
     ``anyof`` is one group of argument names per line, ``images`` is ``{'top': paths, 'bottom': paths}``,
     ``onsubmit`` and ``script`` are JavaScript, and ``extra`` is a dict literal for the other public keys
     (``step2``, ``autofill``, ``related``, ``provides_data``, ...). A dict in ``extra`` is merged into the

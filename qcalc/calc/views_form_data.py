@@ -5,7 +5,7 @@ from calc import QMem, QPref, QCache, QKeep, QSave, QInput
 from .mod_cutil import *
 from qutil import HtmxHttpRequest, user_name, is_loggedin, user_ip, fchoices
 from qcore import csv2df, cell_count
-from qcore import qhidex, qtable, qtbl, QFile, qlist_types, QFieldHandler, QEncoderBase, QJField, convert_to_type, \
+from qcore import qhidex, qtable, qtbl, qmap, qtbl_to_dict, QFile, qlist_types, QFieldHandler, QEncoderBase, QJField, convert_to_type, \
     qinfo, qerror, qwarn
 import json
 from .mod_mfunc import func_meta, COMBINE_FINF, qfunc, q0164_execute_qfunc, QFuncArgs
@@ -147,7 +147,7 @@ def q11429_func_to_form_schema(request: HtmxHttpRequest, func_addr, func_id, cid
         # | precedence: 1. __info < 2 .json < 3. __input < 4. memory < (5. var_kwargs < 6. url_kwargs) i.e. var_url_kwargs < 7. posted value
         arg_type = sig_type if sig_type else inf_type
         arg_value = arg_value if arg_value is not None else inf_initial
-        if arg_type in [qtable, 'qtable', qtbl, 'qtbl']:
+        if arg_type in [qtable, 'qtable', qtbl, 'qtbl', qmap]:
             if request.fs.cmd == 'edit':
                 inf_class = 'table-in'
             elif request.fs.cmd == 'display':
@@ -244,7 +244,7 @@ def q11422_form_data_modify_after_post(request, func_id, sig_type, arg_name, arg
             arg_value = new_arg_value
             if func_id == 'collect':
                 QKeep.setp1('count', len(arg_value))
-        elif sig_type in (qtable, qtbl) and fs.cmd == 'load' and arg_name == fs.extra.get('to', ''):
+        elif sig_type in (qtable, qtbl, qmap) and fs.cmd == 'load' and arg_name == fs.extra.get('to', ''):
             # | loading table from csv file
             from_fld = fs.extra['from']
             delimiter_fld = fs.extra.get('delimiter', 'delimeter')
@@ -653,8 +653,8 @@ def q11441_data_for_function(request: HtmxHttpRequest):  # , kwargs):
                             request.json_d4f[name] = pd.DataFrame()
             else:
                 request.json_d4f[name] = None
-        elif request.json_s2f[i]['type'] == 'tbl':
-            # | qtbl: keep as plain dict, never build a DataFrame
+        elif request.json_s2f[i]['type'] in ('tbl', 'map'):
+            # | qtbl: keep as plain dict, never build a DataFrame; a map is turned into a dict of its Key/Value rows
             if value is not None:
                 if isinstance(value, dict):
                     request.json_d4f[name] = value
@@ -671,6 +671,8 @@ def q11441_data_for_function(request: HtmxHttpRequest):  # , kwargs):
                             request.json_d4f[name] = {'columns': [], 'data': []}
             else:
                 request.json_d4f[name] = None
+            if request.json_s2f[i]['type'] == 'map' and request.json_d4f[name] is not None:
+                request.json_d4f[name] = qtbl_to_dict(request.json_d4f[name])
         elif request.json_s2f[i]['type'] == 'c' and request.json_schema[i]['type'] == 'qty':
             ln = len(value)
             parts = []

@@ -13,7 +13,7 @@ import qutil as ut
 from calc.templatetags.qfilter import field_root
 from qcore import (
     QChart, QImage, QMap, Qty, QDateTime,
-    is_qtbl, QFormatter, qchat,
+    is_qtbl, QFormatter, qchat, qmap, MAP_COLUMNS,
     qhtml, qjson_dumps, qerror, qinfo,
     qpage, qwarn, qvstr, wrap_actions,
     TableAttrs,
@@ -201,6 +201,12 @@ def q1145_result_to_form_schema(request, func_id, cid, result, proper_dict):
     def join_title(t1, t2):
         return f"{t1} {t2}"
 
+    def is_map_result(name):
+        # a dict is a table when out_schema says {'type': 'map'} for its title; a top-level dict is titled 'result'
+        title = name or 'result'
+        names = (title, ut.title_to_variable(title, qconst.TOK_RESULT_SUFFIX))
+        return TableAttrs.out_type(request.json_doc['info'].get('out_schema'), names) == 'map'
+
     def process_result(result, name=''):
         if isinstance(result, set):
             result = list(result)
@@ -222,6 +228,9 @@ def q1145_result_to_form_schema(request, func_id, cid, result, proper_dict):
                 for value in result:
                     process_result(value, join_title(name, str(i + 1)) if lnr > 1 else name)
                     i += 1
+        elif isinstance(result, qmap) or (isinstance(result, dict) and not is_qtbl(result) and is_map_result(name)):
+            # Key/Value rows, not one result per key like a plain dict
+            rs_item(request, name or 'result', pd.DataFrame(list(result.items()), columns=MAP_COLUMNS))
         elif is_qtbl(result):
             if name == '':
                 name = 'result'

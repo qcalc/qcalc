@@ -48,23 +48,23 @@ def test_infogen_default_example_generates_valid_code():
     assert "'rate_pct'" in code
 
 
-def test_infogen_overrides_table_is_applied():
-    overrides = pd.DataFrame({
+def test_infogen_fields_table_is_applied():
+    fields = pd.DataFrame({
         'Argument': ['objective'],
         'Label': [''],
         'Help': ['Main goal'],
         'Choices': ['cost=Minimize Cost, service'],
-        'Group': [''],
+        'Tab': [''],
         'Show When': [''],
     })
-    code = _code(infogen(overrides=overrides))
+    code = _code(infogen(fields=fields))
 
     assert "'Main goal'" in code
     assert "'cost': 'Minimize Cost'" in code
 
 
 def test_infogen_reports_notes_and_errors():
-    result = infogen(source='def calc(unknown_type):', overrides=pd.DataFrame())
+    result = infogen(source='def calc(unknown_type):', fields=pd.DataFrame())
 
     assert 'Notes' in result
     assert str(infogen(source='def (:')).startswith('Error (CIF)')

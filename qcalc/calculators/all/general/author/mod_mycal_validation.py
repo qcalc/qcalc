@@ -213,6 +213,7 @@ _INFO_PROPERTY_SCHEMAS = {
         'additionalProperties': {
             'type': 'object',
             'properties': {
+                'type': {'enum': ['map']},
                 'attrs': {
                     'type': 'object',
                     'properties': {
@@ -269,20 +270,17 @@ def _validate_calculator_default_execution(local_dict, calculator_name):
     if not inspect.isfunction(function):
         raise ValueError(f"Calculator function '{calculator_name}' was not found.")
 
-    required = [
-        parameter.name
-        for parameter in inspect.signature(function).parameters.values()
-        if parameter.default is inspect.Parameter.empty
-           and parameter.kind in (
-               inspect.Parameter.POSITIONAL_ONLY,
-               inspect.Parameter.POSITIONAL_OR_KEYWORD,
-               inspect.Parameter.KEYWORD_ONLY,
-           )
-    ]
-    if required:
-        raise ValueError(
-            f"Cannot validate '{calculator_name}': required input(s): {', '.join(required)}."
+    has_required = any(
+        parameter.default is inspect.Parameter.empty
+        and parameter.kind in (
+            inspect.Parameter.POSITIONAL_ONLY,
+            inspect.Parameter.POSITIONAL_OR_KEYWORD,
+            inspect.Parameter.KEYWORD_ONLY,
         )
+        for parameter in inspect.signature(function).parameters.values()
+    )
+    if has_required:
+        return  # no defaults to run with; the user supplies inputs at run time
 
     try:
         function()

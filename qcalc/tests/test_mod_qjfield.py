@@ -160,6 +160,12 @@ def test_date_time_and_datetime_values_are_told_apart():
     assert _jf('x', None, datetime.datetime(2026, 1, 2, 3, 4)).jf['type'] == 'datetime'
 
 
+def test_standard_date_time_and_datetime_annotations_give_the_same_fields_as_the_q_types():
+    assert _jf('x', datetime.date, None).jf['type'] == 'date'
+    assert _jf('x', datetime.time, None).jf['type'] == 'time'
+    assert _jf('x', datetime.datetime, None).jf['type'] == 'datetime'  # a datetime is not taken as a date
+
+
 def test_an_unsupported_value_raises():
     with pytest.raises(TypeError, match='not supported'):
         _jf('x', None, {1, 2})
@@ -342,6 +348,36 @@ def test_an_empty_list_starts_with_one_empty_item():
     assert qjf.jf['initial'] == ''
     assert [c.name for c in qjf.jf_ex] == ['list_add_v', 'list_del_v']
 
+
+def test_a_plain_list_annotation_works_like_qlist_and_a_bare_list_holds_text():
+    bare = _jf('v', list, ['a', 'b'])
+    typed = _jf('v', list[int], [1, 2])
+
+    assert bare.s2f == {'type': 'qlist'}
+    assert bare.c4f == {'v': 2}
+    assert bare.jf['type'] == 'char'
+    assert typed.jf['type'] == 'integer'
+    assert typed.jf['attrs']['class'] == 'val'
+
+
+def test_a_dict_annotation_is_a_key_value_table_that_gives_a_dict():
+    qjf = _jf('m', dict, {'a': 1, 'b': 'x'})
+
+    assert qjf.s2f == {'type': 'map'}
+    assert qjf.jf['type'] == 'table'
+    assert qjf.jf['initial'] == {'columns': ['Key', 'Value'], 'data': [['a', 1], ['b', 'x']]}
+    assert _jf('m', dict[str, str], None).jf['initial'] == {'columns': ['Key', 'Value'], 'data': []}
+    posted = '{"columns": ["Key", "Value"], "data": []}'
+    assert _jf('m', dict, posted).jf['initial'] == posted  # a posted table is not converted again
+    assert _jf('d', qdict, {'a': 1}).s2f == {'type': ''}  # qdict still gives one field per key
+
+
+def test_an_unannotated_dict_value_is_a_key_value_table_too():
+    qjf = _jf('m', None, {'a': 1})
+
+    assert qjf.s2f == {'type': 'map'}
+    assert qjf.doc_info['table_in'] is True
+    assert qjf.jf['initial'] == {'columns': ['Key', 'Value'], 'data': [['a', 1]]}
 
 # dict and tables -------------------------------------------------------------------------------------------------
 

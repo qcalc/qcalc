@@ -59,6 +59,26 @@ def test_explicit_defaults_hint_writes_type_and_initial():
     assert 'name' not in schema
 
 
+def test_out_schema_hint_is_written_and_a_type_name_is_short_for_a_type_entry():
+    result = build_info('def calc(x=1.0):', hints={'out_schema': {'result': 'map', 'T': {'attrs': {'page_all': True}}}})
+
+    assert result.spec['out_schema'] == {'result': {'type': 'map'}, 'T': {'attrs': {'page_all': True}}}
+    assert 'out_schema' not in build_info('def calc(x=1.0):').spec
+
+
+def test_arg_type_hint_applies_to_arguments_without_a_value():
+    code = 'def calc(text, sep=None, n=3, name="a", ratio_pct: float = None):'
+    result = build_info(code, overrides={'text': {'label': 'Text'}, 'name': {'type': 'integer'}},
+                        hints={'arg_type': 'char'})
+    schema = result.spec['schema']
+
+    assert schema['text'] == {'type': 'char', 'label': 'Text'}
+    assert schema['sep'] == {'type': 'char'}
+    assert 'n' not in schema and 'ratio_pct' not in schema  # typed by default value / annotation
+    assert schema['name'] == {'type': 'integer'}  # a per-argument type wins
+    assert 'schema' not in build_info(code).spec  # float is qcalc's own fallback, nothing written
+
+
 def test_arguments_without_a_default_get_type_and_initial():
     result = build_info('def calc(use_extra, rate_pct, cap=None, label=None, plain=None):')
     schema = result.spec['schema']
@@ -76,6 +96,29 @@ def test_initial_override_is_ignored_when_signature_has_default():
     assert 'x' not in result.spec.get('schema', {})
     assert result.spec['schema']['y'] == {'type': 'float', 'initial': 7.0}
     assert any(w.startswith('x: initial override ignored') for w in result.warnings)
+
+
+def test_type_name_is_a_shorthand_override():
+    result = build_info('def calc(x, y=2.0):', overrides={'x': 'char'})
+
+    assert result.spec['schema']['x'] == {'type': 'char'}
+
+
+@pytest.mark.parametrize('initial, field_type', [
+    (17, 'integer'), (1.5, 'float'), (True, 'checkbox'), ('abc', 'text'), ('10:30', 'time'),
+])
+def test_initial_override_without_type_infers_it(initial, field_type):
+    result = build_info('def calc(x):', overrides={'x': {'initial': initial}})
+
+    assert result.spec['schema']['x'] == {'type': field_type, 'initial': initial}
+    assert not result.warnings
+
+
+def test_initial_override_that_cannot_be_typed_warns():
+    result = build_info('def calc(x):', overrides={'x': {'initial': '2 ft'}})
+
+    assert 'x' not in result.spec.get('schema', {})
+    assert any(w.startswith("x: initial override ignored, it needs a 'type'") for w in result.warnings)
 
 
 @pytest.mark.parametrize('source', [
@@ -171,7 +214,7 @@ def test_choices_scan_can_be_disabled():
 def test_overrides_win_and_accept_table_rows():
     rows = [
         {'Argument': 'objective', 'Choices': 'cost=Minimize Cost, service', 'Help': 'Main goal', 'Label': 'Goal'},
-        {'Argument': 'floor_pct', 'Show When': 'objective == cost', 'Group': 'Targets'},
+        {'Argument': 'floor_pct', 'Show When': 'objective == cost', 'Tab': 'Targets'},
         {'Argument': 'ghost', 'Help': 'unused'},
         {'Argument': 'objective', 'Label': float('nan')},
     ]

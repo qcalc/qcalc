@@ -10,6 +10,13 @@ QCALC_LAYOUTS = ['lr', 'tb']
 CODE_TAB = 4
 CHART_WIDTH = 800
 CHART_HEIGHT = 800
+DEFAULT_ARG_TYPE = 'float'  # field type of an argument with no annotation, schema type or default value
+# hints of qcalc() / build_info(): anything else is a misspelling; qcalc() also takes name and overrides
+QCALC_HINTS = frozenset((
+    'func_name', 'title', 'desc', 'calculate', 'tags', 'kins', 'proper', 'outputs', 'output_groups', 'layout',
+    'tabs', 'images', 'interactive', 'remember', 'anyof', 'onsubmit', 'script', 'extra', 'table_out_all',
+    'out_schema', 'scan_body', 'explicit_defaults', 'arg_type',
+))
 
 # Marker tokens used in nested function/dict metadata and script placeholders.
 DICT_CLASS_FUNC = '@'

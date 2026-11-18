@@ -5,10 +5,13 @@
 
 import ast
 import copy
+import difflib
 import inspect
 import re
 import sys
 from functools import lru_cache
+
+import qconst
 
 __all__ = ['qcalc', 'registered']
 
@@ -30,6 +33,10 @@ def qcalc(func=None, name=None, **hints):
         ast.literal_eval(hints_text)
     except (ValueError, SyntaxError):
         raise TypeError('Error (QCM): qcalc hints must be literal values') from None
+    allowed = qconst.QCALC_HINTS | {'overrides'}
+    for key in hints.keys() - allowed:
+        close = difflib.get_close_matches(key, allowed, n=1)
+        raise TypeError(f"Error (QCM): unknown qcalc hint '{key}'" + (f", did you mean '{close[0]}'?" if close else ''))
 
     def register(fn):
         if not inspect.isfunction(fn):

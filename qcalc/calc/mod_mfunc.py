@@ -2,7 +2,7 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 from .qcatalog.mod_qcals import QCals
-from qcore import qfunc, qdict
+from qcore import qfunc, qdict, as_qmap_annotation
 import copy
 import inspect
 from qconst import (
@@ -214,7 +214,7 @@ def get_fdef(func_addr, func_id):
 
     def get_fanns(func_addr):  # annotations
         params = list(inspect.signature(func_addr).parameters.values())
-        anns = {v.name: None if v.annotation == inspect._empty else v.annotation
+        anns = {v.name: as_qmap_annotation(None if v.annotation == inspect._empty else v.annotation, v.default)
                 for v in params}
         return anns
 

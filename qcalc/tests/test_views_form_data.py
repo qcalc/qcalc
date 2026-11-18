@@ -199,6 +199,22 @@ def test_a_qtbl_stays_a_plain_dict():
     assert request.json_d4f['v'] is None
 
 
+def test_a_key_value_table_becomes_a_dict_and_blank_rows_are_dropped():
+    table = {'columns': ['Key', 'Value'], 'data': [['a', 1], ['', ''], ['b', 'x']]}
+    request = _d4f_request({'m': json.dumps(table), 'n': None}, [{'type': 'map'}] * 2)
+
+    q11441_data_for_function(request)
+
+    assert request.json_d4f == {'m': {'a': 1, 'b': 'x'}, 'n': None}
+
+
+def test_a_key_value_row_without_a_key_is_an_error():
+    request = _d4f_request({'m': {'columns': ['Key', 'Value'], 'data': [['', 5]]}}, [{'type': 'map'}])
+
+    with pytest.raises(ValueError, match='needs a key'):
+        q11441_data_for_function(request)
+
+
 @pytest.mark.parametrize('value', ['', 'null', 'bad json', '[1, 2]'])
 def test_an_empty_invalid_or_non_dict_qtbl_text_becomes_an_empty_table_dict(value):
     request = _d4f_request({'t': value}, [{'type': 'tbl'}])

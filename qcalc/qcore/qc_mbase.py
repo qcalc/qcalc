@@ -2,6 +2,7 @@
 # Copyright (c) 2024-2026 Debasish C Saha
 
 from qutil import sort_by_val, category_slug
+from qcore.qc_power import _format_power_expression
 import re
 
 _base_names = ['m', 'kg', 's', 'A', 'K', 'mol', 'cd', 'rad', 'sr', 'USD']  # SI, MKS
@@ -160,40 +161,35 @@ def dim_to_bname(dim, unames):  # unames can be either _base_names or _conv_name
     return uname
 
 
-def powers_to_bname_lmt(powers, unames):  # unames can be either _base_names or _conv_names
-    p1 = ''
-    p2 = ''
-    lmt = ''
-    for i, p in enumerate(powers):
-        if p == 0:
+def _powers_to_bnames_lmt(powers, name_sets):
+    """Render every unit-name set and the dimension in one pass over ``powers``."""
+    terms_by_name_set = [[] for _ in name_sets]
+    lmt_parts = []
+    for i, power in enumerate(powers):
+        if power == 0:
             continue
-        elif p == 1:
-            p1 += '*' + unames[i]
-            lmt += _base_dimensions[i]
-        elif p == -1:
-            p2 += '/' + unames[i]
-            lmt += _base_dimensions[i] + '-1'
-        elif p > 1:
-            p1 += '*' + unames[i] + '^' + str(p)
-            lmt += _base_dimensions[i] + str(p)
-        elif p < -1:
-            p2 += '/' + unames[i] + '^' + str(abs(p))
-            lmt += _base_dimensions[i] + str(p)
+        if power == 1:
+            lmt_power = ''
+        elif power == -1:
+            lmt_power = '-1'
+        elif power > 1 or power < -1:
+            lmt_power = str(power)
+        else:
+            continue
 
-    # strip off the trailing blank if any
-    lmt = lmt.strip()
-    if lmt == '': lmt = '0'
-    if p1 != '':
-        p1 = p1[1:]  # remove the . from the start
-    if p1 == '' and p2 == '':
-        bn = ''
-    elif p2 == '':
-        bn = p1
-    elif p1 == '':
-        bn = '1' + p2
-    else:
-        bn = p1 + p2
-    return bn, lmt
+        lmt_parts.append(_base_dimensions[i] + lmt_power)
+        for unames, terms in zip(name_sets, terms_by_name_set):
+            terms.append((unames[i], power))
+
+    bnames = [
+        _format_power_expression(terms, dimensionless='')
+        for terms in terms_by_name_set
+    ]
+    return (*bnames, ''.join(lmt_parts) or '0')
+
+
+def powers_to_bname_lmt(powers, unames):  # unames can be either _base_names or _conv_names
+    return _powers_to_bnames_lmt(powers, (unames,))
 
 
 _prefixes = [

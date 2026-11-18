@@ -13,7 +13,7 @@ qsett.init()
 from qutil.mod_basic import (
     category_slug, css2strs, curdir_fullpath, doctrim,
     docstring_to_html, fchoices, iif, joinx, key_val, nzs, parameter_values, replace_parameter_values,
-    replace_variables, replace_words, show_when, sort_by_val, truncate, when_show, xpr_coeffs,
+    replace_variables, replace_words, show_when, showhide_condition, sort_by_val, truncate, when_show, xpr_coeffs,
 )
 from qcore.qd_basic import css2floats, css2ints, css2set, css2values, nzv, vals2css
 
@@ -37,9 +37,29 @@ def test_show_when_field_to_values():
     assert show_when({'only': 'x'})['callback'] == "@==='x'"
 
 
+@pytest.mark.parametrize('op, values, expected', [
+    ('==', ['x'], "@==='x'"),
+    ('!=', ['x'], "@!=='x'"),
+    ('in', ['x', 'y'], "['x', 'y'].indexOf(@) >= 0"),
+    ('not in', ['x', 'y'], "['x', 'y'].indexOf(@) < 0"),
+    ('==', [True], '@'),
+    ('!=', [True], '!@'),
+    ('==', [False], '!@'),
+    ('!=', [False], '@'),
+])
+def test_showhide_condition_operators(op, values, expected):
+    assert showhide_condition(op, values) == expected
+
+
+def test_showhide_condition_rejects_unknown_operator():
+    with pytest.raises(ValueError, match='unsupported showhide operator'):
+        showhide_condition('>', ['x'])
+
+
 def test_showhide_values_are_quoted_and_validated():
     assert show_when({'f': "O'Neil"})['callback'] == "@==='O\\'Neil'"
     assert show_when({'f': 1})['callback'] == "@==='1'"  # choice values are always strings
+    assert show_when({'f': 'true'})['callback'] == "@==='true'"
     with pytest.raises(ValueError):
         show_when({'f': 'a@b'})
     with pytest.raises(ValueError):

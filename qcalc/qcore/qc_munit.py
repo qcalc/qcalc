@@ -5,35 +5,14 @@
 
 from __future__ import annotations
 from typing import Dict
-from qcore.qc_mbase import _base_categories, _base_names, _conv_names, powers_to_bname_lmt, _prefix_list
-
-
-def _format_power_expression(items, sort_key=None):
-    ordered_items = list(items)
-    if sort_key is not None:
-        ordered_items = sorted(ordered_items, key=sort_key)
-
-    num_parts = []
-    denom_parts = []
-    for name, power in ordered_items:
-        if power == 0:
-            continue
-        if power < 0:
-            denom_parts.append(_render_power_term(name, -power))
-        else:
-            num_parts.append(_render_power_term(name, power))
-
-    num = "*".join(num_parts) if num_parts else "1"
-    denom = "" if not denom_parts else "/" + "/".join(denom_parts)
-    return num + denom
-
-
-def _render_power_term(name, power):
-    if name == "1":
-        return "1"
-    if power == 1:
-        return name
-    return f"{name}^{power}"
+from qcore.qc_mbase import (
+    _base_categories,
+    _base_names,
+    _conv_names,
+    _powers_to_bnames_lmt,
+    _prefix_list,
+)
+from qcore.qc_power import _format_power_expression
 
 
 class MeasureUnit:
@@ -52,8 +31,9 @@ class MeasureUnit:
         self.powers = list(powers)
         # deb@19.08.23: base_name, dimension, base_qty, category
         # ft/s^2, L T-2, 0.3048 m/s^2, Acceleration
-        self.base_name, self.dimension = powers_to_bname_lmt(self.powers, _base_names)
-        self.conv_name, self.dimension = powers_to_bname_lmt(self.powers, _conv_names)
+        self.base_name, self.conv_name, self.dimension = _powers_to_bnames_lmt(
+            self.powers, (_base_names, _conv_names)
+        )
         self.base_qty = f"{self.factor} {self.base_name}"
         self.category = _base_categories.get(self.dimension, "")
 

@@ -32,6 +32,24 @@ class TestMeasureUnitInterface(unittest.TestCase):
         self.assertEqual(unit.powers[0], 1)
         self.assertEqual(unit.category, "Length, Wavelength")
 
+    def test_base_and_conventional_names_share_one_dimension(self):
+        unit = MeasureUnit(
+            {"m": 2, "kg": 1, "s": -2, "mol": -1},
+            1.0,
+            [2, 1, -2, 0, 0, -1, 0, 0, 0, 0],
+        )
+
+        self.assertEqual(unit.base_name, "m^2*kg/s^2/mol")
+        self.assertEqual(unit.conv_name, "ft^2*lb/min^2/mol")
+        self.assertEqual(unit.dimension, "L2MT-2N-1")
+
+    def test_denominator_only_base_names_keep_leading_one(self):
+        inverse_second = self._make_time_unit("s", 1.0) ** -1.0
+
+        self.assertEqual(inverse_second.base_name, "1/s")
+        self.assertEqual(inverse_second.conv_name, "1/min")
+        self.assertEqual(inverse_second.dimension, "T-1")
+
     def test_composition_and_dimension_handling(self):
         meter = self._make_length_unit("m", 1.0)
         second = self._make_time_unit("s", 1.0)
@@ -51,6 +69,9 @@ class TestMeasureUnitInterface(unittest.TestCase):
         unitless = meter / meter
         self.assertTrue(unitless.is_dimensionless())
         self.assertEqual(unitless.name(), "1")
+        self.assertEqual(unitless.base_name, "")
+        self.assertEqual(unitless.conv_name, "")
+        self.assertEqual(unitless.dimension, "0")
 
     def test_compatibility_and_conversion_factor(self):
         meter = self._make_length_unit("m", 1.0)

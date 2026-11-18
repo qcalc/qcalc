@@ -60,6 +60,7 @@ class QFieldHandler:
         self.proper_dict = proper_dict
         pref = request_prefs()
         self.uom_subset = pref.get('uom_subset_enabled', False)
+        self._field_builder_cache = self._field_builders()
 
         i = -1
         for field_meta in json_schema:
@@ -140,7 +141,7 @@ class QFieldHandler:
         field.help_inline = meta.get('help_inline', '')
 
     def _get_field_builder(self, type_key, field_name):
-        builder = self._field_builders().get(type_key)
+        builder = self._field_builder_cache.get(type_key)
         if builder is None:
             raise ValueError(f"Unknown field type '{type_key}' for '{field_name}'")
         return builder

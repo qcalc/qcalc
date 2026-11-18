@@ -263,6 +263,16 @@ def test_show_when_rule_forms():
     assert any("cannot contain '@'" in w for w in result.warnings)
 
 
+def test_show_when_negative_boolean_rules():
+    overrides = {
+        'a': {'show_when': 'flag != true'},
+        'b': {'show_when': 'flag != false'},
+    }
+    result = build_info('def calc(flag=False, a=1.0, b=1.0):', overrides=overrides)
+
+    assert result.spec['showhide']['flag'] == {'fields': ['a', 'b'], 'callback': '[!@, @]'}
+
+
 def test_rules_and_toggle_groups_share_one_controller():
     overrides = {'extra_note': {'show_when': 'use_extra == false'}}
     result = build_info('def calc(use_extra=False, extra_cost=1.0, extra_note="", extra_rate=1.0):',

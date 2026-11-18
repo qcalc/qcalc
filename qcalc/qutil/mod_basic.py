@@ -357,22 +357,38 @@ def _as_list(item) -> list:
     return list(item) if isinstance(item, (list, tuple)) else [item]
 
 
-def _showhide_condition(values: list) -> str:
-    """Inline JS condition, true when the controlling field's value is one of ``values``.
+def showhide_condition(op: str, values: list) -> str:
+    """Build an inline JavaScript condition for a show/hide callback.
 
-    ``values`` are strings (choice values) or bools (a checkbox).
+    ``op`` must be ``'=='``, ``'!='``, ``'in'``, or ``'not in'``. Boolean
+    values use the controlling field directly; other values are escaped as
+    JavaScript strings.
     """
+    if op not in ('==', '!=', 'in', 'not in'):
+        raise ValueError(f'unsupported showhide operator: {op}')
+    if not values:
+        raise ValueError('showhide values cannot be empty')
+
     var = qconst.SCRIPT_RUNTIME_VAR
     if all(isinstance(v, bool) for v in values):
-        return var if values[0] else '!' + var
+        return var if values[0] == (op in ('==', 'in')) else '!' + var
     if any(isinstance(v, bool) for v in values):
         raise ValueError(f'showhide values cannot mix booleans and strings: {values}')
+
     values = [str(v) for v in values]
     if any(var in v for v in values):
         raise ValueError(f"showhide values cannot contain '{var}': {values}")
-    if len(values) == 1:
-        return f'{var}==={js_string(values[0])}'
-    return f"[{', '.join(js_string(v) for v in values)}].indexOf({var}) >= 0"
+
+    literals = [js_string(v) for v in values]
+    if op in ('==', '!='):
+        js_op = '===' if op == '==' else '!=='
+        return f'{var}{js_op}{literals[0]}'
+    return f"[{', '.join(literals)}].indexOf({var}) {'< 0' if op == 'not in' else '>= 0'}"
+
+
+def _showhide_condition(values: list) -> str:
+    op = '==' if len(values) == 1 else 'in'
+    return showhide_condition(op, values)
 
 
 def _showhide_entry(fields: list, conditions: list) -> dict:

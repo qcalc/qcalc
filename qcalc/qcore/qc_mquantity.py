@@ -10,7 +10,8 @@ import numpy as np
 import qconst
 
 from qcore.qc_mbase import _base_names
-from qcore.qc_munit import _format_power_expression, isMeasureUnit
+from qcore.qc_munit import isMeasureUnit
+from qcore.qc_power import _format_power_expression
 from qcore.qc_units import UnitRegistry
 
 

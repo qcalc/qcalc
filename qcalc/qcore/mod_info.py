@@ -33,7 +33,7 @@ from dataclasses import dataclass, field
 import qconst
 from .qd_basic import css2list
 from .qd_data import is_blank, to_bool
-from qutil.mod_basic import js_string
+from qutil.mod_basic import showhide_condition
 from qutil.mod_func import variable_to_title
 from .mod_info_keys import INTERNAL_KEYS, LEGACY_KEYS, PUBLIC_KEYS
 
@@ -444,15 +444,11 @@ def _common_prefix_token(table_args):
 # A list of expressions gives the visibility of each field in 'fields' one by one.
 
 def _inline_condition(op, values):
-    lowered = [v.lower() for v in values]
-    if op in ('==', '!=') and lowered[0] in ('true', 'false'):
-        return '@' if (lowered[0] == 'true') == (op == '==') else '!@'
-    literals = [js_string(v) for v in values]
-    if op == '==':
-        return f'@==={literals[0]}'
-    if op == '!=':
-        return f'@!=={literals[0]}'
-    return f"[{', '.join(literals)}].indexOf(@) {'< 0' if op == 'not in' else '>= 0'}"
+    # Rules represent checkbox values as text; qutil helpers use real booleans.
+    lowered = values[0].lower()
+    if op in ('==', '!=') and lowered in ('true', 'false'):
+        values = [lowered == 'true']
+    return showhide_condition(op, values)
 
 
 # --------------------------------------------------------------------------- other public keys
